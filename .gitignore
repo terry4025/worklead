@@ -61,3 +61,7 @@ logs/
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Tauri generated schemas (tauri-build output)
+/desktop/src-tauri/gen/
+/backend/.devdata/

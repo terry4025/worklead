@@ -30,10 +30,10 @@ class Worker(threading.Thread):
         self.app = app
         self.kinds = kinds
         self.owner = f"{name}-{os.getpid()}"
-        self._stop = threading.Event()
+        self._halt = threading.Event()
 
     def stop(self) -> None:
-        self._stop.set()
+        self._halt.set()
 
     def run_once(self) -> bool:
         run = runs.claim_next(self.app.db, self.owner, self.kinds, self.app.config.lease_seconds)
@@ -46,13 +46,13 @@ class Worker(threading.Thread):
         return True
 
     def run(self) -> None:
-        while not self._stop.is_set():
+        while not self._halt.is_set():
             try:
                 if not self.run_once():
-                    self._stop.wait(self.app.config.worker_poll_seconds)
+                    self._halt.wait(self.app.config.worker_poll_seconds)
             except Exception:  # noqa: BLE001
                 log.exception("worker loop error")
-                self._stop.wait(5)
+                self._halt.wait(5)
 
 
 def schedule_due(app: AppContext) -> list[str]:
@@ -105,20 +105,20 @@ class Scheduler(threading.Thread):
     def __init__(self, app: AppContext):
         super().__init__(name="scheduler", daemon=True)
         self.app = app
-        self._stop = threading.Event()
+        self._halt = threading.Event()
 
     def stop(self) -> None:
-        self._stop.set()
+        self._halt.set()
 
     def run(self) -> None:
-        while not self._stop.is_set():
+        while not self._halt.is_set():
             try:
                 runs.recover_expired(self.app.db)
                 schedule_due(self.app)
                 housekeeping(self.app)
             except Exception:  # noqa: BLE001
                 log.exception("scheduler error")
-            self._stop.wait(self.app.config.scheduler_interval_seconds)
+            self._halt.wait(self.app.config.scheduler_interval_seconds)
 
 
 class Workers:

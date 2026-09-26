@@ -45,9 +45,7 @@ function Row({ label, children, evidence, onShow }: { label: string; children: R
               {open ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
               근거 {n}
             </button>
-          ) : (
-            <span className="evidence-none">근거 없음</span>
-          )}
+          ) : null}
         </div>
         {open && evidence ? <EvidenceList items={evidence} onShow={onShow} /> : null}
       </dd>

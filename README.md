@@ -2,7 +2,7 @@
 
 원격으로 수행할 수 있는 개발 외주·업무 자동화 의뢰를 발견하고 검토하는 Windows 데스크톱 제품입니다.
 
-현재는 **저장소 초기 설정 단계**입니다. 아래 기술 구성과 기능은 개발 기준이며, 실행 코드·API 계약·수집기·설치 패키지는 아직 구현되지 않았습니다.
+현재 상태: 백엔드(수집 엔진·분석·로컬 API), 공통 계약, 데스크톱 화면, Tauri 셸이 구현되어 있습니다. **당근알바 자동 수집은 사이트 조사·정책 확인 전이라 잠겨 있으며**(`permission_pending`), 수동 입력으로 분석할 수 있습니다. 구현·검증·미검증·차단 항목은 [docs/STATUS.md](docs/STATUS.md)에 구분해 두었습니다.
 
 ## 제품 범위
 
@@ -24,7 +24,40 @@
 | `scripts/` | 재현 가능한 개발·빌드·패키징 스크립트 |
 | `docs/` | 요구사항, 설계, 조사 근거 및 검증 기록 |
 
-현재 각 구현 디렉터리에는 자리표시자만 있습니다. 라이브러리 버전과 잠금 파일은 개발 환경 검증 후 확정합니다. 최종 사용자는 Python·Node.js·Docker·DB 서버를 별도로 설치하지 않고 Windows 설치 프로그램으로 실행할 수 있도록 개발합니다.
+최종 사용자는 Python·Node.js·Docker·DB 서버를 별도로 설치하지 않고 Windows 설치 프로그램으로 실행하도록 개발합니다. 라이브러리 버전은 `backend/uv.lock`, `desktop/package-lock.json`, `desktop/src-tauri/Cargo.lock` 으로 고정합니다.
+
+## 개발·검증 명령
+
+```bash
+# 백엔드 (Python 3.11–3.13, uv)
+cd backend && uv sync && uv run pytest
+
+# 화면 (Node 22+)
+cd desktop && npm ci && npm run typecheck && npm test
+npm run dev                 # 브라우저 데모 모드: http://127.0.0.1:5173 (?scenario=partial 등)
+
+# 실제 백엔드와 함께 (데모 DB)
+scripts/dev.sh
+
+# 계약 재생성 (OpenAPI · 스키마 · fixture · TS 타입)
+scripts/gen-contracts.sh
+
+# Windows 설치 파일 (Windows 개발 PC, Rust MSVC 필요)
+powershell -ExecutionPolicy Bypass -File scripts\build-windows.ps1
+```
+
+## 문서
+
+| 문서 | 내용 |
+| --- | --- |
+| [docs/STATUS.md](docs/STATUS.md) | 구현 완료 / 검증 / 미검증 / 외부 제약 |
+| [docs/BACKEND_PRD.md](docs/BACKEND_PRD.md) | 범위·판정 규칙·완료 기준 |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 구성·수집 흐름·전국 순환·ERD·분석 |
+| [docs/INTEGRATION.md](docs/INTEGRATION.md) | 화면 ↔ 로컬 API 계약 |
+| [docs/SOURCE_RESEARCH.md](docs/SOURCE_RESEARCH.md) | 당근알바 조사 기록과 미확인 항목 |
+| [docs/SOURCE_ADAPTER_GUIDE.md](docs/SOURCE_ADAPTER_GUIDE.md) | 새 사이트 추가 방법 |
+| [docs/OPERATIONS.md](docs/OPERATIONS.md) | 데이터 위치·장애 대응·백업·복원 |
+| [docs/DESIGN.md](docs/DESIGN.md) | 화면 설계 |
 
 ## 개발 순서
 
@@ -44,7 +77,7 @@ cd worklead
 git switch -c feat/your-change
 ```
 
-기본 브랜치는 `main`입니다. 기능 변경은 작업 브랜치에서 진행하고 PR에 변경 범위와 실제 검증 결과를 기록합니다. 아직 실행·빌드 명령이나 CI는 제공하지 않습니다.
+기본 브랜치는 `main`입니다. 기능 변경은 작업 브랜치에서 진행하고 PR에 변경 범위와 실제 검증 결과를 기록합니다. CI 는 아직 없습니다 (위 검증 명령을 직접 실행).
 
 ## 보안 및 데이터 관리 기준
 

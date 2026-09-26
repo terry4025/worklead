@@ -22,12 +22,17 @@ from pathlib import Path
 from typing import Any
 
 import uvicorn
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
+from .analysis.rules import RULE_VERSION
 from .api.app import create_app
 from .config import APP_VERSION, RuntimeConfig
 from .context import AppContext
 from .db import Database
+from .engine import runs
 from .engine.worker import Workers
+from .models import ScoreBreakdown
 from .services.settings import get_profile_row
 from .sources.registry import default_adapters, sync_sources
 from .storage import migrate
@@ -124,7 +129,16 @@ def build_context(cfg: RuntimeConfig, *, adapters: dict[str, object] | None = No
     with db.session() as s:
         sync_sources(s, adapters)
         get_profile_row(s)
+        queue_reanalysis_if_rules_changed(s)
     return AppContext(config=cfg, db=db, adapters=adapters, token=token or secrets.token_urlsafe(32))
+
+
+def queue_reanalysis_if_rules_changed(s: Session) -> bool:
+    """앱 업데이트로 판정 규칙이 바뀌었으면 기존 리드를 다시 판정한다 (규칙 버전당 한 번). 사용자 상태·메모는 유지된다."""
+    if s.scalar(select(ScoreBreakdown.id).where(ScoreBreakdown.rule_version != RULE_VERSION).limit(1)) is None:
+        return False
+    _, created = runs.enqueue(s, "reanalyze_all", trigger="schedule", idempotency_key=f"reanalyze_all:rules:{RULE_VERSION}")
+    return created
 
 
 def _emit_line(obj: dict[str, Any]) -> None:

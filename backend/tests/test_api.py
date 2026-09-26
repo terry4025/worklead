@@ -8,14 +8,16 @@ import json
 from pathlib import Path
 
 import pytest
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 
 from tests.conftest import TOKEN, client_for, make_ctx
 from worklead.analysis.provider import AIFailure, AIOutput
+from worklead.analysis.rules import RULE_VERSION
 from worklead.engine import runs
 from worklead.engine.pipeline import ingest
 from worklead.engine.worker import Worker
-from worklead.models import AnalysisResult, Lead, SourceRecord
+from worklead.models import AnalysisResult, Lead, ScoreBreakdown, SourceRecord
+from worklead.server import queue_reanalysis_if_rules_changed
 from worklead.services.demo import seed
 from worklead.sources.base import ParsedPost
 from worklead.storage import backup_database, current_revision, head_revision, integrity_ok, restore_database
@@ -237,6 +239,25 @@ def test_profile_change_queues_reanalysis(demo) -> None:
     kinds = [x["kind"] for x in c.get("/v1/runs").json()["items"]]
     assert "reanalyze_all" in kinds
     assert "key" not in json.dumps(r.json()["ai"]).replace("key_configured", "")
+
+
+def test_rule_update_requeues_reanalysis_once(demo) -> None:
+    ctx, c = demo
+    drain(ctx)
+    lid = c.get("/v1/leads", params={"queue": "all"}).json()["items"][0]["id"]
+    c.patch(f"/v1/leads/{lid}", json={"memo": "내 메모", "user_mark": "interested"})
+    with ctx.db.session() as s:
+        assert not queue_reanalysis_if_rules_changed(s)  # 규칙이 같으면 다시 판정하지 않는다
+        s.execute(update(ScoreBreakdown).values(rule_version="rules-old"))
+    with ctx.db.session() as s:
+        assert queue_reanalysis_if_rules_changed(s)
+    with ctx.db.session() as s:
+        assert not queue_reanalysis_if_rules_changed(s)  # 같은 규칙 버전으로는 한 번만
+    drain(ctx)
+    with ctx.db.session() as s:
+        assert set(s.scalars(select(ScoreBreakdown.rule_version))) == {RULE_VERSION}
+    d = c.get(f"/v1/leads/{lid}").json()
+    assert d["memo"] == "내 메모" and d["user_mark"] == "interested"
 
 
 # ── 이벤트 스트림 ───────────────────────────────────────────────────

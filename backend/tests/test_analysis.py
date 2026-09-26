@@ -79,6 +79,17 @@ def test_address_alone_does_not_mean_onsite() -> None:
     assert a.judgements["work_mode"].value == "unknown"
 
 
+def test_form_workplace_is_inferred_onsite_unless_body_says_remote() -> None:
+    cond = "\n\n— 구인 양식 표시 조건 —\n근무지 유형: 사업장 (서울특별시 강남구)\n고용 형태: 알바"
+    a = run("웹개발 알바", "쇼핑몰 상세페이지 코딩 가능한 분 구합니다." + cond)
+    w = a.judgements["work_mode"]
+    assert (w.value, w.basis) == ("onsite", "inferred")
+    assert a.recommendation == "excluded" and any("출근 근무로 보임" in r.text for r in a.reasons)
+    # 본문에 재택이 명시되면 양식 근무지보다 본문을 따른다
+    b = run("웹개발 알바", "쇼핑몰 상세페이지 코딩. 재택 가능합니다." + cond)
+    assert b.judgements["work_mode"].value == "fully_remote"
+
+
 # ── 사례 6: 판매자 홍보 vs 의뢰 ─────────────────────────────────────
 def test_seller_vs_buyer() -> None:
     seller = run("홈페이지 만들어드립니다", "홈페이지 만들어드립니다. 저렴하게 빠르게.")

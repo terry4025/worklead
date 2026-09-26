@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dd3e25e8407c41d994",
+  "id": "lead_01a0dd4ceeaeb2ecce00c8",
   "source_id": "demo-synthetic",
   "title": "온라인 쇼핑몰 CS·상품등록 직원 (주 5일 출근)",
   "categories": [
@@ -37,13 +37,13 @@
   "access_status": "accessible",
   "analysis_status": "rules_only",
   "recheck_due": false,
-  "last_checked_at": "2026-09-26T03:23:52.599099Z",
+  "last_checked_at": "2026-09-26T03:40:01.506736Z",
   "published": {
-    "at": "2026-09-24T18:23:52.599099Z",
+    "at": "2026-09-24T18:40:01.506736Z",
     "precision": "exact",
     "raw": null
   },
-  "first_seen_at": "2026-09-24T20:23:52.599099Z",
+  "first_seen_at": "2026-09-24T20:40:01.506736Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -77,7 +77,7 @@
   "has_memo": false,
   "active_job": null,
   "body_text": "온라인 쇼핑몰 상품 등록과 고객 문의 응대 업무입니다.\n근무지: 경기 김포시 사무실 (주 5일 출근)\n월급 230만원, 4대보험.",
-  "body_retained_until": "2026-10-24T20:23:52.599099Z",
+  "body_retained_until": "2026-10-24T20:40:01.506736Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -87,7 +87,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-24T20:23:52.599099Z",
+  "last_seen_at": "2026-09-24T20:40:01.506736Z",
   "work_period": {
     "start": {
       "at": null,
@@ -101,41 +101,9 @@
     }
   },
   "evidence": {
-    "work_mode": [
-      {
-        "id": "ev_01a0dd3e25f0531fd4ec36",
-        "quote": "근무지: 경기 김포시 사무실 (주 5일 출근)",
-        "span": {
-          "start": 31,
-          "end": 56
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T10:23:52.599099Z",
-        "source_record_id": "rec_01a0dd3e25e7a4f47db974",
-        "version": "rules-2026.09.6",
-        "note": null
-      }
-    ],
-    "engagement_type": [
-      {
-        "id": "ev_01a0dd3e25f05db0388e40",
-        "quote": "월급 230만원, 4대보험.",
-        "span": {
-          "start": 57,
-          "end": 72
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T10:23:52.599099Z",
-        "source_record_id": "rec_01a0dd3e25e7a4f47db974",
-        "version": "rules-2026.09.6",
-        "note": null
-      }
-    ],
     "demand_intent": [
       {
-        "id": "ev_01a0dd3e25f0e04c5b4ec8",
+        "id": "ev_01a0dd4ceeb679a3dd577e",
         "quote": "월급 230만원, 4대보험.",
         "span": {
           "start": 57,
@@ -143,15 +111,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T10:23:52.599099Z",
-        "source_record_id": "rec_01a0dd3e25e7a4f47db974",
-        "version": "rules-2026.09.6",
+        "observed_at": "2026-09-26T10:40:01.506736Z",
+        "source_record_id": "rec_01a0dd4ceead8ecd4cf537",
+        "version": "rules-2026.09.7",
         "note": null
       }
     ],
     "pay": [
       {
-        "id": "ev_01a0dd3e25f0e26d8324f4",
+        "id": "ev_01a0dd4ceeb67b3a3b6d9e",
         "quote": "월급 230만원, 4대보험.",
         "span": {
           "start": 57,
@@ -159,15 +127,31 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T10:23:52.599099Z",
-        "source_record_id": "rec_01a0dd3e25e7a4f47db974",
-        "version": "rules-2026.09.6",
+        "observed_at": "2026-09-26T10:40:01.506736Z",
+        "source_record_id": "rec_01a0dd4ceead8ecd4cf537",
+        "version": "rules-2026.09.7",
         "note": null
       }
     ],
-    "collaboration_mode": [
+    "engagement_type": [
       {
-        "id": "ev_01a0dd3e25f0f35f4dd22c",
+        "id": "ev_01a0dd4ceeb68bd21e89b5",
+        "quote": "월급 230만원, 4대보험.",
+        "span": {
+          "start": 57,
+          "end": 72
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T10:40:01.506736Z",
+        "source_record_id": "rec_01a0dd4ceead8ecd4cf537",
+        "version": "rules-2026.09.7",
+        "note": null
+      }
+    ],
+    "work_mode": [
+      {
+        "id": "ev_01a0dd4ceeb69f2edba41f",
         "quote": "근무지: 경기 김포시 사무실 (주 5일 출근)",
         "span": {
           "start": 31,
@@ -175,9 +159,25 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T10:23:52.599099Z",
-        "source_record_id": "rec_01a0dd3e25e7a4f47db974",
-        "version": "rules-2026.09.6",
+        "observed_at": "2026-09-26T10:40:01.506736Z",
+        "source_record_id": "rec_01a0dd4ceead8ecd4cf537",
+        "version": "rules-2026.09.7",
+        "note": null
+      }
+    ],
+    "collaboration_mode": [
+      {
+        "id": "ev_01a0dd4ceeb6f5bb61d776",
+        "quote": "근무지: 경기 김포시 사무실 (주 5일 출근)",
+        "span": {
+          "start": 31,
+          "end": 56
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T10:40:01.506736Z",
+        "source_record_id": "rec_01a0dd4ceead8ecd4cf537",
+        "version": "rules-2026.09.7",
         "note": null
       }
     ]
@@ -225,7 +225,7 @@
       "score": 0,
       "reasons": []
     },
-    "rule_version": "rules-2026.09.6"
+    "rule_version": "rules-2026.09.7"
   },
   "analysis": {
     "status": "rules_only",
@@ -250,8 +250,8 @@
     "next_action": "검토 불필요",
     "conversion_opportunity": null,
     "engine": "rules",
-    "version": "rules-2026.09.6",
-    "analyzed_at": "2026-09-24T20:23:52.599099Z",
+    "version": "rules-2026.09.7",
+    "analyzed_at": "2026-09-24T20:40:01.506736Z",
     "failure": null
   },
   "risks": [],
@@ -274,14 +274,14 @@
       "region_scope": "경기 김포시",
       "region_label": "경기 김포시",
       "query_group": "demo",
-      "first_seen_at": "2026-09-24T20:23:52.599099Z",
-      "last_seen_at": "2026-09-24T20:23:52.599099Z",
+      "first_seen_at": "2026-09-24T20:40:01.506736Z",
+      "last_seen_at": "2026-09-24T20:40:01.506736Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-24T20:23:52.599099Z",
+      "at": "2026-09-24T20:40:01.506736Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

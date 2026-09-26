@@ -57,8 +57,8 @@ def test_lists_prefilter_details_and_judge_short_gigs(tmp_path: Path) -> None:
     run = run_discovery(ctx)
     assert run.state == "succeeded", (run.state, run.error_code, run.error_message)
     details = sorted(p.rsplit("/", 1)[-1] for p in behavior.requests if p.startswith("/jobs/detail/"))
-    # 교육생 모집 광고·연봉제·IT 무관 재택(상담) 공고는 상세를 요청하지 않는다
-    assert details == ["900001", "900004", "900006"]
+    # 교육생 모집 광고·연봉제·IT 무관 재택(상담)·업직종 목록의 체험단 광고·같은 제목 반복 게시는 상세를 요청하지 않는다
+    assert details == ["900001", "900004", "900006", "900008", "900010"]
     # robots 가 금지한 경로는 요청하지 않는다
     assert not any(p.startswith(("/jobs/detail-content", "/jobs/detail/content", "/jobs/apply")) for p in behavior.requests)
 
@@ -71,6 +71,12 @@ def test_lists_prefilter_details_and_judge_short_gigs(tmp_path: Path) -> None:
     excel = items["엑셀 반복작업 자동화 재택"]
     assert excel["recommendation"] == "recommended", excel["reasons"]
     assert items["웹개발 코딩 알바"]["recommendation"] == "excluded"  # 사무실 출근
+    # 재택근무 표시 없이 사업장 근무지만 있는 공고는 출근 근무로 추정해 자동 제외 (근거 표시)
+    onsite = items["상품 정보 수집 프로그램 개발 알바"]
+    assert onsite["recommendation"] == "excluded" and onsite["work_mode"] == {"value": "onsite", "basis": "inferred"}
+    assert any("출근 근무로 보임" in r["text"] for r in onsite["reasons"])
+    site = items["회사 홈페이지 리뉴얼 작업자 구합니다"]
+    assert site["recommendation"] == "recommended", site["reasons"]
 
     with ctx.db.session() as s:
         rec = s.scalar(select(SourceRecord).where(SourceRecord.source_post_id == "900001"))

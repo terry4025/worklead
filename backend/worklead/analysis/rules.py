@@ -17,7 +17,7 @@ import re
 from .text import any_match, c, find
 from .types import Ev, Judgement, Risk
 
-RULE_VERSION = "rules-2026.09.6"
+RULE_VERSION = "rules-2026.09.7"
 
 # ── 요청 유형 ─────────────────────────────────────────────────────────
 SELLER = c(
@@ -65,6 +65,8 @@ PROJECT = c(r"외주", r"의뢰", r"건\s*당", r"견적", r"프로젝트", r"�
 # ── 근무 방식 ─────────────────────────────────────────────────────────
 REMOTE_NEG = c(r"재택\s*(?:불가|안\s*됩니다|은\s*어렵)", r"원격\s*(?:불가|근무\s*불가)")
 ONSITE = c(r"(?:사무실|매장|회사|현장)\s*(?:으로|로|에)\s*(?:오셔서|나오셔서|나와서|출근)", r"주\s*\d\s*일\s*출근", r"(?<!재택\s)출근(?!\s*(?:없이|안|불필요|하지))\s*(?:근무|필수|해야|하셔야)?", r"사무실\s*(?:근무|상주)", r"상주\s*(?:근무|개발)?", r"매장\s*근무")
+#: 구인 양식에서 재택근무가 아닌 사업장 근무지를 고른 공고 — 어댑터가 조건 줄에 `근무지 유형: 사업장` 으로 표시한다 (알바몬)
+ONSITE_FORM = c(r"근무지\s*유형\s*:\s*사업장")
 HYBRID = c(r"재택\s*(?:병행|혼합)", r"주\s*\d\s*일\s*재택", r"일부\s*재택", r"하이브리드")
 REMOTE_NEGOTIABLE = c(r"재택\s*(?:여부\s*)?협의", r"원격\s*(?:근무\s*)?협의", r"근무\s*(?:형태|방식)\s*협의")
 REMOTE_EXPLICIT = c(
@@ -232,6 +234,9 @@ def classify_work_mode(title: str, body: str) -> Judgement:
         return _j("work_mode", "fully_remote", remote)
     if nego:
         return _j("work_mode", "negotiable", nego)
+    form = find(ONSITE_FORM, body, title, "inferred", "구인 양식의 근무지가 사업장 — 본문에 재택 언급 없음")
+    if form:
+        return _j("work_mode", "onsite", form)
     weak = find(REMOTE_WEAK, body, title, "inferred", "재택 명시 없음 — 자료 전달 방식으로만 추정")
     if weak:
         return _j("work_mode", "fully_remote", weak)

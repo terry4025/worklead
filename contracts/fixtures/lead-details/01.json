@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dd3e252350c81b9fd0",
+  "id": "lead_01a0dd4ceded9e310d873f",
   "source_id": "demo-synthetic",
   "title": "스마트스토어 주문 엑셀 정리 매크로(VBA) 만들어주실 분",
   "categories": [
@@ -38,13 +38,13 @@
   "access_status": "accessible",
   "analysis_status": "rules_only",
   "recheck_due": false,
-  "last_checked_at": "2026-09-26T08:23:52.599099Z",
+  "last_checked_at": "2026-09-26T08:40:01.506736Z",
   "published": {
-    "at": "2026-09-25T08:23:52.599099Z",
+    "at": "2026-09-25T08:40:01.506736Z",
     "precision": "exact",
     "raw": null
   },
-  "first_seen_at": "2026-09-25T14:23:52.599099Z",
+  "first_seen_at": "2026-09-25T14:40:01.506736Z",
   "deadline": {
     "at": "2026-10-02T15:00:00Z",
     "precision": "day",
@@ -78,7 +78,7 @@
   "has_memo": false,
   "active_job": null,
   "body_text": "스마트스토어에서 내려받는 주문 엑셀을 매일 손으로 정리하고 있습니다.\n주문 파일을 넣으면 택배 송장 양식과 일별 매출 시트로 자동 정리되는 매크로를 만들어주실 분 구합니다.\n\n- 엑셀 2019 사용 중, 파일 샘플 제공 가능\n- 작업은 전 과정 원격으로 진행합니다. 자료는 메일과 카톡으로 드려요.\n- 지역 상관없이 지원 가능합니다.\n- 예산: 50~80만원 (범위 확인 후 조정 가능)\n- 10월 3일까지 지원 받습니다.",
-  "body_retained_until": "2026-10-25T14:23:52.599099Z",
+  "body_retained_until": "2026-10-25T14:40:01.506736Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -88,7 +88,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-25T14:23:52.599099Z",
+  "last_seen_at": "2026-09-25T14:40:01.506736Z",
   "work_period": {
     "start": {
       "at": null,
@@ -102,9 +102,25 @@
     }
   },
   "evidence": {
+    "work_mode": [
+      {
+        "id": "ev_01a0dd4cee0e43f6cef53f",
+        "quote": "작업은 전 과정 원격으로 진행합니다.",
+        "span": {
+          "start": 128,
+          "end": 148
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T10:40:01.506736Z",
+        "source_record_id": "rec_01a0dd4cede81f73d7af7f",
+        "version": "rules-2026.09.7",
+        "note": null
+      }
+    ],
     "pay": [
       {
-        "id": "ev_01a0dd3e254606ac6d5eb9",
+        "id": "ev_01a0dd4cee0e5b13d1fc99",
         "quote": "예산: 50~80만원 (범위 확인 후 조정 가능)",
         "span": {
           "start": 189,
@@ -112,47 +128,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T10:23:52.599099Z",
-        "source_record_id": "rec_01a0dd3e251f388c626a20",
-        "version": "rules-2026.09.6",
-        "note": null
-      }
-    ],
-    "collaboration_mode": [
-      {
-        "id": "ev_01a0dd3e25462c4366fa60",
-        "quote": "작업은 전 과정 원격으로 진행합니다.",
-        "span": {
-          "start": 128,
-          "end": 148
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T10:23:52.599099Z",
-        "source_record_id": "rec_01a0dd3e251f388c626a20",
-        "version": "rules-2026.09.6",
-        "note": null
-      }
-    ],
-    "work_mode": [
-      {
-        "id": "ev_01a0dd3e25462cfd2bc348",
-        "quote": "작업은 전 과정 원격으로 진행합니다.",
-        "span": {
-          "start": 128,
-          "end": 148
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T10:23:52.599099Z",
-        "source_record_id": "rec_01a0dd3e251f388c626a20",
-        "version": "rules-2026.09.6",
+        "observed_at": "2026-09-26T10:40:01.506736Z",
+        "source_record_id": "rec_01a0dd4cede81f73d7af7f",
+        "version": "rules-2026.09.7",
         "note": null
       }
     ],
     "applicant_scope": [
       {
-        "id": "ev_01a0dd3e25462fdae9f476",
+        "id": "ev_01a0dd4cee0ea437638d78",
         "quote": "지역 상관없이 지원 가능합니다.",
         "span": {
           "start": 169,
@@ -160,31 +144,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T10:23:52.599099Z",
-        "source_record_id": "rec_01a0dd3e251f388c626a20",
-        "version": "rules-2026.09.6",
+        "observed_at": "2026-09-26T10:40:01.506736Z",
+        "source_record_id": "rec_01a0dd4cede81f73d7af7f",
+        "version": "rules-2026.09.7",
         "note": null
-      }
-    ],
-    "deadline": [
-      {
-        "id": "ev_01a0dd3e254685d708ecc8",
-        "quote": "10월 3일까지",
-        "span": {
-          "start": 219,
-          "end": 227
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T10:23:52.599099Z",
-        "source_record_id": "rec_01a0dd3e251f388c626a20",
-        "version": "rules-2026.09.6",
-        "note": "구인 마감일 (근무일·납기와 다름)"
       }
     ],
     "demand_intent": [
       {
-        "id": "ev_01a0dd3e2546ec047474cc",
+        "id": "ev_01a0dd4cee0ecd95fb30f6",
         "quote": "주문 파일을 넣으면 택배 송장 양식과 일별 매출 시트로 자동 정리되는 매크로를 만들어주실 분 구합니다.",
         "span": {
           "start": 39,
@@ -192,10 +160,42 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T10:23:52.599099Z",
-        "source_record_id": "rec_01a0dd3e251f388c626a20",
-        "version": "rules-2026.09.6",
+        "observed_at": "2026-09-26T10:40:01.506736Z",
+        "source_record_id": "rec_01a0dd4cede81f73d7af7f",
+        "version": "rules-2026.09.7",
         "note": null
+      }
+    ],
+    "collaboration_mode": [
+      {
+        "id": "ev_01a0dd4cee0efa5ebc8092",
+        "quote": "작업은 전 과정 원격으로 진행합니다.",
+        "span": {
+          "start": 128,
+          "end": 148
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T10:40:01.506736Z",
+        "source_record_id": "rec_01a0dd4cede81f73d7af7f",
+        "version": "rules-2026.09.7",
+        "note": null
+      }
+    ],
+    "deadline": [
+      {
+        "id": "ev_01a0dd4cee0efd0fb839ab",
+        "quote": "10월 3일까지",
+        "span": {
+          "start": 219,
+          "end": 227
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T10:40:01.506736Z",
+        "source_record_id": "rec_01a0dd4cede81f73d7af7f",
+        "version": "rules-2026.09.7",
+        "note": "구인 마감일 (근무일·납기와 다름)"
       }
     ]
   },
@@ -242,7 +242,7 @@
       "score": 0,
       "reasons": []
     },
-    "rule_version": "rules-2026.09.6"
+    "rule_version": "rules-2026.09.7"
   },
   "analysis": {
     "status": "rules_only",
@@ -261,8 +261,8 @@
     "next_action": null,
     "conversion_opportunity": null,
     "engine": "rules",
-    "version": "rules-2026.09.6",
-    "analyzed_at": "2026-09-25T14:23:52.599099Z",
+    "version": "rules-2026.09.7",
+    "analyzed_at": "2026-09-25T14:40:01.506736Z",
     "failure": null
   },
   "risks": [],
@@ -316,14 +316,14 @@
       "region_scope": "경기 성남시 분당구",
       "region_label": "경기 성남시 분당구",
       "query_group": "demo",
-      "first_seen_at": "2026-09-25T14:23:52.599099Z",
-      "last_seen_at": "2026-09-25T14:23:52.599099Z",
+      "first_seen_at": "2026-09-25T14:40:01.506736Z",
+      "last_seen_at": "2026-09-25T14:40:01.506736Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-25T14:23:52.599099Z",
+      "at": "2026-09-25T14:40:01.506736Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dd3e260e9834a32286",
+  "id": "lead_01a0dd4ceed6a82b2c910d",
   "source_id": "demo-synthetic",
   "title": "사내 재고관리 프로그램(C#) 개발자 — 재택 정규직",
   "categories": [
@@ -37,13 +37,13 @@
   "access_status": "accessible",
   "analysis_status": "rules_only",
   "recheck_due": false,
-  "last_checked_at": "2026-09-26T02:23:52.599099Z",
+  "last_checked_at": "2026-09-26T02:40:01.506736Z",
   "published": {
-    "at": "2026-09-24T13:23:52.599099Z",
+    "at": "2026-09-24T13:40:01.506736Z",
     "precision": "exact",
     "raw": null
   },
-  "first_seen_at": "2026-09-24T14:23:52.599099Z",
+  "first_seen_at": "2026-09-24T14:40:01.506736Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -69,7 +69,7 @@
   "has_memo": false,
   "active_job": null,
   "body_text": "제조업체 사내 재고관리 프로그램(C#, WinForms) 유지보수·개발 정규직 채용합니다.\n완전 재택 근무, 월 1회 본사(충북 청주) 회의 참석.\n연봉 4,200만원 협의.",
-  "body_retained_until": "2026-10-24T14:23:52.599099Z",
+  "body_retained_until": "2026-10-24T14:40:01.506736Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -79,7 +79,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-24T14:23:52.599099Z",
+  "last_seen_at": "2026-09-24T14:40:01.506736Z",
   "work_period": {
     "start": {
       "at": null,
@@ -93,25 +93,25 @@
     }
   },
   "evidence": {
-    "demand_intent": [
+    "work_mode": [
       {
-        "id": "ev_01a0dd3e26199ff572a774",
-        "quote": "제조업체 사내 재고관리 프로그램(C#, WinForms) 유지보수·개발 정규직 채용합니다.",
+        "id": "ev_01a0dd4ceee002911d3249",
+        "quote": "완전 재택 근무, 월 1회 본사(충북 청주) 회의 참석.",
         "span": {
-          "start": 0,
-          "end": 50
+          "start": 51,
+          "end": 82
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T10:23:52.599099Z",
-        "source_record_id": "rec_01a0dd3e260d4bc79f3a74",
-        "version": "rules-2026.09.6",
+        "observed_at": "2026-09-26T10:40:01.506736Z",
+        "source_record_id": "rec_01a0dd4ceed53849fbbf4e",
+        "version": "rules-2026.09.7",
         "note": null
       }
     ],
     "engagement_type": [
       {
-        "id": "ev_01a0dd3e2619dd38649747",
+        "id": "ev_01a0dd4ceee011aa0d1b2d",
         "quote": "제조업체 사내 재고관리 프로그램(C#, WinForms) 유지보수·개발 정규직 채용합니다.",
         "span": {
           "start": 0,
@@ -119,31 +119,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T10:23:52.599099Z",
-        "source_record_id": "rec_01a0dd3e260d4bc79f3a74",
-        "version": "rules-2026.09.6",
-        "note": null
-      }
-    ],
-    "work_mode": [
-      {
-        "id": "ev_01a0dd3e2619eac0dd9799",
-        "quote": "완전 재택 근무, 월 1회 본사(충북 청주) 회의 참석.",
-        "span": {
-          "start": 51,
-          "end": 82
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T10:23:52.599099Z",
-        "source_record_id": "rec_01a0dd3e260d4bc79f3a74",
-        "version": "rules-2026.09.6",
+        "observed_at": "2026-09-26T10:40:01.506736Z",
+        "source_record_id": "rec_01a0dd4ceed53849fbbf4e",
+        "version": "rules-2026.09.7",
         "note": null
       }
     ],
     "collaboration_mode": [
       {
-        "id": "ev_01a0dd3e261a3f0cb975a2",
+        "id": "ev_01a0dd4ceee029a9d7899c",
         "quote": "완전 재택 근무, 월 1회 본사(충북 청주) 회의 참석.",
         "span": {
           "start": 51,
@@ -151,15 +135,31 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T10:23:52.599099Z",
-        "source_record_id": "rec_01a0dd3e260d4bc79f3a74",
-        "version": "rules-2026.09.6",
+        "observed_at": "2026-09-26T10:40:01.506736Z",
+        "source_record_id": "rec_01a0dd4ceed53849fbbf4e",
+        "version": "rules-2026.09.7",
+        "note": null
+      }
+    ],
+    "demand_intent": [
+      {
+        "id": "ev_01a0dd4ceee06fecbbf064",
+        "quote": "제조업체 사내 재고관리 프로그램(C#, WinForms) 유지보수·개발 정규직 채용합니다.",
+        "span": {
+          "start": 0,
+          "end": 50
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T10:40:01.506736Z",
+        "source_record_id": "rec_01a0dd4ceed53849fbbf4e",
+        "version": "rules-2026.09.7",
         "note": null
       }
     ],
     "pay": [
       {
-        "id": "ev_01a0dd3e261aeb7ce5a778",
+        "id": "ev_01a0dd4ceee07a736f72c4",
         "quote": "연봉 4,200만원 협의.",
         "span": {
           "start": 83,
@@ -167,9 +167,9 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T10:23:52.599099Z",
-        "source_record_id": "rec_01a0dd3e260d4bc79f3a74",
-        "version": "rules-2026.09.6",
+        "observed_at": "2026-09-26T10:40:01.506736Z",
+        "source_record_id": "rec_01a0dd4ceed53849fbbf4e",
+        "version": "rules-2026.09.7",
         "note": "연 단위 — 지급 단위 목록(project/hour/day/week/month)에 없어 unknown 으로 보존"
       }
     ]
@@ -217,7 +217,7 @@
       "score": 0,
       "reasons": []
     },
-    "rule_version": "rules-2026.09.6"
+    "rule_version": "rules-2026.09.7"
   },
   "analysis": {
     "status": "rules_only",
@@ -243,8 +243,8 @@
     "next_action": "검토 불필요",
     "conversion_opportunity": null,
     "engine": "rules",
-    "version": "rules-2026.09.6",
-    "analyzed_at": "2026-09-24T14:23:52.599099Z",
+    "version": "rules-2026.09.7",
+    "analyzed_at": "2026-09-24T14:40:01.506736Z",
     "failure": null
   },
   "risks": [],
@@ -267,14 +267,14 @@
       "region_scope": "충북 청주시",
       "region_label": "충북 청주시",
       "query_group": "demo",
-      "first_seen_at": "2026-09-24T14:23:52.599099Z",
-      "last_seen_at": "2026-09-24T14:23:52.599099Z",
+      "first_seen_at": "2026-09-24T14:40:01.506736Z",
+      "last_seen_at": "2026-09-24T14:40:01.506736Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-24T14:23:52.599099Z",
+      "at": "2026-09-24T14:40:01.506736Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

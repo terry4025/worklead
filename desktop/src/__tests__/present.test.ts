@@ -9,6 +9,8 @@ describe('재택 표시', () => {
     expect(remoteClass({ workMode: { value: 'fully_remote', basis: 'user_confirmed' } })).toBe('confirmed');
     expect(remoteClass({ workMode: { value: 'fully_remote', basis: 'inferred' } })).toBe('inferred');
     expect(remoteClass({ workMode: { value: 'unknown', basis: null } })).toBe('unknown');
+    expect(remoteClass({ workMode: { value: 'onsite', basis: 'explicit' } })).toBe('onsite');
+    expect(remoteClass({ workMode: { value: 'onsite', basis: 'inferred' } })).toBe('onsite_inferred');
   });
 });
 

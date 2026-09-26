@@ -298,7 +298,7 @@ def analyze(
     if intent.value == "job_seeker":
         exclude.append("구직 글 — 의뢰 아님")
     if work.value == "onsite":
-        exclude.append("출근 필수")
+        exclude.append("출근 근무로 보임 (구인 양식 근무지가 사업장)" if work.basis == "inferred" else "출근 필수")
     if engagement.value == "full_time":
         exclude.append("정규직 채용 — 외주 아님" + (" (재택이어도 구분)" if work.value == "fully_remote" else ""))
     if risks:

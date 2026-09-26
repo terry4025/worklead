@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dd3e254ab9a705d5a7",
+  "id": "lead_01a0dd4cee13e91d738669",
   "source_id": "demo-synthetic",
   "title": "카페 브랜드 소개 랜딩페이지 제작 의뢰 (반응형 1페이지)",
   "categories": [
@@ -37,13 +37,13 @@
   "access_status": "accessible",
   "analysis_status": "rules_only",
   "recheck_due": false,
-  "last_checked_at": "2026-09-26T05:23:52.599099Z",
+  "last_checked_at": "2026-09-26T05:40:01.506736Z",
   "published": {
-    "at": "2026-09-25T04:23:52.599099Z",
+    "at": "2026-09-25T04:40:01.506736Z",
     "precision": "exact",
     "raw": null
   },
-  "first_seen_at": "2026-09-25T05:23:52.599099Z",
+  "first_seen_at": "2026-09-25T05:40:01.506736Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -77,7 +77,7 @@
   "has_memo": true,
   "active_job": null,
   "body_text": "새로 여는 카페 브랜드 소개용 랜딩페이지 1페이지 제작을 의뢰합니다.\n메뉴 소개, 매장 위치 지도, 인스타그램 연결, 예약 문의 폼 정도 필요합니다.\n\n사진과 문구는 저희가 준비해 두었습니다.\n미팅 없이 온라인으로만 진행하고 싶고, 재택 작업 가능합니다.\n전국 어디서나 연락 주세요.\n\n예산은 150만원 생각하고 있습니다. 도메인·호스팅 비용은 저희가 따로 부담합니다.\n오픈 일정 때문에 이번 달 안에 시작하면 좋겠습니다.",
-  "body_retained_until": "2026-10-25T05:23:52.599099Z",
+  "body_retained_until": "2026-10-25T05:40:01.506736Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -87,7 +87,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-25T05:23:52.599099Z",
+  "last_seen_at": "2026-09-25T05:40:01.506736Z",
   "work_period": {
     "start": {
       "at": null,
@@ -101,57 +101,9 @@
     }
   },
   "evidence": {
-    "work_mode": [
-      {
-        "id": "ev_01a0dd3e25551deeaa0bfd",
-        "quote": "미팅 없이 온라인으로만 진행하고 싶고, 재택 작업 가능합니다.",
-        "span": {
-          "start": 108,
-          "end": 142
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T10:23:52.599099Z",
-        "source_record_id": "rec_01a0dd3e25499f37969c4a",
-        "version": "rules-2026.09.6",
-        "note": null
-      }
-    ],
-    "collaboration_mode": [
-      {
-        "id": "ev_01a0dd3e255525ecc846e5",
-        "quote": "미팅 없이 온라인으로만 진행하고 싶고, 재택 작업 가능합니다.",
-        "span": {
-          "start": 108,
-          "end": 142
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T10:23:52.599099Z",
-        "source_record_id": "rec_01a0dd3e25499f37969c4a",
-        "version": "rules-2026.09.6",
-        "note": null
-      }
-    ],
-    "engagement_type": [
-      {
-        "id": "ev_01a0dd3e2555320f3a95b1",
-        "quote": "새로 여는 카페 브랜드 소개용 랜딩페이지 1페이지 제작을 의뢰합니다.",
-        "span": {
-          "start": 0,
-          "end": 38
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T10:23:52.599099Z",
-        "source_record_id": "rec_01a0dd3e25499f37969c4a",
-        "version": "rules-2026.09.6",
-        "note": null
-      }
-    ],
     "applicant_scope": [
       {
-        "id": "ev_01a0dd3e2555810aa6595b",
+        "id": "ev_01a0dd4cee1e703fd03a6c",
         "quote": "전국 어디서나 연락 주세요.",
         "span": {
           "start": 143,
@@ -159,31 +111,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T10:23:52.599099Z",
-        "source_record_id": "rec_01a0dd3e25499f37969c4a",
-        "version": "rules-2026.09.6",
-        "note": null
-      }
-    ],
-    "demand_intent": [
-      {
-        "id": "ev_01a0dd3e2555d29daa2ff4",
-        "quote": "새로 여는 카페 브랜드 소개용 랜딩페이지 1페이지 제작을 의뢰합니다.",
-        "span": {
-          "start": 0,
-          "end": 38
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T10:23:52.599099Z",
-        "source_record_id": "rec_01a0dd3e25499f37969c4a",
-        "version": "rules-2026.09.6",
+        "observed_at": "2026-09-26T10:40:01.506736Z",
+        "source_record_id": "rec_01a0dd4cee1230c64505a2",
+        "version": "rules-2026.09.7",
         "note": null
       }
     ],
     "pay": [
       {
-        "id": "ev_01a0dd3e2555f4b2d40174",
+        "id": "ev_01a0dd4cee1e742ee7afc4",
         "quote": "예산은 150만원 생각하고 있습니다.",
         "span": {
           "start": 160,
@@ -191,9 +127,73 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T10:23:52.599099Z",
-        "source_record_id": "rec_01a0dd3e25499f37969c4a",
-        "version": "rules-2026.09.6",
+        "observed_at": "2026-09-26T10:40:01.506736Z",
+        "source_record_id": "rec_01a0dd4cee1230c64505a2",
+        "version": "rules-2026.09.7",
+        "note": null
+      }
+    ],
+    "engagement_type": [
+      {
+        "id": "ev_01a0dd4cee1e89261e8a96",
+        "quote": "새로 여는 카페 브랜드 소개용 랜딩페이지 1페이지 제작을 의뢰합니다.",
+        "span": {
+          "start": 0,
+          "end": 38
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T10:40:01.506736Z",
+        "source_record_id": "rec_01a0dd4cee1230c64505a2",
+        "version": "rules-2026.09.7",
+        "note": null
+      }
+    ],
+    "collaboration_mode": [
+      {
+        "id": "ev_01a0dd4cee1ec6b081cfb7",
+        "quote": "미팅 없이 온라인으로만 진행하고 싶고, 재택 작업 가능합니다.",
+        "span": {
+          "start": 108,
+          "end": 142
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T10:40:01.506736Z",
+        "source_record_id": "rec_01a0dd4cee1230c64505a2",
+        "version": "rules-2026.09.7",
+        "note": null
+      }
+    ],
+    "demand_intent": [
+      {
+        "id": "ev_01a0dd4cee1eca9a1f043f",
+        "quote": "새로 여는 카페 브랜드 소개용 랜딩페이지 1페이지 제작을 의뢰합니다.",
+        "span": {
+          "start": 0,
+          "end": 38
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T10:40:01.506736Z",
+        "source_record_id": "rec_01a0dd4cee1230c64505a2",
+        "version": "rules-2026.09.7",
+        "note": null
+      }
+    ],
+    "work_mode": [
+      {
+        "id": "ev_01a0dd4cee1efdbfad5068",
+        "quote": "미팅 없이 온라인으로만 진행하고 싶고, 재택 작업 가능합니다.",
+        "span": {
+          "start": 108,
+          "end": 142
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T10:40:01.506736Z",
+        "source_record_id": "rec_01a0dd4cee1230c64505a2",
+        "version": "rules-2026.09.7",
         "note": null
       }
     ]
@@ -241,7 +241,7 @@
       "score": 0,
       "reasons": []
     },
-    "rule_version": "rules-2026.09.6"
+    "rule_version": "rules-2026.09.7"
   },
   "analysis": {
     "status": "rules_only",
@@ -262,8 +262,8 @@
     "next_action": "핵심 질문 확인 후 범위·일정 포함 견적 제시",
     "conversion_opportunity": null,
     "engine": "rules",
-    "version": "rules-2026.09.6",
-    "analyzed_at": "2026-09-25T05:23:52.599099Z",
+    "version": "rules-2026.09.7",
+    "analyzed_at": "2026-09-25T05:40:01.506736Z",
     "failure": null
   },
   "risks": [],
@@ -317,14 +317,14 @@
       "region_scope": "부산 수영구",
       "region_label": "부산 수영구",
       "query_group": "demo",
-      "first_seen_at": "2026-09-25T05:23:52.599099Z",
-      "last_seen_at": "2026-09-25T05:23:52.599099Z",
+      "first_seen_at": "2026-09-25T05:40:01.506736Z",
+      "last_seen_at": "2026-09-25T05:40:01.506736Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-25T05:23:52.599099Z",
+      "at": "2026-09-25T05:40:01.506736Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

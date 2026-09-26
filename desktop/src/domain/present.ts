@@ -9,7 +9,7 @@ import { formatRelative } from './format';
 /** 기호 모양 + 색으로 구분하는 상태 톤. 색만으로 의미를 전달하지 않는다. */
 export type Tone = 'good' | 'warn' | 'unknown' | 'bad' | 'muted';
 
-export type RemoteClass = 'confirmed' | 'inferred' | 'partial' | 'negotiable' | 'onsite' | 'unknown';
+export type RemoteClass = 'confirmed' | 'inferred' | 'partial' | 'negotiable' | 'onsite' | 'onsite_inferred' | 'unknown';
 
 export function remoteClass(lead: Pick<LeadSummary, 'workMode'>): RemoteClass {
   const { value, basis } = lead.workMode;
@@ -21,7 +21,7 @@ export function remoteClass(lead: Pick<LeadSummary, 'workMode'>): RemoteClass {
     case 'negotiable':
       return 'negotiable';
     case 'onsite':
-      return 'onsite';
+      return basis === 'inferred' ? 'onsite_inferred' : 'onsite';
     case 'unknown':
       return 'unknown';
   }
@@ -33,6 +33,7 @@ export const remoteDisplay: Record<RemoteClass, { label: string; tone: Tone }> =
   partial: { label: '일부 재택', tone: 'warn' },
   negotiable: { label: '재택 협의', tone: 'warn' },
   onsite: { label: '출근 필요', tone: 'bad' },
+  onsite_inferred: { label: '출근 추정', tone: 'bad' },
   unknown: { label: '재택 미확인', tone: 'unknown' },
 };
 

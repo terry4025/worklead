@@ -4,7 +4,8 @@
 
 - 탐색: 목록 페이지에 포함된 공고 데이터(`__NEXT_DATA__`)의 **1쪽만** 읽는다. 2쪽 이후는 페이지 주소로 제공되지 않아
   화면 내부 요청을 추측하지 않는다 (부분 탐색으로 표시). 목록은 최신순이라 짧은 주기로 새 공고를 따라간다.
-- 1차 선별: 목록 데이터(제목·업직종·급여 형태)로 개발·자동화 관련만 상세를 요청한다. 교육생 모집 광고·연봉제 공고는 제외.
+- 1차 선별: 목록 데이터(제목·업직종·급여 형태)로 개발·자동화 관련만 상세를 요청한다. 교육생 모집 광고·연봉제 공고,
+  한 목록 안에서 같은 제목으로 반복 게시한 공고는 제외.
 - 상세: schema.org JobPosting + 페이지 내 본문(`viewData.content`). robots 가 금지한 `/jobs/detail-content` 는 요청하지 않는다.
 - 저장하지 않음: 담당자 전화번호, 도로명 주소, 로고·사진, 조회·지원 통계.
 """
@@ -42,6 +43,8 @@ from ..profiled import TaskFailed, canonicalize, load_profile
 _NEXT_RE = re.compile(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', re.S)
 #: 개발·자동화로 보는 알바몬 업직종 이름 (재택 목록 선별용 — 목록 데이터의 parts 에 표시되는 이름)
 IT_PART_NAMES = {"프로그래머", "HTML코딩", "웹·콘텐츠기획", "웹·모바일디자인", "사이트관리·기술지원", "데이터수집·가공"}
+#: 어느 목록에서든 상세를 확인할 개발 업직종
+DEV_PART_NAMES = {"프로그래머", "HTML코딩"}
 CONDITIONS_HEADER = "구인 양식 표시 조건"
 _UNIT = {"HOUR": "시급", "DAY": "일급", "WEEK": "주급", "MONTH": "월급", "YEAR": "연봉"}
 
@@ -170,10 +173,11 @@ class AlbamonAdapter:
         pay_type = ((item.get("payType") or {}).get("description") or "").strip()
         if pay_type == "연봉":
             return False
-        if kind == "it_part":
-            return True
         parts = {str(p) for p in item.get("parts") or []}
-        return bool(parts & IT_PART_NAMES) or any(k in _squash(title) for k in keywords)
+        if parts & DEV_PART_NAMES or any(k in _squash(title) for k in keywords):
+            return True
+        # 재택 목록은 IT 관련 업직종까지 넓게 본다. 업직종 목록(예: 웹·콘텐츠기획)은 체험단·방송 모집 광고가 많아 개발 업직종·제목으로만 거른다
+        return kind == "remote_all" and bool(parts & IT_PART_NAMES)
 
     def discover(self, task: TaskSpec, fetcher: Fetcher) -> DiscoverResult:
         li = next((x for x in self._lists if str(x["id"]) == task.region_scope), None)
@@ -188,10 +192,15 @@ class AlbamonAdapter:
         keywords = [_squash(k) for k in (task.query or "").split("\n") if k.strip()]
         refs = []
         assert self._detail_tpl is not None
+        seen: set[str] = set()
         for x in items:
-            if self._wanted(x, str(li.get("kind") or ""), keywords):
-                rid = str(x["recruitNo"])
-                refs.append(PostRef(self._detail_tpl.format(id=rid), rid, str(x.get("recruitTitle") or "")))
+            title = str(x.get("recruitTitle") or "")
+            # 같은 제목으로 여러 번 올린 광고는 한 번만 확인한다 (예산 절약)
+            if _squash(title) in seen or not self._wanted(x, str(li.get("kind") or ""), keywords):
+                continue
+            seen.add(_squash(title))
+            rid = str(x["recruitNo"])
+            refs.append(PostRef(self._detail_tpl.format(id=rid), rid, title))
         return DiscoverResult(refs, None)
 
     # ── 상세 ────────────────────────────────────────────────────────
@@ -222,7 +231,7 @@ class AlbamonAdapter:
 
         remote = posting.get("jobLocationType") == "TELECOMMUTE"
         region = _region(posting)
-        cond = _conditions(view, remote)
+        cond = _conditions(view, remote, region)
         body = body + ("\n\n— " + CONDITIONS_HEADER + " —\n" + "\n".join(cond) if cond else "")
 
         published_at, prec = parse_iso(posting.get("datePosted"))
@@ -273,11 +282,16 @@ def _region(posting: dict[str, Any]) -> str | None:
     return None
 
 
-def _conditions(view: dict[str, Any], remote: bool) -> list[str]:
-    """페이지에 표시되는 구인 조건. 판정 규칙이 읽는 단어가 원문 표시와 다르게 생기지 않도록 표시 문구 그대로 쓴다."""
+def _conditions(view: dict[str, Any], remote: bool, region: str | None) -> list[str]:
+    """페이지에 표시되는 구인 조건. 판정 규칙이 읽는 단어가 원문 표시와 다르게 생기지 않도록 표시 문구 그대로 쓴다.
+
+    재택근무를 고르지 않고 사업장 주소를 적은 공고는 `근무지 유형: 사업장` 으로 표시한다 (판정 규칙이 출근 근무로 추정).
+    """
     lines: list[str] = []
     if remote:
         lines.append("근무지: 재택근무")
+    elif region:
+        lines.append(f"근무지 유형: 사업장 ({region})")
     period = (view.get("workPeriod") or {}).get("description")
     if period:
         lines.append(f"근무 기간: {period}")

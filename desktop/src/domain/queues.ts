@@ -20,7 +20,7 @@ export const VIEWS: ViewDef[] = [
     label: '검토',
     key: '1',
     sections: [
-      { queue: 'recommended', title: '추천', hint: '구매 의뢰 · 최근 모집 확인 · 재택·온라인 근거 · 위험 신호 없음' },
+      { queue: 'recommended', title: '추천', hint: '구매 의뢰·단기 작업 · 최근 모집 확인 · 재택·온라인 근거 · 위험 신호 없음' },
       { queue: 'needs_review', title: '확인 필요', hint: '유망하지만 재택·모집·외주 여부 중 확인할 것이 있음' },
     ],
     empty: '검토할 리드가 없습니다',

@@ -3,7 +3,7 @@
     "code": "policy_not_allowed",
     "message": "자동 수집 권한이 확인되지 않았습니다 (permission_pending)",
     "details": null,
-    "request_id": "02deed37ea1c460b",
+    "request_id": "022478ff0b8ffe82",
     "retryable": false
   }
 }

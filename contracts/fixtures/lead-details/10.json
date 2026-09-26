@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dbca2151073c7b1e14",
+  "id": "lead_01a0dbe57f4b3ee202b228",
   "source_id": "demo-synthetic",
   "title": "워드프레스 홈페이지 리뉴얼 해주실 분 구합니다",
   "categories": [
@@ -37,13 +37,13 @@
   "access_status": "accessible",
   "analysis_status": "rules_only",
   "recheck_due": false,
-  "last_checked_at": "2026-09-25T07:37:32.124333Z",
+  "last_checked_at": "2026-09-25T08:07:25.677716Z",
   "published": {
-    "at": "2026-09-20T15:37:32.124333Z",
+    "at": "2026-09-20T16:07:25.677716Z",
     "precision": "approximate",
     "raw": "3일 전"
   },
-  "first_seen_at": "2026-09-23T15:37:32.124333Z",
+  "first_seen_at": "2026-09-23T16:07:25.677716Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -77,7 +77,7 @@
   "has_memo": false,
   "active_job": null,
   "body_text": "인테리어 업체 홈페이지(워드프레스)가 오래되어 리뉴얼하려고 합니다.\n시공 사례 게시판과 견적 문의 폼이 필요해요.\n기존 자료는 메일로 전달드릴 수 있습니다.\n관심 있으신 분 연락 주세요.",
-  "body_retained_until": "2026-10-23T15:37:32.124333Z",
+  "body_retained_until": "2026-10-23T16:07:25.677716Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -87,7 +87,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-23T15:37:32.124333Z",
+  "last_seen_at": "2026-09-23T16:07:25.677716Z",
   "work_period": {
     "start": {
       "at": null,
@@ -101,54 +101,22 @@
     }
   },
   "evidence": {
-    "collaboration_mode": [
-      {
-        "id": "ev_01a0dbca215b2bfa8e5245",
-        "quote": "기존 자료는 메일로 전달드릴 수 있습니다.",
-        "span": {
-          "start": 64,
-          "end": 87
-        },
-        "basis": "inferred",
-        "confidence": "medium",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca215085bb096378",
-        "version": "rules-2026.09.1",
-        "note": null
-      }
-    ],
-    "work_mode": [
-      {
-        "id": "ev_01a0dbca215b6ae01098d9",
-        "quote": "기존 자료는 메일로 전달드릴 수 있습니다.",
-        "span": {
-          "start": 64,
-          "end": 87
-        },
-        "basis": "inferred",
-        "confidence": "medium",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca215085bb096378",
-        "version": "rules-2026.09.1",
-        "note": "재택 명시 없음 — 자료 전달 방식으로만 추정"
-      }
-    ],
     "demand_intent": [
       {
-        "id": "ev_01a0dbca215b7d22b44cd2",
+        "id": "ev_01a0dbe57f542832e0ab88",
         "quote": "워드프레스 홈페이지 리뉴얼 해주실 분 구합니다",
         "span": null,
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca215085bb096378",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57f4ab051236582",
         "version": "rules-2026.09.1",
         "note": "제목에서 확인"
       }
     ],
     "engagement_type": [
       {
-        "id": "ev_01a0dbca215b8b9a3be0fb",
+        "id": "ev_01a0dbe57f542a73378c19",
         "quote": "시공 사례 게시판과 견적 문의 폼이 필요해요.",
         "span": {
           "start": 38,
@@ -156,10 +124,42 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca215085bb096378",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57f4ab051236582",
         "version": "rules-2026.09.1",
         "note": null
+      }
+    ],
+    "collaboration_mode": [
+      {
+        "id": "ev_01a0dbe57f55c6441564bd",
+        "quote": "기존 자료는 메일로 전달드릴 수 있습니다.",
+        "span": {
+          "start": 64,
+          "end": 87
+        },
+        "basis": "inferred",
+        "confidence": "medium",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57f4ab051236582",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "work_mode": [
+      {
+        "id": "ev_01a0dbe57f55c64da16b35",
+        "quote": "기존 자료는 메일로 전달드릴 수 있습니다.",
+        "span": {
+          "start": 64,
+          "end": 87
+        },
+        "basis": "inferred",
+        "confidence": "medium",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57f4ab051236582",
+        "version": "rules-2026.09.1",
+        "note": "재택 명시 없음 — 자료 전달 방식으로만 추정"
       }
     ]
   },
@@ -233,7 +233,7 @@
     "conversion_opportunity": null,
     "engine": "rules",
     "version": "rules-2026.09.1",
-    "analyzed_at": "2026-09-23T15:37:32.124333Z",
+    "analyzed_at": "2026-09-23T16:07:25.677716Z",
     "failure": null
   },
   "risks": [],
@@ -255,14 +255,14 @@
       "region_scope": "광주 서구",
       "region_label": "광주 서구",
       "query_group": "demo",
-      "first_seen_at": "2026-09-23T15:37:32.124333Z",
-      "last_seen_at": "2026-09-23T15:37:32.124333Z",
+      "first_seen_at": "2026-09-23T16:07:25.677716Z",
+      "last_seen_at": "2026-09-23T16:07:25.677716Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-23T15:37:32.124333Z",
+      "at": "2026-09-23T16:07:25.677716Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

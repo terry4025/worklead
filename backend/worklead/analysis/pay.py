@@ -139,9 +139,14 @@ def parse_pay(body: str, title: str = "") -> PayInfo:
         elif _UPPER.search(after) or _UPPER_BEFORE.search(before):
             lo = None
 
-    # 원문 표현: 금액이 포함된 줄에서 앞의 목록 기호 제거
-    raw_start = ls + (len(line) - len(line.lstrip(" -•*\t")))
-    raw = body[raw_start:le].strip()
+    # 원문 표현: 금액이 포함된 문장 조각 (줄이 길면 마침표·쉼표 경계까지만)
+    cut = max(body.rfind(". ", ls, start), body.rfind("! ", ls, start), body.rfind("? ", ls, start))
+    raw_start = cut + 1 if cut >= 0 else ls
+    nxt = [i for i in (body.find(". ", end, le), body.find(".\n", end, le)) if i >= 0]
+    raw_end = min(nxt) + 1 if nxt else le
+    seg = body[raw_start:raw_end]
+    raw_start += len(seg) - len(seg.lstrip(" -•*\t"))
+    raw = body[raw_start:raw_end].strip()
     ev = Ev(raw, raw_start, raw_start + len(raw), "explicit", "high")
     notes = []
     if unit == "year":

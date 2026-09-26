@@ -1,7 +1,7 @@
 {
   "items": [
     {
-      "id": "lead_01a0dbca28c5978411df52",
+      "id": "lead_01a0dbe586b8b9fc4eac48",
       "source_id": "fixture-site",
       "title": "쇼핑몰 주문 엑셀 매크로 만들어주실 분",
       "categories": [
@@ -40,13 +40,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T03:37:34.145580Z",
+      "last_checked_at": "2026-09-26T04:07:27.667530Z",
       "published": {
-        "at": "2026-09-25T17:37:34.147229Z",
+        "at": "2026-09-25T18:07:27.669201Z",
         "precision": "exact",
-        "raw": "2026-09-25T17:37:34.147229+00:00"
+        "raw": "2026-09-25T18:07:27.669201+00:00"
       },
-      "first_seen_at": "2026-09-26T03:37:34.145580Z",
+      "first_seen_at": "2026-09-26T04:07:27.667530Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -81,7 +81,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dbca28a5d50c39c794",
+      "id": "lead_01a0dbe586985e64020c5c",
       "source_id": "fixture-site",
       "title": "관리자 페이지 수정 의뢰",
       "categories": [
@@ -108,7 +108,7 @@
         "basis": null
       },
       "pay": {
-        "raw": "기존 사이트 관리자 페이지 수정해 주실 분 구합니다. 비대면 진행, 예산 40만원.",
+        "raw": "비대면 진행, 예산 40만원.",
         "currency": "KRW",
         "min": 400000,
         "max": 400000,
@@ -119,13 +119,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T03:37:34.113626Z",
+      "last_checked_at": "2026-09-26T04:07:27.637117Z",
       "published": {
-        "at": "2026-09-25T17:37:34.115244Z",
+        "at": "2026-09-25T18:07:27.638737Z",
         "precision": "exact",
-        "raw": "2026-09-25T17:37:34.115244+00:00"
+        "raw": "2026-09-25T18:07:27.638737+00:00"
       },
-      "first_seen_at": "2026-09-26T03:37:34.113626Z",
+      "first_seen_at": "2026-09-26T04:07:27.637117Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -160,7 +160,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dbca2874620317d7db",
+      "id": "lead_01a0dbe586699d78ec0cdc",
       "source_id": "fixture-site",
       "title": "카페 랜딩페이지 제작 의뢰",
       "categories": [
@@ -198,13 +198,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T03:37:34.061193Z",
+      "last_checked_at": "2026-09-26T04:07:27.586241Z",
       "published": {
-        "at": "2026-09-25T17:37:34.064625Z",
+        "at": "2026-09-25T18:07:27.589698Z",
         "precision": "exact",
-        "raw": "2026-09-25T17:37:34.064625+00:00"
+        "raw": "2026-09-25T18:07:27.589698+00:00"
       },
-      "first_seen_at": "2026-09-26T03:37:34.061193Z",
+      "first_seen_at": "2026-09-26T04:07:27.586241Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -240,7 +240,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dbca28b5c46f1acc3d",
+      "id": "lead_01a0dbe586a8606de40b41",
       "source_id": "fixture-site",
       "title": "예약 페이지 개발 외주",
       "categories": [
@@ -278,13 +278,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T03:37:34.130140Z",
+      "last_checked_at": "2026-09-26T04:07:27.652644Z",
       "published": {
-        "at": "2026-09-25T17:37:34.131814Z",
+        "at": "2026-09-25T18:07:27.654232Z",
         "precision": "exact",
-        "raw": "2026-09-25T17:37:34.131814+00:00"
+        "raw": "2026-09-25T18:07:27.654232+00:00"
       },
-      "first_seen_at": "2026-09-26T03:37:34.130140Z",
+      "first_seen_at": "2026-09-26T04:07:27.652644Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",

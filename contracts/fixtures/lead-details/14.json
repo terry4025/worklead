@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dbca21d596133c0bc3",
+  "id": "lead_01a0dbe57fc41b9050f9f0",
   "source_id": "demo-synthetic",
   "title": "사내 재고관리 프로그램(C#) 개발자 — 재택 정규직",
   "categories": [
@@ -37,13 +37,13 @@
   "access_status": "accessible",
   "analysis_status": "rules_only",
   "recheck_due": false,
-  "last_checked_at": "2026-09-25T19:37:32.124333Z",
+  "last_checked_at": "2026-09-25T20:07:25.677716Z",
   "published": {
-    "at": "2026-09-24T06:37:32.124333Z",
+    "at": "2026-09-24T07:07:25.677716Z",
     "precision": "exact",
     "raw": null
   },
-  "first_seen_at": "2026-09-24T07:37:32.124333Z",
+  "first_seen_at": "2026-09-24T08:07:25.677716Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -69,7 +69,7 @@
   "has_memo": false,
   "active_job": null,
   "body_text": "제조업체 사내 재고관리 프로그램(C#, WinForms) 유지보수·개발 정규직 채용합니다.\n완전 재택 근무, 월 1회 본사(충북 청주) 회의 참석.\n연봉 4,200만원 협의.",
-  "body_retained_until": "2026-10-24T07:37:32.124333Z",
+  "body_retained_until": "2026-10-24T08:07:25.677716Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -79,7 +79,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-24T07:37:32.124333Z",
+  "last_seen_at": "2026-09-24T08:07:25.677716Z",
   "work_period": {
     "start": {
       "at": null,
@@ -93,25 +93,25 @@
     }
   },
   "evidence": {
-    "collaboration_mode": [
+    "engagement_type": [
       {
-        "id": "ev_01a0dbca21e09d27a49321",
-        "quote": "완전 재택 근무, 월 1회 본사(충북 청주) 회의 참석.",
+        "id": "ev_01a0dbe57fce0e45bffc12",
+        "quote": "제조업체 사내 재고관리 프로그램(C#, WinForms) 유지보수·개발 정규직 채용합니다.",
         "span": {
-          "start": 51,
-          "end": 82
+          "start": 0,
+          "end": 50
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca21d4b7e71980e8",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57fc4ddb9700a3a",
         "version": "rules-2026.09.1",
         "note": null
       }
     ],
     "pay": [
       {
-        "id": "ev_01a0dbca21e0aa6c71b80c",
+        "id": "ev_01a0dbe57fce504bd11ae2",
         "quote": "연봉 4,200만원 협의.",
         "span": {
           "start": 83,
@@ -119,15 +119,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca21d4b7e71980e8",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57fc4ddb9700a3a",
         "version": "rules-2026.09.1",
         "note": "연 단위 — 지급 단위 목록(project/hour/day/week/month)에 없어 unknown 으로 보존"
       }
     ],
     "demand_intent": [
       {
-        "id": "ev_01a0dbca21e0ce49073433",
+        "id": "ev_01a0dbe57fce7b0d70761c",
         "quote": "제조업체 사내 재고관리 프로그램(C#, WinForms) 유지보수·개발 정규직 채용합니다.",
         "span": {
           "start": 0,
@@ -135,31 +135,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca21d4b7e71980e8",
-        "version": "rules-2026.09.1",
-        "note": null
-      }
-    ],
-    "engagement_type": [
-      {
-        "id": "ev_01a0dbca21e0f811036af7",
-        "quote": "제조업체 사내 재고관리 프로그램(C#, WinForms) 유지보수·개발 정규직 채용합니다.",
-        "span": {
-          "start": 0,
-          "end": 50
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca21d4b7e71980e8",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57fc4ddb9700a3a",
         "version": "rules-2026.09.1",
         "note": null
       }
     ],
     "work_mode": [
       {
-        "id": "ev_01a0dbca21e0fe28a72e75",
+        "id": "ev_01a0dbe57fcea0b1f5a18e",
         "quote": "완전 재택 근무, 월 1회 본사(충북 청주) 회의 참석.",
         "span": {
           "start": 51,
@@ -167,8 +151,24 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca21d4b7e71980e8",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57fc4ddb9700a3a",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "collaboration_mode": [
+      {
+        "id": "ev_01a0dbe57fcea9a2779f40",
+        "quote": "완전 재택 근무, 월 1회 본사(충북 청주) 회의 참석.",
+        "span": {
+          "start": 51,
+          "end": 82
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57fc4ddb9700a3a",
         "version": "rules-2026.09.1",
         "note": null
       }
@@ -244,7 +244,7 @@
     "conversion_opportunity": null,
     "engine": "rules",
     "version": "rules-2026.09.1",
-    "analyzed_at": "2026-09-24T07:37:32.124333Z",
+    "analyzed_at": "2026-09-24T08:07:25.677716Z",
     "failure": null
   },
   "risks": [],
@@ -266,14 +266,14 @@
       "region_scope": "충북 청주시",
       "region_label": "충북 청주시",
       "query_group": "demo",
-      "first_seen_at": "2026-09-24T07:37:32.124333Z",
-      "last_seen_at": "2026-09-24T07:37:32.124333Z",
+      "first_seen_at": "2026-09-24T08:07:25.677716Z",
+      "last_seen_at": "2026-09-24T08:07:25.677716Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-24T07:37:32.124333Z",
+      "at": "2026-09-24T08:07:25.677716Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dbca21e47081835af2",
+  "id": "lead_01a0dbe57fd143e7cf55b9",
   "source_id": "demo-synthetic",
   "title": "소규모 법률사무소 홈페이지 제작",
   "categories": [
@@ -26,7 +26,7 @@
     "basis": null
   },
   "pay": {
-    "raw": "전 과정 비대면 진행 원합니다. 예산 250만원.",
+    "raw": "예산 250만원.",
     "currency": "KRW",
     "min": 2500000,
     "max": 2500000,
@@ -37,13 +37,13 @@
   "access_status": "accessible",
   "analysis_status": "rules_only",
   "recheck_due": false,
-  "last_checked_at": "2026-09-25T13:37:32.124333Z",
+  "last_checked_at": "2026-09-25T14:07:25.677716Z",
   "published": {
-    "at": "2026-09-23T15:37:32.124333Z",
+    "at": "2026-09-23T16:07:25.677716Z",
     "precision": "exact",
     "raw": null
   },
-  "first_seen_at": "2026-09-23T17:37:32.124333Z",
+  "first_seen_at": "2026-09-23T18:07:25.677716Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -77,7 +77,7 @@
   "has_memo": true,
   "active_job": null,
   "body_text": "변호사 2인 사무소 홈페이지 제작 의뢰합니다.\n업무분야 소개, 상담 예약 폼, 블로그형 칼럼 게시판이 필요합니다.\n전 과정 비대면 진행 원합니다. 예산 250만원.",
-  "body_retained_until": "2026-10-23T17:37:32.124333Z",
+  "body_retained_until": "2026-10-23T18:07:25.677716Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -87,7 +87,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-23T17:37:32.124333Z",
+  "last_seen_at": "2026-09-23T18:07:25.677716Z",
   "work_period": {
     "start": {
       "at": null,
@@ -101,25 +101,25 @@
     }
   },
   "evidence": {
-    "engagement_type": [
+    "collaboration_mode": [
       {
-        "id": "ev_01a0dbca21ed2724961e10",
-        "quote": "변호사 2인 사무소 홈페이지 제작 의뢰합니다.",
+        "id": "ev_01a0dbe57fda0b68e67c37",
+        "quote": "전 과정 비대면 진행 원합니다.",
         "span": {
-          "start": 0,
-          "end": 25
+          "start": 64,
+          "end": 81
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca21e25767ccf1e4",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57fd01a9694b909",
         "version": "rules-2026.09.1",
         "note": null
       }
     ],
     "demand_intent": [
       {
-        "id": "ev_01a0dbca21ed50df1791aa",
+        "id": "ev_01a0dbe57fda2b62b65458",
         "quote": "변호사 2인 사무소 홈페이지 제작 의뢰합니다.",
         "span": {
           "start": 0,
@@ -127,47 +127,31 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca21e25767ccf1e4",
-        "version": "rules-2026.09.1",
-        "note": null
-      }
-    ],
-    "work_mode": [
-      {
-        "id": "ev_01a0dbca21ee1bdd9d90f3",
-        "quote": "전 과정 비대면 진행 원합니다.",
-        "span": {
-          "start": 64,
-          "end": 81
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca21e25767ccf1e4",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57fd01a9694b909",
         "version": "rules-2026.09.1",
         "note": null
       }
     ],
     "pay": [
       {
-        "id": "ev_01a0dbca21ee87e6000491",
-        "quote": "전 과정 비대면 진행 원합니다. 예산 250만원.",
+        "id": "ev_01a0dbe57fda5fe308674b",
+        "quote": "예산 250만원.",
         "span": {
-          "start": 64,
+          "start": 82,
           "end": 91
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca21e25767ccf1e4",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57fd01a9694b909",
         "version": "rules-2026.09.1",
         "note": null
       }
     ],
-    "collaboration_mode": [
+    "work_mode": [
       {
-        "id": "ev_01a0dbca21ee8d16d1a6d5",
+        "id": "ev_01a0dbe57fdaebf5a7db1d",
         "quote": "전 과정 비대면 진행 원합니다.",
         "span": {
           "start": 64,
@@ -175,8 +159,24 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca21e25767ccf1e4",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57fd01a9694b909",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "engagement_type": [
+      {
+        "id": "ev_01a0dbe57fdaf81afcc680",
+        "quote": "변호사 2인 사무소 홈페이지 제작 의뢰합니다.",
+        "span": {
+          "start": 0,
+          "end": 25
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57fd01a9694b909",
         "version": "rules-2026.09.1",
         "note": null
       }
@@ -250,7 +250,7 @@
     "conversion_opportunity": null,
     "engine": "rules",
     "version": "rules-2026.09.1",
-    "analyzed_at": "2026-09-23T17:37:32.124333Z",
+    "analyzed_at": "2026-09-23T18:07:25.677716Z",
     "failure": null
   },
   "risks": [],
@@ -296,7 +296,7 @@
   },
   "draft": {
     "text": "안녕하세요, 올려주신 글 보고 연락드립니다.\n'소규모 법률사무소 홈페이지 제작' 관련해 원격으로 작업 가능한지 여쭙고 싶습니다.\n\n[간단한 소개와 비슷한 작업 경험 — 직접 작성]\n\n진행 전에 몇 가지 확인하고 싶습니다.\n1) 필요한 기능이나 페이지 목록을 받을 수 있을까요?\n2) 희망하시는 완료 일정이 있으신가요?\n\n답변 주시면 범위와 일정, 견적을 정리해 드리겠습니다.",
-    "generated_at": "2026-09-24T11:37:32.124333Z",
+    "generated_at": "2026-09-24T12:07:25.677716Z",
     "edited_by_user": false
   },
   "memo": "당근 채팅으로 문의 보냄. 회신 대기.",
@@ -307,14 +307,14 @@
       "region_scope": "서울 서초구",
       "region_label": "서울 서초구",
       "query_group": "demo",
-      "first_seen_at": "2026-09-23T17:37:32.124333Z",
-      "last_seen_at": "2026-09-23T17:37:32.124333Z",
+      "first_seen_at": "2026-09-23T18:07:25.677716Z",
+      "last_seen_at": "2026-09-23T18:07:25.677716Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-23T17:37:32.124333Z",
+      "at": "2026-09-23T18:07:25.677716Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

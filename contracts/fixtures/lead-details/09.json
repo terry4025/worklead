@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dbca2186e93756e37e",
+  "id": "lead_01a0dbe57f7a1ca11784db",
   "source_id": "demo-synthetic",
   "title": "거래처 발주서 PDF → 엑셀 자동 변환 프로그램 제작",
   "categories": [
@@ -38,13 +38,13 @@
   "access_status": "accessible",
   "analysis_status": "failed",
   "recheck_due": false,
-  "last_checked_at": "2026-09-26T01:37:32.124333Z",
+  "last_checked_at": "2026-09-26T02:07:25.677716Z",
   "published": {
-    "at": "2026-09-25T22:37:32.124333Z",
+    "at": "2026-09-25T23:07:25.677716Z",
     "precision": "exact",
     "raw": null
   },
-  "first_seen_at": "2026-09-25T23:37:32.124333Z",
+  "first_seen_at": "2026-09-26T00:07:25.677716Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -78,7 +78,7 @@
   "has_memo": false,
   "active_job": null,
   "body_text": "거래처에서 오는 PDF 발주서(양식 3종)를 엑셀로 자동 변환하는 프로그램이 필요합니다.\n매주 100건 정도 들어옵니다.\n제작해 주실 수 있는 분 견적 보내주세요.\n윈도우 PC에서 돌아가면 됩니다.",
-  "body_retained_until": "2026-10-25T23:37:32.124333Z",
+  "body_retained_until": "2026-10-26T00:07:25.677716Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -88,7 +88,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-25T23:37:32.124333Z",
+  "last_seen_at": "2026-09-26T00:07:25.677716Z",
   "work_period": {
     "start": {
       "at": null,
@@ -104,7 +104,7 @@
   "evidence": {
     "demand_intent": [
       {
-        "id": "ev_01a0dbca218f3eb652ab59",
+        "id": "ev_01a0dbe57f821d32b92065",
         "quote": "제작해 주실 수 있는 분 견적 보내주세요.",
         "span": {
           "start": 68,
@@ -112,15 +112,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca2185d1da21e9aa",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57f79c8f4dbd2a0",
         "version": "rules-2026.09.1",
         "note": null
       }
     ],
     "engagement_type": [
       {
-        "id": "ev_01a0dbca218f4aeb48f9db",
+        "id": "ev_01a0dbe57f8265ccae6164",
         "quote": "제작해 주실 수 있는 분 견적 보내주세요.",
         "span": {
           "start": 68,
@@ -128,8 +128,8 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca2185d1da21e9aa",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57f79c8f4dbd2a0",
         "version": "rules-2026.09.1",
         "note": null
       }
@@ -206,7 +206,7 @@
     "conversion_opportunity": null,
     "engine": "ai:demo",
     "version": "rules-2026.09.1",
-    "analyzed_at": "2026-09-25T23:37:32.124333Z",
+    "analyzed_at": "2026-09-26T00:07:25.677716Z",
     "failure": {
       "code": "ai_timeout",
       "message": "외부 AI 응답 시간 초과 (60초). 같은 입력으로 자동 재요청하지 않았습니다."
@@ -231,14 +231,14 @@
       "region_scope": "경남 창원시",
       "region_label": "경남 창원시",
       "query_group": "demo",
-      "first_seen_at": "2026-09-25T23:37:32.124333Z",
-      "last_seen_at": "2026-09-25T23:37:32.124333Z",
+      "first_seen_at": "2026-09-26T00:07:25.677716Z",
+      "last_seen_at": "2026-09-26T00:07:25.677716Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-25T23:37:32.124333Z",
+      "at": "2026-09-26T00:07:25.677716Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

@@ -159,8 +159,10 @@ def ingest(
     rec = find_existing(s, source_id, p, chash)
     if rec is not None:
         rec.last_seen_at = now
-        rec.last_checked_at = now
-        rec.access_status = "accessible"
+        if source_kind == "site":
+            # 원천에서 다시 확인한 경우에만 확인 시각을 갱신한다 (수동 입력은 모집 상태를 확인하지 않음)
+            rec.last_checked_at = now
+            rec.access_status = "accessible"
         record_path(s, rec, path, run_id, now)
         lead = s.get(Lead, rec.lead_id) if rec.lead_id else None
         if rec.content_hash == chash and lead is not None:

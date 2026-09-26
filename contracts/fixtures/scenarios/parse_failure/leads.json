@@ -1,7 +1,7 @@
 {
   "items": [
     {
-      "id": "lead_01a0dbca29dad2b61968db",
+      "id": "lead_01a0dbe587d5fd2167da33",
       "source_id": "fixture-site",
       "title": "관리자 페이지 수정 의뢰",
       "categories": [
@@ -28,7 +28,7 @@
         "basis": null
       },
       "pay": {
-        "raw": "기존 사이트 관리자 페이지 수정해 주실 분 구합니다. 비대면 진행, 예산 40만원.",
+        "raw": "비대면 진행, 예산 40만원.",
         "currency": "KRW",
         "min": 400000,
         "max": 400000,
@@ -39,13 +39,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T03:37:34.422956Z",
+      "last_checked_at": "2026-09-26T04:07:27.953886Z",
       "published": {
-        "at": "2026-09-25T17:37:34.424413Z",
+        "at": "2026-09-25T18:07:27.955465Z",
         "precision": "exact",
-        "raw": "2026-09-25T17:37:34.424413+00:00"
+        "raw": "2026-09-25T18:07:27.955465+00:00"
       },
-      "first_seen_at": "2026-09-26T03:37:34.422956Z",
+      "first_seen_at": "2026-09-26T04:07:27.953886Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -80,7 +80,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dbca29aa529ec6def1",
+      "id": "lead_01a0dbe587a6930dd01226",
       "source_id": "fixture-site",
       "title": "카페 랜딩페이지 제작 의뢰",
       "categories": [
@@ -118,13 +118,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T03:37:34.372032Z",
+      "last_checked_at": "2026-09-26T04:07:27.903198Z",
       "published": {
-        "at": "2026-09-25T17:37:34.375325Z",
+        "at": "2026-09-25T18:07:27.906515Z",
         "precision": "exact",
-        "raw": "2026-09-25T17:37:34.375325+00:00"
+        "raw": "2026-09-25T18:07:27.906515+00:00"
       },
-      "first_seen_at": "2026-09-26T03:37:34.372032Z",
+      "first_seen_at": "2026-09-26T04:07:27.903198Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -160,7 +160,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dbca29e90988c7c895",
+      "id": "lead_01a0dbe587e5306aec9596",
       "source_id": "fixture-site",
       "title": "예약 페이지 개발 외주",
       "categories": [
@@ -198,13 +198,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T03:37:34.438593Z",
+      "last_checked_at": "2026-09-26T04:07:27.969710Z",
       "published": {
-        "at": "2026-09-25T17:37:34.440084Z",
+        "at": "2026-09-25T18:07:27.971288Z",
         "precision": "exact",
-        "raw": "2026-09-25T17:37:34.440084+00:00"
+        "raw": "2026-09-25T18:07:27.971288+00:00"
       },
-      "first_seen_at": "2026-09-26T03:37:34.438593Z",
+      "first_seen_at": "2026-09-26T04:07:27.969710Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -239,7 +239,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dbca2a0c27003867b2",
+      "id": "lead_01a0dbe588035c5c90ddf6",
       "source_id": "fixture-site",
       "title": "홈페이지 제작해 드립니다",
       "categories": [
@@ -266,7 +266,7 @@
         "basis": null
       },
       "pay": {
-        "raw": "홈페이지 제작해 드립니다. 30만원부터.",
+        "raw": "30만원부터.",
         "currency": "KRW",
         "min": 300000,
         "max": null,
@@ -277,13 +277,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T03:37:34.472762Z",
+      "last_checked_at": "2026-09-26T04:07:27.999958Z",
       "published": {
-        "at": "2026-09-25T17:37:34.474320Z",
+        "at": "2026-09-25T18:07:28.001416Z",
         "precision": "exact",
-        "raw": "2026-09-25T17:37:34.474320+00:00"
+        "raw": "2026-09-25T18:07:28.001416+00:00"
       },
-      "first_seen_at": "2026-09-26T03:37:34.472762Z",
+      "first_seen_at": "2026-09-26T04:07:27.999958Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -310,7 +310,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dbca2a017eb343a0ba",
+      "id": "lead_01a0dbe587f946362e2038",
       "source_id": "fixture-site",
       "title": "온라인 쇼핑몰 CS 직원 (주 5일 출근)",
       "categories": [
@@ -337,7 +337,7 @@
         "basis": null
       },
       "pay": {
-        "raw": "상품 등록과 고객 응대 업무입니다. 주 5일 출근, 월급 220만원, 4대보험.",
+        "raw": "주 5일 출근, 월급 220만원, 4대보험.",
         "currency": "KRW",
         "min": 2200000,
         "max": 2200000,
@@ -348,13 +348,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T03:37:34.460307Z",
+      "last_checked_at": "2026-09-26T04:07:27.988511Z",
       "published": {
-        "at": "2026-09-25T17:37:34.463322Z",
+        "at": "2026-09-25T18:07:27.991629Z",
         "precision": "exact",
-        "raw": "2026-09-25T17:37:34.463322+00:00"
+        "raw": "2026-09-25T18:07:27.991629+00:00"
       },
-      "first_seen_at": "2026-09-26T03:37:34.460307Z",
+      "first_seen_at": "2026-09-26T04:07:27.988511Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",

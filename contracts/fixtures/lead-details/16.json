@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dbca216b50a8b02a19",
+  "id": "lead_01a0dbe57f624bd2c12f24",
   "source_id": "demo-synthetic",
   "title": "앱·웹 개발자 구합니다 (프리랜서)",
   "categories": [
@@ -37,13 +37,13 @@
   "access_status": "accessible",
   "analysis_status": "rules_only",
   "recheck_due": true,
-  "last_checked_at": "2026-09-23T01:37:32.124333Z",
+  "last_checked_at": "2026-09-23T02:07:25.677716Z",
   "published": {
-    "at": "2026-09-18T03:37:32.124333Z",
+    "at": "2026-09-18T04:07:25.677716Z",
     "precision": "approximate",
     "raw": "4일 전"
   },
-  "first_seen_at": "2026-09-22T03:37:32.124333Z",
+  "first_seen_at": "2026-09-22T04:07:25.677716Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -77,7 +77,7 @@
   "has_memo": false,
   "active_job": null,
   "body_text": "스타트업에서 앱·웹 개발 가능한 프리랜서 구합니다.\nReact, Node.js 경험자 우대.\n자세한 내용은 연락 주시면 설명드리겠습니다.",
-  "body_retained_until": "2026-10-22T03:37:32.124333Z",
+  "body_retained_until": "2026-10-22T04:07:25.677716Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -87,7 +87,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-22T03:37:32.124333Z",
+  "last_seen_at": "2026-09-22T04:07:25.677716Z",
   "work_period": {
     "start": {
       "at": null,
@@ -101,25 +101,9 @@
     }
   },
   "evidence": {
-    "demand_intent": [
-      {
-        "id": "ev_01a0dbca2175589f369f09",
-        "quote": "스타트업에서 앱·웹 개발 가능한 프리랜서 구합니다.",
-        "span": {
-          "start": 0,
-          "end": 28
-        },
-        "basis": "inferred",
-        "confidence": "medium",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca216a6024c21989",
-        "version": "rules-2026.09.1",
-        "note": "외주 의뢰인지 고용인지 구분할 근거 부족"
-      }
-    ],
     "work_mode": [
       {
-        "id": "ev_01a0dbca2175ae43d10d50",
+        "id": "ev_01a0dbe57f6b4221ae553d",
         "quote": "스타트업에서 앱·웹 개발 가능한 프리랜서 구합니다.",
         "span": {
           "start": 0,
@@ -127,10 +111,26 @@
         },
         "basis": "inferred",
         "confidence": "medium",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca216a6024c21989",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57f621988ad0a3f",
         "version": "rules-2026.09.1",
         "note": "'프리랜서'만으로 완전 재택을 확정하지 않음"
+      }
+    ],
+    "demand_intent": [
+      {
+        "id": "ev_01a0dbe57f6b6ec2e370af",
+        "quote": "스타트업에서 앱·웹 개발 가능한 프리랜서 구합니다.",
+        "span": {
+          "start": 0,
+          "end": 28
+        },
+        "basis": "inferred",
+        "confidence": "medium",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57f621988ad0a3f",
+        "version": "rules-2026.09.1",
+        "note": "외주 의뢰인지 고용인지 구분할 근거 부족"
       }
     ]
   },
@@ -206,7 +206,7 @@
     "conversion_opportunity": null,
     "engine": "rules",
     "version": "rules-2026.09.1",
-    "analyzed_at": "2026-09-22T03:37:32.124333Z",
+    "analyzed_at": "2026-09-22T04:07:25.677716Z",
     "failure": null
   },
   "risks": [],
@@ -228,14 +228,14 @@
       "region_scope": "대전 유성구",
       "region_label": "대전 유성구",
       "query_group": "demo",
-      "first_seen_at": "2026-09-22T03:37:32.124333Z",
-      "last_seen_at": "2026-09-22T03:37:32.124333Z",
+      "first_seen_at": "2026-09-22T04:07:25.677716Z",
+      "last_seen_at": "2026-09-22T04:07:25.677716Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-22T03:37:32.124333Z",
+      "at": "2026-09-22T04:07:25.677716Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

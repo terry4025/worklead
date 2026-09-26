@@ -1,7 +1,7 @@
 {
   "items": [
     {
-      "id": "lead_01a0dbca21e47081835af2",
+      "id": "lead_01a0dbe57fd143e7cf55b9",
       "source_id": "demo-synthetic",
       "title": "소규모 법률사무소 홈페이지 제작",
       "categories": [
@@ -28,7 +28,7 @@
         "basis": null
       },
       "pay": {
-        "raw": "전 과정 비대면 진행 원합니다. 예산 250만원.",
+        "raw": "예산 250만원.",
         "currency": "KRW",
         "min": 2500000,
         "max": 2500000,
@@ -39,13 +39,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-25T13:37:32.124333Z",
+      "last_checked_at": "2026-09-25T14:07:25.677716Z",
       "published": {
-        "at": "2026-09-23T15:37:32.124333Z",
+        "at": "2026-09-23T16:07:25.677716Z",
         "precision": "exact",
         "raw": null
       },
-      "first_seen_at": "2026-09-23T17:37:32.124333Z",
+      "first_seen_at": "2026-09-23T18:07:25.677716Z",
       "deadline": {
         "at": null,
         "precision": "unknown",
@@ -80,7 +80,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dbca21f2e37affe97b",
+      "id": "lead_01a0dbe57fdf002dcd0983",
       "source_id": "demo-synthetic",
       "title": "플라워샵 꽃 정기구독 신청 랜딩페이지",
       "categories": [
@@ -107,7 +107,7 @@
         "basis": null
       },
       "pay": {
-        "raw": "온라인으로만 진행 가능하신 분, 재택 환영합니다. 예산 100만원 내외.",
+        "raw": "예산 100만원 내외.",
         "currency": "KRW",
         "min": 1000000,
         "max": 1000000,
@@ -118,13 +118,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": true,
-      "last_checked_at": "2026-09-24T21:37:32.124333Z",
+      "last_checked_at": "2026-09-24T22:07:25.677716Z",
       "published": {
-        "at": "2026-09-21T03:37:32.124333Z",
+        "at": "2026-09-21T04:07:25.677716Z",
         "precision": "exact",
         "raw": null
       },
-      "first_seen_at": "2026-09-21T05:37:32.124333Z",
+      "first_seen_at": "2026-09-21T06:07:25.677716Z",
       "deadline": {
         "at": null,
         "precision": "unknown",
@@ -159,7 +159,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dbca2200ec4177b4c9",
+      "id": "lead_01a0dbe57feb693749b089",
       "source_id": "demo-synthetic",
       "title": "견적서·거래명세서 엑셀 자동 작성 VBA",
       "categories": [
@@ -197,13 +197,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-24T03:37:32.124333Z",
+      "last_checked_at": "2026-09-24T04:07:25.677716Z",
       "published": {
-        "at": "2026-09-15T07:37:32.124333Z",
+        "at": "2026-09-15T08:07:25.677716Z",
         "precision": "exact",
         "raw": null
       },
-      "first_seen_at": "2026-09-15T17:37:32.124333Z",
+      "first_seen_at": "2026-09-15T18:07:25.677716Z",
       "deadline": {
         "at": null,
         "precision": "unknown",

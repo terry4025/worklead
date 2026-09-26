@@ -43,7 +43,7 @@
 | 1 | 반복 수집에도 리드·알림 중복 없음 | `backend/tests/test_engine.py::test_nationwide_rotation_dedup_and_paths` |
 | 2 | 다른 지역에서 같은 공고 → 원본·발견 경로 보존 | 같은 테스트 (discovery_paths, found_in) |
 | 3 | 전국 중 일부만 확인 → 부분 수집 표시 | `test_partial_coverage_is_reported`, `test_429_halts_and_next_run_resumes` |
-| 4 | 지역 ID 미확보 → 추측 없이 범위 미확인 | `test_daangn_not_runnable_until_research` |
+| 4 | 지역 ID 미확보 → 추측 없이 범위 미확인 | `test_unresearched_source_not_runnable` |
 | 5 | 재택 명시·첫날 방문·쇼핑몰 출근·재택 정규직·미언급 구별 | `test_analysis.py` (remote 관련 테스트) |
 | 6 | 판매자 광고 vs 제작 의뢰 | `test_seller_vs_buyer` |
 | 7 | 시급·월급·건당·협의·예산 없음 보존 | `test_pay_preserved`, `test_no_budget_is_not_zero_and_not_excluded` |

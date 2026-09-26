@@ -15,7 +15,7 @@ function coverageSummary(sources: SourceInfo[]): { text: string; title: string }
     };
   }
   const units = c.targetUnitsCovered !== null && c.targetUnitsTotal ? ` · 시·도 ${c.targetUnitsCovered}/${c.targetUnitsTotal}` : '';
-  const verified = c.regionListStatus === 'verified' ? '' : ' (목록 미검증)';
+  const verified = c.regionListStatus === 'verified' ? '' : c.regionListStatus === 'not_applicable' ? ` (${c.unitLabel})` : ' (목록 미검증)';
   return {
     text: `전국 목표 · 이번 주기 ${c.completed}/${c.planned}${units}${verified}`,
     title: `탐색 목표는 전국이며, 표시 값은 계획한 탐색 작업 완료 수입니다. 전체 시장 포괄률은 알 수 없습니다.\n${c.notes.join('\n')}`,

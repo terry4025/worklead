@@ -22,7 +22,7 @@
       },
       "health": {
         "status": "blocked",
-        "checked_at": "2026-09-26T04:07:27.691093Z",
+        "checked_at": "2026-09-26T05:09:16.669299Z",
         "message": "접근 차단 응답(403) — 소스를 정지합니다. 우회하지 않습니다.",
         "code": "http_403"
       },
@@ -93,7 +93,7 @@
         "blocked": 1,
         "failed": 0,
         "scan_cycle": 1,
-        "last_visited_at": "2026-09-26T04:07:27.689761Z",
+        "last_visited_at": "2026-09-26T05:09:16.668049Z",
         "next_up": "부산 해운대구 · 홈페이지",
         "depth_limit": 2,
         "budget": {
@@ -114,7 +114,7 @@
         "ready": true,
         "missing": []
       },
-      "last_run_id": "run_01a0dbe58645612ca88438"
+      "last_run_id": "run_01a0dc1e1e73ae711f8807"
     },
     {
       "id": "manual",

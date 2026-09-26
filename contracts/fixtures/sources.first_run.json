@@ -4,8 +4,8 @@
       "id": "daangn-alba",
       "name": "당근알바",
       "kind": "site",
-      "scope_note": "허용된 공개 구인글만 대상 · 중고거래·동네생활·비즈프로필·채팅은 범위 밖",
-      "adapter_version": "0.1.0",
+      "scope_note": "공식 사이트맵의 공개 구인글만 · 제목으로 1차 선별 · 중고거래·동네생활·비즈프로필·채팅은 범위 밖",
+      "adapter_version": "0.2.0",
       "policy": {
         "status": "permission_pending",
         "basis": null,
@@ -31,56 +31,56 @@
         {
           "key": "nationwide_search",
           "label": "전국 단일 검색",
-          "support": "unverified",
-          "note": "전국 단일 검색 지원 여부 미확인"
+          "support": "supported",
+          "note": "robots.txt 에 명시된 공식 사이트맵으로 전국 공고 목록 확인 (2026-09-26 기준 29,019건)"
         },
         {
           "key": "region_search",
           "label": "지역별 검색",
-          "support": "unverified",
-          "note": "지역 기준 검색이 관찰됐다는 사전 기록만 있음 (재확인 필요)"
+          "support": "unsupported",
+          "note": "사용하지 않음 — 사이트맵으로 대체"
         },
         {
           "key": "remote_filter",
           "label": "재택 전용 필터",
-          "support": "unverified",
-          "note": "재택 전용 필터 존재 여부 미확인"
+          "support": "unsupported",
+          "note": "재택 전용 필터 없음 — 본문으로 판단"
         },
         {
           "key": "sort",
           "label": "정렬",
-          "support": "unverified",
-          "note": null
+          "support": "supported",
+          "note": "사이트맵 lastmod 최신순으로 확인"
         },
         {
           "key": "pagination",
           "label": "페이지 이동",
-          "support": "unverified",
-          "note": null
+          "support": "supported",
+          "note": "사이트맵 파일 단위 (job-posts-N.xml)"
         },
         {
           "key": "incremental",
           "label": "증분 수집",
-          "support": "unverified",
-          "note": null
+          "support": "supported",
+          "note": "lastmod 기준 최근 60일, 12시간 안에 확인한 공고는 다시 요청하지 않음"
         },
         {
           "key": "detail",
           "label": "상세 조회",
-          "support": "unverified",
-          "note": "상세 페이지의 마감 표시가 관찰됐다는 사전 기록만 있음"
+          "support": "supported",
+          "note": "공고 페이지에 포함된 공고 데이터"
         },
         {
           "key": "revalidate",
           "label": "상태 재확인",
-          "support": "unverified",
-          "note": null
+          "support": "supported",
+          "note": "공고 데이터의 모집 종료·삭제 표시. 404 는 삭제로 확정하지 않음"
         },
         {
           "key": "structured_data",
           "label": "구조화 데이터",
-          "support": "unverified",
-          "note": "JobPosting JSON-LD 제공 여부 미확인"
+          "support": "supported",
+          "note": "schema.org JobPosting 은 없음 — 페이지 내 공고 데이터 사용"
         }
       ],
       "coverage": {
@@ -98,26 +98,18 @@
         "depth_limit": null,
         "budget": {
           "used": 0,
-          "limit": 300,
+          "limit": 400,
           "unit_label": "요청/일"
         },
         "market_coverage": "unknown",
         "target_units_total": 17,
         "target_units_covered": null,
         "estimated_cycle_days": null,
-        "notes": [
-          "사이트 조사 미완료 — 탐색 범위를 계획할 수 없습니다 (조사 검증 완료 표시(verified), 검색 URL 형식, 공개 지역 목록, 상세 링크 형식, 상세 해석 방식)"
-        ]
+        "notes": []
       },
       "research": {
-        "ready": false,
-        "missing": [
-          "조사 검증 완료 표시(verified)",
-          "검색 URL 형식",
-          "공개 지역 목록",
-          "상세 링크 형식",
-          "상세 해석 방식"
-        ]
+        "ready": true,
+        "missing": []
       },
       "last_run_id": null
     },

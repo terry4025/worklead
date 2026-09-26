@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dbe57f6e235d2cfed2",
+  "id": "lead_01a0dc1e16da80db43fa38",
   "source_id": "demo-synthetic",
   "title": "네일샵 예약 페이지 만들어주세요",
   "categories": [
@@ -37,13 +37,13 @@
   "access_status": "accessible",
   "analysis_status": "rules_only",
   "recheck_due": false,
-  "last_checked_at": "2026-09-26T00:07:25.677716Z",
+  "last_checked_at": "2026-09-26T01:09:14.458459Z",
   "published": {
     "at": null,
     "precision": "unknown",
     "raw": null
   },
-  "first_seen_at": "2026-09-26T00:07:25.677716Z",
+  "first_seen_at": "2026-09-26T01:09:14.458459Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -77,7 +77,7 @@
   "has_memo": false,
   "active_job": null,
   "body_text": "네일샵 예약 페이지를 만들고 싶어요.\n날짜랑 시간 선택하면 예약되고, 사장님한테 알림 가는 정도면 됩니다.",
-  "body_retained_until": "2026-10-26T00:07:25.677716Z",
+  "body_retained_until": "2026-10-26T01:09:14.458459Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -87,7 +87,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-26T00:07:25.677716Z",
+  "last_seen_at": "2026-09-26T01:09:14.458459Z",
   "work_period": {
     "start": {
       "at": null,
@@ -103,7 +103,7 @@
   "evidence": {
     "demand_intent": [
       {
-        "id": "ev_01a0dbe57f77406390ebd1",
+        "id": "ev_01a0dc1e16e3ca3c9266a8",
         "quote": "네일샵 예약 페이지를 만들고 싶어요.",
         "span": {
           "start": 0,
@@ -111,8 +111,8 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T04:07:25.677716Z",
-        "source_record_id": "rec_01a0dbe57f6d22114bec81",
+        "observed_at": "2026-09-26T05:09:14.458459Z",
+        "source_record_id": "rec_01a0dc1e16d9340c4cb8a1",
         "version": "rules-2026.09.1",
         "note": null
       }
@@ -190,7 +190,7 @@
     "conversion_opportunity": null,
     "engine": "rules",
     "version": "rules-2026.09.1",
-    "analyzed_at": "2026-09-26T00:07:25.677716Z",
+    "analyzed_at": "2026-09-26T01:09:14.458459Z",
     "failure": null
   },
   "risks": [],
@@ -212,14 +212,14 @@
       "region_scope": "제주 제주시",
       "region_label": "제주 제주시",
       "query_group": "demo",
-      "first_seen_at": "2026-09-26T00:07:25.677716Z",
-      "last_seen_at": "2026-09-26T00:07:25.677716Z",
+      "first_seen_at": "2026-09-26T01:09:14.458459Z",
+      "last_seen_at": "2026-09-26T01:09:14.458459Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-26T00:07:25.677716Z",
+      "at": "2026-09-26T01:09:14.458459Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

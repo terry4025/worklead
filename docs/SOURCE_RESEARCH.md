@@ -1,7 +1,8 @@
 # 소스 조사 기록 — 당근알바
 
 > 이 문서는 수집 허가가 아니다. 공개 열람 가능성과 자동 수집 허용을 같은 것으로 보지 않는다.
-> 현재 상태: **자동 수집 `permission_pending`, 어댑터 잠김(조사 미완료)**. 수동 입력은 사용 가능.
+> 현재 상태: **조사 완료(2026-09-26, `jobs.daangn.com`), 자동 수집 정책은 사용자 판단 전(`permission_pending`)**.
+> 약관의 자동 수집 조항은 직접 읽지 못했다 (아래 3절). 수동 입력은 언제나 사용 가능.
 
 ## 1. 확인 시도 기록
 
@@ -14,7 +15,50 @@
 - `jobs.daangn.com/`, `/about`, `/s` 는 같은 이유로 요청하지 않았다 (결과를 추측하지 않음).
 - 요구 문서에 적힌 2026-09-26 관찰(동네 중심 소개, 지역 기준 검색, 근무 기간·요일·시간·업무 종류 필터, 상세의 마감 표시, `/s` 가 특정 regionId 로 연결된 사례)은 **이 환경에서 재확인하지 못한 사전 기록**이다.
 
-## 1-1. 검색 엔진 색인으로 본 공개 URL 형태 (간접 관찰, 미검증)
+## 1-2. 직접 확인 (2026-09-26, 환경 네트워크 허용 후)
+
+요청 User-Agent: `WorkleadLocal/0.1.0 (+personal desktop lead review; non-commercial)`, 요청 사이 3–6초.
+
+| 시각 (KST) | 요청 | 응답 | 관찰 |
+| --- | --- | --- | --- |
+| 13:53 | `cs.kr.karrotmarket.com/wv/faqs/4753` (상태 코드만, 본문 버림) | 200 | robots.txt 확인 전 연결 점검. 이후 요청하지 않음 |
+| 13:54:26 | `jobs.daangn.com/robots.txt` | 200 | `User-agent: *` · Disallow `/me`, `/auth/`, `/api/`, `/job-posts/*/apply`, `/dev/` · `Allow: /` · `Sitemap: https://jobs.daangn.com/sitemap.xml`. AI 에이전트 별도 차단 없음 |
+| 13:54:27 | `www.daangn.com/robots.txt` | 200 | Claude-User·ClaudeBot·anthropic-ai·GPTBot 등 AI 에이전트 그룹은 `Disallow: /` (FAQ 등 일부만 허용). `*` 그룹은 `/kr/jobs/s/` 등 검색 경로 금지 → **`www.daangn.com` 은 조사·수집 모두 쓰지 않는다** |
+| 13:54:54 | `cs.kr.karrotmarket.com/robots.txt` | 200 | `Disallow: *` (User-agent 줄 없음) → 전부 금지 의도로 보고 요청하지 않음 |
+| 13:54:59 | `jobs.daangn.com/` | 200, 276KB | schema.org `WebSite` 만 있음. 검색 링크 `/s?regionId=<숫자>&jobTasks=[..]`. 검색어 파라미터 이름은 페이지에 없음 (추측하지 않음) |
+| 13:55:30 | `/sitemap.xml` | 200 | 사이트맵 색인: `sitemaps/static.xml`, `sitemaps/job-posts-1.xml`, `sitemaps/region-searches.xml` |
+| 13:55:41 | `/sitemaps/job-posts-1.xml` | 200, 2.4MB | 공고 URL **29,019건** + `lastmod` (2025-02 ~ 2026-09-25, 2026-09 가 27,180건). URL = `/job-posts/<제목 슬러그>-<영숫자 12자 공고ID>` |
+| 13:55:47 | `/sitemaps/region-searches.xml` | 200 | `/s?regionId=N` 6,517건 (지역 이름 없음 — 쓰지 않음) |
+| 13:57:00–15 | 상세 3건 (`/job-posts/…`) | 200 | 아래 "상세 구조" |
+
+**상세 구조 (3건 공통)**
+- schema.org `JobPosting` 없음 (`BreadcrumbList` 만).
+- `og:title` = `<제목>, <급여 표시>` (예: `…, 시급 20,000원`). `description` = 본문 + ` · YYYY.MM.DD 등록`.
+- 페이지에 공고 데이터(`window.__RELAY_STORE__`)가 포함됨: 루트 → `permalinkPairByPublicId(공고ID)` → `daangnPermalink.model` → `JobPost`.
+  필드: `closed`, `closedAt`, `deleted`, `hidden`, `status`(`ACCEPTED`), `title`, `content`, `content(masking:true)`, `publishedAt`, `salary`, `salaryType`(`HOURLY` 관찰), `workDates`, `workDays`, `workTimeStart/End`, `isWorkTimeNegotiable`, `employmentType`(`PART_TIME_JOB` 관찰), `workPeriod`, `jobTasks`, `workplaceAddress`(상세 주소), `workplaceRegion` → `Region{name1 시·도, name2 시·군·구, name3 동}`.
+- 같은 페이지에 후기 영역의 **다른 공고**도 들어 있다 → 공고 ID 경로로만 고른다.
+- 화면에 작성자 닉네임·매너온도·후기·조회·지원자 수가 보인다 → **저장하지 않는다**. 상세 주소·좌표도 저장하지 않는다 (동 단위만).
+
+## 1-3. 구현 결정 (`backend/worklead/sources/daangn/`)
+
+| 항목 | 결정 | 근거 |
+| --- | --- | --- |
+| 탐색 | robots.txt 에 명시된 사이트맵 → `job-posts-N.xml` | 전국 공고가 한 경로에 있고, 지역 ID·검색 파라미터를 추측할 필요가 없음 |
+| 1차 선별 | URL 슬러그의 제목 ↔ 검색어 묶음(구매 의도 묶음 제외), `lastmod` 60일 이내 | 29,019건 중 수십 건만 상세 요청. 본문에만 업무 단어가 있으면 놓침 (알려진 한계) |
+| 상세 | 페이지 내 공고 데이터 + `og:title` 급여 표시 | JSON-LD 없음. `/api/` 는 robots 금지라 쓰지 않음 |
+| 모집 상태 | `deleted` → 삭제, `closed` → 마감, `closed=false`·`ACCEPTED` → 모집 중(확인 시점), 숨김·기타 상태 → 판단 보류 | 사이트 자체 표시 |
+| 급여 | 보수 필드로만 사용 (본문에 넣지 않음) | 당근알바 작성 양식은 급여 형식이 필수 → 작성자의 의뢰/고용 표현으로 보지 않음 |
+| 요청 제한 | 하루 400회, 요청 간격 4초, 12시간 안에 확인한 공고는 다시 요청하지 않음 | robots.txt 에 crawl-delay 없음. 보수적으로 설정 |
+| 404 | 삭제로 확정하지 않음 | 삭제 응답 신뢰성 미확인 |
+
+## 1-4. 약관 (자동 수집 조항) — 미확인
+
+- 약관 위치: 당근 이용약관 `https://www.daangn.com/policy/terms/`, 당근알바 서비스 이용약관 `https://www.daangn.com/policy/jobs_terms`, 당근알바 운영정책 `https://cs.kr.karrotmarket.com/wv/faqs/4753`.
+- 세 곳 모두 robots.txt 가 AI 에이전트(또는 전체)를 막고 있어 **직접 읽지 않았다.**
+- 검색 엔진 요약으로 본 당근알바 약관 문구(원문 확인 아님): "사용자는 회사의 동의 없이 다른 사용자 또는 제3자의 상업적인 목적을 위하여 본 서비스 구성요소의 전부 또는 일부에 대하여 이를 복사, 복제, 판매, 재판매 또는 양수도할 수 없습니다."
+- 당근 이용약관에 자동화 수단(크롤링·스크래핑) 금지 조항이 있는지는 **확인하지 못했다.** 정책을 `allowed`/`restricted` 로 바꾸려면 사용자가 위 약관을 확인하고 근거를 기록한다.
+
+## 1-1. 검색 엔진 색인으로 본 공개 URL 형태 (간접 관찰 — 1-2 직접 확인으로 대체)
 
 사이트에 직접 요청하지 않고, 일반 웹 검색 결과에 나온 주소만 적었다 (2026-09-26 13:2x KST). **사이트 응답·HTML·robots 로 확인한 것이 아니므로 `profile.json` 에 넣지 않는다.** 직접 조사할 때 어디부터 볼지 정하는 용도다.
 

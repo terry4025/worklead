@@ -18,6 +18,7 @@ from ..context import AppContext
 from ..models import CollectionTask, CoverageUnit, Lead, Run, Source, SourcePolicy, SourceRecord, new_id
 from ..services.settings import get_setting, ttl_hours
 from ..sources.base import ParseError, PostRef, SourceNotReady, TaskSpec
+from ..sources.base import query_label
 from ..sources.profiled import TaskFailed, canonicalize
 from . import runs
 from .events import emit, notify
@@ -228,6 +229,8 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
                     "target_units_total": plan.target_units_total,
                     "target_units_covered": plan.target_units_covered,
                     "depth_limit": plan.depth_limit,
+                    "unit_label": plan.unit_label,
+                    "coverage_note": plan.coverage_note,
                     "notes": plan.notes,
                     "queries": {t.query_group: t.query for t in plan.tasks},
                     "labels": {t.region_scope: t.region_label for t in plan.tasks},
@@ -260,7 +263,7 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
                 task.attempts += 1
                 spec = TaskSpec(task.query_group, task.region_scope, plan_info["labels"].get(task.region_scope), plan_info["queries"].get(task.query_group), task.cursor, task.depth)
                 task_id, order_no = task.id, task.order_no
-            scope.label = f"{spec.region_label or spec.region_scope} · {spec.query or spec.query_group}" + (f" · {spec.cursor}쪽" if spec.cursor else "")
+            scope.label = f"{spec.region_label or spec.region_scope} · {query_label(spec.query) or spec.query_group}" + (f" · {spec.cursor}쪽" if spec.cursor else "")
             result_state, last_result, error, found = "done", "ok", None, 0
             try:
                 result = adapter.discover(spec, fetcher)
@@ -319,11 +322,24 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
     with app.db.session() as s:
         states = dict(s.execute(select(CollectionTask.state, func.count()).where(CollectionTask.run_id == run.id).group_by(CollectionTask.state)).all())
     failed = states.get("failed", 0) + states.get("blocked", 0)
-    _set_health(app, run.source_id or "", "ok" if not failed else "degraded", None if not failed else f"작업 {failed}건 실패 — 다음 실행에서 다시 시도")
-    note = None
-    if plan_info.get("region_list_status") != "verified" or (plan_info.get("target_units_covered") or 0) < (plan_info.get("target_units_total") or 0):
+    # 목록은 정상이어도 상세 해석·요청 실패가 있으면 정상 완료로 기록하지 않는다
+    detail_failed = scope.counts.get("parse_failures", 0) + scope.counts.get("fetch_failures", 0) - (states.get("failed", 0))
+    detail_failed = max(0, detail_failed)
+    if failed:
+        health_msg = f"작업 {failed}건 실패 — 다음 실행에서 다시 시도"
+    elif detail_failed:
+        health_msg = f"상세 {detail_failed}건 확인 실패 — 구조 변경 가능성, 다음 실행에서 다시 시도"
+    else:
+        health_msg = None
+    _set_health(app, run.source_id or "", "ok" if health_msg is None else "degraded", health_msg)
+    note = plan_info.get("coverage_note")
+    if note is None and (plan_info.get("region_list_status") != "verified" or (plan_info.get("target_units_covered") or 0) < (plan_info.get("target_units_total") or 0)):
         note = "탐색 범위가 전국 전체로 확인되지 않았습니다 (부분 탐색)"
-    raise Halt("partial" if failed else "succeeded", "tasks_failed" if failed else None, f"작업 {failed}건 실패" if failed else note)
+    if failed:
+        raise Halt("partial", "tasks_failed", f"작업 {failed}건 실패")
+    if detail_failed:
+        raise Halt("partial", "details_failed", f"상세 {detail_failed}건 확인 실패")
+    raise Halt("succeeded", None, note)
 
 
 def _process_ref(app: AppContext, adapter: Any, fetcher: Any, ref: PostRef, spec: TaskSpec, run_id: str, scope: RunScope) -> None:

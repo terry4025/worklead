@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dbe57f879c5e0b480f",
+  "id": "lead_01a0dc1e16f34b1d7a33c5",
   "source_id": "demo-synthetic",
   "title": "치과 홈페이지 제작 의뢰 (기존 도메인 있음)",
   "categories": [
@@ -37,13 +37,13 @@
   "access_status": "blocked",
   "analysis_status": "rules_only",
   "recheck_due": true,
-  "last_checked_at": "2026-09-24T02:07:25.677716Z",
+  "last_checked_at": "2026-09-24T03:09:14.458459Z",
   "published": {
-    "at": "2026-09-22T20:07:25.677716Z",
+    "at": "2026-09-22T21:09:14.458459Z",
     "precision": "exact",
     "raw": null
   },
-  "first_seen_at": "2026-09-23T00:07:25.677716Z",
+  "first_seen_at": "2026-09-23T01:09:14.458459Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -77,7 +77,7 @@
   "has_memo": false,
   "active_job": null,
   "body_text": "치과 홈페이지 새로 제작 의뢰드립니다. 기존 도메인은 있고 호스팅은 새로 알아보려 합니다.\n진료 안내, 의료진 소개, 온라인 상담 신청 페이지 필요합니다.\n원격 작업 가능. 예산 200만원.",
-  "body_retained_until": "2026-10-23T00:07:25.677716Z",
+  "body_retained_until": "2026-10-23T01:09:14.458459Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -87,7 +87,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-23T00:07:25.677716Z",
+  "last_seen_at": "2026-09-23T01:09:14.458459Z",
   "work_period": {
     "start": {
       "at": null,
@@ -101,9 +101,9 @@
     }
   },
   "evidence": {
-    "engagement_type": [
+    "demand_intent": [
       {
-        "id": "ev_01a0dbe57f910a051faeae",
+        "id": "ev_01a0dc1e16fd78dd04aeef",
         "quote": "치과 홈페이지 새로 제작 의뢰드립니다.",
         "span": {
           "start": 0,
@@ -111,15 +111,31 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T04:07:25.677716Z",
-        "source_record_id": "rec_01a0dbe57f86ae79c0f225",
+        "observed_at": "2026-09-26T05:09:14.458459Z",
+        "source_record_id": "rec_01a0dc1e16f222c60ce876",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "engagement_type": [
+      {
+        "id": "ev_01a0dc1e16fdae27ba53e4",
+        "quote": "치과 홈페이지 새로 제작 의뢰드립니다.",
+        "span": {
+          "start": 0,
+          "end": 21
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T05:09:14.458459Z",
+        "source_record_id": "rec_01a0dc1e16f222c60ce876",
         "version": "rules-2026.09.1",
         "note": null
       }
     ],
     "pay": [
       {
-        "id": "ev_01a0dbe57f91158f7aeff8",
+        "id": "ev_01a0dc1e16fdbe9bf46949",
         "quote": "예산 200만원.",
         "span": {
           "start": 97,
@@ -127,31 +143,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T04:07:25.677716Z",
-        "source_record_id": "rec_01a0dbe57f86ae79c0f225",
-        "version": "rules-2026.09.1",
-        "note": null
-      }
-    ],
-    "demand_intent": [
-      {
-        "id": "ev_01a0dbe57f913e6e9ec125",
-        "quote": "치과 홈페이지 새로 제작 의뢰드립니다.",
-        "span": {
-          "start": 0,
-          "end": 21
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T04:07:25.677716Z",
-        "source_record_id": "rec_01a0dbe57f86ae79c0f225",
+        "observed_at": "2026-09-26T05:09:14.458459Z",
+        "source_record_id": "rec_01a0dc1e16f222c60ce876",
         "version": "rules-2026.09.1",
         "note": null
       }
     ],
     "work_mode": [
       {
-        "id": "ev_01a0dbe57f91b64c1c9ec2",
+        "id": "ev_01a0dc1e16fdec5007ef09",
         "quote": "원격 작업 가능.",
         "span": {
           "start": 87,
@@ -159,8 +159,8 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T04:07:25.677716Z",
-        "source_record_id": "rec_01a0dbe57f86ae79c0f225",
+        "observed_at": "2026-09-26T05:09:14.458459Z",
+        "source_record_id": "rec_01a0dc1e16f222c60ce876",
         "version": "rules-2026.09.1",
         "note": null
       }
@@ -236,7 +236,7 @@
     "conversion_opportunity": null,
     "engine": "rules",
     "version": "rules-2026.09.1",
-    "analyzed_at": "2026-09-23T00:07:25.677716Z",
+    "analyzed_at": "2026-09-23T01:09:14.458459Z",
     "failure": null
   },
   "risks": [],
@@ -289,14 +289,14 @@
       "region_scope": "울산 남구",
       "region_label": "울산 남구",
       "query_group": "demo",
-      "first_seen_at": "2026-09-23T00:07:25.677716Z",
-      "last_seen_at": "2026-09-23T00:07:25.677716Z",
+      "first_seen_at": "2026-09-23T01:09:14.458459Z",
+      "last_seen_at": "2026-09-23T01:09:14.458459Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-23T00:07:25.677716Z",
+      "at": "2026-09-23T01:09:14.458459Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

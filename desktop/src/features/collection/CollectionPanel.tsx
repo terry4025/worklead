@@ -134,7 +134,9 @@ function SourceCard({ source: s, runs }: { source: SourceInfo; runs: RunInfo[] }
                 <span className="cov-label">지역 목록</span>
                 <span>
                   {c.targetUnitsCovered !== null ? `${c.targetUnitsCovered}/${c.targetUnitsTotal ?? '?'} 시·도 확보 · ` : ''}
-                  {{ verified: '전체성 확인됨', unverified: '전체성 미확인 → 부분 탐색으로 표시', not_applicable: '전국 단일 검색', unknown: '미확인' }[c.regionListStatus]}
+                  {c.regionListStatus === 'not_applicable'
+                    ? `지역 구분 없이 전국 (${c.unitLabel})`
+                    : { verified: '전체성 확인됨', unverified: '전체성 미확인 → 부분 탐색으로 표시', unknown: '미확인' }[c.regionListStatus]}
                 </span>
               </div>
               <div className="cov-row">

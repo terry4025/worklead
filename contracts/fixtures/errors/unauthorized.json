@@ -3,7 +3,7 @@
     "code": "unauthorized",
     "message": "인증 토큰이 없거나 올바르지 않습니다",
     "details": null,
-    "request_id": "b0ceca10b788bdc5",
+    "request_id": "88642e4953c03af1",
     "retryable": false
   }
 }

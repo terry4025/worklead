@@ -13,7 +13,7 @@
 ```
 backend/worklead/sources/<site>/
   __init__.py      # create() → ProfiledSiteAdapter(load_profile(...), name=..., scope_note=..., ...)
-  profile.json     # 조사 결과 (형식은 daangn/profile.json 참고)
+  profile.json     # 조사 결과 (형식은 backend/tests/fixture_site.py 의 profile() 참고)
 ```
 
 `profile.json` 핵심 필드
@@ -34,7 +34,7 @@ backend/worklead/sources/<site>/
 
 ## 3. 방법 B — 전용 어댑터
 
-프로필로 표현할 수 없으면 `sources/base.py` 의 `SourceAdapter` 계약을 구현한다: `describe_capabilities`, `healthcheck`, `plan_discovery`, `discover`, `fetch_detail`, `parse`, `revalidate`, `block_detector`. 모든 요청은 전달받은 `Fetcher` 로만 한다 (직접 HTTP 금지). 어댑터는 UI·영업 상태를 바꾸지 않는다.
+프로필로 표현할 수 없으면 `sources/base.py` 의 `SourceAdapter` 계약을 구현한다 (예: `sources/daangn/adapter.py` — 공식 사이트맵 탐색 + 페이지 내 공고 데이터 해석): `describe_capabilities`, `healthcheck`, `plan_discovery`, `discover`, `fetch_detail`, `parse`, `revalidate`, `block_detector`. 모든 요청은 전달받은 `Fetcher` 로만 한다 (직접 HTTP 금지). 어댑터는 UI·영업 상태를 바꾸지 않는다.
 
 ## 4. 등록
 

@@ -57,7 +57,7 @@ describe('계약 fixture → 화면 모델', () => {
     expect(blocked.health.status).toBe('blocked');
     const first = read('sources.first_run.json').items.map(mapSource).find((s: { id: string }) => s.id === 'daangn-alba');
     expect(first.policy.status).toBe('permission_pending');
-    expect(first.research.ready).toBe(false);
+    expect(first.research.ready).toBe(true); // 조사 완료 · 정책은 사용자 확인 전 (permission_pending)
   });
 
   it('이벤트', () => {

@@ -243,20 +243,25 @@ def test_scheduler_idempotent_and_respects_policy(tmp_path: Path) -> None:
     assert schedule_due(ctx) == []
 
 
-def test_daangn_not_runnable_until_research(tmp_path: Path) -> None:
-    ctx = make_ctx(tmp_path)
+def test_unresearched_source_not_runnable(tmp_path: Path) -> None:
+    """사례 4: 조사(지역 목록 등)가 없는 소스는 정책을 허용해도 추측 없이 실행하지 않는다."""
+    prof = fx.profile(regions=[])
+    prof["verified"] = False
+    ad = fx.ProfiledSiteAdapter(prof, name="미조사 사이트", scope_note=None, adapter_version="t", parser_version="t")
+    ctx = make_ctx(tmp_path, adapters={ad.source_id: ad})
+    behavior = fx.SiteBehavior()
+    ctx.transport = fx.transport(behavior)
     c = client_for(ctx)
-    src = next(i for i in c.get("/v1/sources").json()["items"] if i["id"] == "daangn-alba")
+    src = next(i for i in c.get("/v1/sources").json()["items"] if i["id"] == ad.source_id)
     assert src["policy"]["status"] == "permission_pending"
     assert src["research"]["ready"] is False
-    assert all(cap["support"] == "unverified" for cap in src["capabilities"])
-    # 정책만 허용으로 바꿔도 조사 미완료면 실행 불가 (가짜 결과 없음)
-    r = c.patch("/v1/sources/daangn-alba", json={"policy": {"status": "allowed", "basis": "테스트"}})
+    r = c.patch(f"/v1/sources/{ad.source_id}", json={"policy": {"status": "allowed", "basis": "테스트"}})
     assert r.status_code == 200
-    r = c.post("/v1/runs", json={"source_id": "daangn-alba", "kind": "discovery"})
+    r = c.post("/v1/runs", json={"source_id": ad.source_id, "kind": "discovery"})
     assert r.status_code == 409 and r.json()["error"]["code"] == "research_incomplete"
-    r = c.patch("/v1/sources/daangn-alba", json={"auto_collect_enabled": True})
+    r = c.patch(f"/v1/sources/{ad.source_id}", json={"auto_collect_enabled": True})
     assert r.status_code == 409
+    assert behavior.requests == []
 
 
 def _leads(ctx) -> list[Lead]:

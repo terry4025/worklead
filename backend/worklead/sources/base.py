@@ -48,6 +48,8 @@ class DiscoveryPlan:
     #: 전국 목표 대비 지역 목록이 확보된 광역 단위 수 (알 수 없으면 None)
     target_units_total: int | None = None
     target_units_covered: int | None = None
+    #: 완료 시 표시할 탐색 범위 설명 (없으면 지역 목록 상태로 판단)
+    coverage_note: str | None = None
 
 
 @dataclass
@@ -140,3 +142,11 @@ class SourceAdapter(Protocol):
     def revalidate(self, url: str, fetcher: Fetcher, observed_at: datetime) -> Revalidation: ...
 
     def block_detector(self, result: FetchResult) -> str | None: ...
+
+
+def query_label(query: str | None) -> str | None:
+    """계획에 저장된 검색어 목록(줄바꿈 구분)을 짧게 표시."""
+    if not query or "\n" not in query:
+        return query
+    parts = [p for p in query.split("\n") if p]
+    return f"제목 선별 {parts[0]} 외 {len(parts) - 1}개"

@@ -1,52 +1,36 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "source_id": "daangn-alba",
-  "verified": false,
+  "verified": true,
   "research": {
     "document": "docs/SOURCE_RESEARCH.md",
-    "reviewed_at": null,
-    "notes": "2026-09-26 개발 환경에서 jobs.daangn.com 접근이 네트워크 정책으로 차단되어 실제 확인을 하지 못함. 아래 항목은 모두 조사 후 채운다."
+    "reviewed_at": "2026-09-26T04:57:00Z",
+    "notes": "2026-09-26 13:54–13:57 KST jobs.daangn.com 의 robots.txt·사이트맵·상세 3건을 직접 확인. 약관의 자동 수집 조항은 AI 에이전트 차단(www.daangn.com robots.txt)으로 직접 읽지 못함 → 정책 판단은 사용자가 약관 확인 후 기록."
   },
   "allowed_hosts": ["jobs.daangn.com"],
-  "request_budget_per_day": 300,
-  "min_interval_seconds": 6,
+  "request_budget_per_day": 400,
+  "min_interval_seconds": 4,
   "default_interval_minutes": 360,
-  "search": {
-    "status": "unverified",
-    "url_template": null,
-    "nationwide_url_template": null,
-    "query_mode": "per_keyword",
-    "joiner": " ",
-    "first_page": 1,
-    "max_pages": 2
-  },
-  "regions": {
-    "status": "unverified",
-    "items": []
-  },
-  "list": {
-    "detail_link_pattern": null,
-    "post_id_pattern": null,
-    "empty_markers": []
+  "sitemap": {
+    "index_url": "https://jobs.daangn.com/sitemap.xml",
+    "job_sitemap_pattern": "^https://jobs\\.daangn\\.com/sitemaps/job-posts-\\d+\\.xml$",
+    "max_files": 5,
+    "max_age_days": 60
   },
   "detail": {
-    "strategy": null,
-    "closed_markers": [],
-    "open_markers": [],
-    "block_markers": [],
-    "valid_through_means_open": false,
+    "link_pattern": "^https://jobs\\.daangn\\.com/job-posts/[^/?#]+-([a-z0-9]{12})$",
     "deletion_reliable": false,
-    "contact_channel_label": "당근알바 원문에서 직접 (지원·채팅)"
+    "contact_channel_label": "당근알바 원문에서 직접 지원 (앱·웹)"
   },
   "capabilities": {
-    "nationwide_search": {"support": "unverified", "note": "전국 단일 검색 지원 여부 미확인"},
-    "region_search": {"support": "unverified", "note": "지역 기준 검색이 관찰됐다는 사전 기록만 있음 (재확인 필요)"},
-    "remote_filter": {"support": "unverified", "note": "재택 전용 필터 존재 여부 미확인"},
-    "sort": {"support": "unverified"},
-    "pagination": {"support": "unverified"},
-    "incremental": {"support": "unverified"},
-    "detail": {"support": "unverified", "note": "상세 페이지의 마감 표시가 관찰됐다는 사전 기록만 있음"},
-    "revalidate": {"support": "unverified"},
-    "structured_data": {"support": "unverified", "note": "JobPosting JSON-LD 제공 여부 미확인"}
+    "nationwide_search": {"support": "supported", "note": "robots.txt 에 명시된 공식 사이트맵으로 전국 공고 목록 확인 (2026-09-26 기준 29,019건)"},
+    "region_search": {"support": "unsupported", "note": "사용하지 않음 — 사이트맵으로 대체"},
+    "remote_filter": {"support": "unsupported", "note": "재택 전용 필터 없음 — 본문으로 판단"},
+    "sort": {"support": "supported", "note": "사이트맵 lastmod 최신순으로 확인"},
+    "pagination": {"support": "supported", "note": "사이트맵 파일 단위 (job-posts-N.xml)"},
+    "incremental": {"support": "supported", "note": "lastmod 기준 최근 60일, 12시간 안에 확인한 공고는 다시 요청하지 않음"},
+    "detail": {"support": "supported", "note": "공고 페이지에 포함된 공고 데이터"},
+    "revalidate": {"support": "supported", "note": "공고 데이터의 모집 종료·삭제 표시. 404 는 삭제로 확정하지 않음"},
+    "structured_data": {"support": "supported", "note": "schema.org JobPosting 은 없음 — 페이지 내 공고 데이터 사용"}
   }
 }

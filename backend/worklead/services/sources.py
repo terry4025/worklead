@@ -13,11 +13,16 @@ from sqlalchemy.orm import Session
 from ..api import schemas as S
 from ..engine.http import budget_status
 from ..models import CollectionTask, CoverageUnit, Run, Source, SourcePolicy
+from ..sources.base import query_label
 from ..sources.profiled import check_profile
 from ..sources.regions import SIDO
 
 
 def research_state(adapter: Any) -> S.Research:
+    check = getattr(adapter, "research_check", None)
+    if callable(check):
+        chk = check()
+        return S.Research(ready=chk.ready, missing=chk.missing)
     profile = getattr(adapter, "profile", None)
     if profile is None:
         return S.Research(ready=True, missing=[])
@@ -80,7 +85,7 @@ def coverage(s: Session, db: Any, source: Source, adapter: Any) -> S.Coverage | 
     )
     labels = plan.get("labels", {})
     queries = plan.get("queries", {})
-    next_up = f"{labels.get(nxt.region_scope) or nxt.region_scope} · {queries.get(nxt.query_group) or nxt.query_group}" if nxt else None
+    next_up = f"{labels.get(nxt.region_scope) or nxt.region_scope} · {query_label(queries.get(nxt.query_group)) or nxt.query_group}" if nxt else None
     req = s.scalar(select(func.sum(func.json_extract(Run.counts, "$.requests"))).where(Run.source_id == source.id, Run.kind == "discovery", Run.scan_cycle == cycle)) or 0
     per_unit = (req / completed) if completed else float(plan.get("depth_limit") or 1)
     est = round(planned * per_unit / daily, 1) if daily and planned else None
@@ -90,7 +95,7 @@ def coverage(s: Session, db: Any, source: Source, adapter: Any) -> S.Coverage | 
     return S.Coverage(
         target_label=plan.get("target_label", "전국"),
         region_list_status=plan.get("region_list_status", "unknown"),
-        unit_label="지역×검색어",
+        unit_label=plan.get("unit_label") or "지역×검색어",
         planned=planned,
         completed=completed,
         pending=pending,

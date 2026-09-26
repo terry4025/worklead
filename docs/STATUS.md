@@ -40,6 +40,6 @@
 
 | 항목 | 상태 |
 | --- | --- |
-| 당근알바 조사(약관·robots·검색·상세 구조·지역 목록) | 개발 환경 네트워크 정책이 `jobs.daangn.com`·`www.daangn.com`·`cs.kr.karrotmarket.com` 을 차단 → 미확인. 검색 엔진 색인의 주소 형태만 간접 기록 ([SOURCE_RESEARCH.md](SOURCE_RESEARCH.md)) |
-| 당근알바 자동 수집 | `permission_pending` + 조사 프로필 미검증 → 실행 불가(의도된 잠금). **당근 자동 수집 완료를 주장하지 않는다** |
-| 전국 탐색 범위 검증 | 지역 목록을 확인하지 못해 미검증. 엔진의 전국 순환은 합성 사이트로만 검증 |
+| 당근알바 약관의 자동 수집 조항 | 약관 페이지(`www.daangn.com`)가 robots.txt 로 AI 에이전트를 차단 → 직접 읽지 않음. 정책 판단은 사용자 몫 ([SOURCE_RESEARCH.md](SOURCE_RESEARCH.md) 1-4) |
+| 당근알바 자동 수집 | 조사·어댑터·합성 테스트 완료 (`tests/test_daangn.py`). 정책은 사용자가 기록하기 전까지 `permission_pending` |
+| 전국 탐색 범위 | 공식 사이트맵(29,019건, 2026-09-26)으로 전국 공고 목록 확인. 사이트맵이 모든 공고를 담는지·제목 선별 누락률은 미확인 |

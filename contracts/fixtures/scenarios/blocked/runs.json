@@ -1,0 +1,42 @@
+{
+  "items": [
+    {
+      "id": "run_01a0dbca2850d782f3545b",
+      "source_id": "fixture-site",
+      "lead_id": null,
+      "kind": "discovery",
+      "state": "partial",
+      "trigger": "manual",
+      "created_at": "2026-09-26T03:37:34.032852Z",
+      "started_at": "2026-09-26T03:37:34.035059Z",
+      "finished_at": "2026-09-26T03:37:34.170529Z",
+      "progress": {
+        "done": 9,
+        "total": 9,
+        "label": "서울 마포구 · 홈페이지"
+      },
+      "counts": {
+        "requests": 14,
+        "details_fetched": 4,
+        "created": 4,
+        "updated": 0,
+        "duplicates": 1,
+        "excluded": 0,
+        "parse_failures": 0,
+        "fetch_failures": 0,
+        "policy_stops": 1,
+        "ai_failures": 0
+      },
+      "error": {
+        "code": "http_403",
+        "message": "접근 차단 응답(403) — 소스를 정지합니다. 우회하지 않습니다.",
+        "retry_after": null
+      },
+      "note": null,
+      "scan_cycle": 1,
+      "result": {}
+    }
+  ],
+  "next_cursor": null,
+  "has_more": false
+}

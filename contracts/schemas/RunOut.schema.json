@@ -1,0 +1,288 @@
+{
+  "$defs": {
+    "Progress": {
+      "additionalProperties": false,
+      "properties": {
+        "done": {
+          "title": "Done",
+          "type": "integer"
+        },
+        "total": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Total"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Label"
+        }
+      },
+      "required": [
+        "done",
+        "total",
+        "label"
+      ],
+      "title": "Progress",
+      "type": "object"
+    },
+    "RunCounts": {
+      "additionalProperties": false,
+      "properties": {
+        "requests": {
+          "title": "Requests",
+          "type": "integer"
+        },
+        "details_fetched": {
+          "title": "Details Fetched",
+          "type": "integer"
+        },
+        "created": {
+          "title": "Created",
+          "type": "integer"
+        },
+        "updated": {
+          "title": "Updated",
+          "type": "integer"
+        },
+        "duplicates": {
+          "title": "Duplicates",
+          "type": "integer"
+        },
+        "excluded": {
+          "title": "Excluded",
+          "type": "integer"
+        },
+        "parse_failures": {
+          "title": "Parse Failures",
+          "type": "integer"
+        },
+        "fetch_failures": {
+          "title": "Fetch Failures",
+          "type": "integer"
+        },
+        "policy_stops": {
+          "title": "Policy Stops",
+          "type": "integer"
+        },
+        "ai_failures": {
+          "title": "Ai Failures",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "requests",
+        "details_fetched",
+        "created",
+        "updated",
+        "duplicates",
+        "excluded",
+        "parse_failures",
+        "fetch_failures",
+        "policy_stops",
+        "ai_failures"
+      ],
+      "title": "RunCounts",
+      "type": "object"
+    },
+    "RunError": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "retry_after": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Retry After"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "retry_after"
+      ],
+      "title": "RunError",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "source_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Source Id"
+    },
+    "lead_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Lead Id"
+    },
+    "kind": {
+      "enum": [
+        "discovery",
+        "recheck_recent",
+        "recheck_stale",
+        "recheck_lead",
+        "reanalyze_lead",
+        "reanalyze_all",
+        "import",
+        "export"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "queued",
+        "running",
+        "paused",
+        "succeeded",
+        "partial",
+        "failed",
+        "cancelled"
+      ],
+      "title": "State",
+      "type": "string"
+    },
+    "trigger": {
+      "enum": [
+        "manual",
+        "schedule"
+      ],
+      "title": "Trigger",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "started_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Started At"
+    },
+    "finished_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Finished At"
+    },
+    "progress": {
+      "$ref": "#/$defs/Progress"
+    },
+    "counts": {
+      "$ref": "#/$defs/RunCounts"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RunError"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "note": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Note"
+    },
+    "scan_cycle": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Scan Cycle"
+    },
+    "result": {
+      "additionalProperties": true,
+      "title": "Result",
+      "type": "object"
+    }
+  },
+  "required": [
+    "id",
+    "source_id",
+    "lead_id",
+    "kind",
+    "state",
+    "trigger",
+    "created_at",
+    "started_at",
+    "finished_at",
+    "progress",
+    "counts",
+    "error",
+    "note",
+    "scan_cycle",
+    "result"
+  ],
+  "title": "RunOut",
+  "type": "object"
+}

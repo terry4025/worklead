@@ -1,0 +1,188 @@
+"""규칙 판정 검증. 요구 검증 사례 5, 6, 7, 8, 12 를 다룬다."""
+
+from __future__ import annotations
+
+from datetime import UTC, datetime, timedelta
+
+import pytest
+
+from worklead.analysis.pay import parse_pay
+from worklead.analysis.service import analyze
+from worklead.analysis.types import PostInput, Profile
+from worklead.engine.robots import RobotsRules
+
+NOW = datetime(2026, 9, 26, 3, 0, tzinfo=UTC)
+PROFILE = Profile(services=["website", "landing", "shop", "fullstack", "software", "vba", "automation"], target_hourly=40_000)
+
+
+def run(title: str, body: str, status: str = "open", checked_h: float = 1, **kw):
+    post = PostInput(
+        title=title,
+        body=body,
+        observed_at=NOW,
+        source_status=status,
+        last_checked_at=NOW - timedelta(hours=checked_h),
+        first_seen_at=NOW - timedelta(hours=5),
+        **kw,
+    )
+    return analyze(post, PROFILE, NOW)
+
+
+# ── 사례 5: 재택 판정 ────────────────────────────────────────────────
+def test_remote_explicit() -> None:
+    a = run("랜딩페이지 제작 의뢰", "랜딩페이지 제작 의뢰합니다. 전 과정 원격으로 진행합니다. 예산 80만원.")
+    assert a.judgements["work_mode"].value == "fully_remote"
+    assert a.judgements["work_mode"].basis == "explicit"
+    ev = a.judgements["work_mode"].evidence[0]
+    assert ev.start is not None and "원격" in ev.quote
+
+
+def test_first_day_visit_is_onsite_required() -> None:
+    a = run("랜딩페이지 제작", "랜딩페이지 제작 의뢰합니다. 재택 가능하지만 첫날 방문 교육이 있습니다.")
+    assert a.judgements["work_mode"].value == "fully_remote"
+    assert a.judgements["collaboration_mode"].value == "onsite_required"
+    assert a.recommendation != "recommended"
+
+
+def test_online_shop_staff_is_not_remote() -> None:
+    a = run("온라인 쇼핑몰 직원", "온라인 쇼핑몰 상품 등록 업무입니다. 근무지: 김포 사무실 (주 5일 출근). 월급 230만원.")
+    assert a.judgements["work_mode"].value == "onsite"
+    assert a.recommendation == "excluded"
+
+
+def test_remote_full_time_is_not_outsourcing() -> None:
+    a = run("C# 개발자 재택 정규직", "재고관리 프로그램 개발 정규직 채용합니다. 완전 재택 근무. 연봉 4,200만원 협의.")
+    assert a.judgements["work_mode"].value == "fully_remote"
+    assert a.judgements["engagement_type"].value == "full_time"
+    assert a.recommendation == "excluded"
+    assert any("정규직" in r.text for r in a.reasons)
+
+
+def test_no_remote_mention_is_unknown() -> None:
+    a = run("예약 페이지 만들어주세요", "네일샵 예약 페이지를 만들고 싶어요. 날짜랑 시간 선택하면 예약되면 됩니다.")
+    assert a.judgements["work_mode"].value == "unknown"
+    assert a.recommendation == "needs_review"
+    remote = next(f for f in a.factors if f.key == "remote_fit")
+    assert remote.score is None, "모르는 요소는 0점이 아니라 미평가"
+
+
+def test_freelancer_word_alone_is_not_remote() -> None:
+    a = run("앱 개발자 구합니다 (프리랜서)", "앱·웹 개발 가능한 프리랜서 구합니다. React 경험자 우대.")
+    assert a.judgements["work_mode"].value == "unknown"
+    assert a.judgements["demand_intent"].value == "unknown"
+
+
+def test_address_alone_does_not_mean_onsite() -> None:
+    a = run("홈페이지 제작 의뢰", "회사 주소: 서울 강남구 테헤란로 1. 홈페이지 제작 의뢰합니다.")
+    assert a.judgements["work_mode"].value == "unknown"
+
+
+# ── 사례 6: 판매자 홍보 vs 의뢰 ─────────────────────────────────────
+def test_seller_vs_buyer() -> None:
+    seller = run("홈페이지 만들어드립니다", "홈페이지 만들어드립니다. 저렴하게 빠르게.")
+    buyer = run("홈페이지 만들어주실 분 구합니다", "병원 홈페이지 만들어주실 분 구합니다. 재택 가능.")
+    assert seller.judgements["demand_intent"].value == "seller_service"
+    assert seller.recommendation == "excluded"
+    assert buyer.judgements["demand_intent"].value == "buyer_project"
+
+
+def test_excel_office_job_is_not_vba_request() -> None:
+    a = run("엑셀 가능한 사무직", "사무실 근무, 엑셀 가능한 사무직 구합니다. 주 5일 출근.")
+    assert "vba" not in a.categories
+    assert a.judgements["demand_intent"].value == "employee_hiring"
+
+
+# ── 사례 7: 보수 보존 ────────────────────────────────────────────────
+@pytest.mark.parametrize(
+    ("body", "unit", "lo", "hi", "negotiable"),
+    [
+        ("시급 12,000원, 하루 4시간", "hour", 12_000, 12_000, False),
+        ("월급 230만원, 4대보험", "month", 2_300_000, 2_300_000, False),
+        ("건당 30만원", "project", 300_000, 300_000, False),
+        ("예산: 50~80만원 (범위 확인 후 조정 가능)", "project", 500_000, 800_000, True),
+        ("금액은 작업 범위 보고 협의하고 싶습니다.", "negotiable", None, None, True),
+        ("예산은 아직 정하지 못했어요.", "unknown", None, None, False),
+        ("연봉 4,200만원 협의", "unknown", 42_000_000, 42_000_000, True),
+        ("1억 5천만원 규모 프로젝트 예산", "project", 150_000_000, 150_000_000, False),
+    ],
+)
+def test_pay_preserved(body: str, unit: str, lo: int | None, hi: int | None, negotiable: bool) -> None:
+    p = parse_pay(body)
+    assert (p.unit, p.min, p.max, p.negotiable) == (unit, lo, hi, negotiable)
+    if lo is None:
+        assert p.min is None, "모르는 금액은 0 이 아니라 null"
+
+
+def test_no_budget_is_not_zero_and_not_excluded() -> None:
+    a = run("홈페이지 만들어주실 분", "홈페이지 만들어주실 분 구합니다. 전 과정 비대면 진행. 지역 무관.")
+    assert a.pay.min is None and a.pay.max is None
+    assert a.recommendation == "recommended"
+    assert any("예산" in r.text for r in a.reasons)
+    assert a.profitability.status == "hypothesis"
+    assert all(sc.contribution is None for sc in a.profitability.scenarios), "예산이 없으면 예상 기여액은 null"
+
+
+def test_hourly_pay_not_converted_to_project_revenue() -> None:
+    a = run("데이터 정리 알바 (재택)", "엑셀 데이터 정리 작업. 재택 가능. 시급 12,000원, 하루 4시간.")
+    assert a.profitability.status == "not_calculated"
+    assert a.profitability.scenarios == []
+
+
+# ── 사례 8: 날짜 구분 ────────────────────────────────────────────────
+def test_deadline_vs_work_start() -> None:
+    a = run("랜딩 제작 의뢰", "랜딩페이지 제작 의뢰합니다. 10월 3일까지 지원 받습니다. 10월 10일부터 시작합니다.")
+    assert a.deadline.raw and "10월 3일" in a.deadline.raw
+    assert a.work_start.raw and "10월 10일" in a.work_start.raw
+    assert a.deadline.at != a.work_start.at
+
+
+def test_closed_marker_and_passed_deadline() -> None:
+    a = run("[마감] 랜딩 제작", "[마감] 랜딩페이지 제작 의뢰합니다.")
+    assert a.closed_marker is not None
+
+
+# ── 사례 12: 적격성 ─────────────────────────────────────────────────
+def test_high_score_but_ineligible_is_not_recommended() -> None:
+    body = "쇼핑몰 홈페이지 제작 의뢰합니다. 전 과정 원격으로 진행, 지역 무관. 예산 300만원. 페이지 10개, 관리자 기능, 결제 연동 필요."
+    open_ = run("쇼핑몰 홈페이지 제작 의뢰", body)
+    closed = run("쇼핑몰 홈페이지 제작 의뢰", body, status="closed")
+    stale = run("쇼핑몰 홈페이지 제작 의뢰", body, checked_h=72)
+    blocked = run("쇼핑몰 홈페이지 제작 의뢰", body, access_status="blocked")
+    assert open_.recommendation == "recommended"
+    assert closed.recommendation == "excluded"
+    assert stale.recommendation == "needs_review"
+    assert blocked.recommendation == "needs_review"
+    assert (stale.total or 0) >= 60
+
+
+def test_risk_signals_with_quotes() -> None:
+    a = run("재택 부업", "월 300만원 이상 고수익 보장! 교육 자료비 5만원 입금 후 안내드립니다.")
+    ids = {r.id for r in a.risks}
+    assert {"upfront_payment", "income_guarantee"} <= ids
+    assert all(r.quote for r in a.risks)
+    assert a.recommendation == "excluded"
+
+
+def test_developer_down_payment_is_not_risk() -> None:
+    a = run("웹 개발 외주", "웹 서비스 개발 외주 맡기려고 합니다. 계약 후 착수금 30% 입금해 드립니다.")
+    assert not a.risks
+
+
+def test_user_feedback_overlay() -> None:
+    body = "홈페이지 만들어주실 분 구합니다. 예산 200만원."
+    post = PostInput(title="홈페이지 제작", body=body, observed_at=NOW, source_status="open", last_checked_at=NOW, first_seen_at=NOW)
+    auto = analyze(post, PROFILE, NOW)
+    mine = analyze(post, PROFILE, NOW, feedback={"remote": "confirmed"})
+    assert auto.judgements["work_mode"].value == "unknown"
+    assert mine.judgements["work_mode"].basis == "user_confirmed"
+    assert mine.recommendation == "recommended"
+
+
+# ── robots.txt ─────────────────────────────────────────────────────
+def test_robots_longest_match() -> None:
+    r = RobotsRules("User-agent: *\nDisallow: /jobs\nAllow: /jobs/public\n\nUser-agent: WorkleadLocal\nDisallow: /private$\n")
+    assert r.allowed("https://x/jobs/public/1", "OtherBot/1.0")
+    assert not r.allowed("https://x/jobs/1", "OtherBot/1.0")
+    assert r.allowed("https://x/jobs/1", "WorkleadLocal/0.1")
+    assert not r.allowed("https://x/private", "WorkleadLocal/0.1")
+    assert r.allowed("https://x/private/x", "WorkleadLocal/0.1")

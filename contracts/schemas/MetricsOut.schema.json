@@ -1,0 +1,219 @@
+{
+  "$defs": {
+    "CollectionMetrics": {
+      "additionalProperties": false,
+      "properties": {
+        "period_days": {
+          "title": "Period Days",
+          "type": "integer"
+        },
+        "runs": {
+          "title": "Runs",
+          "type": "integer"
+        },
+        "requests": {
+          "title": "Requests",
+          "type": "integer"
+        },
+        "details_fetched": {
+          "title": "Details Fetched",
+          "type": "integer"
+        },
+        "created": {
+          "title": "Created",
+          "type": "integer"
+        },
+        "duplicates": {
+          "title": "Duplicates",
+          "type": "integer"
+        },
+        "parse_failures": {
+          "title": "Parse Failures",
+          "type": "integer"
+        },
+        "fetch_failures": {
+          "title": "Fetch Failures",
+          "type": "integer"
+        },
+        "policy_stops": {
+          "title": "Policy Stops",
+          "type": "integer"
+        },
+        "ai_failures": {
+          "title": "Ai Failures",
+          "type": "integer"
+        },
+        "ai_cost_krw": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "확인 가능한 비용 합계. 모르면 null",
+          "title": "Ai Cost Krw"
+        }
+      },
+      "required": [
+        "period_days",
+        "runs",
+        "requests",
+        "details_fetched",
+        "created",
+        "duplicates",
+        "parse_failures",
+        "fetch_failures",
+        "policy_stops",
+        "ai_failures",
+        "ai_cost_krw"
+      ],
+      "title": "CollectionMetrics",
+      "type": "object"
+    },
+    "QualityMetrics": {
+      "additionalProperties": false,
+      "properties": {
+        "period_days": {
+          "title": "Period Days",
+          "type": "integer"
+        },
+        "reviewed": {
+          "description": "분모: 사용자가 판단(관심·제외·진행)을 남긴 리드 수",
+          "title": "Reviewed",
+          "type": "integer"
+        },
+        "confirmed_fit": {
+          "title": "Confirmed Fit",
+          "type": "integer"
+        },
+        "remote_false_positive": {
+          "title": "Remote False Positive",
+          "type": "integer"
+        },
+        "buyer_false_positive": {
+          "title": "Buyer False Positive",
+          "type": "integer"
+        },
+        "median_hours_to_review": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Median Hours To Review"
+        },
+        "note": {
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "period_days",
+        "reviewed",
+        "confirmed_fit",
+        "remote_false_positive",
+        "buyer_false_positive",
+        "median_hours_to_review",
+        "note"
+      ],
+      "title": "QualityMetrics",
+      "type": "object"
+    },
+    "SalesMetrics": {
+      "additionalProperties": false,
+      "properties": {
+        "period_days": {
+          "title": "Period Days",
+          "type": "integer"
+        },
+        "reviewed": {
+          "title": "Reviewed",
+          "type": "integer"
+        },
+        "contacted": {
+          "title": "Contacted",
+          "type": "integer"
+        },
+        "negotiating": {
+          "title": "Negotiating",
+          "type": "integer"
+        },
+        "won": {
+          "title": "Won",
+          "type": "integer"
+        },
+        "contracts_confirmed": {
+          "title": "Contracts Confirmed",
+          "type": "integer"
+        },
+        "contract_amount": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Contract Amount"
+        },
+        "collected": {
+          "description": "실제 수금 기록 합계 (won 표시만으로 늘지 않음)",
+          "title": "Collected",
+          "type": "integer"
+        },
+        "refunded": {
+          "title": "Refunded",
+          "type": "integer"
+        },
+        "direct_cost": {
+          "title": "Direct Cost",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "period_days",
+        "reviewed",
+        "contacted",
+        "negotiating",
+        "won",
+        "contracts_confirmed",
+        "contract_amount",
+        "collected",
+        "refunded",
+        "direct_cost"
+      ],
+      "title": "SalesMetrics",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "collection": {
+      "$ref": "#/$defs/CollectionMetrics"
+    },
+    "quality": {
+      "$ref": "#/$defs/QualityMetrics"
+    },
+    "sales": {
+      "$ref": "#/$defs/SalesMetrics"
+    },
+    "note": {
+      "title": "Note",
+      "type": "string"
+    }
+  },
+  "required": [
+    "collection",
+    "quality",
+    "sales",
+    "note"
+  ],
+  "title": "MetricsOut",
+  "type": "object"
+}

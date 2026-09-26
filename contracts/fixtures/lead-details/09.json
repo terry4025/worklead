@@ -1,0 +1,252 @@
+{
+  "id": "lead_01a0dbca2186e93756e37e",
+  "source_id": "demo-synthetic",
+  "title": "거래처 발주서 PDF → 엑셀 자동 변환 프로그램 제작",
+  "categories": [
+    "software",
+    "vba"
+  ],
+  "demand_intent": {
+    "value": "buyer_project",
+    "basis": "explicit"
+  },
+  "engagement_type": {
+    "value": "project",
+    "basis": "explicit"
+  },
+  "work_mode": {
+    "value": "unknown",
+    "basis": null
+  },
+  "collaboration_mode": {
+    "value": "unknown",
+    "basis": null
+  },
+  "applicant_scope": {
+    "value": "unknown",
+    "basis": null
+  },
+  "pay": {
+    "raw": null,
+    "currency": "KRW",
+    "min": null,
+    "max": null,
+    "unit": "unknown",
+    "negotiable": false
+  },
+  "source_status": "open",
+  "access_status": "accessible",
+  "analysis_status": "failed",
+  "recheck_due": false,
+  "last_checked_at": "2026-09-26T01:37:32.124333Z",
+  "published": {
+    "at": "2026-09-25T22:37:32.124333Z",
+    "precision": "exact",
+    "raw": null
+  },
+  "first_seen_at": "2026-09-25T23:37:32.124333Z",
+  "deadline": {
+    "at": null,
+    "precision": "unknown",
+    "raw": null
+  },
+  "posted_region": "경남 창원시",
+  "found_in": [
+    "경남 창원시"
+  ],
+  "recommendation": "needs_review",
+  "priority": {
+    "total": 72,
+    "unknown_factors": 1
+  },
+  "reasons": [
+    {
+      "tone": "caution",
+      "text": "재택 미확인"
+    },
+    {
+      "tone": "positive",
+      "text": "구매 의뢰 명시"
+    },
+    {
+      "tone": "negative",
+      "text": "AI 분석 실패 — 규칙 결과만"
+    }
+  ],
+  "user_mark": null,
+  "sales_stage": "new",
+  "has_memo": false,
+  "active_job": null,
+  "body_text": "거래처에서 오는 PDF 발주서(양식 3종)를 엑셀로 자동 변환하는 프로그램이 필요합니다.\n매주 100건 정도 들어옵니다.\n제작해 주실 수 있는 분 견적 보내주세요.\n윈도우 PC에서 돌아가면 됩니다.",
+  "body_retained_until": "2026-10-25T23:37:32.124333Z",
+  "original_url": null,
+  "contact_channel": "원문에서 직접 (데모)",
+  "workplace": null,
+  "applicant_region": null,
+  "source_updated": {
+    "at": null,
+    "precision": "unknown",
+    "raw": null
+  },
+  "last_seen_at": "2026-09-25T23:37:32.124333Z",
+  "work_period": {
+    "start": {
+      "at": null,
+      "precision": "unknown",
+      "raw": null
+    },
+    "end": {
+      "at": null,
+      "precision": "unknown",
+      "raw": null
+    }
+  },
+  "evidence": {
+    "demand_intent": [
+      {
+        "id": "ev_01a0dbca218f3eb652ab59",
+        "quote": "제작해 주실 수 있는 분 견적 보내주세요.",
+        "span": {
+          "start": 68,
+          "end": 91
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca2185d1da21e9aa",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "engagement_type": [
+      {
+        "id": "ev_01a0dbca218f4aeb48f9db",
+        "quote": "제작해 주실 수 있는 분 견적 보내주세요.",
+        "span": {
+          "start": 68,
+          "end": 91
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca2185d1da21e9aa",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ]
+  },
+  "score": {
+    "total": 72,
+    "factors": [
+      {
+        "key": "work_fit",
+        "label": "업무 적합성",
+        "max": 30,
+        "score": 30,
+        "reason": "프로그램, 엑셀·VBA·매크로 — 제공 서비스와 일치"
+      },
+      {
+        "key": "buyer_intent",
+        "label": "구매 의도",
+        "max": 25,
+        "score": 23,
+        "reason": "구매 표현 명시"
+      },
+      {
+        "key": "remote_fit",
+        "label": "원격 적합성",
+        "max": 20,
+        "score": null,
+        "reason": "근거 부족: 재택·온라인 언급 없음"
+      },
+      {
+        "key": "freshness",
+        "label": "최신성",
+        "max": 15,
+        "score": 15,
+        "reason": "게시 5시간 전"
+      },
+      {
+        "key": "scope_clarity",
+        "label": "범위 명확성",
+        "max": 10,
+        "score": 4,
+        "reason": "범위 일부만 명시"
+      }
+    ],
+    "risk_penalty": {
+      "score": 0,
+      "reasons": []
+    },
+    "rule_version": "rules-2026.09.1"
+  },
+  "analysis": {
+    "status": "failed",
+    "summary": "거래처에서 오는 PDF 발주서(양식 3종)를 엑셀로 자동 변환하는 프로그램이 필요합니다.",
+    "summary_engine": "rules",
+    "fit": [
+      "프로그램, 엑셀·VBA·매크로 업무",
+      "구매 수요"
+    ],
+    "unfit": [],
+    "uncertain": [
+      "원격 진행 가능 여부",
+      "예산",
+      "세부 요구 범위"
+    ],
+    "deliverables": [],
+    "tech_requirements": [],
+    "questions": [
+      "원격으로만 진행해도 괜찮을까요?",
+      "생각하시는 예산 범위가 있으신가요?",
+      "필요한 기능이나 페이지 목록을 받을 수 있을까요?",
+      "희망하시는 완료 일정이 있으신가요?"
+    ],
+    "next_action": "핵심 질문 확인 후 범위·일정 포함 견적 제시",
+    "conversion_opportunity": null,
+    "engine": "ai:demo",
+    "version": "rules-2026.09.1",
+    "analyzed_at": "2026-09-25T23:37:32.124333Z",
+    "failure": {
+      "code": "ai_timeout",
+      "message": "외부 AI 응답 시간 초과 (60초). 같은 입력으로 자동 재요청하지 않았습니다."
+    }
+  },
+  "risks": [],
+  "profitability": {
+    "status": "not_calculated",
+    "basis": null,
+    "reason": "예산 미기재이고 목표 시간당 가치가 설정되지 않아 견적 가설도 만들지 않았습니다.",
+    "assumptions": [],
+    "scenarios": [],
+    "revenue_type": "unknown",
+    "target_hourly": null
+  },
+  "draft": null,
+  "memo": "",
+  "outcomes": [],
+  "related": [],
+  "discovery_paths": [
+    {
+      "region_scope": "경남 창원시",
+      "region_label": "경남 창원시",
+      "query_group": "demo",
+      "first_seen_at": "2026-09-25T23:37:32.124333Z",
+      "last_seen_at": "2026-09-25T23:37:32.124333Z",
+      "times_seen": 1
+    }
+  ],
+  "activity": [
+    {
+      "at": "2026-09-25T23:37:32.124333Z",
+      "kind": "created",
+      "text": "신규 탐색에서 발견"
+    }
+  ],
+  "feedback": {
+    "remote": null,
+    "real_request": null
+  },
+  "parser_version": "demo",
+  "content_hash": "35a138cf75ef195ac5ce03b1d743aa1b4b926b588ff8baed8466c62953e94afd"
+}

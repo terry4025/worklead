@@ -1,0 +1,235 @@
+{
+  "items": [
+    {
+      "id": "lead_01a0dbca21e47081835af2",
+      "source_id": "demo-synthetic",
+      "title": "소규모 법률사무소 홈페이지 제작",
+      "categories": [
+        "website"
+      ],
+      "demand_intent": {
+        "value": "buyer_project",
+        "basis": "explicit"
+      },
+      "engagement_type": {
+        "value": "project",
+        "basis": "explicit"
+      },
+      "work_mode": {
+        "value": "fully_remote",
+        "basis": "explicit"
+      },
+      "collaboration_mode": {
+        "value": "online_only",
+        "basis": "explicit"
+      },
+      "applicant_scope": {
+        "value": "unknown",
+        "basis": null
+      },
+      "pay": {
+        "raw": "전 과정 비대면 진행 원합니다. 예산 250만원.",
+        "currency": "KRW",
+        "min": 2500000,
+        "max": 2500000,
+        "unit": "project",
+        "negotiable": false
+      },
+      "source_status": "open",
+      "access_status": "accessible",
+      "analysis_status": "rules_only",
+      "recheck_due": false,
+      "last_checked_at": "2026-09-25T13:37:32.124333Z",
+      "published": {
+        "at": "2026-09-23T15:37:32.124333Z",
+        "precision": "exact",
+        "raw": null
+      },
+      "first_seen_at": "2026-09-23T17:37:32.124333Z",
+      "deadline": {
+        "at": null,
+        "precision": "unknown",
+        "raw": null
+      },
+      "posted_region": "서울 서초구",
+      "found_in": [
+        "서울 서초구"
+      ],
+      "recommendation": "recommended",
+      "priority": {
+        "total": 85,
+        "unknown_factors": 0
+      },
+      "reasons": [
+        {
+          "tone": "positive",
+          "text": "구매 의뢰 명시"
+        },
+        {
+          "tone": "positive",
+          "text": "재택·온라인 명시"
+        },
+        {
+          "tone": "positive",
+          "text": "예산 250만원"
+        }
+      ],
+      "user_mark": "interested",
+      "sales_stage": "contacted",
+      "has_memo": true,
+      "active_job": null
+    },
+    {
+      "id": "lead_01a0dbca21f2e37affe97b",
+      "source_id": "demo-synthetic",
+      "title": "플라워샵 꽃 정기구독 신청 랜딩페이지",
+      "categories": [
+        "landing"
+      ],
+      "demand_intent": {
+        "value": "buyer_project",
+        "basis": "explicit"
+      },
+      "engagement_type": {
+        "value": "project",
+        "basis": "inferred"
+      },
+      "work_mode": {
+        "value": "fully_remote",
+        "basis": "explicit"
+      },
+      "collaboration_mode": {
+        "value": "online_only",
+        "basis": "explicit"
+      },
+      "applicant_scope": {
+        "value": "unknown",
+        "basis": null
+      },
+      "pay": {
+        "raw": "온라인으로만 진행 가능하신 분, 재택 환영합니다. 예산 100만원 내외.",
+        "currency": "KRW",
+        "min": 1000000,
+        "max": 1000000,
+        "unit": "project",
+        "negotiable": false
+      },
+      "source_status": "open",
+      "access_status": "accessible",
+      "analysis_status": "rules_only",
+      "recheck_due": true,
+      "last_checked_at": "2026-09-24T21:37:32.124333Z",
+      "published": {
+        "at": "2026-09-21T03:37:32.124333Z",
+        "precision": "exact",
+        "raw": null
+      },
+      "first_seen_at": "2026-09-21T05:37:32.124333Z",
+      "deadline": {
+        "at": null,
+        "precision": "unknown",
+        "raw": null
+      },
+      "posted_region": "경기 수원시",
+      "found_in": [
+        "경기 수원시"
+      ],
+      "recommendation": "needs_review",
+      "priority": {
+        "total": 75,
+        "unknown_factors": 0
+      },
+      "reasons": [
+        {
+          "tone": "caution",
+          "text": "모집 재확인 필요"
+        },
+        {
+          "tone": "positive",
+          "text": "구매 의뢰 명시"
+        },
+        {
+          "tone": "positive",
+          "text": "재택·온라인 명시"
+        }
+      ],
+      "user_mark": null,
+      "sales_stage": "negotiating",
+      "has_memo": true,
+      "active_job": null
+    },
+    {
+      "id": "lead_01a0dbca2200ec4177b4c9",
+      "source_id": "demo-synthetic",
+      "title": "견적서·거래명세서 엑셀 자동 작성 VBA",
+      "categories": [
+        "vba"
+      ],
+      "demand_intent": {
+        "value": "buyer_project",
+        "basis": "explicit"
+      },
+      "engagement_type": {
+        "value": "project",
+        "basis": "explicit"
+      },
+      "work_mode": {
+        "value": "fully_remote",
+        "basis": "explicit"
+      },
+      "collaboration_mode": {
+        "value": "unknown",
+        "basis": null
+      },
+      "applicant_scope": {
+        "value": "unknown",
+        "basis": null
+      },
+      "pay": {
+        "raw": "재택 진행, 예산 60만원.",
+        "currency": "KRW",
+        "min": 600000,
+        "max": 600000,
+        "unit": "project",
+        "negotiable": false
+      },
+      "source_status": "closed",
+      "access_status": "accessible",
+      "analysis_status": "rules_only",
+      "recheck_due": false,
+      "last_checked_at": "2026-09-24T03:37:32.124333Z",
+      "published": {
+        "at": "2026-09-15T07:37:32.124333Z",
+        "precision": "exact",
+        "raw": null
+      },
+      "first_seen_at": "2026-09-15T17:37:32.124333Z",
+      "deadline": {
+        "at": null,
+        "precision": "unknown",
+        "raw": null
+      },
+      "posted_region": "경북 구미시",
+      "found_in": [
+        "경북 구미시"
+      ],
+      "recommendation": "excluded",
+      "priority": {
+        "total": 70,
+        "unknown_factors": 0
+      },
+      "reasons": [
+        {
+          "tone": "negative",
+          "text": "모집 마감"
+        }
+      ],
+      "user_mark": null,
+      "sales_stage": "won",
+      "has_memo": true,
+      "active_job": null
+    }
+  ],
+  "next_cursor": null,
+  "has_more": false
+}

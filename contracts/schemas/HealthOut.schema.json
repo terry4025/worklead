@@ -1,0 +1,47 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "status": {
+      "enum": [
+        "ok",
+        "degraded"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    },
+    "db": {
+      "enum": [
+        "ok",
+        "error"
+      ],
+      "title": "Db",
+      "type": "string"
+    },
+    "workers": {
+      "enum": [
+        "running",
+        "stopped"
+      ],
+      "title": "Workers",
+      "type": "string"
+    },
+    "time": {
+      "format": "date-time",
+      "title": "Time",
+      "type": "string"
+    }
+  },
+  "required": [
+    "status",
+    "version",
+    "db",
+    "workers",
+    "time"
+  ],
+  "title": "HealthOut",
+  "type": "object"
+}

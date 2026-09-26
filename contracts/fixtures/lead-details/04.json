@@ -1,0 +1,304 @@
+{
+  "id": "lead_01a0dbca212f02dbaee685",
+  "source_id": "demo-synthetic",
+  "title": "쇼핑몰 상세페이지 수정·기존 사이트 유지보수 (월 단위)",
+  "categories": [
+    "shop"
+  ],
+  "demand_intent": {
+    "value": "buyer_ongoing",
+    "basis": "explicit"
+  },
+  "engagement_type": {
+    "value": "project",
+    "basis": "inferred"
+  },
+  "work_mode": {
+    "value": "fully_remote",
+    "basis": "explicit"
+  },
+  "collaboration_mode": {
+    "value": "online_only",
+    "basis": "explicit"
+  },
+  "applicant_scope": {
+    "value": "nationwide",
+    "basis": "explicit"
+  },
+  "pay": {
+    "raw": "월 30만원 고정, 3개월 후 재계약 여부 결정합니다.",
+    "currency": "KRW",
+    "min": 300000,
+    "max": 300000,
+    "unit": "month",
+    "negotiable": false
+  },
+  "source_status": "open",
+  "access_status": "accessible",
+  "analysis_status": "rules_only",
+  "recheck_due": false,
+  "last_checked_at": "2026-09-25T18:37:32.124333Z",
+  "published": {
+    "at": "2026-09-22T07:37:32.124333Z",
+    "precision": "approximate",
+    "raw": "2일 전"
+  },
+  "first_seen_at": "2026-09-24T07:37:32.124333Z",
+  "deadline": {
+    "at": null,
+    "precision": "unknown",
+    "raw": null
+  },
+  "posted_region": "대구 중구",
+  "found_in": [
+    "대구 중구"
+  ],
+  "recommendation": "recommended",
+  "priority": {
+    "total": 84,
+    "unknown_factors": 0
+  },
+  "reasons": [
+    {
+      "tone": "positive",
+      "text": "지속 의뢰 명시"
+    },
+    {
+      "tone": "positive",
+      "text": "재택·온라인 명시"
+    },
+    {
+      "tone": "positive",
+      "text": "전국 지원"
+    }
+  ],
+  "user_mark": null,
+  "sales_stage": "new",
+  "has_memo": false,
+  "active_job": null,
+  "body_text": "카페24로 운영 중인 쇼핑몰의 상세페이지 수정과 간단한 유지보수를 맡아주실 분 구합니다.\n한 달에 5~8건 정도 수정 요청이 있고, 급한 건은 이틀 안에 처리해 주시면 됩니다.\n\n완전 재택이며 소통은 슬랙으로 합니다.\n월 30만원 고정, 3개월 후 재계약 여부 결정합니다.\n전국 누구나 지원 가능.",
+  "body_retained_until": "2026-10-24T07:37:32.124333Z",
+  "original_url": null,
+  "contact_channel": "원문에서 직접 (데모)",
+  "workplace": null,
+  "applicant_region": null,
+  "source_updated": {
+    "at": null,
+    "precision": "unknown",
+    "raw": null
+  },
+  "last_seen_at": "2026-09-24T07:37:32.124333Z",
+  "work_period": {
+    "start": {
+      "at": null,
+      "precision": "unknown",
+      "raw": null
+    },
+    "end": {
+      "at": null,
+      "precision": "unknown",
+      "raw": null
+    }
+  },
+  "evidence": {
+    "collaboration_mode": [
+      {
+        "id": "ev_01a0dbca21402411bdb147",
+        "quote": "완전 재택이며 소통은 슬랙으로 합니다.",
+        "span": {
+          "start": 100,
+          "end": 121
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca212e927e05a5c9",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "applicant_scope": [
+      {
+        "id": "ev_01a0dbca21404624c7f57d",
+        "quote": "전국 누구나 지원 가능.",
+        "span": {
+          "start": 153,
+          "end": 166
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca212e927e05a5c9",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "demand_intent": [
+      {
+        "id": "ev_01a0dbca21405f529f6687",
+        "quote": "카페24로 운영 중인 쇼핑몰의 상세페이지 수정과 간단한 유지보수를 맡아주실 분 구합니다.",
+        "span": {
+          "start": 0,
+          "end": 49
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca212e927e05a5c9",
+        "version": "rules-2026.09.1",
+        "note": null
+      },
+      {
+        "id": "ev_01a0dbca2140cc156889d7",
+        "quote": "카페24로 운영 중인 쇼핑몰의 상세페이지 수정과 간단한 유지보수를 맡아주실 분 구합니다.",
+        "span": {
+          "start": 0,
+          "end": 49
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca212e927e05a5c9",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "work_mode": [
+      {
+        "id": "ev_01a0dbca21406f2b1ec6d1",
+        "quote": "완전 재택이며 소통은 슬랙으로 합니다.",
+        "span": {
+          "start": 100,
+          "end": 121
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca212e927e05a5c9",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "pay": [
+      {
+        "id": "ev_01a0dbca2140f5045296b8",
+        "quote": "월 30만원 고정, 3개월 후 재계약 여부 결정합니다.",
+        "span": {
+          "start": 122,
+          "end": 152
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca212e927e05a5c9",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ]
+  },
+  "score": {
+    "total": 84,
+    "factors": [
+      {
+        "key": "work_fit",
+        "label": "업무 적합성",
+        "max": 30,
+        "score": 27,
+        "reason": "쇼핑몰 — 제공 서비스와 일치"
+      },
+      {
+        "key": "buyer_intent",
+        "label": "구매 의도",
+        "max": 25,
+        "score": 21,
+        "reason": "지속 의뢰 명시"
+      },
+      {
+        "key": "remote_fit",
+        "label": "원격 적합성",
+        "max": 20,
+        "score": 20,
+        "reason": "재택·온라인 진행 명시"
+      },
+      {
+        "key": "freshness",
+        "label": "최신성",
+        "max": 15,
+        "score": 8,
+        "reason": "게시 3일 전"
+      },
+      {
+        "key": "scope_clarity",
+        "label": "범위 명확성",
+        "max": 10,
+        "score": 8,
+        "reason": "요구 범위 구체적"
+      }
+    ],
+    "risk_penalty": {
+      "score": 0,
+      "reasons": []
+    },
+    "rule_version": "rules-2026.09.1"
+  },
+  "analysis": {
+    "status": "rules_only",
+    "summary": "카페24로 운영 중인 쇼핑몰의 상세페이지 수정과 간단한 유지보수를 맡아주실 분 구합니다.",
+    "summary_engine": "rules",
+    "fit": [
+      "쇼핑몰 업무",
+      "구매 수요",
+      "재택 명시"
+    ],
+    "unfit": [],
+    "uncertain": [],
+    "deliverables": [],
+    "tech_requirements": [],
+    "questions": [
+      "희망하시는 완료 일정이 있으신가요?"
+    ],
+    "next_action": "핵심 질문 확인 후 범위·일정 포함 견적 제시",
+    "conversion_opportunity": null,
+    "engine": "rules",
+    "version": "rules-2026.09.1",
+    "analyzed_at": "2026-09-24T07:37:32.124333Z",
+    "failure": null
+  },
+  "risks": [],
+  "profitability": {
+    "status": "not_calculated",
+    "basis": null,
+    "reason": "월 단위 보수입니다. 원문 그대로 표시하고 프로젝트 매출로 환산하지 않았습니다.",
+    "assumptions": [],
+    "scenarios": [],
+    "revenue_type": "recurring",
+    "target_hourly": null
+  },
+  "draft": null,
+  "memo": "",
+  "outcomes": [],
+  "related": [],
+  "discovery_paths": [
+    {
+      "region_scope": "대구 중구",
+      "region_label": "대구 중구",
+      "query_group": "demo",
+      "first_seen_at": "2026-09-24T07:37:32.124333Z",
+      "last_seen_at": "2026-09-24T07:37:32.124333Z",
+      "times_seen": 1
+    }
+  ],
+  "activity": [
+    {
+      "at": "2026-09-24T07:37:32.124333Z",
+      "kind": "created",
+      "text": "신규 탐색에서 발견"
+    }
+  ],
+  "feedback": {
+    "remote": null,
+    "real_request": null
+  },
+  "parser_version": "demo",
+  "content_hash": "ae4c7875161086bedb80ad1376dfc121a9a8a24d0d1f823141944e9f909030b4"
+}

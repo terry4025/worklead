@@ -1,0 +1,575 @@
+{
+  "$defs": {
+    "CollaborationAssessed": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "enum": [
+            "online_only",
+            "onsite_required",
+            "negotiable",
+            "unknown"
+          ],
+          "title": "Value",
+          "type": "string"
+        },
+        "basis": {
+          "anyOf": [
+            {
+              "enum": [
+                "explicit",
+                "inferred",
+                "user_confirmed"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Basis"
+        }
+      },
+      "required": [
+        "value",
+        "basis"
+      ],
+      "title": "CollaborationAssessed",
+      "type": "object"
+    },
+    "EngagementAssessed": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "enum": [
+            "project",
+            "hourly_contract",
+            "part_time",
+            "full_time",
+            "unknown"
+          ],
+          "title": "Value",
+          "type": "string"
+        },
+        "basis": {
+          "anyOf": [
+            {
+              "enum": [
+                "explicit",
+                "inferred",
+                "user_confirmed"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Basis"
+        }
+      },
+      "required": [
+        "value",
+        "basis"
+      ],
+      "title": "EngagementAssessed",
+      "type": "object"
+    },
+    "FuzzyDate": {
+      "additionalProperties": false,
+      "properties": {
+        "at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "At"
+        },
+        "precision": {
+          "enum": [
+            "exact",
+            "day",
+            "approximate",
+            "unknown"
+          ],
+          "title": "Precision",
+          "type": "string"
+        },
+        "raw": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Raw"
+        }
+      },
+      "required": [
+        "at",
+        "precision",
+        "raw"
+      ],
+      "title": "FuzzyDate",
+      "type": "object"
+    },
+    "IntentAssessed": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "enum": [
+            "buyer_project",
+            "buyer_ongoing",
+            "employee_hiring",
+            "seller_service",
+            "job_seeker",
+            "information",
+            "unknown"
+          ],
+          "title": "Value",
+          "type": "string"
+        },
+        "basis": {
+          "anyOf": [
+            {
+              "enum": [
+                "explicit",
+                "inferred",
+                "user_confirmed"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Basis"
+        }
+      },
+      "required": [
+        "value",
+        "basis"
+      ],
+      "title": "IntentAssessed",
+      "type": "object"
+    },
+    "Pay": {
+      "additionalProperties": false,
+      "properties": {
+        "raw": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Raw"
+        },
+        "currency": {
+          "title": "Currency",
+          "type": "string"
+        },
+        "min": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Min"
+        },
+        "max": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Max"
+        },
+        "unit": {
+          "enum": [
+            "project",
+            "hour",
+            "day",
+            "week",
+            "month",
+            "negotiable",
+            "unknown"
+          ],
+          "title": "Unit",
+          "type": "string"
+        },
+        "negotiable": {
+          "title": "Negotiable",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "raw",
+        "currency",
+        "min",
+        "max",
+        "unit",
+        "negotiable"
+      ],
+      "title": "Pay",
+      "type": "object"
+    },
+    "Priority": {
+      "additionalProperties": false,
+      "properties": {
+        "total": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "규칙 기반 우선순위 (0-100). 수주 확률이 아니다.",
+          "title": "Total"
+        },
+        "unknown_factors": {
+          "title": "Unknown Factors",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "total",
+        "unknown_factors"
+      ],
+      "title": "Priority",
+      "type": "object"
+    },
+    "Reason": {
+      "additionalProperties": false,
+      "properties": {
+        "tone": {
+          "enum": [
+            "positive",
+            "caution",
+            "negative"
+          ],
+          "title": "Tone",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tone",
+        "text"
+      ],
+      "title": "Reason",
+      "type": "object"
+    },
+    "ScopeAssessed": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "enum": [
+            "nationwide",
+            "regional_restriction",
+            "unknown"
+          ],
+          "title": "Value",
+          "type": "string"
+        },
+        "basis": {
+          "anyOf": [
+            {
+              "enum": [
+                "explicit",
+                "inferred",
+                "user_confirmed"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Basis"
+        }
+      },
+      "required": [
+        "value",
+        "basis"
+      ],
+      "title": "ScopeAssessed",
+      "type": "object"
+    },
+    "WorkModeAssessed": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "enum": [
+            "fully_remote",
+            "hybrid",
+            "onsite",
+            "negotiable",
+            "unknown"
+          ],
+          "title": "Value",
+          "type": "string"
+        },
+        "basis": {
+          "anyOf": [
+            {
+              "enum": [
+                "explicit",
+                "inferred",
+                "user_confirmed"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Basis"
+        }
+      },
+      "required": [
+        "value",
+        "basis"
+      ],
+      "title": "WorkModeAssessed",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "source_id": {
+      "title": "Source Id",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "categories": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Categories",
+      "type": "array"
+    },
+    "demand_intent": {
+      "$ref": "#/$defs/IntentAssessed"
+    },
+    "engagement_type": {
+      "$ref": "#/$defs/EngagementAssessed"
+    },
+    "work_mode": {
+      "$ref": "#/$defs/WorkModeAssessed"
+    },
+    "collaboration_mode": {
+      "$ref": "#/$defs/CollaborationAssessed"
+    },
+    "applicant_scope": {
+      "$ref": "#/$defs/ScopeAssessed"
+    },
+    "pay": {
+      "$ref": "#/$defs/Pay"
+    },
+    "source_status": {
+      "enum": [
+        "open",
+        "closed",
+        "deleted",
+        "unknown"
+      ],
+      "title": "Source Status",
+      "type": "string"
+    },
+    "access_status": {
+      "enum": [
+        "accessible",
+        "login_required",
+        "blocked",
+        "error"
+      ],
+      "title": "Access Status",
+      "type": "string"
+    },
+    "analysis_status": {
+      "enum": [
+        "pending",
+        "rules_only",
+        "complete",
+        "failed",
+        "stale"
+      ],
+      "title": "Analysis Status",
+      "type": "string"
+    },
+    "recheck_due": {
+      "description": "모집 중이지만 확인 TTL 이 지남",
+      "title": "Recheck Due",
+      "type": "boolean"
+    },
+    "last_checked_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Last Checked At"
+    },
+    "published": {
+      "$ref": "#/$defs/FuzzyDate"
+    },
+    "first_seen_at": {
+      "format": "date-time",
+      "title": "First Seen At",
+      "type": "string"
+    },
+    "deadline": {
+      "$ref": "#/$defs/FuzzyDate",
+      "description": "구인 마감일 (근무일·납기와 다름)"
+    },
+    "posted_region": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Posted Region"
+    },
+    "found_in": {
+      "description": "이 공고가 발견된 탐색 지역 (게시 지역과 다를 수 있음)",
+      "items": {
+        "type": "string"
+      },
+      "title": "Found In",
+      "type": "array"
+    },
+    "recommendation": {
+      "enum": [
+        "recommended",
+        "needs_review",
+        "excluded"
+      ],
+      "title": "Recommendation",
+      "type": "string"
+    },
+    "priority": {
+      "$ref": "#/$defs/Priority"
+    },
+    "reasons": {
+      "items": {
+        "$ref": "#/$defs/Reason"
+      },
+      "title": "Reasons",
+      "type": "array"
+    },
+    "user_mark": {
+      "anyOf": [
+        {
+          "enum": [
+            "interested",
+            "dismissed"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "User Mark"
+    },
+    "sales_stage": {
+      "enum": [
+        "new",
+        "reviewing",
+        "contacted",
+        "negotiating",
+        "won",
+        "lost",
+        "on_hold",
+        "ignored"
+      ],
+      "title": "Sales Stage",
+      "type": "string"
+    },
+    "has_memo": {
+      "title": "Has Memo",
+      "type": "boolean"
+    },
+    "active_job": {
+      "anyOf": [
+        {
+          "enum": [
+            "recheck",
+            "reanalyze"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Active Job"
+    }
+  },
+  "required": [
+    "id",
+    "source_id",
+    "title",
+    "categories",
+    "demand_intent",
+    "engagement_type",
+    "work_mode",
+    "collaboration_mode",
+    "applicant_scope",
+    "pay",
+    "source_status",
+    "access_status",
+    "analysis_status",
+    "recheck_due",
+    "last_checked_at",
+    "published",
+    "first_seen_at",
+    "deadline",
+    "posted_region",
+    "found_in",
+    "recommendation",
+    "priority",
+    "reasons",
+    "user_mark",
+    "sales_stage",
+    "has_memo",
+    "active_job"
+  ],
+  "title": "LeadSummary",
+  "type": "object"
+}

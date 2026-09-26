@@ -1,0 +1,107 @@
+{
+  "profile": {
+    "services": [
+      "website",
+      "landing",
+      "shop",
+      "fullstack",
+      "software",
+      "vba",
+      "automation"
+    ],
+    "skills": "",
+    "excluded_work": "",
+    "min_contract": null,
+    "target_hourly": null,
+    "weekly_hours": null,
+    "onsite": "no",
+    "allow_short_term_employment": true
+  },
+  "recheck": {
+    "ttl_hours": 24
+  },
+  "notifications": {
+    "new_recommended": true,
+    "meaningful_change": true,
+    "source_issue": true,
+    "quiet_hours": {
+      "enabled": true,
+      "start": "22:00",
+      "end": "08:00"
+    }
+  },
+  "ai": {
+    "enabled": false,
+    "external_transfer_consent": false,
+    "engine_label": null,
+    "monthly_cost_cap": null,
+    "daily_cost_cap": null,
+    "key_configured": false,
+    "provider_available": false
+  },
+  "retention": {
+    "raw_days": 30
+  },
+  "query_groups": {
+    "version": 1,
+    "groups": [
+      {
+        "id": "direct_build",
+        "label": "직접 제작 수요",
+        "enabled": true,
+        "keywords": [
+          "홈페이지",
+          "웹사이트",
+          "랜딩페이지",
+          "쇼핑몰",
+          "풀스택",
+          "프로그램",
+          "소프트웨어",
+          "개발자"
+        ]
+      },
+      {
+        "id": "automation",
+        "label": "자동화 수요",
+        "enabled": true,
+        "keywords": [
+          "엑셀",
+          "VBA",
+          "매크로",
+          "자동화",
+          "업무툴",
+          "데이터 정리",
+          "보고서 자동화",
+          "API 연동"
+        ]
+      },
+      {
+        "id": "buyer_intent",
+        "label": "구매 의도",
+        "enabled": true,
+        "keywords": [
+          "만들어주실",
+          "제작해주실",
+          "개발해주실",
+          "수정해주실",
+          "의뢰",
+          "외주",
+          "견적",
+          "구합니다"
+        ]
+      },
+      {
+        "id": "problem",
+        "label": "문제 표현",
+        "enabled": false,
+        "keywords": [
+          "반복 입력",
+          "엑셀 취합",
+          "수작업",
+          "관리 페이지 필요",
+          "기존 사이트 수정"
+        ]
+      }
+    ]
+  }
+}

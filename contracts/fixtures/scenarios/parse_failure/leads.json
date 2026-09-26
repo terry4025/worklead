@@ -1,0 +1,394 @@
+{
+  "items": [
+    {
+      "id": "lead_01a0dbca29dad2b61968db",
+      "source_id": "fixture-site",
+      "title": "관리자 페이지 수정 의뢰",
+      "categories": [
+        "fullstack"
+      ],
+      "demand_intent": {
+        "value": "buyer_project",
+        "basis": "explicit"
+      },
+      "engagement_type": {
+        "value": "project",
+        "basis": "explicit"
+      },
+      "work_mode": {
+        "value": "fully_remote",
+        "basis": "explicit"
+      },
+      "collaboration_mode": {
+        "value": "online_only",
+        "basis": "explicit"
+      },
+      "applicant_scope": {
+        "value": "unknown",
+        "basis": null
+      },
+      "pay": {
+        "raw": "기존 사이트 관리자 페이지 수정해 주실 분 구합니다. 비대면 진행, 예산 40만원.",
+        "currency": "KRW",
+        "min": 400000,
+        "max": 400000,
+        "unit": "project",
+        "negotiable": false
+      },
+      "source_status": "open",
+      "access_status": "accessible",
+      "analysis_status": "rules_only",
+      "recheck_due": false,
+      "last_checked_at": "2026-09-26T03:37:34.422956Z",
+      "published": {
+        "at": "2026-09-25T17:37:34.424413Z",
+        "precision": "exact",
+        "raw": "2026-09-25T17:37:34.424413+00:00"
+      },
+      "first_seen_at": "2026-09-26T03:37:34.422956Z",
+      "deadline": {
+        "at": "2026-10-02T15:00:00Z",
+        "precision": "day",
+        "raw": "2026-10-03"
+      },
+      "posted_region": null,
+      "found_in": [
+        "제주 제주시"
+      ],
+      "recommendation": "recommended",
+      "priority": {
+        "total": 88,
+        "unknown_factors": 0
+      },
+      "reasons": [
+        {
+          "tone": "positive",
+          "text": "구매 의뢰 명시"
+        },
+        {
+          "tone": "positive",
+          "text": "재택·온라인 명시"
+        },
+        {
+          "tone": "positive",
+          "text": "예산 40만원"
+        }
+      ],
+      "user_mark": null,
+      "sales_stage": "new",
+      "has_memo": false,
+      "active_job": null
+    },
+    {
+      "id": "lead_01a0dbca29aa529ec6def1",
+      "source_id": "fixture-site",
+      "title": "카페 랜딩페이지 제작 의뢰",
+      "categories": [
+        "landing"
+      ],
+      "demand_intent": {
+        "value": "buyer_project",
+        "basis": "explicit"
+      },
+      "engagement_type": {
+        "value": "project",
+        "basis": "explicit"
+      },
+      "work_mode": {
+        "value": "fully_remote",
+        "basis": "explicit"
+      },
+      "collaboration_mode": {
+        "value": "online_only",
+        "basis": "explicit"
+      },
+      "applicant_scope": {
+        "value": "unknown",
+        "basis": null
+      },
+      "pay": {
+        "raw": "예산은 150만원입니다.",
+        "currency": "KRW",
+        "min": 1500000,
+        "max": 1500000,
+        "unit": "project",
+        "negotiable": false
+      },
+      "source_status": "open",
+      "access_status": "accessible",
+      "analysis_status": "rules_only",
+      "recheck_due": false,
+      "last_checked_at": "2026-09-26T03:37:34.372032Z",
+      "published": {
+        "at": "2026-09-25T17:37:34.375325Z",
+        "precision": "exact",
+        "raw": "2026-09-25T17:37:34.375325+00:00"
+      },
+      "first_seen_at": "2026-09-26T03:37:34.372032Z",
+      "deadline": {
+        "at": "2026-10-02T15:00:00Z",
+        "precision": "day",
+        "raw": "2026-10-03"
+      },
+      "posted_region": null,
+      "found_in": [
+        "부산 해운대구",
+        "부산 수영구"
+      ],
+      "recommendation": "recommended",
+      "priority": {
+        "total": 88,
+        "unknown_factors": 0
+      },
+      "reasons": [
+        {
+          "tone": "positive",
+          "text": "구매 의뢰 명시"
+        },
+        {
+          "tone": "positive",
+          "text": "재택·온라인 명시"
+        },
+        {
+          "tone": "positive",
+          "text": "예산 150만원"
+        }
+      ],
+      "user_mark": null,
+      "sales_stage": "new",
+      "has_memo": false,
+      "active_job": null
+    },
+    {
+      "id": "lead_01a0dbca29e90988c7c895",
+      "source_id": "fixture-site",
+      "title": "예약 페이지 개발 외주",
+      "categories": [
+        "website"
+      ],
+      "demand_intent": {
+        "value": "buyer_project",
+        "basis": "explicit"
+      },
+      "engagement_type": {
+        "value": "project",
+        "basis": "explicit"
+      },
+      "work_mode": {
+        "value": "fully_remote",
+        "basis": "explicit"
+      },
+      "collaboration_mode": {
+        "value": "unknown",
+        "basis": null
+      },
+      "applicant_scope": {
+        "value": "unknown",
+        "basis": null
+      },
+      "pay": {
+        "raw": null,
+        "currency": "KRW",
+        "min": null,
+        "max": null,
+        "unit": "unknown",
+        "negotiable": false
+      },
+      "source_status": "open",
+      "access_status": "accessible",
+      "analysis_status": "rules_only",
+      "recheck_due": false,
+      "last_checked_at": "2026-09-26T03:37:34.438593Z",
+      "published": {
+        "at": "2026-09-25T17:37:34.440084Z",
+        "precision": "exact",
+        "raw": "2026-09-25T17:37:34.440084+00:00"
+      },
+      "first_seen_at": "2026-09-26T03:37:34.438593Z",
+      "deadline": {
+        "at": "2026-10-02T15:00:00Z",
+        "precision": "day",
+        "raw": "2026-10-03"
+      },
+      "posted_region": null,
+      "found_in": [
+        "제주 제주시"
+      ],
+      "recommendation": "needs_review",
+      "priority": {
+        "total": 84,
+        "unknown_factors": 0
+      },
+      "reasons": [
+        {
+          "tone": "caution",
+          "text": "진행 방식(대면 여부) 미확인"
+        },
+        {
+          "tone": "positive",
+          "text": "구매 의뢰 명시"
+        },
+        {
+          "tone": "caution",
+          "text": "예산 미기재 — 확인 필요"
+        }
+      ],
+      "user_mark": null,
+      "sales_stage": "new",
+      "has_memo": false,
+      "active_job": null
+    },
+    {
+      "id": "lead_01a0dbca2a0c27003867b2",
+      "source_id": "fixture-site",
+      "title": "홈페이지 제작해 드립니다",
+      "categories": [
+        "website"
+      ],
+      "demand_intent": {
+        "value": "seller_service",
+        "basis": "explicit"
+      },
+      "engagement_type": {
+        "value": "unknown",
+        "basis": null
+      },
+      "work_mode": {
+        "value": "unknown",
+        "basis": null
+      },
+      "collaboration_mode": {
+        "value": "unknown",
+        "basis": null
+      },
+      "applicant_scope": {
+        "value": "unknown",
+        "basis": null
+      },
+      "pay": {
+        "raw": "홈페이지 제작해 드립니다. 30만원부터.",
+        "currency": "KRW",
+        "min": 300000,
+        "max": null,
+        "unit": "unknown",
+        "negotiable": false
+      },
+      "source_status": "open",
+      "access_status": "accessible",
+      "analysis_status": "rules_only",
+      "recheck_due": false,
+      "last_checked_at": "2026-09-26T03:37:34.472762Z",
+      "published": {
+        "at": "2026-09-25T17:37:34.474320Z",
+        "precision": "exact",
+        "raw": "2026-09-25T17:37:34.474320+00:00"
+      },
+      "first_seen_at": "2026-09-26T03:37:34.472762Z",
+      "deadline": {
+        "at": "2026-10-02T15:00:00Z",
+        "precision": "day",
+        "raw": "2026-10-03"
+      },
+      "posted_region": null,
+      "found_in": [
+        "서울 마포구"
+      ],
+      "recommendation": "excluded",
+      "priority": {
+        "total": 45,
+        "unknown_factors": 1
+      },
+      "reasons": [
+        {
+          "tone": "negative",
+          "text": "판매자 홍보 — 구매 의뢰 아님"
+        }
+      ],
+      "user_mark": null,
+      "sales_stage": "new",
+      "has_memo": false,
+      "active_job": null
+    },
+    {
+      "id": "lead_01a0dbca2a017eb343a0ba",
+      "source_id": "fixture-site",
+      "title": "온라인 쇼핑몰 CS 직원 (주 5일 출근)",
+      "categories": [
+        "other"
+      ],
+      "demand_intent": {
+        "value": "employee_hiring",
+        "basis": "explicit"
+      },
+      "engagement_type": {
+        "value": "full_time",
+        "basis": "explicit"
+      },
+      "work_mode": {
+        "value": "onsite",
+        "basis": "explicit"
+      },
+      "collaboration_mode": {
+        "value": "onsite_required",
+        "basis": "explicit"
+      },
+      "applicant_scope": {
+        "value": "unknown",
+        "basis": null
+      },
+      "pay": {
+        "raw": "상품 등록과 고객 응대 업무입니다. 주 5일 출근, 월급 220만원, 4대보험.",
+        "currency": "KRW",
+        "min": 2200000,
+        "max": 2200000,
+        "unit": "month",
+        "negotiable": false
+      },
+      "source_status": "open",
+      "access_status": "accessible",
+      "analysis_status": "rules_only",
+      "recheck_due": false,
+      "last_checked_at": "2026-09-26T03:37:34.460307Z",
+      "published": {
+        "at": "2026-09-25T17:37:34.463322Z",
+        "precision": "exact",
+        "raw": "2026-09-25T17:37:34.463322+00:00"
+      },
+      "first_seen_at": "2026-09-26T03:37:34.460307Z",
+      "deadline": {
+        "at": "2026-10-02T15:00:00Z",
+        "precision": "day",
+        "raw": "2026-10-03"
+      },
+      "posted_region": null,
+      "found_in": [
+        "서울 마포구"
+      ],
+      "recommendation": "excluded",
+      "priority": {
+        "total": 23,
+        "unknown_factors": 0
+      },
+      "reasons": [
+        {
+          "tone": "negative",
+          "text": "출근 필수"
+        },
+        {
+          "tone": "negative",
+          "text": "정규직 채용 — 외주 아님"
+        },
+        {
+          "tone": "negative",
+          "text": "개발·자동화 업무 아님"
+        }
+      ],
+      "user_mark": null,
+      "sales_stage": "new",
+      "has_memo": false,
+      "active_job": null
+    }
+  ],
+  "next_cursor": null,
+  "has_more": false
+}

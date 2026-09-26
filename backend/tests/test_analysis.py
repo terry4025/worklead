@@ -69,7 +69,9 @@ def test_no_remote_mention_is_unknown() -> None:
 def test_freelancer_word_alone_is_not_remote() -> None:
     a = run("앱 개발자 구합니다 (프리랜서)", "앱·웹 개발 가능한 프리랜서 구합니다. React 경험자 우대.")
     assert a.judgements["work_mode"].value == "unknown"
-    assert a.judgements["demand_intent"].value == "unknown"
+    # 프리랜서 구인은 '프리랜서·단기 작업'(추정)으로 보지만 재택 근거는 아니다
+    assert a.judgements["demand_intent"].value == "short_gig"
+    assert a.judgements["demand_intent"].basis == "inferred"
 
 
 def test_address_alone_does_not_mean_onsite() -> None:
@@ -232,3 +234,37 @@ def test_illegal_work_request_is_risk() -> None:
 def test_site_build_without_web_prefix_is_website() -> None:
     a = run("사이트 제작 및 구글시트 연동 가능하신분", "사이트 제작 및 구글 시트 연동 가능하신 분 구합니다.")
     assert "website" in a.categories and "automation" in a.categories
+
+
+# ── 건당·단기 작업 구인 (크몽·숨고 밖 틈새 수요) ─────────────────────────
+def test_short_gig_hiring_becomes_gig_and_can_be_recommended() -> None:
+    a = run("홈페이지 수정 재택 알바 (건당)", "쇼핑몰 홈페이지 배너·상품 페이지 수정 업무 알바 모집. 재택근무 가능, 건당 5만원입니다.")
+    assert a.judgements["demand_intent"].value == "short_gig"
+    assert a.recommendation == "recommended", [r.text for r in a.reasons]
+
+
+def test_short_term_dev_parttime_is_short_gig_not_employment() -> None:
+    a = run("웹개발 코딩 가능한 알바", "행정보조로 웹개발 코딩 가능한 분 구합니다. 시급 16,000원, 근무기간 1개월~3개월, 재택근무 가능.")
+    assert a.judgements["demand_intent"].value == "short_gig"
+    assert all("단기 고용 — 개발 외주 아님" != r.text for r in a.reasons)
+
+
+def test_full_time_hiring_is_not_short_gig() -> None:
+    a = run("웹 개발자 정규직", "웹 개발자 정규직 채용합니다. 4대보험, 재택근무 병행.")
+    assert a.judgements["demand_intent"].value == "employee_hiring"
+    assert a.recommendation == "excluded"
+
+
+def test_trainee_recruitment_ad_is_excluded() -> None:
+    a = run("[국비지원] AI 풀스택 개발 교육생 모집", "무료 숙식 제공, 풀스택 개발 과정 교육생을 모집합니다.")
+    assert a.recommendation == "excluded"
+    assert any("교육생" in r.text for r in a.reasons)
+
+
+def test_short_gig_disabled_by_profile_setting() -> None:
+    from worklead.analysis.service import analyze
+    from worklead.analysis.types import PostInput, Profile
+
+    post = PostInput(title="웹개발 코딩 가능한 알바", body="웹개발 코딩 가능한 분. 시급 16,000원, 1개월~3개월, 재택근무.", observed_at=NOW, source_status="open", last_checked_at=NOW, first_seen_at=NOW)
+    a = analyze(post, Profile(services=PROFILE.services, allow_short_term_employment=False), NOW)
+    assert a.judgements["demand_intent"].value == "employee_hiring"

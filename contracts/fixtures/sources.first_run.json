@@ -114,6 +114,119 @@
       "last_run_id": null
     },
     {
+      "id": "albamon",
+      "name": "알바몬",
+      "kind": "site",
+      "scope_note": "IT 업직종·재택 알바 목록 1쪽 · 개발·자동화 관련 공고만 · 담당자 연락처 저장 안 함",
+      "adapter_version": "0.1.0",
+      "policy": {
+        "status": "permission_pending",
+        "basis": null,
+        "note": null,
+        "reviewed_at": null,
+        "reviewed_by": "system",
+        "robots_status": "unchecked",
+        "robots_checked_at": null,
+        "robots_summary": null
+      },
+      "auto_collect": {
+        "enabled": false,
+        "interval_minutes": 60
+      },
+      "health": {
+        "status": "unknown",
+        "checked_at": null,
+        "message": null,
+        "code": null
+      },
+      "stopped_reason": null,
+      "capabilities": [
+        {
+          "key": "nationwide_search",
+          "label": "전국 단일 검색",
+          "support": "supported",
+          "note": "업직종·재택 목록은 지역 구분 없는 전국 목록"
+        },
+        {
+          "key": "region_search",
+          "label": "지역별 검색",
+          "support": "unsupported",
+          "note": "사용하지 않음"
+        },
+        {
+          "key": "remote_filter",
+          "label": "재택 전용 필터",
+          "support": "supported",
+          "note": "재택 알바 목록(/jobs/telecommuting) + 상세의 TELECOMMUTE 표시"
+        },
+        {
+          "key": "sort",
+          "label": "정렬",
+          "support": "supported",
+          "note": "목록 기본 순서가 최신순에 가까움 (관찰)"
+        },
+        {
+          "key": "pagination",
+          "label": "페이지 이동",
+          "support": "unsupported",
+          "note": "2쪽 이후는 페이지 주소로 제공되지 않아 1쪽만 확인"
+        },
+        {
+          "key": "incremental",
+          "label": "증분 수집",
+          "support": "supported",
+          "note": "짧은 주기로 1쪽을 다시 확인, 12시간 안에 확인한 공고는 다시 요청하지 않음"
+        },
+        {
+          "key": "detail",
+          "label": "상세 조회",
+          "support": "supported",
+          "note": "JobPosting 구조화 데이터 + 페이지 내 본문"
+        },
+        {
+          "key": "revalidate",
+          "label": "상태 재확인",
+          "support": "supported",
+          "note": "게재 상태·마감일. 404 는 삭제로 확정하지 않음"
+        },
+        {
+          "key": "structured_data",
+          "label": "구조화 데이터",
+          "support": "supported",
+          "note": "schema.org JobPosting"
+        }
+      ],
+      "coverage": {
+        "target_label": "전국",
+        "region_list_status": "unknown",
+        "unit_label": "지역×검색어",
+        "planned": null,
+        "completed": 0,
+        "pending": 0,
+        "blocked": 0,
+        "failed": 0,
+        "scan_cycle": null,
+        "last_visited_at": null,
+        "next_up": null,
+        "depth_limit": null,
+        "budget": {
+          "used": 0,
+          "limit": 200,
+          "unit_label": "요청/일"
+        },
+        "market_coverage": "unknown",
+        "target_units_total": 17,
+        "target_units_covered": null,
+        "estimated_cycle_days": null,
+        "notes": []
+      },
+      "research": {
+        "ready": true,
+        "missing": []
+      },
+      "last_run_id": null
+    },
+    {
       "id": "manual",
       "name": "수동 입력",
       "kind": "manual",

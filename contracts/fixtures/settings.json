@@ -15,7 +15,9 @@
     "target_hourly": null,
     "weekly_hours": null,
     "onsite": "no",
-    "allow_short_term_employment": true
+    "allow_short_term_employment": true,
+    "intro": "",
+    "portfolio_url": null
   },
   "recheck": {
     "ttl_hours": 24

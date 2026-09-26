@@ -17,6 +17,7 @@ export type ApplicantScope = 'nationwide' | 'regional_restriction' | 'unknown';
 export type DemandIntent =
   | 'buyer_project'
   | 'buyer_ongoing'
+  | 'short_gig'
   | 'employee_hiring'
   | 'seller_service'
   | 'job_seeker'
@@ -264,6 +265,8 @@ export interface LeadDetail extends LeadSummary {
   risks: RiskSignal[];
   profitability: Profitability | null;
   draft: Draft | null;
+  /** 30초 연락용 짧은 메시지 (자동 발송 안 함) */
+  quickMessage: string;
   memo: string;
   outcomes: Outcome[];
   related: RelatedRecord[];
@@ -391,6 +394,10 @@ export interface SettingsView {
     weeklyHours: number | null;
     onsite: 'no' | 'first_meeting' | 'yes';
     allowShortTermEmployment: boolean;
+    /** 빠른 연락 메시지용 한 줄 소개 */
+    intro: string;
+    /** 빠른 연락 메시지용 포트폴리오 링크 (http/https) */
+    portfolioUrl: string | null;
   };
   recheck: { ttlHours: number };
   notifications: {

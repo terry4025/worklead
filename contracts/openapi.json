@@ -3830,6 +3830,7 @@
             "enum": [
               "buyer_project",
               "buyer_ongoing",
+              "short_gig",
               "employee_hiring",
               "seller_service",
               "job_seeker",
@@ -4210,6 +4211,10 @@
               }
             ]
           },
+          "quick_message": {
+            "type": "string",
+            "title": "Quick Message"
+          },
           "memo": {
             "type": "string",
             "title": "Memo"
@@ -4299,6 +4304,7 @@
           "risks",
           "profitability",
           "draft",
+          "quick_message",
           "memo",
           "outcomes",
           "related",
@@ -5137,6 +5143,25 @@
           "allow_short_term_employment": {
             "type": "boolean",
             "title": "Allow Short Term Employment"
+          },
+          "intro": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Intro",
+            "default": ""
+          },
+          "portfolio_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300,
+                "pattern": "^https?://\\S+$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Portfolio Url"
           }
         },
         "additionalProperties": false,
@@ -6557,7 +6582,7 @@
               {
                 "type": "integer",
                 "maximum": 10080.0,
-                "minimum": 60.0
+                "minimum": 30.0
               },
               {
                 "type": "null"

@@ -2,6 +2,7 @@
  * 이벤트 구독 → 캐시 갱신. 새 리드는 목록에 바로 끼워 넣지 않고 "새 리드 N건" 으로 알린다
  * (읽는 중인 목록이 움직이지 않도록).
  */
+import { nativeNotify } from '../platform/notify';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import type { LeadDetail, RunInfo, StreamStatus, WorkleadEvent } from '../domain/model';
@@ -61,6 +62,8 @@ export function useLiveEvents(onOpenLead: (id: string) => void): LiveState {
           void qc.invalidateQueries({ queryKey: qk.sources });
           break;
         case 'notification.created':
+          // 창을 보고 있지 않을 때만 Windows 알림 (보고 있으면 앱 안 알림으로 충분)
+          if (typeof document !== 'undefined' && (document.hidden || !document.hasFocus())) void nativeNotify('Worklead', e.title);
           toast.show(
             {
               tone: e.kind === 'source_issue' ? 'bad' : e.kind === 'lead_changed' ? 'warn' : 'info',

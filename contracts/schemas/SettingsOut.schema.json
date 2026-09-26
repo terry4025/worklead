@@ -163,6 +163,26 @@
         "allow_short_term_employment": {
           "title": "Allow Short Term Employment",
           "type": "boolean"
+        },
+        "intro": {
+          "default": "",
+          "maxLength": 200,
+          "title": "Intro",
+          "type": "string"
+        },
+        "portfolio_url": {
+          "anyOf": [
+            {
+              "maxLength": 300,
+              "pattern": "^https?://\\S+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Portfolio Url"
         }
       },
       "required": [

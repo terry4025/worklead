@@ -89,6 +89,7 @@ export function intentClass(intent: DemandIntent): IntentClass {
   switch (intent) {
     case 'buyer_project':
     case 'buyer_ongoing':
+    case 'short_gig':
       return 'buyer';
     case 'employee_hiring':
       return 'hiring';

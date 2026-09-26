@@ -22,7 +22,7 @@
       },
       "health": {
         "status": "ok",
-        "checked_at": "2026-09-26T05:42:02.437910Z",
+        "checked_at": "2026-09-26T10:23:54.083382Z",
         "message": null,
         "code": null
       },
@@ -93,7 +93,7 @@
         "blocked": 0,
         "failed": 0,
         "scan_cycle": 1,
-        "last_visited_at": "2026-09-26T05:42:02.430099Z",
+        "last_visited_at": "2026-09-26T10:23:54.073883Z",
         "next_up": "부산 해운대구 · 홈페이지",
         "depth_limit": 2,
         "budget": {
@@ -114,7 +114,7 @@
         "ready": true,
         "missing": []
       },
-      "last_run_id": "run_01a0dc3c1d1ec292f043ae"
+      "last_run_id": "run_01a0dd3e2a170b034f247b"
     },
     {
       "id": "manual",

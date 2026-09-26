@@ -766,7 +766,7 @@ export interface components {
              * Value
              * @enum {string}
              */
-            value: "buyer_project" | "buyer_ongoing" | "employee_hiring" | "seller_service" | "job_seeker" | "information" | "unknown";
+            value: "buyer_project" | "buyer_ongoing" | "short_gig" | "employee_hiring" | "seller_service" | "job_seeker" | "information" | "unknown";
             /** Basis */
             basis: ("explicit" | "inferred" | "user_confirmed") | null;
         };
@@ -878,6 +878,8 @@ export interface components {
             risks: components["schemas"]["RiskSignal"][];
             profitability: components["schemas"]["Profitability"] | null;
             draft: components["schemas"]["Draft"] | null;
+            /** Quick Message */
+            quick_message: string;
             /** Memo */
             memo: string;
             /** Outcomes */
@@ -1146,6 +1148,13 @@ export interface components {
             onsite: "no" | "first_meeting" | "yes";
             /** Allow Short Term Employment */
             allow_short_term_employment: boolean;
+            /**
+             * Intro
+             * @default
+             */
+            intro: string;
+            /** Portfolio Url */
+            portfolio_url?: string | null;
         };
         /** ProfitScenario */
         ProfitScenario: {

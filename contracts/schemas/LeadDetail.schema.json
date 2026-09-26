@@ -555,6 +555,7 @@
           "enum": [
             "buyer_project",
             "buyer_ongoing",
+            "short_gig",
             "employee_hiring",
             "seller_service",
             "job_seeker",
@@ -1611,6 +1612,10 @@
         }
       ]
     },
+    "quick_message": {
+      "title": "Quick Message",
+      "type": "string"
+    },
     "memo": {
       "title": "Memo",
       "type": "string"
@@ -1698,6 +1703,7 @@
     "risks",
     "profitability",
     "draft",
+    "quick_message",
     "memo",
     "outcomes",
     "related",

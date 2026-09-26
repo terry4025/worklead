@@ -1,7 +1,7 @@
 {
   "items": [
     {
-      "id": "lead_01a0dc3c18e84a1ea44aa0",
+      "id": "lead_01a0dd3e254ab9a705d5a7",
       "source_id": "demo-synthetic",
       "title": "카페 브랜드 소개 랜딩페이지 제작 의뢰 (반응형 1페이지)",
       "categories": [
@@ -39,13 +39,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T00:42:01.149126Z",
+      "last_checked_at": "2026-09-26T05:23:52.599099Z",
       "published": {
-        "at": "2026-09-24T23:42:01.149126Z",
+        "at": "2026-09-25T04:23:52.599099Z",
         "precision": "exact",
         "raw": null
       },
-      "first_seen_at": "2026-09-25T00:42:01.149126Z",
+      "first_seen_at": "2026-09-25T05:23:52.599099Z",
       "deadline": {
         "at": null,
         "precision": "unknown",
@@ -80,7 +80,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dc3c18c6b168a0dd17",
+      "id": "lead_01a0dd3e252350c81b9fd0",
       "source_id": "demo-synthetic",
       "title": "스마트스토어 주문 엑셀 정리 매크로(VBA) 만들어주실 분",
       "categories": [
@@ -119,13 +119,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T03:42:01.149126Z",
+      "last_checked_at": "2026-09-26T08:23:52.599099Z",
       "published": {
-        "at": "2026-09-25T03:42:01.149126Z",
+        "at": "2026-09-25T08:23:52.599099Z",
         "precision": "exact",
         "raw": null
       },
-      "first_seen_at": "2026-09-25T09:42:01.149126Z",
+      "first_seen_at": "2026-09-25T14:23:52.599099Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -160,7 +160,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dc3c18f56761baade9",
+      "id": "lead_01a0dd3e255ae67de6efdf",
       "source_id": "demo-synthetic",
       "title": "구글 시트 주문 내역 → 카카오 알림톡 자동 발송 연동",
       "categories": [
@@ -198,13 +198,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T04:42:01.149126Z",
+      "last_checked_at": "2026-09-26T09:23:52.599099Z",
       "published": {
-        "at": "2026-09-25T21:42:01.149126Z",
+        "at": "2026-09-26T02:23:52.599099Z",
         "precision": "exact",
         "raw": null
       },
-      "first_seen_at": "2026-09-25T22:42:01.149126Z",
+      "first_seen_at": "2026-09-26T03:23:52.599099Z",
       "deadline": {
         "at": null,
         "precision": "unknown",
@@ -222,11 +222,11 @@
       "reasons": [
         {
           "tone": "positive",
-          "text": "구매 의뢰 명시"
+          "text": "8시간 전 게시 — 빠른 연락 유리"
         },
         {
           "tone": "positive",
-          "text": "재택·온라인 명시"
+          "text": "구매 의뢰 명시"
         },
         {
           "tone": "caution",
@@ -239,7 +239,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dc3c19038c5be1af75",
+      "id": "lead_01a0dd3e256a81b59c872c",
       "source_id": "demo-synthetic",
       "title": "쇼핑몰 상세페이지 수정·기존 사이트 유지보수 (월 단위)",
       "categories": [
@@ -277,13 +277,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-25T20:42:01.149126Z",
+      "last_checked_at": "2026-09-26T01:23:52.599099Z",
       "published": {
-        "at": "2026-09-22T09:42:01.149126Z",
+        "at": "2026-09-22T14:23:52.599099Z",
         "precision": "approximate",
         "raw": "2일 전"
       },
-      "first_seen_at": "2026-09-24T09:42:01.149126Z",
+      "first_seen_at": "2026-09-24T14:23:52.599099Z",
       "deadline": {
         "at": null,
         "precision": "unknown",

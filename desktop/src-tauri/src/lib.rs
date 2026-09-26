@@ -219,6 +219,7 @@ pub fn run() {
         }))
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_notification::init())
         .manage(backend)
         .invoke_handler(tauri::generate_handler![backend_connection, restart_backend])
         .setup(|app| {

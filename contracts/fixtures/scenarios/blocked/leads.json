@@ -1,7 +1,7 @@
 {
   "items": [
     {
-      "id": "lead_01a0dc3c203278bbab728b",
+      "id": "lead_01a0dd3e2dd75ea08a0999",
       "source_id": "fixture-site",
       "title": "쇼핑몰 주문 엑셀 매크로 만들어주실 분",
       "categories": [
@@ -40,13 +40,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T05:42:03.054746Z",
+      "last_checked_at": "2026-09-26T10:23:54.834693Z",
       "published": {
-        "at": "2026-09-25T19:42:03.056336Z",
+        "at": "2026-09-26T00:23:54.836914Z",
         "precision": "exact",
-        "raw": "2026-09-25T19:42:03.056336+00:00"
+        "raw": "2026-09-26T00:23:54.836914+00:00"
       },
-      "first_seen_at": "2026-09-26T05:42:03.054746Z",
+      "first_seen_at": "2026-09-26T10:23:54.834693Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -64,15 +64,15 @@
       "reasons": [
         {
           "tone": "positive",
+          "text": "9시간 전 게시 — 빠른 연락 유리"
+        },
+        {
+          "tone": "positive",
           "text": "구매 의뢰 명시"
         },
         {
           "tone": "positive",
           "text": "재택·온라인 명시"
-        },
-        {
-          "tone": "positive",
-          "text": "전국 지원"
         }
       ],
       "user_mark": null,
@@ -81,7 +81,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dc3c2011a37c63c453",
+      "id": "lead_01a0dd3e2daf7b61fa0294",
       "source_id": "fixture-site",
       "title": "관리자 페이지 수정 의뢰",
       "categories": [
@@ -119,13 +119,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T05:42:03.021539Z",
+      "last_checked_at": "2026-09-26T10:23:54.795344Z",
       "published": {
-        "at": "2026-09-25T19:42:03.023162Z",
+        "at": "2026-09-26T00:23:54.797216Z",
         "precision": "exact",
-        "raw": "2026-09-25T19:42:03.023162+00:00"
+        "raw": "2026-09-26T00:23:54.797216+00:00"
       },
-      "first_seen_at": "2026-09-26T05:42:03.021539Z",
+      "first_seen_at": "2026-09-26T10:23:54.795344Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -143,15 +143,15 @@
       "reasons": [
         {
           "tone": "positive",
+          "text": "9시간 전 게시 — 빠른 연락 유리"
+        },
+        {
+          "tone": "positive",
           "text": "구매 의뢰 명시"
         },
         {
           "tone": "positive",
           "text": "재택·온라인 명시"
-        },
-        {
-          "tone": "positive",
-          "text": "예산 40만원"
         }
       ],
       "user_mark": null,
@@ -160,7 +160,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dc3c1fddcd3006cb18",
+      "id": "lead_01a0dd3e2d769019c2561f",
       "source_id": "fixture-site",
       "title": "카페 랜딩페이지 제작 의뢰",
       "categories": [
@@ -198,13 +198,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T05:42:02.965465Z",
+      "last_checked_at": "2026-09-26T10:23:54.734734Z",
       "published": {
-        "at": "2026-09-25T19:42:02.968931Z",
+        "at": "2026-09-26T00:23:54.738603Z",
         "precision": "exact",
-        "raw": "2026-09-25T19:42:02.968931+00:00"
+        "raw": "2026-09-26T00:23:54.738603+00:00"
       },
-      "first_seen_at": "2026-09-26T05:42:02.965465Z",
+      "first_seen_at": "2026-09-26T10:23:54.734734Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -223,15 +223,15 @@
       "reasons": [
         {
           "tone": "positive",
+          "text": "9시간 전 게시 — 빠른 연락 유리"
+        },
+        {
+          "tone": "positive",
           "text": "구매 의뢰 명시"
         },
         {
           "tone": "positive",
           "text": "재택·온라인 명시"
-        },
-        {
-          "tone": "positive",
-          "text": "예산 150만원"
         }
       ],
       "user_mark": null,
@@ -240,7 +240,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dc3c20226fecf1ec47",
+      "id": "lead_01a0dd3e2dc3bb626b86fc",
       "source_id": "fixture-site",
       "title": "예약 페이지 개발 외주",
       "categories": [
@@ -278,13 +278,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T05:42:03.038514Z",
+      "last_checked_at": "2026-09-26T10:23:54.815637Z",
       "published": {
-        "at": "2026-09-25T19:42:03.040130Z",
+        "at": "2026-09-26T00:23:54.817463Z",
         "precision": "exact",
-        "raw": "2026-09-25T19:42:03.040130+00:00"
+        "raw": "2026-09-26T00:23:54.817463+00:00"
       },
-      "first_seen_at": "2026-09-26T05:42:03.038514Z",
+      "first_seen_at": "2026-09-26T10:23:54.815637Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -306,7 +306,7 @@
         },
         {
           "tone": "positive",
-          "text": "구매 의뢰 명시"
+          "text": "9시간 전 게시 — 빠른 연락 유리"
         },
         {
           "tone": "caution",

@@ -209,9 +209,9 @@ function SourceCard({ source: s, runs }: { source: SourceInfo; runs: RunInfo[] }
                 disabled={update.isPending}
                 onChange={(e) => update.mutate({ intervalMinutes: Number(e.target.value) })}
               >
-                {[180, 360, 720, 1440].map((m) => (
+                {[30, 60, 180, 360, 720, 1440].map((m) => (
                   <option key={m} value={m}>
-                    {m / 60}시간마다
+                    {m < 60 ? `${m}분마다` : `${m / 60}시간마다`}
                   </option>
                 ))}
               </select>

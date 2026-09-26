@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dc3c19d0e72052e30d",
+  "id": "lead_01a0dd3e2630dc4528251a",
   "source_id": "demo-synthetic",
   "title": "플라워샵 꽃 정기구독 신청 랜딩페이지",
   "categories": [
@@ -37,13 +37,13 @@
   "access_status": "accessible",
   "analysis_status": "rules_only",
   "recheck_due": true,
-  "last_checked_at": "2026-09-24T23:42:01.149126Z",
+  "last_checked_at": "2026-09-25T04:23:52.599099Z",
   "published": {
-    "at": "2026-09-21T05:42:01.149126Z",
+    "at": "2026-09-21T10:23:52.599099Z",
     "precision": "exact",
     "raw": null
   },
-  "first_seen_at": "2026-09-21T07:42:01.149126Z",
+  "first_seen_at": "2026-09-21T12:23:52.599099Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -77,7 +77,7 @@
   "has_memo": true,
   "active_job": null,
   "body_text": "꽃 정기구독 서비스 신청을 받는 랜딩페이지를 만들고 싶습니다.\n결제는 스마트스토어 링크로 연결할 예정이에요.\n온라인으로만 진행 가능하신 분, 재택 환영합니다. 예산 100만원 내외.",
-  "body_retained_until": "2026-10-21T07:42:01.149126Z",
+  "body_retained_until": "2026-10-21T12:23:52.599099Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -87,7 +87,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-21T07:42:01.149126Z",
+  "last_seen_at": "2026-09-21T12:23:52.599099Z",
   "work_period": {
     "start": {
       "at": null,
@@ -101,9 +101,9 @@
     }
   },
   "evidence": {
-    "work_mode": [
+    "collaboration_mode": [
       {
-        "id": "ev_01a0dc3c19d91ce7d9ff54",
+        "id": "ev_01a0dd3e263a3445544ca0",
         "quote": "온라인으로만 진행 가능하신 분, 재택 환영합니다.",
         "span": {
           "start": 61,
@@ -111,15 +111,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:42:01.149126Z",
-        "source_record_id": "rec_01a0dc3c19cfd4d56f5fb0",
-        "version": "rules-2026.09.5",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e262f30cb4c7fb0",
+        "version": "rules-2026.09.6",
         "note": null
       }
     ],
     "demand_intent": [
       {
-        "id": "ev_01a0dc3c19d97b138decd4",
+        "id": "ev_01a0dd3e263a4673689613",
         "quote": "꽃 정기구독 서비스 신청을 받는 랜딩페이지를 만들고 싶습니다.",
         "span": {
           "start": 0,
@@ -127,31 +127,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:42:01.149126Z",
-        "source_record_id": "rec_01a0dc3c19cfd4d56f5fb0",
-        "version": "rules-2026.09.5",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e262f30cb4c7fb0",
+        "version": "rules-2026.09.6",
         "note": null
       }
     ],
-    "pay": [
+    "work_mode": [
       {
-        "id": "ev_01a0dc3c19da41a5b37eb9",
-        "quote": "예산 100만원 내외.",
-        "span": {
-          "start": 89,
-          "end": 101
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T05:42:01.149126Z",
-        "source_record_id": "rec_01a0dc3c19cfd4d56f5fb0",
-        "version": "rules-2026.09.5",
-        "note": null
-      }
-    ],
-    "collaboration_mode": [
-      {
-        "id": "ev_01a0dc3c19da6f81bdab70",
+        "id": "ev_01a0dd3e263a5f6a31be60",
         "quote": "온라인으로만 진행 가능하신 분, 재택 환영합니다.",
         "span": {
           "start": 61,
@@ -159,9 +143,25 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:42:01.149126Z",
-        "source_record_id": "rec_01a0dc3c19cfd4d56f5fb0",
-        "version": "rules-2026.09.5",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e262f30cb4c7fb0",
+        "version": "rules-2026.09.6",
+        "note": null
+      }
+    ],
+    "pay": [
+      {
+        "id": "ev_01a0dd3e263b6319887393",
+        "quote": "예산 100만원 내외.",
+        "span": {
+          "start": 89,
+          "end": 101
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e262f30cb4c7fb0",
+        "version": "rules-2026.09.6",
         "note": null
       }
     ]
@@ -209,7 +209,7 @@
       "score": 0,
       "reasons": []
     },
-    "rule_version": "rules-2026.09.5"
+    "rule_version": "rules-2026.09.6"
   },
   "analysis": {
     "status": "rules_only",
@@ -235,8 +235,8 @@
     "next_action": "핵심 질문 확인 후 범위·일정 포함 견적 제시",
     "conversion_opportunity": null,
     "engine": "rules",
-    "version": "rules-2026.09.5",
-    "analyzed_at": "2026-09-21T07:42:01.149126Z",
+    "version": "rules-2026.09.6",
+    "analyzed_at": "2026-09-21T12:23:52.599099Z",
     "failure": null
   },
   "risks": [],
@@ -281,6 +281,7 @@
     "target_hourly": null
   },
   "draft": null,
+  "quick_message": "안녕하세요, 올려주신 '플라워샵 꽃 정기구독 신청 랜딩페이지' 글 보고 연락드립니다.\n[한 줄 소개 — 설정 > 프로필에서 입력하면 자동으로 들어갑니다]\n[포트폴리오 링크 — 설정 > 프로필에서 입력]\n바로 시작할 수 있고, 내용 확인 후 금액과 일정을 먼저 알려드리겠습니다.\n혹시 아직 작업자를 찾고 계신가요?",
   "memo": "견적 120만원 제시, 상대는 100만원 희망. 수정 횟수 줄이는 안으로 조율 중.",
   "outcomes": [],
   "related": [],
@@ -289,14 +290,14 @@
       "region_scope": "경기 수원시",
       "region_label": "경기 수원시",
       "query_group": "demo",
-      "first_seen_at": "2026-09-21T07:42:01.149126Z",
-      "last_seen_at": "2026-09-21T07:42:01.149126Z",
+      "first_seen_at": "2026-09-21T12:23:52.599099Z",
+      "last_seen_at": "2026-09-21T12:23:52.599099Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-21T07:42:01.149126Z",
+      "at": "2026-09-21T12:23:52.599099Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

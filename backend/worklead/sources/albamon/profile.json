@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "source_id": "albamon",
+  "verified": true,
+  "research": {
+    "document": "docs/SOURCE_RESEARCH_ALBAMON.md",
+    "reviewed_at": "2026-09-26T10:10:00Z",
+    "notes": "robots.txt·목록·상세·사이트맵·회원 약관을 직접 확인. 약관 제18조(정보 복제·영리 행위 제한)가 있어 자동 수집 정책은 사용자가 판단한다."
+  },
+  "allowed_hosts": ["www.albamon.com"],
+  "request_budget_per_day": 200,
+  "min_interval_seconds": 5,
+  "default_interval_minutes": 60,
+  "lists": [
+    {"id": "part-9060", "label": "프로그래머", "url": "https://www.albamon.com/jobs/part?parts=9060", "kind": "it_part"},
+    {"id": "part-9005", "label": "웹·콘텐츠기획", "url": "https://www.albamon.com/jobs/part?parts=9005", "kind": "it_part"},
+    {"id": "part-9061", "label": "HTML코딩", "url": "https://www.albamon.com/jobs/part?parts=9061", "kind": "it_part"},
+    {"id": "telecommuting", "label": "재택 알바", "url": "https://www.albamon.com/jobs/telecommuting", "kind": "remote_all"}
+  ],
+  "detail": {
+    "url_template": "https://www.albamon.com/jobs/detail/{id}",
+    "link_pattern": "^https://www\\.albamon\\.com/jobs/detail/(\\d+)$",
+    "deletion_reliable": false,
+    "contact_channel_label": "알바몬 원문에서 지원 (온라인·간편문자 등, 공고마다 다름)"
+  },
+  "capabilities": {
+    "nationwide_search": {"support": "supported", "note": "업직종·재택 목록은 지역 구분 없는 전국 목록"},
+    "region_search": {"support": "unsupported", "note": "사용하지 않음"},
+    "remote_filter": {"support": "supported", "note": "재택 알바 목록(/jobs/telecommuting) + 상세의 TELECOMMUTE 표시"},
+    "sort": {"support": "supported", "note": "목록 기본 순서가 최신순에 가까움 (관찰)"},
+    "pagination": {"support": "unsupported", "note": "2쪽 이후는 페이지 주소로 제공되지 않아 1쪽만 확인"},
+    "incremental": {"support": "supported", "note": "짧은 주기로 1쪽을 다시 확인, 12시간 안에 확인한 공고는 다시 요청하지 않음"},
+    "detail": {"support": "supported", "note": "JobPosting 구조화 데이터 + 페이지 내 본문"},
+    "revalidate": {"support": "supported", "note": "게재 상태·마감일. 404 는 삭제로 확정하지 않음"},
+    "structured_data": {"support": "supported", "note": "schema.org JobPosting"}
+  }
+}

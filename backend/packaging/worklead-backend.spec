@@ -13,6 +13,7 @@ a = Analysis(
     datas=[
         (str(PKG / "migrations"), "worklead/migrations"),
         (str(PKG / "sources" / "daangn" / "profile.json"), "worklead/sources/daangn"),
+        (str(PKG / "sources" / "albamon" / "profile.json"), "worklead/sources/albamon"),
     ],
     hiddenimports=collect_submodules("worklead") + collect_submodules("uvicorn") + collect_submodules("alembic"),
     excludes=["tkinter", "pytest", "PyInstaller"],

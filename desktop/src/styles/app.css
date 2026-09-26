@@ -1340,6 +1340,7 @@
 }
 .memo textarea,
 .draft textarea,
+.quick textarea,
 .import-form textarea,
 .import-form input,
 .outcome-form input,
@@ -1356,6 +1357,7 @@
 }
 .memo textarea:focus-visible,
 .draft textarea:focus-visible,
+.quick textarea:focus-visible,
 .import-form textarea:focus-visible,
 input:focus-visible,
 textarea:focus-visible {
@@ -1885,4 +1887,9 @@ input[aria-invalid='true'] {
 }
 .pane-list > .skeleton-list {
   padding-top: 4px;
+}
+
+.quick {
+  display: grid;
+  gap: 8px;
 }

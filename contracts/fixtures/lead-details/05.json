@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dc3c190fb4dc90cde6",
+  "id": "lead_01a0dd3e2578b484f1adcd",
   "source_id": "demo-synthetic",
   "title": "학원 수강생·출결 관리 웹 프로그램 개발 외주",
   "categories": [
@@ -38,13 +38,13 @@
   "access_status": "accessible",
   "analysis_status": "rules_only",
   "recheck_due": false,
-  "last_checked_at": "2026-09-26T02:42:01.149126Z",
+  "last_checked_at": "2026-09-26T07:23:52.599099Z",
   "published": {
-    "at": "2026-09-25T11:42:01.149126Z",
+    "at": "2026-09-25T16:23:52.599099Z",
     "precision": "exact",
     "raw": null
   },
-  "first_seen_at": "2026-09-25T13:42:01.149126Z",
+  "first_seen_at": "2026-09-25T18:23:52.599099Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -66,11 +66,11 @@
     },
     {
       "tone": "positive",
-      "text": "구매 의뢰 명시"
+      "text": "18시간 전 게시 — 빠른 연락 유리"
     },
     {
       "tone": "positive",
-      "text": "재택 명시"
+      "text": "구매 의뢰 명시"
     }
   ],
   "user_mark": null,
@@ -78,7 +78,7 @@
   "has_memo": false,
   "active_job": null,
   "body_text": "수학학원에서 쓸 수강생 관리, 출결, 수납 내역 확인용 웹 프로그램 개발 외주 맡기려고 합니다.\n강사 5명, 학생 약 200명 규모입니다.\n\n개발은 재택으로 하셔도 되지만, 첫 미팅은 학원에서 대면으로 한 번 하고 싶습니다(강남역 인근).\n이후 진행은 온라인으로 합니다.\n예산은 300~500만원 사이로 생각하고 있으며 기능 범위에 따라 조정 가능합니다.",
-  "body_retained_until": "2026-10-25T13:42:01.149126Z",
+  "body_retained_until": "2026-10-25T18:23:52.599099Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -88,7 +88,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-25T13:42:01.149126Z",
+  "last_seen_at": "2026-09-25T18:23:52.599099Z",
   "work_period": {
     "start": {
       "at": null,
@@ -102,9 +102,41 @@
     }
   },
   "evidence": {
+    "demand_intent": [
+      {
+        "id": "ev_01a0dd3e258252d5267dfc",
+        "quote": "수학학원에서 쓸 수강생 관리, 출결, 수납 내역 확인용 웹 프로그램 개발 외주 맡기려고 합니다.",
+        "span": {
+          "start": 0,
+          "end": 53
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e25778f5652bbe3",
+        "version": "rules-2026.09.6",
+        "note": null
+      }
+    ],
+    "engagement_type": [
+      {
+        "id": "ev_01a0dd3e25832d29bde418",
+        "quote": "수학학원에서 쓸 수강생 관리, 출결, 수납 내역 확인용 웹 프로그램 개발 외주 맡기려고 합니다.",
+        "span": {
+          "start": 0,
+          "end": 53
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e25778f5652bbe3",
+        "version": "rules-2026.09.6",
+        "note": null
+      }
+    ],
     "pay": [
       {
-        "id": "ev_01a0dc3c1918114b53e79a",
+        "id": "ev_01a0dd3e258334e41e78ca",
         "quote": "예산은 300~500만원 사이로 생각하고 있으며 기능 범위에 따라 조정 가능합니다.",
         "span": {
           "start": 152,
@@ -112,15 +144,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:42:01.149126Z",
-        "source_record_id": "rec_01a0dc3c190e2b181dc1dc",
-        "version": "rules-2026.09.5",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e25778f5652bbe3",
+        "version": "rules-2026.09.6",
         "note": null
       }
     ],
     "collaboration_mode": [
       {
-        "id": "ev_01a0dc3c19182f830a8194",
+        "id": "ev_01a0dd3e25838bf966e7ae",
         "quote": "개발은 재택으로 하셔도 되지만, 첫 미팅은 학원에서 대면으로 한 번 하고 싶습니다(강남역 인근).",
         "span": {
           "start": 79,
@@ -128,15 +160,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:42:01.149126Z",
-        "source_record_id": "rec_01a0dc3c190e2b181dc1dc",
-        "version": "rules-2026.09.5",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e25778f5652bbe3",
+        "version": "rules-2026.09.6",
         "note": null
       }
     ],
     "work_mode": [
       {
-        "id": "ev_01a0dc3c191849c5dcd3cd",
+        "id": "ev_01a0dd3e2583e0e1a0ae54",
         "quote": "개발은 재택으로 하셔도 되지만, 첫 미팅은 학원에서 대면으로 한 번 하고 싶습니다(강남역 인근).",
         "span": {
           "start": 79,
@@ -144,41 +176,9 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:42:01.149126Z",
-        "source_record_id": "rec_01a0dc3c190e2b181dc1dc",
-        "version": "rules-2026.09.5",
-        "note": null
-      }
-    ],
-    "demand_intent": [
-      {
-        "id": "ev_01a0dc3c1918f13373afd5",
-        "quote": "수학학원에서 쓸 수강생 관리, 출결, 수납 내역 확인용 웹 프로그램 개발 외주 맡기려고 합니다.",
-        "span": {
-          "start": 0,
-          "end": 53
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T05:42:01.149126Z",
-        "source_record_id": "rec_01a0dc3c190e2b181dc1dc",
-        "version": "rules-2026.09.5",
-        "note": null
-      }
-    ],
-    "engagement_type": [
-      {
-        "id": "ev_01a0dc3c1918fd2b6ad33b",
-        "quote": "수학학원에서 쓸 수강생 관리, 출결, 수납 내역 확인용 웹 프로그램 개발 외주 맡기려고 합니다.",
-        "span": {
-          "start": 0,
-          "end": 53
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T05:42:01.149126Z",
-        "source_record_id": "rec_01a0dc3c190e2b181dc1dc",
-        "version": "rules-2026.09.5",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e25778f5652bbe3",
+        "version": "rules-2026.09.6",
         "note": null
       }
     ]
@@ -226,7 +226,7 @@
       "score": 0,
       "reasons": []
     },
-    "rule_version": "rules-2026.09.5"
+    "rule_version": "rules-2026.09.6"
   },
   "analysis": {
     "status": "rules_only",
@@ -250,8 +250,8 @@
     "next_action": "핵심 질문 확인 후 범위·일정 포함 견적 제시",
     "conversion_opportunity": null,
     "engine": "rules",
-    "version": "rules-2026.09.5",
-    "analyzed_at": "2026-09-25T13:42:01.149126Z",
+    "version": "rules-2026.09.6",
+    "analyzed_at": "2026-09-25T18:23:52.599099Z",
     "failure": null
   },
   "risks": [],
@@ -296,6 +296,7 @@
     "target_hourly": null
   },
   "draft": null,
+  "quick_message": "안녕하세요, 올려주신 '학원 수강생·출결 관리 웹 프로그램 개발 외주' 글 보고 연락드립니다.\n[한 줄 소개 — 설정 > 프로필에서 입력하면 자동으로 들어갑니다]\n[포트폴리오 링크 — 설정 > 프로필에서 입력]\n바로 시작할 수 있고, 내용 확인 후 금액과 일정을 먼저 알려드리겠습니다.\n혹시 대면 미팅을 화상으로 대체할 수 있을까요?",
   "memo": "",
   "outcomes": [],
   "related": [],
@@ -304,14 +305,14 @@
       "region_scope": "서울 강남구",
       "region_label": "서울 강남구",
       "query_group": "demo",
-      "first_seen_at": "2026-09-25T13:42:01.149126Z",
-      "last_seen_at": "2026-09-25T13:42:01.149126Z",
+      "first_seen_at": "2026-09-25T18:23:52.599099Z",
+      "last_seen_at": "2026-09-25T18:23:52.599099Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-25T13:42:01.149126Z",
+      "at": "2026-09-25T18:23:52.599099Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

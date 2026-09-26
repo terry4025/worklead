@@ -127,6 +127,7 @@
           "enum": [
             "buyer_project",
             "buyer_ongoing",
+            "short_gig",
             "employee_hiring",
             "seller_service",
             "job_seeker",

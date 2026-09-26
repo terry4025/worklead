@@ -1,13 +1,23 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "메인 창 권한. 셸(프로세스 실행) 권한은 웹뷰에 주지 않는다. 외부 링크는 http/https 만.",
-  "windows": ["main"],
+  "description": "메인 창 권한. 셸(프로세스 실행) 권한은 웹뷰에 주지 않는다. 외부 링크는 http/https 만. 알림은 새 추천·조건 변경·수집 문제 표시용.",
+  "windows": [
+    "main"
+  ],
   "permissions": [
     "core:default",
+    "notification:default",
     {
       "identifier": "opener:allow-open-url",
-      "allow": [{ "url": "https://*" }, { "url": "http://*" }]
+      "allow": [
+        {
+          "url": "https://*"
+        },
+        {
+          "url": "http://*"
+        }
+      ]
     }
   ]
 }

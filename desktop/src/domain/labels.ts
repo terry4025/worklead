@@ -44,6 +44,7 @@ export const applicantScopeLabel: Record<ApplicantScope, string> = {
 export const intentLabel: Record<DemandIntent, string> = {
   buyer_project: '구매 의뢰',
   buyer_ongoing: '구매 의뢰 (지속)',
+  short_gig: '프리랜서·단기 작업',
   employee_hiring: '일반 채용',
   seller_service: '판매자 홍보',
   job_seeker: '구직 글',
@@ -55,6 +56,7 @@ export const intentLabel: Record<DemandIntent, string> = {
 export const intentShortLabel: Record<DemandIntent, string> = {
   buyer_project: '구매 의뢰',
   buyer_ongoing: '지속 의뢰',
+  short_gig: '단기·프리',
   employee_hiring: '일반 채용',
   seller_service: '판매자 홍보',
   job_seeker: '구직 글',

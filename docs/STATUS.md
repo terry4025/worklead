@@ -8,13 +8,15 @@
 | --- | --- | --- |
 | 백엔드 API | `/v1` 전 엔드포인트, 토큰·Host·Origin 검사, 오류 형식, 커서, 대기열, SSE 이어받기/리셋 | `backend/tests/test_api.py` |
 | 수집 엔진 | 허용 호스트, robots.txt, 예산, 403/CAPTCHA 정지, 429 유예, 파싱 실패 구분, 전국 순환·주기·이어받기, 강제 종료 복구, 예약 멱등 | `backend/tests/test_engine.py` (합성 사이트) |
-| 분석 | 축별 판정·근거 구간, 보수·날짜, 위험 신호, 점수·미평가, 적격성, 수익성, 내 확인 반영 | `backend/tests/test_analysis.py` |
+| 분석 | 축별 판정·근거 구간, 보수·날짜, 위험 신호, 점수·미평가, 적격성, 수익성, 내 확인 반영. 고용 형식의 건당·단기·프리랜서 개발 작업을 `short_gig`(프리랜서·단기 작업)로 분류, 교육생 모집 광고 제외, 24시간 안 게시글 가점 | `backend/tests/test_analysis.py` |
+| 빠른 연락 문구 | 상세 화면에서 제목·프로필 한 줄 소개·포트폴리오 링크로 연락 문구를 만들고 복사 후 원문을 연다 (자동 발송 없음, 없는 내용은 빈칸 표시) | `test_quick_message_uses_profile_and_never_invents` |
 | 저장 | 마이그레이션(사전 백업), 온라인 백업, 무결성 확인 복원 | `test_backup_restore_roundtrip` |
 | 계약 | OpenAPI·스키마·엔진 생성 fixture·TS 클라이언트, fixture 재검증 | `test_contracts.py`, `desktop/src/__tests__/contract-mapper.test.ts` |
 | 화면 | 목록·상세·수집·설정·단축키·상태별 화면, 데모 시나리오 7종 | Vitest 24건, Playwright 스크린샷(1024–1536px, 다크 모드, 좁은 창 겹침) |
 | 화면 ↔ 실제 백엔드 | live 모드로 목록·상세·메모 저장·관심 표시·수동 입력·재확인 거부·SSE 새 리드 배너 | Playwright + `--dev --demo` 백엔드 |
 | 패키징(리눅스로 대체 확인) | PyInstaller sidecar 가 마이그레이션·준비 줄·인증·이중 실행 거부·stdin 종료 동작 | `/tmp` 수동 테스트 기록 (커밋 메시지) |
 | Tauri 셸 | `cargo check/build` (Linux), Xvfb 에서 앱 실행 → sidecar 시작 → 화면 live 연결(실시간), 앱 종료 시 백엔드 프로세스 0개 | 수동 확인 |
+| 알바몬 어댑터 (합성 사이트) | IT 업직종·재택 목록 1쪽 → 목록 데이터로 1차 선별 → 상세 JSON-LD·본문, 담당자 연락처·도로명 주소 미저장, 목록 구조 변경은 파싱 실패 | `tests/test_albamon.py` |
 | 당근알바 실제 수집 | 공식 사이트맵 29,019건 → 제목 선별 38건 상세 확인 (요청 41회) → 확인 필요 16 · 자동 제외 22 · 추천 0. 화면 live 연결로 확인 | [SOURCE_RESEARCH.md](SOURCE_RESEARCH.md) 1-5, `tests/test_daangn.py` |
 
 ## 구현했으나 미검증
@@ -23,6 +25,7 @@
 | --- | --- |
 | Windows 설치·실행 (설치 마법사, WebView2 부트스트랩, 한글/공백 경로, 창 숨김, 종료 정리) | 설치 파일은 GitHub Actions(windows-latest)에서 빌드됨 (`.github/workflows/windows-installer.yml`). 같은 러너에서 백엔드 테스트 전부 통과·sidecar 단독 실행(준비 줄·401·health) 확인. **실제 PC 에 설치해 화면을 띄우는 것은 미확인**. 코드 서명 없음 |
 | 성능 목표 (10만 리드 p95 500ms) | 측정하지 않음 |
+| Windows 알림 | 새 추천 리드 알림을 창이 가려져 있거나 최소화된 경우 Windows 알림으로도 띄움 (`tauri-plugin-notification`). Linux 에서 `cargo check` 만 확인, 실제 Windows 알림 표시는 미확인 |
 | 품질(추천 정밀도·재택/구매 오탐) | 사람이 라벨링한 검수 표본 없음. 실제 당근 38건으로 오탐 5종을 찾아 고쳤지만 정밀도는 측정하지 않음 |
 
 ## 미구현
@@ -31,7 +34,7 @@
 | --- | --- |
 | 실제 외부 AI 제공자 | 인터페이스·캐시·실패 처리만 있음 (현재 규칙 분석만) |
 | API 키 저장(Windows 자격 증명 저장소) | 설정은 `key_configured=false` 고정 |
-| 네이티브 알림 소비자, 트레이 상주, 자동 시작 | 알림은 앱 안 토스트만. 창을 닫으면 완전 종료 |
+| 트레이 상주, 자동 시작 | 창을 닫으면 완전 종료 (최소화 상태에서만 계속 수집·알림) |
 | 화면의 백업·복원 버튼 | 백엔드 함수만 존재 |
 | 설치 제거 시 데이터 삭제 선택 | 폴더 수동 삭제 |
 | 유사 공고 연결의 사용자 확인·병합 해제 화면 | 후보 관계만 표시 |
@@ -42,4 +45,6 @@
 | --- | --- |
 | 당근알바 약관의 자동 수집 조항 | 약관 페이지(`www.daangn.com`)가 robots.txt 로 AI 에이전트를 차단 → 직접 읽지 않음. 정책 판단은 사용자 몫 ([SOURCE_RESEARCH.md](SOURCE_RESEARCH.md) 1-4) |
 | 당근알바 자동 수집 | 조사·어댑터·합성 테스트 완료 (`tests/test_daangn.py`). 정책은 사용자가 기록하기 전까지 `permission_pending` |
+| 알바몬 자동 수집 | 조사([SOURCE_RESEARCH_ALBAMON.md](SOURCE_RESEARCH_ALBAMON.md))·어댑터·합성 테스트 완료. robots.txt 는 목록·상세 허용. 회원 약관 제18조 ④(사전동의 없는 복사·복제 금지)·⑤8(정보를 이용한 영리 행위 금지)와 충돌 가능 → 정책은 사용자가 기록하기 전까지 `permission_pending` |
+| 알바몬 탐색 범위 | 목록 2쪽 이후는 화면 안 별도 요청이라 추측하지 않고 1쪽(최신 20건)만 봄. 1시간 주기면 IT 업직종은 대부분, 재택 목록은 최근 약 2시간분 |
 | 전국 탐색 범위 | 공식 사이트맵(29,019건, 2026-09-26)으로 전국 공고 목록 확인. 사이트맵이 모든 공고를 담는지·제목 선별 누락률은 미확인 |

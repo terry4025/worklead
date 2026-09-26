@@ -2,7 +2,7 @@
 
 원격으로 수행할 수 있는 개발 외주·업무 자동화 의뢰를 발견하고 검토하는 Windows 데스크톱 제품입니다.
 
-현재 상태: 백엔드(수집 엔진·분석·로컬 API), 공통 계약, 데스크톱 화면, Tauri 셸이 구현되어 있습니다. **당근알바 자동 수집은 사이트 조사·정책 확인 전이라 잠겨 있으며**(`permission_pending`), 수동 입력으로 분석할 수 있습니다. 구현·검증·미검증·차단 항목은 [docs/STATUS.md](docs/STATUS.md)에 구분해 두었습니다.
+현재 상태: 백엔드(수집 엔진·분석·로컬 API), 공통 계약, 데스크톱 화면, Tauri 셸이 구현되어 있습니다. **당근알바·알바몬 자동 수집은 사용자가 정책을 기록하기 전까지 잠겨 있으며**(`permission_pending`), 수동 입력으로 분석할 수 있습니다. 구현·검증·미검증·차단 항목은 [docs/STATUS.md](docs/STATUS.md)에 구분해 두었습니다.
 
 ## 제품 범위
 
@@ -55,6 +55,7 @@ powershell -ExecutionPolicy Bypass -File scripts\build-windows.ps1
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 구성·수집 흐름·전국 순환·ERD·분석 |
 | [docs/INTEGRATION.md](docs/INTEGRATION.md) | 화면 ↔ 로컬 API 계약 |
 | [docs/SOURCE_RESEARCH.md](docs/SOURCE_RESEARCH.md) | 당근알바 조사 기록과 미확인 항목 |
+| [docs/SOURCE_RESEARCH_ALBAMON.md](docs/SOURCE_RESEARCH_ALBAMON.md) | 알바몬 조사 기록·약관 조항·구현 결정 |
 | [docs/SOURCE_ADAPTER_GUIDE.md](docs/SOURCE_ADAPTER_GUIDE.md) | 새 사이트 추가 방법 |
 | [docs/OPERATIONS.md](docs/OPERATIONS.md) | 데이터 위치·장애 대응·백업·복원 |
 | [docs/DESIGN.md](docs/DESIGN.md) | 화면 설계 |

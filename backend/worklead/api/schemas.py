@@ -17,7 +17,7 @@ DatePrecision = Literal["exact", "day", "approximate", "unknown"]
 WorkMode = Literal["fully_remote", "hybrid", "onsite", "negotiable", "unknown"]
 CollaborationMode = Literal["online_only", "onsite_required", "negotiable", "unknown"]
 ApplicantScope = Literal["nationwide", "regional_restriction", "unknown"]
-DemandIntent = Literal["buyer_project", "buyer_ongoing", "employee_hiring", "seller_service", "job_seeker", "information", "unknown"]
+DemandIntent = Literal["buyer_project", "buyer_ongoing", "short_gig", "employee_hiring", "seller_service", "job_seeker", "information", "unknown"]
 EngagementType = Literal["project", "hourly_contract", "part_time", "full_time", "unknown"]
 SourceStatus = Literal["open", "closed", "deleted", "unknown"]
 AccessStatus = Literal["accessible", "login_required", "blocked", "error"]
@@ -304,6 +304,8 @@ class LeadDetail(LeadSummary):
     risks: list[RiskSignal]
     profitability: Profitability | None
     draft: Draft | None
+    #: 30초 연락용 짧은 메시지 (자동 발송하지 않음, 저장하지 않음 — 조회 때마다 만든다)
+    quick_message: str
     memo: str
     outcomes: list[Outcome]
     related: list[RelatedRecord]
@@ -427,7 +429,7 @@ class PolicyReviewIn(Model):
 
 class SourcePatch(Model):
     auto_collect_enabled: bool | None = None
-    interval_minutes: int | None = Field(default=None, ge=60, le=10080)
+    interval_minutes: int | None = Field(default=None, ge=30, le=10080)
     clear_stop: bool | None = Field(default=None, description="차단으로 정지된 소스를 사용자가 확인 후 해제")
     policy: PolicyReviewIn | None = None
 
@@ -506,6 +508,8 @@ class ProfileSettings(Model):
     weekly_hours: int | None = Field(ge=0, le=168)
     onsite: Literal["no", "first_meeting", "yes"]
     allow_short_term_employment: bool
+    intro: str = Field(default="", max_length=200)
+    portfolio_url: str | None = Field(default=None, max_length=300, pattern=r"^https?://\S+$")
 
 
 class QuietHours(Model):

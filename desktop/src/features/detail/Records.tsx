@@ -1,4 +1,4 @@
-import { Copy, Plus } from 'lucide-react';
+import { Copy, ExternalLink, Plus } from 'lucide-react';
 import { forwardRef, useEffect, useState } from 'react';
 import { formatDate, formatDateTime, formatKrw, todayKst } from '../../domain/format';
 import { outcomeKindLabel, salesStageLabel, selectableStages } from '../../domain/labels';
@@ -109,6 +109,33 @@ export function FeedbackControls({ lead }: { lead: LeadDetail }) {
         </div>
       </div>
       <p className="field-hint">내 확인은 자동 판정과 따로 저장되고, 재분석해도 지워지지 않습니다.</p>
+    </div>
+  );
+}
+
+/** 30초 연락: 짧은 메시지를 복사하고 원문(지원·채팅)을 여는 흐름. 발송은 사용자가 원래 채널에서 직접 한다. */
+export function QuickContact({ lead, onOpenOriginal }: { lead: LeadDetail; onOpenOriginal: () => void }) {
+  const [text, setText] = useState(lead.quickMessage);
+  const toast = useToast();
+  useEffect(() => setText(lead.quickMessage), [lead.id, lead.quickMessage]);
+  const copyAndOpen = async () => {
+    const ok = await copyText(text);
+    toast.show(ok ? { tone: 'good', text: '메시지를 복사했습니다. 열린 원문에서 지원·채팅 창에 붙여 넣으세요.' } : { tone: 'bad', text: '복사하지 못했습니다' });
+    if (ok) onOpenOriginal();
+  };
+  const missing = text.includes('설정 > 프로필');
+  return (
+    <div className="quick">
+      <textarea aria-label="빠른 연락 메시지" value={text} rows={5} onChange={(e) => setText(e.target.value)} />
+      <div className="draft-actions">
+        <Button size="sm" variant="primary" icon={<ExternalLink size={14} />} onClick={() => void copyAndOpen()} disabled={!lead.originalUrl}>
+          복사하고 원문 열기
+        </Button>
+        <Button size="sm" icon={<Copy size={14} />} onClick={async () => toast.show((await copyText(text)) ? { tone: 'good', text: '복사했습니다' } : { tone: 'bad', text: '복사하지 못했습니다' })}>
+          복사만
+        </Button>
+        <span className="field-hint">자동 발송하지 않습니다{missing ? ' · 소개·링크는 설정(,)에서 한 번 입력하면 채워집니다' : ''}</span>
+      </div>
     </div>
   );
 }

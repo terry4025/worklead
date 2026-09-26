@@ -1,15 +1,14 @@
 {
-  "id": "lead_01a0dc3c197a339564c851",
+  "id": "lead_01a0dd3e25a395bb3fa9f9",
   "source_id": "demo-synthetic",
-  "title": "홈페이지 제작해 드립니다 ✔ 저렴한 가격 빠른 제작",
+  "title": "앱·웹 개발자 구합니다 (프리랜서)",
   "categories": [
-    "landing",
-    "shop",
-    "website"
+    "website",
+    "fullstack"
   ],
   "demand_intent": {
-    "value": "seller_service",
-    "basis": "explicit"
+    "value": "short_gig",
+    "basis": "inferred"
   },
   "engagement_type": {
     "value": "unknown",
@@ -28,9 +27,9 @@
     "basis": null
   },
   "pay": {
-    "raw": "10년 경력, 30만원부터 가능합니다.",
+    "raw": null,
     "currency": "KRW",
-    "min": 300000,
+    "min": null,
     "max": null,
     "unit": "unknown",
     "negotiable": false
@@ -38,40 +37,48 @@
   "source_status": "open",
   "access_status": "accessible",
   "analysis_status": "rules_only",
-  "recheck_due": false,
-  "last_checked_at": "2026-09-25T19:42:01.149126Z",
+  "recheck_due": true,
+  "last_checked_at": "2026-09-23T08:23:52.599099Z",
   "published": {
-    "at": "2026-09-24T23:42:01.149126Z",
-    "precision": "exact",
-    "raw": null
+    "at": "2026-09-18T10:23:52.599099Z",
+    "precision": "approximate",
+    "raw": "4일 전"
   },
-  "first_seen_at": "2026-09-25T01:42:01.149126Z",
+  "first_seen_at": "2026-09-22T10:23:52.599099Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
     "raw": null
   },
-  "posted_region": "서울 마포구",
+  "posted_region": "대전 유성구",
   "found_in": [
-    "서울 마포구"
+    "대전 유성구"
   ],
-  "recommendation": "excluded",
+  "recommendation": "needs_review",
   "priority": {
-    "total": 45,
+    "total": 50,
     "unknown_factors": 1
   },
   "reasons": [
     {
-      "tone": "negative",
-      "text": "판매자 홍보 — 구매 의뢰 아님"
+      "tone": "caution",
+      "text": "모집 재확인 필요"
+    },
+    {
+      "tone": "caution",
+      "text": "재택 미확인"
+    },
+    {
+      "tone": "caution",
+      "text": "예산 미기재 — 확인 필요"
     }
   ],
   "user_mark": null,
   "sales_stage": "new",
   "has_memo": false,
   "active_job": null,
-  "body_text": "홈페이지·쇼핑몰·랜딩페이지 제작해 드립니다.\n10년 경력, 30만원부터 가능합니다.\n포트폴리오 보시고 연락 주세요.",
-  "body_retained_until": "2026-10-25T01:42:01.149126Z",
+  "body_text": "스타트업에서 앱·웹 개발 가능한 프리랜서 구합니다.\nReact, Node.js 경험자 우대.\n자세한 내용은 연락 주시면 설명드리겠습니다.",
+  "body_retained_until": "2026-10-22T10:23:52.599099Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -81,7 +88,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-25T01:42:01.149126Z",
+  "last_seen_at": "2026-09-22T10:23:52.599099Z",
   "work_period": {
     "start": {
       "at": null,
@@ -95,55 +102,69 @@
     }
   },
   "evidence": {
-    "pay": [
-      {
-        "id": "ev_01a0dc3c1987aa2683e93a",
-        "quote": "10년 경력, 30만원부터 가능합니다.",
-        "span": {
-          "start": 25,
-          "end": 46
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T05:42:01.149126Z",
-        "source_record_id": "rec_01a0dc3c19785e6b3da1de",
-        "version": "rules-2026.09.5",
-        "note": null
-      }
-    ],
     "demand_intent": [
       {
-        "id": "ev_01a0dc3c1987f2c125f824",
-        "quote": "홈페이지·쇼핑몰·랜딩페이지 제작해 드립니다.",
+        "id": "ev_01a0dd3e25ac0b584062df",
+        "quote": "스타트업에서 앱·웹 개발 가능한 프리랜서 구합니다.",
         "span": {
           "start": 0,
-          "end": 24
+          "end": 28
         },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T05:42:01.149126Z",
-        "source_record_id": "rec_01a0dc3c19785e6b3da1de",
-        "version": "rules-2026.09.5",
-        "note": "제작 서비스를 판매하는 표현"
+        "basis": "inferred",
+        "confidence": "medium",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e25a2905bb1045f",
+        "version": "rules-2026.09.6",
+        "note": "외주 의뢰인지 고용인지 구분할 근거 부족"
+      },
+      {
+        "id": "ev_01a0dd3e25ac0d7aa0e76f",
+        "quote": "스타트업에서 앱·웹 개발 가능한 프리랜서 구합니다.",
+        "span": {
+          "start": 0,
+          "end": 28
+        },
+        "basis": "inferred",
+        "confidence": "medium",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e25a2905bb1045f",
+        "version": "rules-2026.09.6",
+        "note": "프리랜서·건당·단기·재택 표현 — 짧게 끝나는 작업 구인으로 판단"
+      }
+    ],
+    "work_mode": [
+      {
+        "id": "ev_01a0dd3e25acef3b4e736d",
+        "quote": "스타트업에서 앱·웹 개발 가능한 프리랜서 구합니다.",
+        "span": {
+          "start": 0,
+          "end": 28
+        },
+        "basis": "inferred",
+        "confidence": "medium",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e25a2905bb1045f",
+        "version": "rules-2026.09.6",
+        "note": "'프리랜서'만으로 완전 재택을 확정하지 않음"
       }
     ]
   },
   "score": {
-    "total": 45,
+    "total": 50,
     "factors": [
       {
         "key": "work_fit",
         "label": "업무 적합성",
         "max": 30,
         "score": 30,
-        "reason": "랜딩페이지, 쇼핑몰, 웹사이트 — 제공 서비스와 일치"
+        "reason": "웹사이트, 풀스택·웹 서비스 — 제공 서비스와 일치"
       },
       {
         "key": "buyer_intent",
         "label": "구매 의도",
         "max": 25,
-        "score": 0,
-        "reason": "구매 수요 없음"
+        "score": 18,
+        "reason": "프리랜서·단기 작업 구인 (고용 형식)"
       },
       {
         "key": "remote_fit",
@@ -156,14 +177,14 @@
         "key": "freshness",
         "label": "최신성",
         "max": 15,
-        "score": 12,
-        "reason": "게시 30시간 전"
+        "score": 0,
+        "reason": "게시 8일 전 · 모집 재확인 필요"
       },
       {
         "key": "scope_clarity",
         "label": "범위 명확성",
         "max": 10,
-        "score": 3,
+        "score": 2,
         "reason": "업무 내용이 거의 없음"
       }
     ],
@@ -171,62 +192,66 @@
       "score": 0,
       "reasons": []
     },
-    "rule_version": "rules-2026.09.5"
+    "rule_version": "rules-2026.09.6"
   },
   "analysis": {
     "status": "rules_only",
-    "summary": "홈페이지·쇼핑몰·랜딩페이지 제작해 드립니다.",
+    "summary": "스타트업에서 앱·웹 개발 가능한 프리랜서 구합니다.",
     "summary_engine": "rules",
     "fit": [
-      "랜딩페이지, 쇼핑몰, 웹사이트 업무"
+      "웹사이트, 풀스택·웹 서비스 업무",
+      "프리랜서·단기 작업 수요"
     ],
-    "unfit": [
-      "판매자 홍보 — 구매 의뢰 아님"
-    ],
+    "unfit": [],
     "uncertain": [
       "원격 진행 가능 여부",
+      "예산",
+      "현재 모집 여부",
       "세부 요구 범위"
     ],
     "deliverables": [],
     "tech_requirements": [],
     "questions": [
       "원격으로만 진행해도 괜찮을까요?",
+      "생각하시는 예산 범위가 있으신가요?",
+      "아직 작업자를 찾고 계신가요?",
       "필요한 기능이나 페이지 목록을 받을 수 있을까요?"
     ],
-    "next_action": "검토 불필요",
+    "next_action": "핵심 질문 확인 후 범위·일정 포함 견적 제시",
     "conversion_opportunity": null,
     "engine": "rules",
-    "version": "rules-2026.09.5",
-    "analyzed_at": "2026-09-25T01:42:01.149126Z",
+    "version": "rules-2026.09.6",
+    "analyzed_at": "2026-09-22T10:23:52.599099Z",
     "failure": null
   },
   "risks": [],
   "profitability": {
     "status": "not_calculated",
     "basis": null,
-    "reason": "지급 단위를 확인할 수 없어 계산하지 않았습니다.",
+    "reason": "예산 미기재 — 예상 기여액을 계산하지 않았습니다.",
     "assumptions": [],
     "scenarios": [],
     "revenue_type": "unknown",
     "target_hourly": null
   },
   "draft": null,
+  "quick_message": "안녕하세요, 올려주신 '앱·웹 개발자 구합니다 (프리랜서)' 글 보고 연락드립니다.\n[한 줄 소개 — 설정 > 프로필에서 입력하면 자동으로 들어갑니다]\n[포트폴리오 링크 — 설정 > 프로필에서 입력]\n바로 시작할 수 있고, 내용 확인 후 금액과 일정을 먼저 알려드리겠습니다.\n혹시 원격으로만 진행해도 괜찮을까요?",
   "memo": "",
   "outcomes": [],
   "related": [],
   "discovery_paths": [
     {
-      "region_scope": "서울 마포구",
-      "region_label": "서울 마포구",
+      "region_scope": "대전 유성구",
+      "region_label": "대전 유성구",
       "query_group": "demo",
-      "first_seen_at": "2026-09-25T01:42:01.149126Z",
-      "last_seen_at": "2026-09-25T01:42:01.149126Z",
+      "first_seen_at": "2026-09-22T10:23:52.599099Z",
+      "last_seen_at": "2026-09-22T10:23:52.599099Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-25T01:42:01.149126Z",
+      "at": "2026-09-22T10:23:52.599099Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }
@@ -236,5 +261,5 @@
     "real_request": null
   },
   "parser_version": "demo",
-  "content_hash": "e7079b3e8be64878cb571551cd5dfc210f1e750f30fafafa3676ae57e8c888d9"
+  "content_hash": "5cbfabe5abae4a31e30b673b71eece24eb5a2ac4965aa16390c089408ef7831e"
 }

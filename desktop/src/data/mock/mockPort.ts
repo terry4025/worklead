@@ -105,6 +105,8 @@ const DEFAULT_SETTINGS: SettingsView = {
     weeklyHours: null,
     onsite: 'no',
     allowShortTermEmployment: true,
+    intro: '',
+    portfolioUrl: null,
   },
   recheck: { ttlHours: 24 },
   notifications: { newRecommended: true, meaningfulChange: true, sourceIssue: true, quietHours: { enabled: true, start: '22:00', end: '08:00' } },

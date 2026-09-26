@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dc3c1999bad3bcf2c7",
+  "id": "lead_01a0dd3e25f3453e37799f",
   "source_id": "demo-synthetic",
   "title": "필라테스 센터 오픈 이벤트 랜딩페이지 제작",
   "categories": [
@@ -37,13 +37,13 @@
   "access_status": "accessible",
   "analysis_status": "rules_only",
   "recheck_due": false,
-  "last_checked_at": "2026-09-25T07:42:01.149126Z",
+  "last_checked_at": "2026-09-25T12:23:52.599099Z",
   "published": {
-    "at": "2026-09-20T09:42:01.149126Z",
+    "at": "2026-09-20T14:23:52.599099Z",
     "precision": "exact",
     "raw": null
   },
-  "first_seen_at": "2026-09-20T19:42:01.149126Z",
+  "first_seen_at": "2026-09-21T00:23:52.599099Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -69,7 +69,7 @@
   "has_memo": false,
   "active_job": null,
   "body_text": "[마감] 필라테스 센터 오픈 이벤트용 랜딩페이지 제작 의뢰합니다.\n재택 작업 가능, 예산 80만원.",
-  "body_retained_until": "2026-10-20T19:42:01.149126Z",
+  "body_retained_until": "2026-10-21T00:23:52.599099Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -79,7 +79,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-20T19:42:01.149126Z",
+  "last_seen_at": "2026-09-21T00:23:52.599099Z",
   "work_period": {
     "start": {
       "at": null,
@@ -93,25 +93,9 @@
     }
   },
   "evidence": {
-    "work_mode": [
-      {
-        "id": "ev_01a0dc3c19a2293477d42d",
-        "quote": "재택 작업 가능, 예산 80만원.",
-        "span": {
-          "start": 37,
-          "end": 55
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T05:42:01.149126Z",
-        "source_record_id": "rec_01a0dc3c199833c763c18a",
-        "version": "rules-2026.09.5",
-        "note": null
-      }
-    ],
     "source_status": [
       {
-        "id": "ev_01a0dc3c19a23492e32798",
+        "id": "ev_01a0dd3e25fe3899649998",
         "quote": "[마감]",
         "span": {
           "start": 0,
@@ -119,31 +103,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:42:01.149126Z",
-        "source_record_id": "rec_01a0dc3c199833c763c18a",
-        "version": "rules-2026.09.5",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e25f39a25e49837",
+        "version": "rules-2026.09.6",
         "note": "원문 마감 표시"
-      }
-    ],
-    "demand_intent": [
-      {
-        "id": "ev_01a0dc3c19a23d0ada4520",
-        "quote": "[마감] 필라테스 센터 오픈 이벤트용 랜딩페이지 제작 의뢰합니다.",
-        "span": {
-          "start": 0,
-          "end": 36
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T05:42:01.149126Z",
-        "source_record_id": "rec_01a0dc3c199833c763c18a",
-        "version": "rules-2026.09.5",
-        "note": null
       }
     ],
     "pay": [
       {
-        "id": "ev_01a0dc3c19a265b865c71c",
+        "id": "ev_01a0dd3e25fe43d2d121d9",
         "quote": "재택 작업 가능, 예산 80만원.",
         "span": {
           "start": 37,
@@ -151,15 +119,31 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:42:01.149126Z",
-        "source_record_id": "rec_01a0dc3c199833c763c18a",
-        "version": "rules-2026.09.5",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e25f39a25e49837",
+        "version": "rules-2026.09.6",
         "note": null
       }
     ],
-    "engagement_type": [
+    "work_mode": [
       {
-        "id": "ev_01a0dc3c19a293527ecac3",
+        "id": "ev_01a0dd3e25fe6b20632bd2",
+        "quote": "재택 작업 가능, 예산 80만원.",
+        "span": {
+          "start": 37,
+          "end": 55
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e25f39a25e49837",
+        "version": "rules-2026.09.6",
+        "note": null
+      }
+    ],
+    "demand_intent": [
+      {
+        "id": "ev_01a0dd3e25fe78eb71ccbc",
         "quote": "[마감] 필라테스 센터 오픈 이벤트용 랜딩페이지 제작 의뢰합니다.",
         "span": {
           "start": 0,
@@ -167,9 +151,25 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:42:01.149126Z",
-        "source_record_id": "rec_01a0dc3c199833c763c18a",
-        "version": "rules-2026.09.5",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e25f39a25e49837",
+        "version": "rules-2026.09.6",
+        "note": null
+      }
+    ],
+    "engagement_type": [
+      {
+        "id": "ev_01a0dd3e25fee0a9e953db",
+        "quote": "[마감] 필라테스 센터 오픈 이벤트용 랜딩페이지 제작 의뢰합니다.",
+        "span": {
+          "start": 0,
+          "end": 36
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e25f39a25e49837",
+        "version": "rules-2026.09.6",
         "note": null
       }
     ]
@@ -217,7 +217,7 @@
       "score": 0,
       "reasons": []
     },
-    "rule_version": "rules-2026.09.5"
+    "rule_version": "rules-2026.09.6"
   },
   "analysis": {
     "status": "rules_only",
@@ -243,8 +243,8 @@
     "next_action": "검토 불필요",
     "conversion_opportunity": null,
     "engine": "rules",
-    "version": "rules-2026.09.5",
-    "analyzed_at": "2026-09-20T19:42:01.149126Z",
+    "version": "rules-2026.09.6",
+    "analyzed_at": "2026-09-21T00:23:52.599099Z",
     "failure": null
   },
   "risks": [],
@@ -289,6 +289,7 @@
     "target_hourly": null
   },
   "draft": null,
+  "quick_message": "안녕하세요, 올려주신 '필라테스 센터 오픈 이벤트 랜딩페이지 제작' 글 보고 연락드립니다.\n[한 줄 소개 — 설정 > 프로필에서 입력하면 자동으로 들어갑니다]\n[포트폴리오 링크 — 설정 > 프로필에서 입력]\n바로 시작할 수 있고, 내용 확인 후 금액과 일정을 먼저 알려드리겠습니다.\n혹시 필요한 기능이나 페이지 목록을 받을 수 있을까요?",
   "memo": "",
   "outcomes": [],
   "related": [],
@@ -297,14 +298,14 @@
       "region_scope": "경기 고양시",
       "region_label": "경기 고양시",
       "query_group": "demo",
-      "first_seen_at": "2026-09-20T19:42:01.149126Z",
-      "last_seen_at": "2026-09-20T19:42:01.149126Z",
+      "first_seen_at": "2026-09-21T00:23:52.599099Z",
+      "last_seen_at": "2026-09-21T00:23:52.599099Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-20T19:42:01.149126Z",
+      "at": "2026-09-21T00:23:52.599099Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

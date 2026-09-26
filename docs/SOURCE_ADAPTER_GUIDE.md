@@ -34,7 +34,7 @@ backend/worklead/sources/<site>/
 
 ## 3. 방법 B — 전용 어댑터
 
-프로필로 표현할 수 없으면 `sources/base.py` 의 `SourceAdapter` 계약을 구현한다 (예: `sources/daangn/adapter.py` — 공식 사이트맵 탐색 + 페이지 내 공고 데이터 해석): `describe_capabilities`, `healthcheck`, `plan_discovery`, `discover`, `fetch_detail`, `parse`, `revalidate`, `block_detector`. 모든 요청은 전달받은 `Fetcher` 로만 한다 (직접 HTTP 금지). 어댑터는 UI·영업 상태를 바꾸지 않는다.
+프로필로 표현할 수 없으면 `sources/base.py` 의 `SourceAdapter` 계약을 구현한다 (예: `sources/daangn/adapter.py` — 공식 사이트맵 탐색 + 페이지 내 공고 데이터 해석, `sources/albamon/adapter.py` — 목록 페이지 1쪽의 페이지 내 데이터로 1차 선별 + 상세 JSON-LD): `describe_capabilities`, `healthcheck`, `plan_discovery`, `discover`, `fetch_detail`, `parse`, `revalidate`, `block_detector`. 모든 요청은 전달받은 `Fetcher` 로만 한다 (직접 HTTP 금지). 어댑터는 UI·영업 상태를 바꾸지 않는다.
 
 ## 4. 등록
 

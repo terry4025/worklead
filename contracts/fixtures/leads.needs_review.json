@@ -1,7 +1,7 @@
 {
   "items": [
     {
-      "id": "lead_01a0dc3c190fb4dc90cde6",
+      "id": "lead_01a0dd3e2578b484f1adcd",
       "source_id": "demo-synthetic",
       "title": "학원 수강생·출결 관리 웹 프로그램 개발 외주",
       "categories": [
@@ -40,13 +40,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T02:42:01.149126Z",
+      "last_checked_at": "2026-09-26T07:23:52.599099Z",
       "published": {
-        "at": "2026-09-25T11:42:01.149126Z",
+        "at": "2026-09-25T16:23:52.599099Z",
         "precision": "exact",
         "raw": null
       },
-      "first_seen_at": "2026-09-25T13:42:01.149126Z",
+      "first_seen_at": "2026-09-25T18:23:52.599099Z",
       "deadline": {
         "at": null,
         "precision": "unknown",
@@ -68,11 +68,11 @@
         },
         {
           "tone": "positive",
-          "text": "구매 의뢰 명시"
+          "text": "18시간 전 게시 — 빠른 연락 유리"
         },
         {
           "tone": "positive",
-          "text": "재택 명시"
+          "text": "구매 의뢰 명시"
         }
       ],
       "user_mark": null,
@@ -81,7 +81,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dc3c1965774327210c",
+      "id": "lead_01a0dd3e25cdbdbd043ed9",
       "source_id": "demo-synthetic",
       "title": "치과 홈페이지 제작 의뢰 (기존 도메인 있음)",
       "categories": [
@@ -119,13 +119,13 @@
       "access_status": "blocked",
       "analysis_status": "rules_only",
       "recheck_due": true,
-      "last_checked_at": "2026-09-24T03:42:01.149126Z",
+      "last_checked_at": "2026-09-24T08:23:52.599099Z",
       "published": {
-        "at": "2026-09-22T21:42:01.149126Z",
+        "at": "2026-09-23T02:23:52.599099Z",
         "precision": "exact",
         "raw": null
       },
-      "first_seen_at": "2026-09-23T01:42:01.149126Z",
+      "first_seen_at": "2026-09-23T06:23:52.599099Z",
       "deadline": {
         "at": null,
         "precision": "unknown",
@@ -160,7 +160,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dc3c1952b4fd152813",
+      "id": "lead_01a0dd3e25bfac9bd44391",
       "source_id": "demo-synthetic",
       "title": "거래처 발주서 PDF → 엑셀 자동 변환 프로그램 제작",
       "categories": [
@@ -199,13 +199,13 @@
       "access_status": "accessible",
       "analysis_status": "failed",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T03:42:01.149126Z",
+      "last_checked_at": "2026-09-26T08:23:52.599099Z",
       "published": {
-        "at": "2026-09-26T00:42:01.149126Z",
+        "at": "2026-09-26T05:23:52.599099Z",
         "precision": "exact",
         "raw": null
       },
-      "first_seen_at": "2026-09-26T01:42:01.149126Z",
+      "first_seen_at": "2026-09-26T06:23:52.599099Z",
       "deadline": {
         "at": null,
         "precision": "unknown",
@@ -227,7 +227,7 @@
         },
         {
           "tone": "positive",
-          "text": "구매 의뢰 명시"
+          "text": "5시간 전 게시 — 빠른 연락 유리"
         },
         {
           "tone": "negative",
@@ -240,7 +240,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dc3c191b52b2c80c8e",
+      "id": "lead_01a0dd3e2586da68f7dba8",
       "source_id": "demo-synthetic",
       "title": "워드프레스 홈페이지 리뉴얼 해주실 분 구합니다",
       "categories": [
@@ -278,13 +278,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-25T09:42:01.149126Z",
+      "last_checked_at": "2026-09-25T14:23:52.599099Z",
       "published": {
-        "at": "2026-09-20T17:42:01.149126Z",
+        "at": "2026-09-20T22:23:52.599099Z",
         "precision": "approximate",
         "raw": "3일 전"
       },
-      "first_seen_at": "2026-09-23T17:42:01.149126Z",
+      "first_seen_at": "2026-09-23T22:23:52.599099Z",
       "deadline": {
         "at": null,
         "precision": "unknown",
@@ -319,7 +319,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dc3c19402b57a7510f",
+      "id": "lead_01a0dd3e25b0efae8e6e46",
       "source_id": "demo-synthetic",
       "title": "네일샵 예약 페이지 만들어주세요",
       "categories": [
@@ -357,13 +357,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T01:42:01.149126Z",
+      "last_checked_at": "2026-09-26T06:23:52.599099Z",
       "published": {
         "at": null,
         "precision": "unknown",
         "raw": null
       },
-      "first_seen_at": "2026-09-26T01:42:01.149126Z",
+      "first_seen_at": "2026-09-26T06:23:52.599099Z",
       "deadline": {
         "at": null,
         "precision": "unknown",
@@ -398,7 +398,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dc3c1928afa42d9206",
+      "id": "lead_01a0dd3e259627098c6d20",
       "source_id": "demo-synthetic",
       "title": "엑셀 데이터 정리 단기 알바 (재택 가능)",
       "categories": [
@@ -436,13 +436,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-25T23:42:01.149126Z",
+      "last_checked_at": "2026-09-26T04:23:52.599099Z",
       "published": {
-        "at": "2026-09-25T17:42:01.149126Z",
+        "at": "2026-09-25T22:23:52.599099Z",
         "precision": "exact",
         "raw": null
       },
-      "first_seen_at": "2026-09-25T18:42:01.149126Z",
+      "first_seen_at": "2026-09-25T23:23:52.599099Z",
       "deadline": {
         "at": null,
         "precision": "unknown",
@@ -477,15 +477,16 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dc3c19332792d870d3",
+      "id": "lead_01a0dd3e25a395bb3fa9f9",
       "source_id": "demo-synthetic",
       "title": "앱·웹 개발자 구합니다 (프리랜서)",
       "categories": [
+        "website",
         "fullstack"
       ],
       "demand_intent": {
-        "value": "unknown",
-        "basis": null
+        "value": "short_gig",
+        "basis": "inferred"
       },
       "engagement_type": {
         "value": "unknown",
@@ -515,13 +516,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": true,
-      "last_checked_at": "2026-09-23T03:42:01.149126Z",
+      "last_checked_at": "2026-09-23T08:23:52.599099Z",
       "published": {
-        "at": "2026-09-18T05:42:01.149126Z",
+        "at": "2026-09-18T10:23:52.599099Z",
         "precision": "approximate",
         "raw": "4일 전"
       },
-      "first_seen_at": "2026-09-22T05:42:01.149126Z",
+      "first_seen_at": "2026-09-22T10:23:52.599099Z",
       "deadline": {
         "at": null,
         "precision": "unknown",
@@ -533,17 +534,17 @@
       ],
       "recommendation": "needs_review",
       "priority": {
-        "total": 29,
-        "unknown_factors": 2
+        "total": 50,
+        "unknown_factors": 1
       },
       "reasons": [
         {
           "tone": "caution",
-          "text": "의뢰·채용 구분 불명확"
+          "text": "모집 재확인 필요"
         },
         {
           "tone": "caution",
-          "text": "모집 재확인 필요"
+          "text": "재택 미확인"
         },
         {
           "tone": "caution",

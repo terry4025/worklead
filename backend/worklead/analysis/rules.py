@@ -17,7 +17,7 @@ import re
 from .text import any_match, c, find
 from .types import Ev, Judgement, Risk
 
-RULE_VERSION = "rules-2026.09.5"
+RULE_VERSION = "rules-2026.09.6"
 
 # ── 요청 유형 ─────────────────────────────────────────────────────────
 SELLER = c(
@@ -40,6 +40,18 @@ BUYER = c(
 ONGOING = c(r"유지\s*보수", r"월\s*\d+\s*만\s*원?\s*고정", r"매달|매월|월\s*단위|정기적으로|장기\s*(?:계약|협업)|재계약")
 EMPLOYMENT_STRONG = c(r"정규직", r"채용합니다", r"4대\s*보험", r"상근", r"주\s*5\s*일", r"연봉", r"사원\s*모집", r"직원\s*(?:모집|구합니다|채용)")
 EMPLOYMENT_WEAK = c(r"시급", r"하루\s*\d+\s*시간", r"주\s*\d\s*일\s*근무", r"월급", r"근무\s*시간", r"아르바이트|알바|단기\s*(?:알바|근무)")
+#: 건당·단기 작업 신호 — 고용 형식으로 올라왔지만 짧게 끝나는 개발·자동화 일 (크몽·숨고 밖의 틈새 수요)
+SHORT_GIG = c(
+    r"건\s*당|건\s*별",
+    r"단기",
+    r"하루\s*(?:만|알바|작업)|일일\s*알바|1\s*일\s*(?:작업|알바)",
+    r"총\s*(?:[1-9]|[12]\d|30)\s*일",
+    r"(?:1|2|3)\s*개월\s*(?:이내|이하|~)|1\s*주일?\s*(?:이내|이하|~)|한\s*달",
+    r"프리랜서|외주|도급",
+    r"재택|원격|비대면|온라인\s*(?:근무|작업|진행)",
+)
+#: 교육생·수강생 모집 광고 (일거리가 아님)
+TRAINEE_AD = c(r"국비\s*지원", r"교육생\s*모집", r"수강생\s*모집", r"훈련생\s*모집", r"무료\s*(?:교육|숙식)")
 #: 교육·과외 요청 (제작 의뢰와 구분해 확인 필요로 표시)
 TEACHING = c(r"과외", r"가르쳐\s*(?:주실|줄|주세요|주시|드릴)", r"알려\s*(?:주실|줄\s*분|주세요)", r"배우고\s*싶", r"(?:교육|강의|수업|코칭)\s*(?:해\s*)?(?:주실|해주실|가능하신|구해)", r"선생님")
 AMBIGUOUS_PERSON = c(r"(?:개발자|프리랜서|디자이너|작업자)\s*(?:구합니다|구해요|모집|찾습니다)")
@@ -106,7 +118,7 @@ CATEGORY_RULES: list[tuple[str, list[re.Pattern[str]], bool]] = [
     # (id, patterns, 개발 동사가 없어도 개발 업무로 보는지)
     ("landing", c(r"랜딩\s*페이지", r"원\s*페이지|1\s*페이지", r"이벤트\s*페이지"), True),
     ("shop", c(r"쇼핑몰", r"카페24|자사몰", r"상세\s*페이지"), False),
-    ("website", c(r"홈페이지", r"웹\s*사이트|웹사이트", r"사이트\s*(?:제작|구축|개발|리뉴얼)", r"워드프레스|wordpress", r"예약\s*페이지", r"웹\s*페이지"), False),
+    ("website", c(r"홈페이지", r"웹\s*사이트|웹사이트", r"웹\s*(?:개발|코딩|퍼블리싱)|HTML\s*코딩|퍼블리싱", r"사이트\s*(?:제작|구축|개발|리뉴얼)", r"워드프레스|wordpress", r"예약\s*페이지", r"웹\s*페이지"), False),
     ("fullstack", c(r"웹\s*(?:프로그램|서비스|앱)", r"관리자\s*페이지|관리\s*페이지", r"풀스택", r"백엔드|서버\s*개발", r"앱\s*[·/,]\s*웹|웹\s*[·/,]\s*앱", r"플랫폼\s*개발"), True),
     ("software", c(r"프로그램\s*(?:제작|개발|이\s*필요|만들)", r"소프트웨어", r"C#|파이썬|python|자바|윈도우\s*(?:PC|프로그램)", r"변환\s*프로그램", r"앱\s*(?:개발|제작)", r"어플(?:리케이션)?\s*(?:개발|제작)", r"모바일\s*앱", r"크로스\s*플랫폼", r"플러터|flutter|리액트\s*네이티브"), True),
     ("vba", c(r"VBA|vba", r"매크로", r"엑셀[^.\n]{0,15}(?:자동|매크로|함수\s*개발)"), True),
@@ -166,6 +178,19 @@ def classify_intent(title: str, body: str) -> Judgement:
     if amb:
         return Judgement("demand_intent", "unknown", None, [amb])
     return Judgement("demand_intent", "unknown", None)
+
+
+def classify_short_gig(title: str, body: str, intent: Judgement, engagement: Judgement, dev: bool) -> Judgement:
+    """고용·미확인으로 판정된 글 중 개발·자동화 일이면서 건당·단기·재택 신호가 있으면 '건당·단기 작업 구인'으로 본다.
+    정규직·4대보험 같은 강한 고용 신호가 있으면 바꾸지 않는다."""
+    if intent.value not in ("employee_hiring", "unknown") or not dev or engagement.value == "full_time":
+        return intent
+    if find(EMPLOYMENT_STRONG, body, title, "explicit"):
+        return intent
+    signal = find(SHORT_GIG, body, title, "inferred", "프리랜서·건당·단기·재택 표현 — 짧게 끝나는 작업 구인으로 판단")
+    if signal is None:
+        return intent
+    return Judgement("demand_intent", "short_gig", "inferred", [signal, *intent.evidence])
 
 
 def classify_engagement(title: str, body: str, intent: str) -> Judgement:

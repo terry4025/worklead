@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dc3c18e84a1ea44aa0",
+  "id": "lead_01a0dd3e254ab9a705d5a7",
   "source_id": "demo-synthetic",
   "title": "카페 브랜드 소개 랜딩페이지 제작 의뢰 (반응형 1페이지)",
   "categories": [
@@ -37,13 +37,13 @@
   "access_status": "accessible",
   "analysis_status": "rules_only",
   "recheck_due": false,
-  "last_checked_at": "2026-09-26T00:42:01.149126Z",
+  "last_checked_at": "2026-09-26T05:23:52.599099Z",
   "published": {
-    "at": "2026-09-24T23:42:01.149126Z",
+    "at": "2026-09-25T04:23:52.599099Z",
     "precision": "exact",
     "raw": null
   },
-  "first_seen_at": "2026-09-25T00:42:01.149126Z",
+  "first_seen_at": "2026-09-25T05:23:52.599099Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -77,7 +77,7 @@
   "has_memo": true,
   "active_job": null,
   "body_text": "새로 여는 카페 브랜드 소개용 랜딩페이지 1페이지 제작을 의뢰합니다.\n메뉴 소개, 매장 위치 지도, 인스타그램 연결, 예약 문의 폼 정도 필요합니다.\n\n사진과 문구는 저희가 준비해 두었습니다.\n미팅 없이 온라인으로만 진행하고 싶고, 재택 작업 가능합니다.\n전국 어디서나 연락 주세요.\n\n예산은 150만원 생각하고 있습니다. 도메인·호스팅 비용은 저희가 따로 부담합니다.\n오픈 일정 때문에 이번 달 안에 시작하면 좋겠습니다.",
-  "body_retained_until": "2026-10-25T00:42:01.149126Z",
+  "body_retained_until": "2026-10-25T05:23:52.599099Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -87,7 +87,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-25T00:42:01.149126Z",
+  "last_seen_at": "2026-09-25T05:23:52.599099Z",
   "work_period": {
     "start": {
       "at": null,
@@ -101,25 +101,9 @@
     }
   },
   "evidence": {
-    "engagement_type": [
-      {
-        "id": "ev_01a0dc3c18f20e5e9c16ab",
-        "quote": "새로 여는 카페 브랜드 소개용 랜딩페이지 1페이지 제작을 의뢰합니다.",
-        "span": {
-          "start": 0,
-          "end": 38
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T05:42:01.149126Z",
-        "source_record_id": "rec_01a0dc3c18e708d0cce1a1",
-        "version": "rules-2026.09.5",
-        "note": null
-      }
-    ],
     "work_mode": [
       {
-        "id": "ev_01a0dc3c18f215e0e93544",
+        "id": "ev_01a0dd3e25551deeaa0bfd",
         "quote": "미팅 없이 온라인으로만 진행하고 싶고, 재택 작업 가능합니다.",
         "span": {
           "start": 108,
@@ -127,15 +111,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:42:01.149126Z",
-        "source_record_id": "rec_01a0dc3c18e708d0cce1a1",
-        "version": "rules-2026.09.5",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e25499f37969c4a",
+        "version": "rules-2026.09.6",
         "note": null
       }
     ],
     "collaboration_mode": [
       {
-        "id": "ev_01a0dc3c18f22b3414b023",
+        "id": "ev_01a0dd3e255525ecc846e5",
         "quote": "미팅 없이 온라인으로만 진행하고 싶고, 재택 작업 가능합니다.",
         "span": {
           "start": 108,
@@ -143,15 +127,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:42:01.149126Z",
-        "source_record_id": "rec_01a0dc3c18e708d0cce1a1",
-        "version": "rules-2026.09.5",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e25499f37969c4a",
+        "version": "rules-2026.09.6",
         "note": null
       }
     ],
-    "demand_intent": [
+    "engagement_type": [
       {
-        "id": "ev_01a0dc3c18f293128c4c99",
+        "id": "ev_01a0dd3e2555320f3a95b1",
         "quote": "새로 여는 카페 브랜드 소개용 랜딩페이지 1페이지 제작을 의뢰합니다.",
         "span": {
           "start": 0,
@@ -159,15 +143,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:42:01.149126Z",
-        "source_record_id": "rec_01a0dc3c18e708d0cce1a1",
-        "version": "rules-2026.09.5",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e25499f37969c4a",
+        "version": "rules-2026.09.6",
         "note": null
       }
     ],
     "applicant_scope": [
       {
-        "id": "ev_01a0dc3c18f2b780cdacbb",
+        "id": "ev_01a0dd3e2555810aa6595b",
         "quote": "전국 어디서나 연락 주세요.",
         "span": {
           "start": 143,
@@ -175,15 +159,31 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:42:01.149126Z",
-        "source_record_id": "rec_01a0dc3c18e708d0cce1a1",
-        "version": "rules-2026.09.5",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e25499f37969c4a",
+        "version": "rules-2026.09.6",
+        "note": null
+      }
+    ],
+    "demand_intent": [
+      {
+        "id": "ev_01a0dd3e2555d29daa2ff4",
+        "quote": "새로 여는 카페 브랜드 소개용 랜딩페이지 1페이지 제작을 의뢰합니다.",
+        "span": {
+          "start": 0,
+          "end": 38
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e25499f37969c4a",
+        "version": "rules-2026.09.6",
         "note": null
       }
     ],
     "pay": [
       {
-        "id": "ev_01a0dc3c18f2e2194e81f4",
+        "id": "ev_01a0dd3e2555f4b2d40174",
         "quote": "예산은 150만원 생각하고 있습니다.",
         "span": {
           "start": 160,
@@ -191,9 +191,9 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:42:01.149126Z",
-        "source_record_id": "rec_01a0dc3c18e708d0cce1a1",
-        "version": "rules-2026.09.5",
+        "observed_at": "2026-09-26T10:23:52.599099Z",
+        "source_record_id": "rec_01a0dd3e25499f37969c4a",
+        "version": "rules-2026.09.6",
         "note": null
       }
     ]
@@ -241,7 +241,7 @@
       "score": 0,
       "reasons": []
     },
-    "rule_version": "rules-2026.09.5"
+    "rule_version": "rules-2026.09.6"
   },
   "analysis": {
     "status": "rules_only",
@@ -262,8 +262,8 @@
     "next_action": "핵심 질문 확인 후 범위·일정 포함 견적 제시",
     "conversion_opportunity": null,
     "engine": "rules",
-    "version": "rules-2026.09.5",
-    "analyzed_at": "2026-09-25T00:42:01.149126Z",
+    "version": "rules-2026.09.6",
+    "analyzed_at": "2026-09-25T05:23:52.599099Z",
     "failure": null
   },
   "risks": [],
@@ -308,6 +308,7 @@
     "target_hourly": null
   },
   "draft": null,
+  "quick_message": "안녕하세요, 올려주신 '카페 브랜드 소개 랜딩페이지 제작 의뢰 (반응형 1페이지)' 글 보고 연락드립니다.\n[한 줄 소개 — 설정 > 프로필에서 입력하면 자동으로 들어갑니다]\n[포트폴리오 링크 — 설정 > 프로필에서 입력]\n바로 시작할 수 있고, 내용 확인 후 금액과 일정을 먼저 알려드리겠습니다.\n혹시 희망하시는 완료 일정이 있으신가요?",
   "memo": "사진 퀄리티 좋음. 예약 폼은 네이버 예약 링크로 대체 가능한지 물어볼 것.",
   "outcomes": [],
   "related": [],
@@ -316,14 +317,14 @@
       "region_scope": "부산 수영구",
       "region_label": "부산 수영구",
       "query_group": "demo",
-      "first_seen_at": "2026-09-25T00:42:01.149126Z",
-      "last_seen_at": "2026-09-25T00:42:01.149126Z",
+      "first_seen_at": "2026-09-25T05:23:52.599099Z",
+      "last_seen_at": "2026-09-25T05:23:52.599099Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-25T00:42:01.149126Z",
+      "at": "2026-09-25T05:23:52.599099Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

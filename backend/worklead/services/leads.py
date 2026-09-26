@@ -91,7 +91,7 @@ def filter_clauses(f: dict[str, Any], now: datetime, ttl: int) -> list[Any]:
         out.append(and_(not_(ok), not_(closed)))
     intent = f.get("intent") or "any"
     if intent == "buyer":
-        out.append(Lead.demand_intent.in_(("buyer_project", "buyer_ongoing")))
+        out.append(Lead.demand_intent.in_(("buyer_project", "buyer_ongoing", "short_gig")))
     elif intent == "hiring":
         out.append(Lead.demand_intent == "employee_hiring")
     elif intent == "seller":
@@ -238,6 +238,14 @@ def summaries(s: Session, leads: list[Lead]) -> list[S.LeadSummary]:
 
 def _span(a: int | None, b: int | None) -> S.Span | None:
     return S.Span(start=a, end=b) if a is not None and b is not None else None
+
+
+def _quick_message(s: Session, title: str, questions: list[str]) -> str:
+    from ..analysis.service import quick_message
+    from .settings import DEFAULT_PROFILE, get_profile_row
+
+    data = {**DEFAULT_PROFILE, **(get_profile_row(s).data or {})}
+    return quick_message(title, questions, data.get("intro") or "", data.get("portfolio_url"))
 
 
 def detail(s: Session, lead: Lead) -> S.LeadDetail:
@@ -395,6 +403,7 @@ def detail(s: Session, lead: Lead) -> S.LeadDetail:
         risks=risks,
         profitability=profitability,
         draft=S.Draft(text=lead.draft_text, generated_at=lead.draft_generated_at, edited_by_user=lead.draft_edited) if lead.draft_text else None,
+        quick_message=_quick_message(s, rec.title, payload.get("questions", [])),
         memo=lead.memo or "",
         outcomes=outcomes,
         related=related,

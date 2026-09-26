@@ -71,6 +71,9 @@ DEFAULT_PROFILE: dict[str, Any] = {
     "weekly_hours": None,
     "onsite": "no",
     "allow_short_term_employment": True,
+    #: 빠른 연락 메시지에 들어갈 한 줄 소개·포트폴리오 링크 (사용자가 직접 입력, 비우면 채울 자리로 남김)
+    "intro": "",
+    "portfolio_url": None,
 }
 
 

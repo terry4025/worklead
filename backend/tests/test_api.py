@@ -302,3 +302,18 @@ def test_backup_restore_roundtrip(demo, tmp_path: Path) -> None:
     with pytest.raises(Exception):
         restore_database(bad, ctx.config.db_path, ctx.config.backup_dir)
     assert TOKEN
+
+
+
+def test_quick_message_uses_profile_and_never_invents(demo) -> None:
+    _, c = demo
+    lead_id = c.get("/v1/leads", params={"queue": "all"}).json()["items"][0]["id"]
+    msg = c.get(f"/v1/leads/{lead_id}").json()["quick_message"]
+    assert "설정 > 프로필" in msg  # 비어 있으면 채울 자리로 남긴다 (소개·링크를 지어내지 않음)
+    cur = c.get("/v1/settings").json()["profile"]
+    r = c.patch("/v1/settings", json={"profile": {**cur, "intro": "엑셀 자동화·홈페이지 만드는 DCORE LAB입니다.", "portfolio_url": "https://kmong.com/@DCORELAB"}})
+    assert r.status_code == 200, r.text
+    msg = c.get(f"/v1/leads/{lead_id}").json()["quick_message"]
+    assert "DCORE LAB" in msg and "https://kmong.com/@DCORELAB" in msg
+    bad = c.patch("/v1/settings", json={"profile": {**cur, "portfolio_url": "javascript:alert(1)"}})
+    assert bad.status_code == 422

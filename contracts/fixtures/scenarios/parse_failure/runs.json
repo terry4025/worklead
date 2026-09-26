@@ -1,15 +1,15 @@
 {
   "items": [
     {
-      "id": "run_01a0dc3c20f97f3b77115e",
+      "id": "run_01a0dd3e2ebf27a2318527",
       "source_id": "fixture-site",
       "lead_id": null,
       "kind": "discovery",
       "state": "partial",
       "trigger": "manual",
-      "created_at": "2026-09-26T05:42:03.257126Z",
-      "started_at": "2026-09-26T05:42:03.259305Z",
-      "finished_at": "2026-09-26T05:42:03.411268Z",
+      "created_at": "2026-09-26T10:23:55.071885Z",
+      "started_at": "2026-09-26T10:23:55.074087Z",
+      "finished_at": "2026-09-26T10:23:55.238463Z",
       "progress": {
         "done": 9,
         "total": 9,

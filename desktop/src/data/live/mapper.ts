@@ -144,6 +144,7 @@ export function mapDetail(x: C.LeadDetail): LeadDetail {
         }
       : null,
     draft: x.draft ? { text: x.draft.text, generatedAt: x.draft.generated_at, editedByUser: x.draft.edited_by_user } : null,
+    quickMessage: x.quick_message,
     memo: x.memo,
     outcomes: x.outcomes.map((o) => ({
       id: o.id,
@@ -258,6 +259,8 @@ export function mapSettings(x: C.SettingsOut): SettingsView {
       weeklyHours: x.profile.weekly_hours,
       onsite: x.profile.onsite,
       allowShortTermEmployment: x.profile.allow_short_term_employment,
+      intro: x.profile.intro ?? '',
+      portfolioUrl: x.profile.portfolio_url ?? null,
     },
     recheck: { ttlHours: x.recheck.ttl_hours ?? 24 },
     notifications: {
@@ -292,6 +295,8 @@ export function settingsPatchToContract(p: Parameters<import('../port').Worklead
       weekly_hours: p.profile.weeklyHours,
       onsite: p.profile.onsite,
       allow_short_term_employment: p.profile.allowShortTermEmployment,
+      intro: p.profile.intro,
+      portfolio_url: p.profile.portfolioUrl || null,
     };
   if (p.recheck) out.recheck = { ttl_hours: p.recheck.ttlHours };
   if (p.notifications)

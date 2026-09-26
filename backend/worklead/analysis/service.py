@@ -71,6 +71,8 @@ def _score_intent(intent: Judgement, engagement: Judgement) -> Factor:
         return Factor("buyer_intent", label, mx, 23 if b == "explicit" else 18, "구매 표현 " + ("명시" if b == "explicit" else "추정"))
     if v == "buyer_ongoing":
         return Factor("buyer_intent", label, mx, 21 if b == "explicit" else 16, "지속 의뢰 " + ("명시" if b == "explicit" else "추정"))
+    if v == "short_gig":
+        return Factor("buyer_intent", label, mx, 18, "프리랜서·단기 작업 구인 (고용 형식)")
     if v == "employee_hiring":
         pts = 4 if engagement.value == "full_time" else 8
         return Factor("buyer_intent", label, mx, pts, "고용 공고 — 외주 구매 아님")
@@ -244,6 +246,8 @@ def analyze(
     categories, dev = rules.classify_categories(title, body)
     intent = rules.classify_intent(title, body)
     engagement = rules.classify_engagement(title, body, intent.value)
+    if profile.allow_short_term_employment:
+        intent = rules.classify_short_gig(title, body, intent, engagement, dev)
     work = rules.classify_work_mode(title, body)
     collab = rules.classify_collaboration(title, body, work.value)
     scope = rules.classify_scope(title, body)
@@ -301,6 +305,9 @@ def analyze(
         exclude.append("위험 신호: " + " · ".join(r.label for r in risks))
     if excluded_hit:
         exclude.append(f"제외 업무 포함 ({excluded_hit})")
+    trainee = rules.find(rules.TRAINEE_AD, "", title, "explicit")
+    if trainee:
+        exclude.append("교육생·수강생 모집 광고 — 일거리 아님")
     if feedback.get("real_request") == "no":
         exclude.append("내가 실제 의뢰 아님으로 표시")
     if not dev and "data" not in categories:
@@ -331,7 +338,8 @@ def analyze(
     if collab.value == "onsite_required" and profile.onsite != "yes":
         q = collab.evidence[0].quote if collab.evidence else ""
         review.append("대면 필요" + (" (첫 미팅)" if "첫" in q else ""))
-    elif work.value == "fully_remote" and collab.value not in ("online_only",) and work.basis in ("explicit", "user_confirmed"):
+    elif work.value == "fully_remote" and collab.value not in ("online_only",) and work.basis in ("explicit", "user_confirmed") and intent.value != "short_gig":
+        # 짧은 재택 작업 구인은 대면 여부까지 적는 경우가 드물어 확인 필요로 돌리지 않는다
         review.append("진행 방식(대면 여부) 미확인")
     if scope.value == "regional_restriction":
         review.append("지원 지역 제한 — 자격 확인")
@@ -348,6 +356,11 @@ def analyze(
     positives: list[str] = []
     if intent.value in ("buyer_project", "buyer_ongoing") and intent.basis in ("explicit", "user_confirmed"):
         positives.append("지속 의뢰 명시" if intent.value == "buyer_ongoing" else "구매 의뢰 명시")
+    if intent.value == "short_gig":
+        positives.append("프리랜서·단기 작업")
+    if post.published.at is not None and status == "open" and (now - post.published.at) <= timedelta(hours=24):
+        hrs = max(1, int((now - post.published.at).total_seconds() // 3600))
+        positives.insert(0, f"{hrs}시간 전 게시 — 빠른 연락 유리")
     if work.value == "fully_remote" and work.basis in ("explicit", "user_confirmed"):
         positives.append("재택·온라인 명시" if collab.value == "online_only" else "재택 명시")
     if scope.value == "nationwide":
@@ -369,6 +382,8 @@ def analyze(
         fit.append(", ".join(CATEGORY_LABEL.get(c, c) for c in categories if c != "other") + " 업무")
     if intent.value.startswith("buyer"):
         fit.append("구매 수요")
+    elif intent.value == "short_gig":
+        fit.append("프리랜서·단기 작업 수요")
     if work.value == "fully_remote":
         fit.append("재택 " + ("명시" if work.basis == "explicit" else "추정"))
     unfit.extend(exclude)
@@ -390,7 +405,7 @@ def analyze(
     if factors[4].score is not None and factors[4].score < 6:
         uncertain.append("세부 요구 범위")
         questions.append("필요한 기능이나 페이지 목록을 받을 수 있을까요?")
-    if deadline.at is None and intent.value.startswith("buyer"):
+    if deadline.at is None and (intent.value.startswith("buyer") or intent.value == "short_gig"):
         questions.append("희망하시는 완료 일정이 있으신가요?")
 
     conversion = None
@@ -444,6 +459,17 @@ def analyze(
         conversion_opportunity=conversion,
         profitability=prof,
     )
+
+
+def quick_message(title: str, questions: list[str], intro: str = "", portfolio_url: str | None = None) -> str:
+    """구인 글에 가볍게 보내는 짧은 메시지. 경력·가격을 지어내지 않고, 비어 있는 값은 채울 자리로 남긴다."""
+    lines = [f"안녕하세요, 올려주신 '{title.strip()}' 글 보고 연락드립니다."]
+    lines.append(intro.strip() if intro.strip() else "[한 줄 소개 — 설정 > 프로필에서 입력하면 자동으로 들어갑니다]")
+    lines.append(f"비슷한 작업 예시: {portfolio_url}" if portfolio_url else "[포트폴리오 링크 — 설정 > 프로필에서 입력]")
+    lines.append("바로 시작할 수 있고, 내용 확인 후 금액과 일정을 먼저 알려드리겠습니다.")
+    if questions:
+        lines.append(f"혹시 {questions[0]}")
+    return "\n".join(lines)
 
 
 def inquiry_draft(title: str, analysis: RuleAnalysis) -> str:

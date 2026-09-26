@@ -312,6 +312,12 @@ function buildLead(spec: LeadSpec, now: number): LeadDetail {
           generatedAt: spec.draft.generatedAgoH === null ? null : iso(now, -spec.draft.generatedAgoH * HOUR),
         }
       : null,
+    quickMessage: [
+      `안녕하세요, 올려주신 '${spec.title}' 글 보고 연락드립니다.`,
+      '[한 줄 소개 — 설정 > 프로필에서 입력하면 자동으로 들어갑니다]',
+      '[포트폴리오 링크 — 설정 > 프로필에서 입력]',
+      '바로 시작할 수 있고, 내용 확인 후 금액과 일정을 먼저 알려드리겠습니다.',
+    ].join('\n'),
     memo: spec.memo ?? '',
     outcomes: (spec.outcomes ?? []).map(({ daysAgo, ...o }) => ({
       ...o,

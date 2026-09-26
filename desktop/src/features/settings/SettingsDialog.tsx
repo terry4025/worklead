@@ -163,7 +163,21 @@ export function SettingsDialog({
             </label>
             <label className="toggle">
               <input type="checkbox" checked={d.profile.allowShortTermEmployment} onChange={(e) => set((x) => void (x.profile.allowShortTermEmployment = e.target.checked))} />
-              <span>개발 관련 재택 단기 고용도 확인 필요 후보로 남기기 (외주와 섞지 않음)</span>
+              <span>프리랜서·단기 작업 구인(알바·계약 형식)도 일거리 후보로 보기</span>
+            </label>
+            <label className="field">
+              <span className="field-label">빠른 연락 — 한 줄 소개</span>
+              <input value={d.profile.intro} maxLength={200} placeholder="예: 엑셀 자동화·홈페이지를 만드는 DCORE LAB입니다." onChange={(e) => set((x) => void (x.profile.intro = e.target.value))} />
+            </label>
+            <label className="field">
+              <span className="field-label">빠른 연락 — 포트폴리오 링크</span>
+              <input
+                value={d.profile.portfolioUrl ?? ''}
+                maxLength={300}
+                placeholder="https://kmong.com/@내아이디"
+                aria-invalid={!!d.profile.portfolioUrl && !/^https?:\/\/\S+$/.test(d.profile.portfolioUrl)}
+                onChange={(e) => set((x) => void (x.profile.portfolioUrl = e.target.value.trim() || null))}
+              />
             </label>
           </fieldset>
 

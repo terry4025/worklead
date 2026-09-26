@@ -14,7 +14,7 @@ import { StatusMark } from '../../ui/StatusMark';
 import { useToast } from '../../ui/Toasts';
 import { Conditions } from './Conditions';
 import { Profit } from './Profit';
-import { DraftBox, FeedbackControls, MemoBox, Outcomes, StageSelect } from './Records';
+import { DraftBox, FeedbackControls, MemoBox, Outcomes, StageSelect, QuickContact } from './Records';
 import { SourceText, type Mark } from './SourceText';
 
 export interface DetailHandle {
@@ -292,6 +292,14 @@ export const LeadDetailPane = forwardRef<
 
         {full ? (
           <>
+            {lead.recommendation !== 'excluded' ? (
+              <section className="d-section" aria-labelledby="sec-quick">
+                <h3 id="sec-quick" className="d-h">
+                  빠른 연락
+                </h3>
+                <QuickContact lead={full} onOpenOriginal={() => void openOriginal()} />
+              </section>
+            ) : null}
             <section className="d-section" aria-labelledby="sec-cond">
               <h3 id="sec-cond" className="d-h">
                 조건과 근거

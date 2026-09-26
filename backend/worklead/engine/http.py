@@ -206,7 +206,7 @@ class Fetcher:
         return RobotsRules(None, mode="disallow_all")
 
     # ── 요청 ────────────────────────────────────────────────────────
-    def _raw_get(self, url: str, host: str) -> FetchResult:
+    def _raw_get(self, url: str, host: str, max_bytes: int = MAX_BYTES) -> FetchResult:
         self._reserve_budget(host)
         self._pace(host)
         if self.on_request:
@@ -218,7 +218,7 @@ class Fetcher:
                 size = 0
                 for chunk in resp.iter_bytes():
                     size += len(chunk)
-                    if size > MAX_BYTES:
+                    if size > max_bytes:
                         return FetchResult(url, url, resp.status_code, "too_large", None, dict(resp.headers), int((time.monotonic() - started) * 1000))
                     chunks.append(chunk)
                 raw = b"".join(chunks)
@@ -228,8 +228,11 @@ class Fetcher:
         except httpx.HTTPError as exc:
             return FetchResult(url, url, None, "network_error", None, {}, int((time.monotonic() - started) * 1000), type(exc).__name__)
 
-    def get(self, url: str) -> FetchResult:
-        """허용 호스트·robots·예산·간격을 지킨 GET. 정상/빈 결과와 오류를 구분해 돌려준다."""
+    def get(self, url: str, *, max_bytes: int = MAX_BYTES) -> FetchResult:
+        """허용 호스트·robots·예산·간격을 지킨 GET. 정상/빈 결과와 오류를 구분해 돌려준다.
+
+        max_bytes: 압축을 푼 본문 상한. 기본은 일반 페이지용 3MB, 사이트맵처럼 큰 목록은 어댑터가 명시한다.
+        """
         current = url
         for _ in range(MAX_REDIRECTS + 1):
             host = self._check_host(current)
@@ -238,7 +241,7 @@ class Fetcher:
                 raise RunHalt("robots_unreachable", "robots.txt 를 확인할 수 없어(5xx·네트워크) 이번 실행을 중단합니다")
             if not robots.allowed(current, self.user_agent):
                 raise PolicyStop("robots_disallowed", f"robots.txt 가 금지한 경로입니다: {urlsplit(current).path}")
-            result = self._raw_get(current, host)
+            result = self._raw_get(current, host, max_bytes)
             result.url = url
             result.final_url = current
             status = result.status

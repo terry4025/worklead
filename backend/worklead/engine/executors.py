@@ -270,6 +270,8 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
                 found = len(result.refs)
                 last_result = "ok" if found else "empty"
                 for ref in result.refs:
+                    # 한 작업이 상세 수십 건을 처리할 수 있으므로 건마다 임대 갱신·일시정지/취소 확인
+                    scope.checkpoint()
                     _process_ref(app, adapter, fetcher, ref, spec, run.id, scope)
                 if result.next_cursor and spec.depth + 1 < int(plan_info["depth_limit"]):
                     nxt = TaskSpec(spec.query_group, spec.region_scope, spec.region_label, spec.query, result.next_cursor, spec.depth + 1)

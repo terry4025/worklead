@@ -186,3 +186,49 @@ def test_robots_longest_match() -> None:
     assert r.allowed("https://x/jobs/1", "WorkleadLocal/0.1")
     assert not r.allowed("https://x/private", "WorkleadLocal/0.1")
     assert r.allowed("https://x/private/x", "WorkleadLocal/0.1")
+
+
+# ── 실제 공고(2026-09 당근알바)에서 드러난 오탐·누락 — 문구는 합성 ─────────────
+@pytest.mark.parametrize(
+    "title,body",
+    [
+        ("자동화물기사 구합니다", "화물차 운전 가능하신 분 구합니다. 월 320만원."),
+        ("물류자동화 설비 개조 인원 모집", "설비 개조 작업, 주 5일."),
+        ("자동화장비 배선작업 보조", "배선 보조 작업입니다."),
+        ("자동화 안전담당자 모집", "현장 안전 관리 업무입니다."),
+    ],
+)
+def test_non_software_automation_is_not_dev(title: str, body: str) -> None:
+    a = run(title, body)
+    assert "automation" not in a.categories
+    assert a.recommendation == "excluded"
+
+
+def test_app_development_is_dev_work() -> None:
+    a = run("앱 개발해주실 분 구합니다", "서비스 앱 개발을 도와주실 분을 찾고 있어요. 크로스 플랫폼으로 만들 예정입니다.")
+    assert "software" in a.categories
+    assert a.judgements["demand_intent"].value == "buyer_project"
+    assert all("개발·자동화 업무 아님" not in r.text for r in a.reasons)
+
+
+def test_teaching_request_is_flagged_for_review() -> None:
+    a = run("홈페이지 제작 가르쳐 주실 분", "홈페이지 제작을 하고 싶은데 만들어 주시고 가르쳐 주실 분 구해요. 예산 20만원.")
+    assert a.recommendation == "needs_review"
+    assert a.reasons[0].text.startswith("교육·과외 요청")
+
+
+def test_come_to_office_is_onsite() -> None:
+    a = run("쇼핑몰 오픈 도와주실 분", "카페24 쇼핑몰 오픈을 도와주실 분. 사무실로 오셔서 근무 가능하신 분만 지원해 주세요.")
+    assert a.judgements["work_mode"].value == "onsite"
+    assert a.recommendation == "excluded"
+
+
+def test_illegal_work_request_is_risk() -> None:
+    a = run("웹 개발 강의 구해요", "웹 개발, 소프트웨어 크랙 등 알려주실 분 구합니다. 예산 50만원.")
+    assert any(r.id == "illegal_work" for r in a.risks)
+    assert a.recommendation == "excluded"
+
+
+def test_site_build_without_web_prefix_is_website() -> None:
+    a = run("사이트 제작 및 구글시트 연동 가능하신분", "사이트 제작 및 구글 시트 연동 가능하신 분 구합니다.")
+    assert "website" in a.categories and "automation" in a.categories

@@ -15,7 +15,8 @@
     "index_url": "https://jobs.daangn.com/sitemap.xml",
     "job_sitemap_pattern": "^https://jobs\\.daangn\\.com/sitemaps/job-posts-\\d+\\.xml$",
     "max_files": 5,
-    "max_age_days": 60
+    "max_age_days": 60,
+    "max_bytes": 20971520
   },
   "detail": {
     "link_pattern": "^https://jobs\\.daangn\\.com/job-posts/[^/?#]+-([a-z0-9]{12})$",

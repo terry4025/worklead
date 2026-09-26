@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -22,10 +23,10 @@ from worklead.sources.manual import ManualAdapter
 SID = "daangn-alba"
 
 
-def setup(tmp_path: Path, behavior: fx.Behavior | None = None, *, allow: bool = True):
+def setup(tmp_path: Path, behavior: fx.Behavior | None = None, *, allow: bool = True, **cfg_kw):
     behavior = behavior or fx.Behavior()
     ad = daangn.create()
-    ctx = make_ctx(tmp_path, adapters={SID: ad, "manual": ManualAdapter()})
+    ctx = make_ctx(tmp_path, adapters={SID: ad, "manual": ManualAdapter()}, **cfg_kw)
     ctx.transport = fx.transport(behavior)
     if allow:
         with ctx.db.session() as s:
@@ -134,11 +135,59 @@ def test_parse_picks_this_page_post_not_review_post() -> None:
     assert p.title == "재고 엑셀 매크로 만들어주실 분"
     assert p.source_status == "open" and p.source_post_id == jid
     assert p.pay is not None and p.pay.raw == "건당 300,000원"
-    assert "— 당근알바 표시 조건 —" in p.body and "시간: 협의" in p.body
-    assert "시급" not in p.body  # 급여 형식은 보수 필드로만 (의뢰/고용 판단에 쓰지 않음)
+    assert "— 게시판 표시 조건 —" in p.body and "시간: 협의" in p.body
+    # 급여 형식·게시판 이름은 본문에 넣지 않는다 (판정 규칙이 고용 신호로 읽음 — 실제 수집에서 확인된 오류)
+    assert "시급" not in p.body and "알바" not in p.body
+    from worklead.analysis.rules import classify_intent
+
+    assert classify_intent(p.title, p.body).value == "buyer_project"
 
 
 def test_title_keywords_skip_intent_group_and_slug_titles() -> None:
     kws = title_keywords(DEFAULT_QUERY_GROUPS["groups"])
     assert "구합니다" not in kws and "홈페이지" in kws and "매크로" in kws
     assert title_from_url("https://jobs.daangn.com/job-posts/%EC%95%B1-%EA%B0%9C%EB%B0%9C-tni24p97pfru") == "앱 개발"
+
+
+def test_sitemap_larger_than_page_limit_is_read(tmp_path: Path) -> None:
+    # 실제 사이트맵은 압축 해제 후 7.5MB (2026-09-26) — 일반 페이지 상한(3MB)보다 크다
+    behavior = fx.Behavior(sitemap_extra=30000)
+    assert len(fx.job_sitemap(30000).encode()) > 3 * 1024 * 1024
+    ctx, _ = setup(tmp_path, behavior)
+    run = run_discovery(ctx)
+    assert run.counts["fetch_failures"] == 0
+    assert run.counts["created"] == 3
+    assert not any("x000" in p for p in behavior.requests if p.startswith("/job-posts/"))
+
+
+def test_long_task_keeps_lease_alive(tmp_path: Path, monkeypatch) -> None:
+    """상세를 여러 건 처리하는 동안 임대가 만료되어 실행이 '중단된 작업'으로 오인되지 않는다."""
+    from worklead.engine import executors
+
+    ctx, _ = setup(tmp_path, lease_seconds=2)
+    original = executors._process_ref
+
+    def slow(*args, **kwargs):
+        time.sleep(1.2)  # 실제 요청 간격(4초)을 줄여 흉내
+        runs.recover_expired(ctx.db)  # 스케줄러의 정리 작업이 도중에 돈다
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(executors, "_process_ref", slow)
+    run = run_discovery(ctx)
+    assert run.state == "partial", (run.state, run.error_code)  # 구조 변경 상세 1건 때문 (취소 아님)
+    assert run.counts["created"] == 3
+
+
+def test_reanalysis_keeps_structured_pay(tmp_path: Path) -> None:
+    """재분석(규칙 변경·설정 변경) 뒤에도 원천의 구조화 급여가 유지된다 — 본문에 금액이 없어도."""
+    ctx, _ = setup(tmp_path)
+    run_discovery(ctx)
+    c = client_for(ctx)
+    lead = next(i for i in c.get("/v1/leads", params={"queue": "all"}).json()["items"] if i["title"] == "카페 홈페이지 제작 도와주실 분")
+    assert lead["pay"]["unit"] == "hour" and lead["pay"]["min"] == 15000
+    assert c.post(f"/v1/leads/{lead['id']}/reanalyze").status_code == 202
+    w = Worker(ctx, "interactive", runs.INTERACTIVE_KINDS)
+    while w.run_once():
+        pass
+    again = c.get(f"/v1/leads/{lead['id']}").json()
+    assert again["pay"]["unit"] == "hour" and again["pay"]["min"] == 15000

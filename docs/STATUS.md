@@ -15,6 +15,7 @@
 | 화면 ↔ 실제 백엔드 | live 모드로 목록·상세·메모 저장·관심 표시·수동 입력·재확인 거부·SSE 새 리드 배너 | Playwright + `--dev --demo` 백엔드 |
 | 패키징(리눅스로 대체 확인) | PyInstaller sidecar 가 마이그레이션·준비 줄·인증·이중 실행 거부·stdin 종료 동작 | `/tmp` 수동 테스트 기록 (커밋 메시지) |
 | Tauri 셸 | `cargo check/build` (Linux), Xvfb 에서 앱 실행 → sidecar 시작 → 화면 live 연결(실시간), 앱 종료 시 백엔드 프로세스 0개 | 수동 확인 |
+| 당근알바 실제 수집 | 공식 사이트맵 29,019건 → 제목 선별 38건 상세 확인 (요청 41회) → 확인 필요 16 · 자동 제외 22 · 추천 0. 화면 live 연결로 확인 | [SOURCE_RESEARCH.md](SOURCE_RESEARCH.md) 1-5, `tests/test_daangn.py` |
 
 ## 구현했으나 미검증
 
@@ -23,7 +24,7 @@
 | Windows 설치 파일(NSIS)·WebView2 부트스트랩·한글/공백 경로·비관리자 설치 | Windows 빌드 환경 없음. `scripts/build-windows.ps1` 로 수행 필요 |
 | Windows 에서 sidecar 창 숨김·종료 정리 | Linux 에서만 확인 |
 | 성능 목표 (10만 리드 p95 500ms) | 측정하지 않음 |
-| 품질(추천 정밀도·재택/구매 오탐) | 사람이 라벨링한 검수 표본이 없음 → 미검증 |
+| 품질(추천 정밀도·재택/구매 오탐) | 사람이 라벨링한 검수 표본 없음. 실제 당근 38건으로 오탐 5종을 찾아 고쳤지만 정밀도는 측정하지 않음 |
 
 ## 미구현
 

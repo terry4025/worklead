@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 
 from ..analysis import provider as ai
 from ..analysis.service import analyze, inquiry_draft
-from ..analysis.types import DateInfo, PostInput, RuleAnalysis
+from ..analysis.types import DateInfo, PayInfo, PostInput, RuleAnalysis
 from ..models import (
     AnalysisResult,
     DiscoveryPath,
@@ -106,7 +106,43 @@ def _apply_parsed(rec: SourceRecord, p: ParsedPost) -> None:
     rec.published_at, rec.published_precision, rec.published_raw = p.published.at, p.published.precision, p.published.raw
     rec.source_updated_at, rec.source_updated_precision, rec.source_updated_raw = p.source_updated.at, p.source_updated.precision, p.source_updated.raw
     rec.contact_channel = p.contact_channel
-    rec.provenance = {**(rec.provenance or {}), "parse_notes": p.parse_notes, "status_evidence": [e.__dict__ for e in p.status_evidence]}
+    rec.provenance = {
+        **(rec.provenance or {}),
+        "parse_notes": p.parse_notes,
+        "status_evidence": [e.__dict__ for e in p.status_evidence],
+        # 원천의 구조화 보수·마감일 — 재분석 때도 본문 추정이 아니라 이 값을 쓴다
+        "pay_hint": _pay_to_json(p.pay),
+        "deadline_hint": _date_to_json(p.deadline),
+    }
+
+
+def _pay_to_json(pay: PayInfo | None) -> dict[str, Any] | None:
+    if pay is None:
+        return None
+    d = {k: v for k, v in pay.__dict__.items() if k != "evidence"}
+    d["evidence"] = [e.__dict__ for e in pay.evidence]
+    return d
+
+
+def _date_to_json(info: DateInfo | None) -> dict[str, Any] | None:
+    if info is None or info.at is None:
+        return None
+    return {"at": info.at.isoformat(), "precision": info.precision, "raw": info.raw, "evidence": [e.__dict__ for e in info.evidence]}
+
+
+def _hints_from_provenance(prov: dict[str, Any] | None) -> tuple[PayInfo | None, DateInfo | None]:
+    from ..analysis.types import Ev
+
+    prov = prov or {}
+    pay = None
+    if isinstance(prov.get("pay_hint"), dict):
+        d = dict(prov["pay_hint"])
+        pay = PayInfo(**{**d, "evidence": [Ev(**e) for e in d.get("evidence", [])]})
+    deadline = None
+    if isinstance(prov.get("deadline_hint"), dict):
+        d = prov["deadline_hint"]
+        deadline = DateInfo(datetime.fromisoformat(d["at"]), d.get("precision", "unknown"), d.get("raw"), [Ev(**e) for e in d.get("evidence", [])])
+    return pay, deadline
 
 
 def record_path(s: Session, rec: SourceRecord, path: tuple[str, str | None, str] | None, run_id: str | None, now: datetime) -> None:
@@ -295,6 +331,10 @@ def feedback_map(s: Session, lead_id: str) -> dict[str, str]:
 
 
 def post_input_from_record(rec: SourceRecord, source_kind: str, parsed: ParsedPost | None = None) -> PostInput:
+    if parsed is not None:
+        pay_hint, deadline_hint = parsed.pay, parsed.deadline
+    else:
+        pay_hint, deadline_hint = _hints_from_provenance(rec.provenance)
     status_ev = []
     if rec.provenance and rec.provenance.get("status_evidence"):
         from ..analysis.types import Ev
@@ -310,8 +350,8 @@ def post_input_from_record(rec: SourceRecord, source_kind: str, parsed: ParsedPo
         last_checked_at=rec.last_checked_at,
         published=DateInfo(rec.published_at, rec.published_precision, rec.published_raw),  # type: ignore[arg-type]
         first_seen_at=rec.first_seen_at,
-        pay_hint=parsed.pay if parsed and parsed.pay else None,
-        deadline_hint=parsed.deadline if parsed and parsed.deadline else None,
+        pay_hint=pay_hint,
+        deadline_hint=deadline_hint,
         source_kind=source_kind,
     )
 

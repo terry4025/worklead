@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dc1e1712aba7f069df",
+  "id": "lead_01a0dc35a783ca99839a34",
   "source_id": "demo-synthetic",
   "title": "온라인 쇼핑몰 CS·상품등록 직원 (주 5일 출근)",
   "categories": [
@@ -37,13 +37,13 @@
   "access_status": "accessible",
   "analysis_status": "rules_only",
   "recheck_due": false,
-  "last_checked_at": "2026-09-25T22:09:14.458459Z",
+  "last_checked_at": "2026-09-25T22:34:58.733792Z",
   "published": {
-    "at": "2026-09-24T13:09:14.458459Z",
+    "at": "2026-09-24T13:34:58.733792Z",
     "precision": "exact",
     "raw": null
   },
-  "first_seen_at": "2026-09-24T15:09:14.458459Z",
+  "first_seen_at": "2026-09-24T15:34:58.733792Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -77,7 +77,7 @@
   "has_memo": false,
   "active_job": null,
   "body_text": "온라인 쇼핑몰 상품 등록과 고객 문의 응대 업무입니다.\n근무지: 경기 김포시 사무실 (주 5일 출근)\n월급 230만원, 4대보험.",
-  "body_retained_until": "2026-10-24T15:09:14.458459Z",
+  "body_retained_until": "2026-10-24T15:34:58.733792Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -87,7 +87,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-24T15:09:14.458459Z",
+  "last_seen_at": "2026-09-24T15:34:58.733792Z",
   "work_period": {
     "start": {
       "at": null,
@@ -103,7 +103,7 @@
   "evidence": {
     "work_mode": [
       {
-        "id": "ev_01a0dc1e17200c791e949e",
+        "id": "ev_01a0dc35a78c43fa19d371",
         "quote": "근무지: 경기 김포시 사무실 (주 5일 출근)",
         "span": {
           "start": 31,
@@ -111,63 +111,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:09:14.458459Z",
-        "source_record_id": "rec_01a0dc1e17118fbc088338",
-        "version": "rules-2026.09.1",
-        "note": null
-      }
-    ],
-    "collaboration_mode": [
-      {
-        "id": "ev_01a0dc1e1720517f10a0de",
-        "quote": "근무지: 경기 김포시 사무실 (주 5일 출근)",
-        "span": {
-          "start": 31,
-          "end": 56
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T05:09:14.458459Z",
-        "source_record_id": "rec_01a0dc1e17118fbc088338",
-        "version": "rules-2026.09.1",
-        "note": null
-      }
-    ],
-    "pay": [
-      {
-        "id": "ev_01a0dc1e1720797ad99aa5",
-        "quote": "월급 230만원, 4대보험.",
-        "span": {
-          "start": 57,
-          "end": 72
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T05:09:14.458459Z",
-        "source_record_id": "rec_01a0dc1e17118fbc088338",
-        "version": "rules-2026.09.1",
-        "note": null
-      }
-    ],
-    "demand_intent": [
-      {
-        "id": "ev_01a0dc1e1720c5cfcfe6ab",
-        "quote": "월급 230만원, 4대보험.",
-        "span": {
-          "start": 57,
-          "end": 72
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T05:09:14.458459Z",
-        "source_record_id": "rec_01a0dc1e17118fbc088338",
-        "version": "rules-2026.09.1",
+        "observed_at": "2026-09-26T05:34:58.733792Z",
+        "source_record_id": "rec_01a0dc35a783a81b909e11",
+        "version": "rules-2026.09.5",
         "note": null
       }
     ],
     "engagement_type": [
       {
-        "id": "ev_01a0dc1e1720e4a8bf96eb",
+        "id": "ev_01a0dc35a78cabe1bc2f14",
         "quote": "월급 230만원, 4대보험.",
         "span": {
           "start": 57,
@@ -175,9 +127,57 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:09:14.458459Z",
-        "source_record_id": "rec_01a0dc1e17118fbc088338",
-        "version": "rules-2026.09.1",
+        "observed_at": "2026-09-26T05:34:58.733792Z",
+        "source_record_id": "rec_01a0dc35a783a81b909e11",
+        "version": "rules-2026.09.5",
+        "note": null
+      }
+    ],
+    "demand_intent": [
+      {
+        "id": "ev_01a0dc35a78ccf81fbc46a",
+        "quote": "월급 230만원, 4대보험.",
+        "span": {
+          "start": 57,
+          "end": 72
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T05:34:58.733792Z",
+        "source_record_id": "rec_01a0dc35a783a81b909e11",
+        "version": "rules-2026.09.5",
+        "note": null
+      }
+    ],
+    "pay": [
+      {
+        "id": "ev_01a0dc35a78cddc6853995",
+        "quote": "월급 230만원, 4대보험.",
+        "span": {
+          "start": 57,
+          "end": 72
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T05:34:58.733792Z",
+        "source_record_id": "rec_01a0dc35a783a81b909e11",
+        "version": "rules-2026.09.5",
+        "note": null
+      }
+    ],
+    "collaboration_mode": [
+      {
+        "id": "ev_01a0dc35a78cf890a88a73",
+        "quote": "근무지: 경기 김포시 사무실 (주 5일 출근)",
+        "span": {
+          "start": 31,
+          "end": 56
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T05:34:58.733792Z",
+        "source_record_id": "rec_01a0dc35a783a81b909e11",
+        "version": "rules-2026.09.5",
         "note": null
       }
     ]
@@ -225,7 +225,7 @@
       "score": 0,
       "reasons": []
     },
-    "rule_version": "rules-2026.09.1"
+    "rule_version": "rules-2026.09.5"
   },
   "analysis": {
     "status": "rules_only",
@@ -250,8 +250,8 @@
     "next_action": "검토 불필요",
     "conversion_opportunity": null,
     "engine": "rules",
-    "version": "rules-2026.09.1",
-    "analyzed_at": "2026-09-24T15:09:14.458459Z",
+    "version": "rules-2026.09.5",
+    "analyzed_at": "2026-09-24T15:34:58.733792Z",
     "failure": null
   },
   "risks": [],
@@ -273,14 +273,14 @@
       "region_scope": "경기 김포시",
       "region_label": "경기 김포시",
       "query_group": "demo",
-      "first_seen_at": "2026-09-24T15:09:14.458459Z",
-      "last_seen_at": "2026-09-24T15:09:14.458459Z",
+      "first_seen_at": "2026-09-24T15:34:58.733792Z",
+      "last_seen_at": "2026-09-24T15:34:58.733792Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-24T15:09:14.458459Z",
+      "at": "2026-09-24T15:34:58.733792Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

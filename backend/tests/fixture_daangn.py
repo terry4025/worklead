@@ -141,10 +141,13 @@ def sitemap_index() -> str:
     )
 
 
-def job_sitemap() -> str:
+def job_sitemap(extra: int = 0) -> str:
     urls = "".join(
         f"<url><loc>{job_url(jid)}</loc><lastmod>{j['lastmod'].isoformat().replace('+00:00', 'Z')}</lastmod></url>" for jid, j in JOBS.items()
     )
+    lm = NOW.isoformat().replace("+00:00", "Z")
+    filler = f"https://{HOST}/job-posts/{quote('주말-홀서버-모집합니다-평일-가능')}-"
+    urls += "".join(f"<url><loc>{filler}x{n:011d}</loc><lastmod>{lm}</lastmod></url>" for n in range(extra))
     return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>'
 
 
@@ -153,6 +156,8 @@ class Behavior:
     closed: set[str] = field(default_factory=lambda: {jid for jid, j in JOBS.items() if j.get("closed")})
     detail_mode: dict[str, str] = field(default_factory=dict)
     sitemap_mode: str | None = None
+    #: 업무 무관 공고를 덧붙여 사이트맵을 키운다 (압축 해제 크기 검증용)
+    sitemap_extra: int = 0
     requests: list[str] = field(default_factory=list)
 
 
@@ -173,7 +178,7 @@ def transport(b: Behavior) -> httpx.MockTransport:
                 return httpx.Response(200, text="<html><body>점검 중</body></html>", headers=html)
             if b.sitemap_mode == "403":
                 return httpx.Response(403)
-            return httpx.Response(200, text=job_sitemap(), headers=xml)
+            return httpx.Response(200, text=job_sitemap(b.sitemap_extra), headers=xml)
         if url.path.startswith("/job-posts/"):
             jid = url.path.rsplit("-", 1)[-1]
             mode = b.detail_mode.get(jid)

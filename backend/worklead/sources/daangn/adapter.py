@@ -45,6 +45,7 @@ from ..profiled import TaskFailed, canonicalize, load_profile
 #: 제목 선별에 쓰지 않는 검색어 묶음 (거의 모든 구인글 제목에 있는 표현)
 INTENT_ONLY_GROUPS = {"buyer_intent"}
 SITEMAP_TASK_GROUP = "sitemap"
+CONDITIONS_HEADER = "게시판 표시 조건"
 
 _STORE_RE = re.compile(r"window\.__RELAY_STORE__\s*=\s*(\"(?:[^\"\\]|\\.)*\")\s*;", re.S)
 _URL_BLOCK_RE = re.compile(r"<url>(.*?)</url>", re.S)
@@ -171,6 +172,8 @@ class DaangnAdapter:
         self._job_sitemap_re = re.compile(sm["job_sitemap_pattern"]) if sm.get("job_sitemap_pattern") else None
         self._max_files = int(sm.get("max_files") or 5)
         self._max_age = timedelta(days=int(sm.get("max_age_days") or 60))
+        #: 사이트맵은 압축 해제 후 수 MB (2026-09-26: 7.5MB) → 일반 페이지 상한(3MB)과 따로 둔다
+        self._sitemap_max_bytes = int(sm.get("max_bytes") or 20 * 1024 * 1024)
         det = profile.get("detail") or {}
         self._link_re = re.compile(det["link_pattern"]) if det.get("link_pattern") else None
 
@@ -258,7 +261,7 @@ class DaangnAdapter:
         children = self._job_sitemaps(fetcher)
         if idx >= len(children):
             return DiscoverResult([], None)
-        res = fetcher.get(children[idx])
+        res = fetcher.get(children[idx], max_bytes=self._sitemap_max_bytes)
         if res.outcome != "ok":
             raise TaskFailed(res.outcome, f"공고 사이트맵 요청 실패 (HTTP {res.status or '-'}, {res.outcome})")
         text = res.text or ""
@@ -309,7 +312,8 @@ class DaangnAdapter:
         region = _deref(store or {}, jp.get("workplaceRegion"))
         region_text = " ".join(str(region[k]) for k in ("name1", "name2", "name3") if region.get(k)) or None
         cond = _conditions(jp, region_text)
-        body = content + ("\n\n— 당근알바 표시 조건 —\n" + "\n".join(cond) if cond else "")
+        # 머리글에 판정 규칙이 읽는 단어(알바·근무시간 등)를 넣지 않는다 — 원문에 없는 고용 신호가 생긴다
+        body = content + ("\n\n— " + CONDITIONS_HEADER + " —\n" + "\n".join(cond) if cond else "")
 
         status, status_ev, notes = self._status(jp)
         published_at, prec = parse_iso(jp.get("publishedAt") or jp.get("createdAt"))

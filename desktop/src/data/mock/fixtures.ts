@@ -35,7 +35,7 @@ export const DEMO_CATEGORIES = [
   { id: 'landing', label: '랜딩페이지' },
   { id: 'shop', label: '쇼핑몰' },
   { id: 'fullstack', label: '풀스택·웹 서비스' },
-  { id: 'software', label: '프로그램' },
+  { id: 'software', label: '프로그램·앱' },
   { id: 'vba', label: '엑셀·VBA·매크로' },
   { id: 'automation', label: '업무 자동화·연동' },
   { id: 'data', label: '데이터 정리' },

@@ -28,7 +28,7 @@ CATEGORY_LABEL = {
     "landing": "랜딩페이지",
     "shop": "쇼핑몰",
     "fullstack": "풀스택·웹 서비스",
-    "software": "프로그램",
+    "software": "프로그램·앱",
     "vba": "엑셀·VBA·매크로",
     "automation": "업무 자동화·연동",
     "data": "데이터 정리",
@@ -306,6 +306,9 @@ def analyze(
     if not dev and "data" not in categories:
         exclude.append("개발·자동화 업무 아님")
 
+    teaching = rules.find(rules.TEACHING, body, title, "explicit")
+    if teaching and not exclude:
+        review.insert(0, "교육·과외 요청 — 제작 의뢰인지 확인")
     if intent.value not in ("buyer_project", "buyer_ongoing"):
         if intent.value == "employee_hiring":
             review.append("단기 고용 — 개발 외주 아님")

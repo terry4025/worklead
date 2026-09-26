@@ -3,7 +3,7 @@
   "app_version": "0.1.0",
   "api_version": "v1",
   "contract_version": "2026-09-26.1",
-  "server_time": "2026-09-26T05:09:15.126671Z",
+  "server_time": "2026-09-26T05:34:59.386188Z",
   "categories": [
     {
       "id": "website",
@@ -23,7 +23,7 @@
     },
     {
       "id": "software",
-      "label": "프로그램"
+      "label": "프로그램·앱"
     },
     {
       "id": "vba",

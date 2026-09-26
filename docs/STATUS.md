@@ -21,8 +21,7 @@
 
 | 항목 | 이유 |
 | --- | --- |
-| Windows 설치 파일(NSIS)·WebView2 부트스트랩·한글/공백 경로·비관리자 설치 | Windows 빌드 환경 없음. `scripts/build-windows.ps1` 로 수행 필요 |
-| Windows 에서 sidecar 창 숨김·종료 정리 | Linux 에서만 확인 |
+| Windows 설치·실행 (설치 마법사, WebView2 부트스트랩, 한글/공백 경로, 창 숨김, 종료 정리) | 설치 파일은 GitHub Actions(windows-latest)에서 빌드됨 (`.github/workflows/windows-installer.yml`). 같은 러너에서 백엔드 테스트 전부 통과·sidecar 단독 실행(준비 줄·401·health) 확인. **실제 PC 에 설치해 화면을 띄우는 것은 미확인**. 코드 서명 없음 |
 | 성능 목표 (10만 리드 p95 500ms) | 측정하지 않음 |
 | 품질(추천 정밀도·재택/구매 오탐) | 사람이 라벨링한 검수 표본 없음. 실제 당근 38건으로 오탐 5종을 찾아 고쳤지만 정밀도는 측정하지 않음 |
 

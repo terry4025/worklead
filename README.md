@@ -89,3 +89,9 @@ git switch -c feat/your-change
 - 테스트용 합성 데이터와 실제 수집 데이터·성과 통계를 구분합니다.
 
 라이선스는 아직 지정하지 않았습니다. 공개 저장소라는 사실만으로 별도 오픈소스 라이선스를 부여하지 않습니다.
+
+## Windows 설치 파일
+
+`.github/workflows/windows-installer.yml` 이 Windows 러너에서 테스트 → sidecar 패키징·실행 확인 → NSIS 설치 파일을 만든다.
+GitHub → Actions → windows-installer → 실행 결과의 Artifacts(`Worklead-Windows-installer`)에서 내려받는다 (30일 보관).
+서명되지 않은 설치 파일이라 처음 실행 시 SmartScreen 경고가 뜰 수 있다 ("추가 정보" → "실행").

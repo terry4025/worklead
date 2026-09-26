@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -88,6 +89,39 @@ def test_form_workplace_is_inferred_onsite_unless_body_says_remote() -> None:
     # 본문에 재택이 명시되면 양식 근무지보다 본문을 따른다
     b = run("웹개발 알바", "쇼핑몰 상세페이지 코딩. 재택 가능합니다." + cond)
     assert b.judgements["work_mode"].value == "fully_remote"
+
+
+# ── 건당·1회성 작업만 ────────────────────────────────────────────────
+def test_gig_only_excludes_time_based_pay_and_prefers_one_off() -> None:
+    hourly = run("쇼핑몰 상세페이지 코딩 알바 (재택)", "재택근무로 쇼핑몰 상세페이지 HTML 코딩해 주실 분. 프리랜서. 시급 15,000원")
+    assert hourly.recommendation == "excluded"
+    assert any(r.text == "시급 보수 — 건당·1회성 작업 아님" for r in hourly.reasons)
+    monthly = run("웹 개발자 (재택, 3개월)", "재택근무 웹 개발 프리랜서. 월급 300만원")
+    assert monthly.recommendation == "excluded" and any("월 단위 보수" in r.text for r in monthly.reasons)
+    yearly = run("웹 개발자 채용", "재택근무 웹 개발. 연봉 4,000만원")
+    assert yearly.recommendation == "excluded" and any("연봉 보수" in r.text for r in yearly.reasons)
+
+    gig = run("홈페이지 수정 건당 작업 (재택)", "회사 홈페이지 문구·이미지 수정 한 번만 작업해 주실 분. 미팅 없이 온라인으로만 진행. 건당 20만원")
+    assert gig.recommendation == "recommended", gig.reasons
+    assert gig.reasons[0].text == "1회성·건당 작업"
+
+    # 매일 하는 일을 자동화해 달라는 요청은 장기 근무가 아니다
+    daily = run("엑셀 자동화 (재택)", "매일 하는 엑셀 정리 작업을 매크로로 자동화해 주실 분. 미팅 없이 온라인으로만 진행. 예산 30만원")
+    assert not any("장기·정기" in r.text for r in daily.reasons)
+
+    ongoing = run("쇼핑몰 관리 (재택)", "쇼핑몰 상품 등록 페이지 수정을 장기로 맡아 주실 분. 미팅 없이 온라인으로만 진행. 예산 50만원")
+    assert ongoing.recommendation == "needs_review"
+    assert any(r.text == "장기·정기 작업 — 1회성 아님" for r in ongoing.reasons)
+
+
+def test_gig_only_can_be_turned_off() -> None:
+    body = "재택근무로 쇼핑몰 상세페이지 HTML 코딩해 주실 분. 프리랜서. 시급 15,000원"
+    off = analyze(
+        PostInput(title="쇼핑몰 상세페이지 코딩 알바 (재택)", body=body, observed_at=NOW, source_status="open", last_checked_at=NOW, first_seen_at=NOW),
+        replace(PROFILE, gig_only=False),
+        NOW,
+    )
+    assert not any("시급 보수" in r.text for r in off.reasons)
 
 
 # ── 사례 6: 판매자 홍보 vs 의뢰 ─────────────────────────────────────

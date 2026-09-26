@@ -5144,6 +5144,11 @@
             "type": "boolean",
             "title": "Allow Short Term Employment"
           },
+          "gig_only": {
+            "type": "boolean",
+            "title": "Gig Only",
+            "default": true
+          },
           "intro": {
             "type": "string",
             "maxLength": 200,

@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dd4ceeaeb2ecce00c8",
+  "id": "lead_01a0dd635d39c94a536052",
   "source_id": "demo-synthetic",
   "title": "온라인 쇼핑몰 CS·상품등록 직원 (주 5일 출근)",
   "categories": [
@@ -37,13 +37,13 @@
   "access_status": "accessible",
   "analysis_status": "rules_only",
   "recheck_due": false,
-  "last_checked_at": "2026-09-26T03:40:01.506736Z",
+  "last_checked_at": "2026-09-26T04:04:31.551849Z",
   "published": {
-    "at": "2026-09-24T18:40:01.506736Z",
+    "at": "2026-09-24T19:04:31.551849Z",
     "precision": "exact",
     "raw": null
   },
-  "first_seen_at": "2026-09-24T20:40:01.506736Z",
+  "first_seen_at": "2026-09-24T21:04:31.551849Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -61,15 +61,15 @@
   "reasons": [
     {
       "tone": "negative",
+      "text": "월 단위 보수 — 건당·1회성 작업 아님"
+    },
+    {
+      "tone": "negative",
       "text": "출근 필수"
     },
     {
       "tone": "negative",
       "text": "정규직 채용 — 외주 아님"
-    },
-    {
-      "tone": "negative",
-      "text": "개발·자동화 업무 아님"
     }
   ],
   "user_mark": null,
@@ -77,7 +77,7 @@
   "has_memo": false,
   "active_job": null,
   "body_text": "온라인 쇼핑몰 상품 등록과 고객 문의 응대 업무입니다.\n근무지: 경기 김포시 사무실 (주 5일 출근)\n월급 230만원, 4대보험.",
-  "body_retained_until": "2026-10-24T20:40:01.506736Z",
+  "body_retained_until": "2026-10-24T21:04:31.551849Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -87,7 +87,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-24T20:40:01.506736Z",
+  "last_seen_at": "2026-09-24T21:04:31.551849Z",
   "work_period": {
     "start": {
       "at": null,
@@ -103,7 +103,7 @@
   "evidence": {
     "demand_intent": [
       {
-        "id": "ev_01a0dd4ceeb679a3dd577e",
+        "id": "ev_01a0dd635d415bd7d228ce",
         "quote": "월급 230만원, 4대보험.",
         "span": {
           "start": 57,
@@ -111,63 +111,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T10:40:01.506736Z",
-        "source_record_id": "rec_01a0dd4ceead8ecd4cf537",
-        "version": "rules-2026.09.7",
-        "note": null
-      }
-    ],
-    "pay": [
-      {
-        "id": "ev_01a0dd4ceeb67b3a3b6d9e",
-        "quote": "월급 230만원, 4대보험.",
-        "span": {
-          "start": 57,
-          "end": 72
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T10:40:01.506736Z",
-        "source_record_id": "rec_01a0dd4ceead8ecd4cf537",
-        "version": "rules-2026.09.7",
-        "note": null
-      }
-    ],
-    "engagement_type": [
-      {
-        "id": "ev_01a0dd4ceeb68bd21e89b5",
-        "quote": "월급 230만원, 4대보험.",
-        "span": {
-          "start": 57,
-          "end": 72
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T10:40:01.506736Z",
-        "source_record_id": "rec_01a0dd4ceead8ecd4cf537",
-        "version": "rules-2026.09.7",
-        "note": null
-      }
-    ],
-    "work_mode": [
-      {
-        "id": "ev_01a0dd4ceeb69f2edba41f",
-        "quote": "근무지: 경기 김포시 사무실 (주 5일 출근)",
-        "span": {
-          "start": 31,
-          "end": 56
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T10:40:01.506736Z",
-        "source_record_id": "rec_01a0dd4ceead8ecd4cf537",
-        "version": "rules-2026.09.7",
+        "observed_at": "2026-09-26T11:04:31.551849Z",
+        "source_record_id": "rec_01a0dd635d38572ca0dc66",
+        "version": "rules-2026.09.8",
         "note": null
       }
     ],
     "collaboration_mode": [
       {
-        "id": "ev_01a0dd4ceeb6f5bb61d776",
+        "id": "ev_01a0dd635d4163cdc8a62d",
         "quote": "근무지: 경기 김포시 사무실 (주 5일 출근)",
         "span": {
           "start": 31,
@@ -175,9 +127,57 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T10:40:01.506736Z",
-        "source_record_id": "rec_01a0dd4ceead8ecd4cf537",
-        "version": "rules-2026.09.7",
+        "observed_at": "2026-09-26T11:04:31.551849Z",
+        "source_record_id": "rec_01a0dd635d38572ca0dc66",
+        "version": "rules-2026.09.8",
+        "note": null
+      }
+    ],
+    "pay": [
+      {
+        "id": "ev_01a0dd635d41a7338b2a40",
+        "quote": "월급 230만원, 4대보험.",
+        "span": {
+          "start": 57,
+          "end": 72
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T11:04:31.551849Z",
+        "source_record_id": "rec_01a0dd635d38572ca0dc66",
+        "version": "rules-2026.09.8",
+        "note": null
+      }
+    ],
+    "engagement_type": [
+      {
+        "id": "ev_01a0dd635d41b9aa65ce7e",
+        "quote": "월급 230만원, 4대보험.",
+        "span": {
+          "start": 57,
+          "end": 72
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T11:04:31.551849Z",
+        "source_record_id": "rec_01a0dd635d38572ca0dc66",
+        "version": "rules-2026.09.8",
+        "note": null
+      }
+    ],
+    "work_mode": [
+      {
+        "id": "ev_01a0dd635d41da800e6f95",
+        "quote": "근무지: 경기 김포시 사무실 (주 5일 출근)",
+        "span": {
+          "start": 31,
+          "end": 56
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T11:04:31.551849Z",
+        "source_record_id": "rec_01a0dd635d38572ca0dc66",
+        "version": "rules-2026.09.8",
         "note": null
       }
     ]
@@ -225,7 +225,7 @@
       "score": 0,
       "reasons": []
     },
-    "rule_version": "rules-2026.09.7"
+    "rule_version": "rules-2026.09.8"
   },
   "analysis": {
     "status": "rules_only",
@@ -233,6 +233,7 @@
     "summary_engine": "rules",
     "fit": [],
     "unfit": [
+      "월 단위 보수 — 건당·1회성 작업 아님",
       "출근 필수",
       "정규직 채용 — 외주 아님",
       "개발·자동화 업무 아님"
@@ -250,8 +251,8 @@
     "next_action": "검토 불필요",
     "conversion_opportunity": null,
     "engine": "rules",
-    "version": "rules-2026.09.7",
-    "analyzed_at": "2026-09-24T20:40:01.506736Z",
+    "version": "rules-2026.09.8",
+    "analyzed_at": "2026-09-24T21:04:31.551849Z",
     "failure": null
   },
   "risks": [],
@@ -274,14 +275,14 @@
       "region_scope": "경기 김포시",
       "region_label": "경기 김포시",
       "query_group": "demo",
-      "first_seen_at": "2026-09-24T20:40:01.506736Z",
-      "last_seen_at": "2026-09-24T20:40:01.506736Z",
+      "first_seen_at": "2026-09-24T21:04:31.551849Z",
+      "last_seen_at": "2026-09-24T21:04:31.551849Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-24T20:40:01.506736Z",
+      "at": "2026-09-24T21:04:31.551849Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

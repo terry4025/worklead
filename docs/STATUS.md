@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | 백엔드 API | `/v1` 전 엔드포인트, 토큰·Host·Origin 검사, 오류 형식, 커서, 대기열, SSE 이어받기/리셋 | `backend/tests/test_api.py` |
 | 수집 엔진 | 허용 호스트, robots.txt, 예산, 403/CAPTCHA 정지, 429 유예, 파싱 실패 구분, 전국 순환·주기·이어받기, 강제 종료 복구, 예약 멱등 | `backend/tests/test_engine.py` (합성 사이트) |
-| 분석 | 축별 판정·근거 구간, 보수·날짜, 위험 신호, 점수·미평가, 적격성, 수익성, 내 확인 반영. 고용 형식의 건당·단기·프리랜서 개발 작업을 `short_gig`(프리랜서·단기 작업)로 분류, 교육생 모집 광고 제외, 24시간 안 게시글 가점 | `backend/tests/test_analysis.py` |
+| 분석 | 축별 판정·근거 구간, 보수·날짜, 위험 신호, 점수·미평가, 적격성, 수익성, 내 확인 반영. 고용 형식의 건당·단기·프리랜서 개발 작업을 `short_gig`(프리랜서·단기 작업)로 분류, 교육생 모집 광고 제외, 24시간 안 게시글 가점. **건당·1회성 작업만**(설정, 기본 켬): 시급·일급·주급·월 단위·연봉 보수 공고 자동 제외, 장기·정기 작업은 확인 필요, 1회성·건당 표시는 긍정 근거 | `backend/tests/test_analysis.py` |
 | 빠른 연락 문구 | 상세 화면에서 제목·프로필 한 줄 소개·포트폴리오 링크로 연락 문구를 만들고 복사 후 원문을 연다 (자동 발송 없음, 없는 내용은 빈칸 표시) | `test_quick_message_uses_profile_and_never_invents` |
 | 저장 | 마이그레이션(사전 백업), 온라인 백업, 무결성 확인 복원 | `test_backup_restore_roundtrip` |
 | 계약 | OpenAPI·스키마·엔진 생성 fixture·TS 클라이언트, fixture 재검증 | `test_contracts.py`, `desktop/src/__tests__/contract-mapper.test.ts` |
@@ -18,6 +18,7 @@
 | Tauri 셸 | `cargo check/build` (Linux), Xvfb 에서 앱 실행 → sidecar 시작 → 화면 live 연결(실시간), 앱 종료 시 백엔드 프로세스 0개 | 수동 확인 |
 | 알바몬 어댑터 (합성 사이트) | IT 업직종·재택 목록 1쪽 → 목록 데이터로 1차 선별 → 상세 JSON-LD·본문, 담당자 연락처·도로명 주소 미저장, 목록 구조 변경은 파싱 실패 | `tests/test_albamon.py` |
 | 알바몬 실제 수집 | 사용자 허용 기록 후 2회 실행. 개선 후: 요청 30회 → 상세 25건 → 추천 1 · 확인 필요 2(모두 재택 명시) · 자동 제외 22(출근 추정·강사·정규직 등). 파싱 실패 0 | [SOURCE_RESEARCH_ALBAMON.md](SOURCE_RESEARCH_ALBAMON.md) 5절, `tests/test_albamon.py` |
+| 건당·1회성 작업만 (실제 데이터) | 규칙 변경 재판정 결과 당근 38건 중 건당 3건만 확인 필요로 남고 나머지는 시급·월급 등으로 자동 제외. 알바몬은 목록 1쪽 4개만 요청하고 건별 공고가 없어 상세 요청 0건 | [SOURCE_RESEARCH_ALBAMON.md](SOURCE_RESEARCH_ALBAMON.md) 5절 |
 | 규칙 변경 후 재판정 | 앱 업데이트로 판정 규칙 버전이 바뀌면 시작할 때 기존 리드를 한 번 다시 판정 (메모·관심 유지). 실제 데이터(당근 38건)에서 7건이 `프리랜서·단기 작업`으로 올라옴 | `test_rule_update_requeues_reanalysis_once` |
 | 당근알바 실제 수집 | 공식 사이트맵 29,019건 → 제목 선별 38건 상세 확인 (요청 41회) → 확인 필요 16 · 자동 제외 22 · 추천 0. 화면 live 연결로 확인 | [SOURCE_RESEARCH.md](SOURCE_RESEARCH.md) 1-5, `tests/test_daangn.py` |
 

@@ -1149,6 +1149,11 @@ export interface components {
             /** Allow Short Term Employment */
             allow_short_term_employment: boolean;
             /**
+             * Gig Only
+             * @default true
+             */
+            gig_only: boolean;
+            /**
              * Intro
              * @default
              */

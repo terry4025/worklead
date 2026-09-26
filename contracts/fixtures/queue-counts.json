@@ -1,11 +1,11 @@
 {
   "counts": {
-    "recommended": 4,
-    "needs_review": 7,
+    "recommended": 3,
+    "needs_review": 6,
     "interested": 1,
     "active": 2,
     "dismissed": 0,
-    "auto_excluded": 4,
+    "auto_excluded": 6,
     "all": 17
   }
 }

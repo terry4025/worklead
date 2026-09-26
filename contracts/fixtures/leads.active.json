@@ -1,7 +1,7 @@
 {
   "items": [
     {
-      "id": "lead_01a0dd4ceee49a4a15d0ac",
+      "id": "lead_01a0dd635d6e29edc1a30e",
       "source_id": "demo-synthetic",
       "title": "소규모 법률사무소 홈페이지 제작",
       "categories": [
@@ -39,13 +39,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-25T20:40:01.506736Z",
+      "last_checked_at": "2026-09-25T21:04:31.551849Z",
       "published": {
-        "at": "2026-09-23T22:40:01.506736Z",
+        "at": "2026-09-23T23:04:31.551849Z",
         "precision": "exact",
         "raw": null
       },
-      "first_seen_at": "2026-09-24T00:40:01.506736Z",
+      "first_seen_at": "2026-09-24T01:04:31.551849Z",
       "deadline": {
         "at": null,
         "precision": "unknown",
@@ -63,15 +63,15 @@
       "reasons": [
         {
           "tone": "positive",
+          "text": "1회성·건당 작업"
+        },
+        {
+          "tone": "positive",
           "text": "구매 의뢰 명시"
         },
         {
           "tone": "positive",
           "text": "재택·온라인 명시"
-        },
-        {
-          "tone": "positive",
-          "text": "예산 250만원"
         }
       ],
       "user_mark": "interested",
@@ -80,7 +80,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dd4ceef3ab85d28b5b",
+      "id": "lead_01a0dd635d7e866cdcd09b",
       "source_id": "demo-synthetic",
       "title": "플라워샵 꽃 정기구독 신청 랜딩페이지",
       "categories": [
@@ -118,13 +118,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": true,
-      "last_checked_at": "2026-09-25T04:40:01.506736Z",
+      "last_checked_at": "2026-09-25T05:04:31.551849Z",
       "published": {
-        "at": "2026-09-21T10:40:01.506736Z",
+        "at": "2026-09-21T11:04:31.551849Z",
         "precision": "exact",
         "raw": null
       },
-      "first_seen_at": "2026-09-21T12:40:01.506736Z",
+      "first_seen_at": "2026-09-21T13:04:31.551849Z",
       "deadline": {
         "at": null,
         "precision": "unknown",
@@ -146,11 +146,11 @@
         },
         {
           "tone": "positive",
-          "text": "구매 의뢰 명시"
+          "text": "1회성·건당 작업"
         },
         {
           "tone": "positive",
-          "text": "재택·온라인 명시"
+          "text": "구매 의뢰 명시"
         }
       ],
       "user_mark": null,
@@ -159,7 +159,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dd4cef00382adab7b6",
+      "id": "lead_01a0dd635d8e38124efbfa",
       "source_id": "demo-synthetic",
       "title": "견적서·거래명세서 엑셀 자동 작성 VBA",
       "categories": [
@@ -197,13 +197,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-24T10:40:01.506736Z",
+      "last_checked_at": "2026-09-24T11:04:31.551849Z",
       "published": {
-        "at": "2026-09-15T14:40:01.506736Z",
+        "at": "2026-09-15T15:04:31.551849Z",
         "precision": "exact",
         "raw": null
       },
-      "first_seen_at": "2026-09-16T00:40:01.506736Z",
+      "first_seen_at": "2026-09-16T01:04:31.551849Z",
       "deadline": {
         "at": null,
         "precision": "unknown",

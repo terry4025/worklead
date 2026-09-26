@@ -106,6 +106,8 @@ class Profile:
     weekly_hours: int | None = None
     onsite: Literal["no", "first_meeting", "yes"] = "no"
     allow_short_term_employment: bool = True
+    #: 건당·1회성 작업만 — 시급·일급·주급·월급·연봉 공고는 자동 제외
+    gig_only: bool = True
     version: int = 1
 
 

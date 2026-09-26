@@ -1,7 +1,7 @@
 {
   "items": [
     {
-      "id": "lead_01a0dd4cf4e8bc170cba50",
+      "id": "lead_01a0dd6363695a2522d143",
       "source_id": "fixture-site",
       "title": "카페 랜딩페이지 제작 의뢰",
       "categories": [
@@ -39,13 +39,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T10:40:03.295266Z",
+      "last_checked_at": "2026-09-26T11:04:33.377339Z",
       "published": {
-        "at": "2026-09-26T00:40:03.300049Z",
+        "at": "2026-09-26T01:04:33.381410Z",
         "precision": "exact",
-        "raw": "2026-09-26T00:40:03.300049+00:00"
+        "raw": "2026-09-26T01:04:33.381410+00:00"
       },
-      "first_seen_at": "2026-09-26T10:40:03.295266Z",
+      "first_seen_at": "2026-09-26T11:04:33.377339Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -67,11 +67,11 @@
         },
         {
           "tone": "positive",
-          "text": "구매 의뢰 명시"
+          "text": "1회성·건당 작업"
         },
         {
           "tone": "positive",
-          "text": "재택·온라인 명시"
+          "text": "구매 의뢰 명시"
         }
       ],
       "user_mark": null,

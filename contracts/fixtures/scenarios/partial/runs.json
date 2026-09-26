@@ -1,15 +1,15 @@
 {
   "items": [
     {
-      "id": "run_01a0dd4cf4bca72555b395",
+      "id": "run_01a0dd63633d16ad4fd16c",
       "source_id": "fixture-site",
       "lead_id": null,
       "kind": "discovery",
       "state": "partial",
       "trigger": "manual",
-      "created_at": "2026-09-26T10:40:03.260692Z",
-      "started_at": "2026-09-26T10:40:03.263239Z",
-      "finished_at": "2026-09-26T10:40:03.347382Z",
+      "created_at": "2026-09-26T11:04:33.341070Z",
+      "started_at": "2026-09-26T11:04:33.343410Z",
+      "finished_at": "2026-09-26T11:04:33.429331Z",
       "progress": {
         "done": 2,
         "total": 6,
@@ -30,7 +30,7 @@
       "error": {
         "code": "rate_limited",
         "message": "요청 제한 응답(429) — Retry-After 까지 유예합니다",
-        "retry_after": "2026-09-26T10:42:03.344116Z"
+        "retry_after": "2026-09-26T11:06:33.426426Z"
       },
       "note": null,
       "scan_cycle": 1,

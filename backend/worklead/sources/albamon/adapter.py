@@ -4,7 +4,8 @@
 
 - 탐색: 목록 페이지에 포함된 공고 데이터(`__NEXT_DATA__`)의 **1쪽만** 읽는다. 2쪽 이후는 페이지 주소로 제공되지 않아
   화면 내부 요청을 추측하지 않는다 (부분 탐색으로 표시). 목록은 최신순이라 짧은 주기로 새 공고를 따라간다.
-- 1차 선별: 목록 데이터(제목·업직종·급여 형태)로 개발·자동화 관련만 상세를 요청한다. 교육생 모집 광고·연봉제 공고,
+- 1차 선별: 목록 데이터(제목·업직종·급여 형태)로 개발·자동화 관련만 상세를 요청한다. 건당·1회성 작업만 볼 때(기본)는
+  시급·일급·주급·월급 공고도 건너뛴다. 교육생 모집 광고·연봉제 공고,
   한 목록 안에서 같은 제목으로 반복 게시한 공고는 제외.
 - 상세: schema.org JobPosting + 페이지 내 본문(`viewData.content`). robots 가 금지한 `/jobs/detail-content` 는 요청하지 않는다.
 - 저장하지 않음: 담당자 전화번호, 도로명 주소, 로고·사진, 조회·지원 통계.
@@ -43,6 +44,8 @@ from ..profiled import TaskFailed, canonicalize, load_profile
 _NEXT_RE = re.compile(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', re.S)
 #: 개발·자동화로 보는 알바몬 업직종 이름 (재택 목록 선별용 — 목록 데이터의 parts 에 표시되는 이름)
 IT_PART_NAMES = {"프로그래머", "HTML코딩", "웹·콘텐츠기획", "웹·모바일디자인", "사이트관리·기술지원", "데이터수집·가공"}
+#: 목록 급여 형태 중 시간·기간 단위 (건당·1회성 작업만 볼 때 상세를 요청하지 않음 — 건별·빈 값만 확인)
+TIME_PAY_TYPES = {"시급", "일급", "주급", "월급", "연봉"}
 #: 어느 목록에서든 상세를 확인할 개발 업직종
 DEV_PART_NAMES = {"프로그래머", "HTML코딩"}
 CONDITIONS_HEADER = "구인 양식 표시 조건"
@@ -166,12 +169,12 @@ class AlbamonAdapter:
         ]
         return DiscoveryPlan(tasks, "전국", "not_applicable", "목록 1쪽", 1, notes, None, None, coverage_note="IT 업직종·재택 목록 1쪽 기준 (전체 공고 포괄 아님)")
 
-    def _wanted(self, item: dict[str, Any], kind: str, keywords: list[str]) -> bool:
+    def _wanted(self, item: dict[str, Any], kind: str, keywords: list[str], gig_only: bool = False) -> bool:
         title = str(item.get("recruitTitle") or "")
         if not title or any(p.search(title) for p in TRAINEE_AD):
             return False
         pay_type = ((item.get("payType") or {}).get("description") or "").strip()
-        if pay_type == "연봉":
+        if pay_type == "연봉" or (gig_only and pay_type in TIME_PAY_TYPES):
             return False
         parts = {str(p) for p in item.get("parts") or []}
         if parts & DEV_PART_NAMES or any(k in _squash(title) for k in keywords):
@@ -196,7 +199,7 @@ class AlbamonAdapter:
         for x in items:
             title = str(x.get("recruitTitle") or "")
             # 같은 제목으로 여러 번 올린 광고는 한 번만 확인한다 (예산 절약)
-            if _squash(title) in seen or not self._wanted(x, str(li.get("kind") or ""), keywords):
+            if _squash(title) in seen or not self._wanted(x, str(li.get("kind") or ""), keywords, bool(task.options.get("gig_only"))):
                 continue
             seen.add(_squash(title))
             rid = str(x["recruitNo"])

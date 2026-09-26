@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import TYPE_CHECKING, Literal, Protocol
+from typing import TYPE_CHECKING, Any, Literal, Protocol
 
 from ..analysis.types import DateInfo, Ev, PayInfo
 
@@ -35,6 +35,8 @@ class TaskSpec:
     query: str | None = None
     cursor: str | None = None
     depth: int = 0
+    #: 사용자 설정에서 온 탐색 옵션 (예: gig_only — 건당·1회성 작업만). 쓰지 않는 어댑터는 무시한다
+    options: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass

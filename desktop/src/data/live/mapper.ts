@@ -259,6 +259,7 @@ export function mapSettings(x: C.SettingsOut): SettingsView {
       weeklyHours: x.profile.weekly_hours,
       onsite: x.profile.onsite,
       allowShortTermEmployment: x.profile.allow_short_term_employment,
+      gigOnly: x.profile.gig_only ?? true,
       intro: x.profile.intro ?? '',
       portfolioUrl: x.profile.portfolio_url ?? null,
     },
@@ -295,6 +296,7 @@ export function settingsPatchToContract(p: Parameters<import('../port').Worklead
       weekly_hours: p.profile.weeklyHours,
       onsite: p.profile.onsite,
       allow_short_term_employment: p.profile.allowShortTermEmployment,
+      gig_only: p.profile.gigOnly,
       intro: p.profile.intro,
       portfolio_url: p.profile.portfolioUrl || null,
     };

@@ -394,6 +394,8 @@ export interface SettingsView {
     weeklyHours: number | null;
     onsite: 'no' | 'first_meeting' | 'yes';
     allowShortTermEmployment: boolean;
+    /** 건당·1회성 작업만 (시간·기간 단위 보수 공고 자동 제외) */
+    gigOnly: boolean;
     /** 빠른 연락 메시지용 한 줄 소개 */
     intro: string;
     /** 빠른 연락 메시지용 포트폴리오 링크 (http/https) */

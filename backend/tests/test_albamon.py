@@ -57,8 +57,9 @@ def test_lists_prefilter_details_and_judge_short_gigs(tmp_path: Path) -> None:
     run = run_discovery(ctx)
     assert run.state == "succeeded", (run.state, run.error_code, run.error_message)
     details = sorted(p.rsplit("/", 1)[-1] for p in behavior.requests if p.startswith("/jobs/detail/"))
-    # 교육생 모집 광고·연봉제·IT 무관 재택(상담)·업직종 목록의 체험단 광고·같은 제목 반복 게시는 상세를 요청하지 않는다
-    assert details == ["900001", "900004", "900006", "900008", "900010"]
+    # 교육생 모집 광고·연봉제·IT 무관 재택(상담)·업직종 목록의 체험단 광고·같은 제목 반복 게시는 상세를 요청하지 않는다.
+    # 기본값(건당·1회성 작업만)에서는 시급 공고(900004)도 목록에서 건너뛴다
+    assert details == ["900001", "900006", "900008", "900010"]
     # robots 가 금지한 경로는 요청하지 않는다
     assert not any(p.startswith(("/jobs/detail-content", "/jobs/detail/content", "/jobs/apply")) for p in behavior.requests)
 
@@ -70,7 +71,6 @@ def test_lists_prefilter_details_and_judge_short_gigs(tmp_path: Path) -> None:
     assert gig["pay"]["unit"] == "project" and gig["pay"]["min"] == 300000
     excel = items["엑셀 반복작업 자동화 재택"]
     assert excel["recommendation"] == "recommended", excel["reasons"]
-    assert items["웹개발 코딩 알바"]["recommendation"] == "excluded"  # 사무실 출근
     # 재택근무 표시 없이 사업장 근무지만 있는 공고는 출근 근무로 추정해 자동 제외 (근거 표시)
     onsite = items["상품 정보 수집 프로그램 개발 알바"]
     assert onsite["recommendation"] == "excluded" and onsite["work_mode"] == {"value": "onsite", "basis": "inferred"}
@@ -95,3 +95,19 @@ def test_broken_list_is_parse_failure(tmp_path: Path) -> None:
     run = run_discovery(ctx)
     assert run.state == "partial"
     assert run.counts["parse_failures"] >= 1
+
+
+def test_gig_only_off_also_checks_hourly_posts(tmp_path: Path) -> None:
+    ctx, behavior = setup(tmp_path)
+    c = client_for(ctx)
+    prof = {**c.get("/v1/settings").json()["profile"], "gig_only": False}
+    assert c.patch("/v1/settings", json={"profile": prof}).status_code == 200
+    run = run_discovery(ctx)
+    assert run.state == "succeeded"
+    details = sorted(p.rsplit("/", 1)[-1] for p in behavior.requests if p.startswith("/jobs/detail/"))
+    assert "900004" in details
+    items = {i["title"]: i for i in c.get("/v1/leads", params={"queue": "all"}).json()["items"]}
+    hourly = items["웹개발 코딩 알바"]
+    assert hourly["recommendation"] == "excluded"  # 사무실 출근 (시급이라서가 아님)
+    assert not any("시급 보수" in r["text"] for r in hourly["reasons"])
+

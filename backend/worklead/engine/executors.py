@@ -16,7 +16,7 @@ from sqlalchemy import func, or_, select, update
 from ..config import APP_VERSION, CONTRACT_VERSION
 from ..context import AppContext
 from ..models import CollectionTask, CoverageUnit, Lead, Run, Source, SourcePolicy, SourceRecord, new_id
-from ..services.settings import get_setting, ttl_hours
+from ..services.settings import get_profile, get_setting, ttl_hours
 from ..sources.base import ParseError, PostRef, SourceNotReady, TaskSpec
 from ..sources.base import query_label
 from ..sources.profiled import TaskFailed, canonicalize
@@ -162,6 +162,8 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
 
     if not run.checkpoint.get("cycle"):
         groups = get_setting_session(app, "query_groups")["groups"]
+        with app.db.session() as s:
+            options = {"gig_only": get_profile(s).gig_only}
         try:
             plan = adapter.plan_discovery(groups, now)
         except SourceNotReady as exc:
@@ -234,6 +236,7 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
                     "notes": plan.notes,
                     "queries": {t.query_group: t.query for t in plan.tasks},
                     "labels": {t.region_scope: t.region_label for t in plan.tasks},
+                    "options": options,
                 },
             }
             scope.total = total
@@ -261,7 +264,7 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
                     break
                 task.state = "running"
                 task.attempts += 1
-                spec = TaskSpec(task.query_group, task.region_scope, plan_info["labels"].get(task.region_scope), plan_info["queries"].get(task.query_group), task.cursor, task.depth)
+                spec = TaskSpec(task.query_group, task.region_scope, plan_info["labels"].get(task.region_scope), plan_info["queries"].get(task.query_group), task.cursor, task.depth, dict(plan_info.get("options") or {}))
                 task_id, order_no = task.id, task.order_no
             scope.label = f"{spec.region_label or spec.region_scope} · {query_label(spec.query) or spec.query_group}" + (f" · {spec.cursor}쪽" if spec.cursor else "")
             result_state, last_result, error, found = "done", "ok", None, 0
@@ -274,7 +277,7 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
                     scope.checkpoint()
                     _process_ref(app, adapter, fetcher, ref, spec, run.id, scope)
                 if result.next_cursor and spec.depth + 1 < int(plan_info["depth_limit"]):
-                    nxt = TaskSpec(spec.query_group, spec.region_scope, spec.region_label, spec.query, result.next_cursor, spec.depth + 1)
+                    nxt = TaskSpec(spec.query_group, spec.region_scope, spec.region_label, spec.query, result.next_cursor, spec.depth + 1, spec.options)
                     with app.db.session() as s:
                         key = _task_key(run.source_id or "", nxt, cycle)
                         if s.scalar(select(CollectionTask.id).where(CollectionTask.task_key == key)) is None:

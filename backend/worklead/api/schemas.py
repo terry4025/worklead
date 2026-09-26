@@ -508,6 +508,7 @@ class ProfileSettings(Model):
     weekly_hours: int | None = Field(ge=0, le=168)
     onsite: Literal["no", "first_meeting", "yes"]
     allow_short_term_employment: bool
+    gig_only: bool = True
     intro: str = Field(default="", max_length=200)
     portfolio_url: str | None = Field(default=None, max_length=300, pattern=r"^https?://\S+$")
 

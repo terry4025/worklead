@@ -7,6 +7,8 @@
 
 from __future__ import annotations
 
+import re
+
 from datetime import datetime, timedelta
 
 from . import dates, rules
@@ -148,6 +150,18 @@ def _fmt_krw(v: int) -> str:
     if v >= 10_000 and v % 10_000 == 0:
         return f"{v // 10_000:,}만원"
     return f"{v:,}원"
+
+
+TIME_PAY_LABEL = {"hour": "시급", "day": "일급", "week": "주급", "month": "월 단위"}
+
+
+def _time_based_pay(pay: PayInfo) -> str | None:
+    """시간·기간 단위 보수면 그 이름 (건당·1회성 작업만 볼 때 제외 근거). 연봉은 단위 목록에 없어 원문 표현으로 확인한다."""
+    if pay.unit in TIME_PAY_LABEL:
+        return TIME_PAY_LABEL[pay.unit]
+    if pay.unit == "unknown" and pay.raw and re.search(r"연봉", pay.raw):
+        return "연봉"
+    return None
 
 
 def _pay_short(pay: PayInfo) -> str | None:
@@ -293,6 +307,9 @@ def analyze(
         exclude.append("모집 마감" + (" (원문 표시)" if closed else ""))
     if status == "deleted":
         exclude.append("원문 삭제 확인")
+    time_pay = _time_based_pay(pay) if profile.gig_only else None
+    if time_pay:
+        exclude.append(f"{time_pay} 보수 — 건당·1회성 작업 아님")
     if intent.value == "seller_service":
         exclude.append("판매자 홍보 — 구매 의뢰 아님")
     if intent.value == "job_seeker":
@@ -313,6 +330,10 @@ def analyze(
     if not dev and "data" not in categories:
         exclude.append("개발·자동화 업무 아님")
 
+    one_off = rules.find(rules.ONE_OFF, body, title, "explicit") if profile.gig_only else None
+    long_term = rules.find(rules.LONG_TERM, body, title, "explicit") if profile.gig_only else None
+    if long_term and not one_off:
+        review.append("장기·정기 작업 — 1회성 아님")
     teaching = rules.find(rules.TEACHING, body, title, "explicit")
     if teaching and not exclude:
         review.insert(0, "교육·과외 요청 — 제작 의뢰인지 확인")
@@ -358,6 +379,8 @@ def analyze(
         positives.append("지속 의뢰 명시" if intent.value == "buyer_ongoing" else "구매 의뢰 명시")
     if intent.value == "short_gig":
         positives.append("프리랜서·단기 작업")
+    if one_off or (profile.gig_only and pay.unit == "project" and not long_term):
+        positives.insert(0, "1회성·건당 작업")
     if post.published.at is not None and status == "open" and (now - post.published.at) <= timedelta(hours=24):
         hrs = max(1, int((now - post.published.at).total_seconds() // 3600))
         positives.insert(0, f"{hrs}시간 전 게시 — 빠른 연락 유리")

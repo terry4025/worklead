@@ -105,6 +105,7 @@ const DEFAULT_SETTINGS: SettingsView = {
     weeklyHours: null,
     onsite: 'no',
     allowShortTermEmployment: true,
+    gigOnly: true,
     intro: '',
     portfolioUrl: null,
   },

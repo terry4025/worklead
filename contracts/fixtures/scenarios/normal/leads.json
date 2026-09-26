@@ -1,7 +1,7 @@
 {
   "items": [
     {
-      "id": "lead_01a0dd4cf37a2664628995",
+      "id": "lead_01a0dd63620d80e030c6bd",
       "source_id": "fixture-site",
       "title": "쇼핑몰 주문 엑셀 매크로 만들어주실 분",
       "categories": [
@@ -40,13 +40,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T10:40:02.934406Z",
+      "last_checked_at": "2026-09-26T11:04:33.032598Z",
       "published": {
-        "at": "2026-09-26T00:40:02.936276Z",
+        "at": "2026-09-26T01:04:33.034881Z",
         "precision": "exact",
-        "raw": "2026-09-26T00:40:02.936276+00:00"
+        "raw": "2026-09-26T01:04:33.034881+00:00"
       },
-      "first_seen_at": "2026-09-26T10:40:02.934406Z",
+      "first_seen_at": "2026-09-26T11:04:33.032598Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -68,11 +68,11 @@
         },
         {
           "tone": "positive",
-          "text": "구매 의뢰 명시"
+          "text": "1회성·건당 작업"
         },
         {
           "tone": "positive",
-          "text": "재택·온라인 명시"
+          "text": "구매 의뢰 명시"
         }
       ],
       "user_mark": null,
@@ -81,7 +81,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dd4cf351ca5fb422d0",
+      "id": "lead_01a0dd6361e5f66125d994",
       "source_id": "fixture-site",
       "title": "관리자 페이지 수정 의뢰",
       "categories": [
@@ -119,13 +119,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T10:40:02.893221Z",
+      "last_checked_at": "2026-09-26T11:04:32.990865Z",
       "published": {
-        "at": "2026-09-26T00:40:02.895069Z",
+        "at": "2026-09-26T01:04:32.994811Z",
         "precision": "exact",
-        "raw": "2026-09-26T00:40:02.895069+00:00"
+        "raw": "2026-09-26T01:04:32.994811+00:00"
       },
-      "first_seen_at": "2026-09-26T10:40:02.893221Z",
+      "first_seen_at": "2026-09-26T11:04:32.990865Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -147,11 +147,11 @@
         },
         {
           "tone": "positive",
-          "text": "구매 의뢰 명시"
+          "text": "1회성·건당 작업"
         },
         {
           "tone": "positive",
-          "text": "재택·온라인 명시"
+          "text": "구매 의뢰 명시"
         }
       ],
       "user_mark": null,
@@ -160,7 +160,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dd4cf3170bb8b89c02",
+      "id": "lead_01a0dd6361a895b5aa981d",
       "source_id": "fixture-site",
       "title": "카페 랜딩페이지 제작 의뢰",
       "categories": [
@@ -198,13 +198,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T10:40:02.831446Z",
+      "last_checked_at": "2026-09-26T11:04:32.927736Z",
       "published": {
-        "at": "2026-09-26T00:40:02.835473Z",
+        "at": "2026-09-26T01:04:32.931867Z",
         "precision": "exact",
-        "raw": "2026-09-26T00:40:02.835473+00:00"
+        "raw": "2026-09-26T01:04:32.931867+00:00"
       },
-      "first_seen_at": "2026-09-26T10:40:02.831446Z",
+      "first_seen_at": "2026-09-26T11:04:32.927736Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -227,11 +227,11 @@
         },
         {
           "tone": "positive",
-          "text": "구매 의뢰 명시"
+          "text": "1회성·건당 작업"
         },
         {
           "tone": "positive",
-          "text": "재택·온라인 명시"
+          "text": "구매 의뢰 명시"
         }
       ],
       "user_mark": null,
@@ -240,7 +240,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dd4cf367d696efc1e9",
+      "id": "lead_01a0dd6361f86ede375f49",
       "source_id": "fixture-site",
       "title": "예약 페이지 개발 외주",
       "categories": [
@@ -278,13 +278,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T10:40:02.914768Z",
+      "last_checked_at": "2026-09-26T11:04:33.012721Z",
       "published": {
-        "at": "2026-09-26T00:40:02.916719Z",
+        "at": "2026-09-26T01:04:33.014585Z",
         "precision": "exact",
-        "raw": "2026-09-26T00:40:02.916719+00:00"
+        "raw": "2026-09-26T01:04:33.014585+00:00"
       },
-      "first_seen_at": "2026-09-26T10:40:02.914768Z",
+      "first_seen_at": "2026-09-26T11:04:33.012721Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -319,7 +319,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dd4cf3a0827bae917d",
+      "id": "lead_01a0dd6362341e0b1f2a5e",
       "source_id": "fixture-site",
       "title": "홈페이지 제작해 드립니다",
       "categories": [
@@ -357,13 +357,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T10:40:02.972776Z",
+      "last_checked_at": "2026-09-26T11:04:33.072098Z",
       "published": {
-        "at": "2026-09-26T00:40:02.974571Z",
+        "at": "2026-09-26T01:04:33.074023Z",
         "precision": "exact",
-        "raw": "2026-09-26T00:40:02.974571+00:00"
+        "raw": "2026-09-26T01:04:33.074023+00:00"
       },
-      "first_seen_at": "2026-09-26T10:40:02.972776Z",
+      "first_seen_at": "2026-09-26T11:04:33.072098Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -390,7 +390,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dd4cf393e449e3c29f",
+      "id": "lead_01a0dd636226e5def14e63",
       "source_id": "fixture-site",
       "title": "온라인 쇼핑몰 CS 직원 (주 5일 출근)",
       "categories": [
@@ -428,13 +428,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T10:40:02.959181Z",
+      "last_checked_at": "2026-09-26T11:04:33.058611Z",
       "published": {
-        "at": "2026-09-26T00:40:02.961452Z",
+        "at": "2026-09-26T01:04:33.060573Z",
         "precision": "exact",
-        "raw": "2026-09-26T00:40:02.961452+00:00"
+        "raw": "2026-09-26T01:04:33.060573+00:00"
       },
-      "first_seen_at": "2026-09-26T10:40:02.959181Z",
+      "first_seen_at": "2026-09-26T11:04:33.058611Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -452,15 +452,15 @@
       "reasons": [
         {
           "tone": "negative",
+          "text": "월 단위 보수 — 건당·1회성 작업 아님"
+        },
+        {
+          "tone": "negative",
           "text": "출근 필수"
         },
         {
           "tone": "negative",
           "text": "정규직 채용 — 외주 아님"
-        },
-        {
-          "tone": "negative",
-          "text": "개발·자동화 업무 아님"
         }
       ],
       "user_mark": null,

@@ -16,6 +16,7 @@
     "weekly_hours": null,
     "onsite": "no",
     "allow_short_term_employment": true,
+    "gig_only": true,
     "intro": "",
     "portfolio_url": null
   },

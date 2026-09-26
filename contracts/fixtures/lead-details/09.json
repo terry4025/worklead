@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dd4cee840cdc8f2230",
+  "id": "lead_01a0dd635d08e322a5c59e",
   "source_id": "demo-synthetic",
   "title": "거래처 발주서 PDF → 엑셀 자동 변환 프로그램 제작",
   "categories": [
@@ -38,13 +38,13 @@
   "access_status": "accessible",
   "analysis_status": "failed",
   "recheck_due": false,
-  "last_checked_at": "2026-09-26T08:40:01.506736Z",
+  "last_checked_at": "2026-09-26T09:04:31.551849Z",
   "published": {
-    "at": "2026-09-26T05:40:01.506736Z",
+    "at": "2026-09-26T06:04:31.551849Z",
     "precision": "exact",
     "raw": null
   },
-  "first_seen_at": "2026-09-26T06:40:01.506736Z",
+  "first_seen_at": "2026-09-26T07:04:31.551849Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -62,11 +62,11 @@
   "reasons": [
     {
       "tone": "caution",
-      "text": "재택 미확인"
+      "text": "장기·정기 작업 — 1회성 아님"
     },
     {
-      "tone": "positive",
-      "text": "5시간 전 게시 — 빠른 연락 유리"
+      "tone": "caution",
+      "text": "재택 미확인"
     },
     {
       "tone": "negative",
@@ -78,7 +78,7 @@
   "has_memo": false,
   "active_job": null,
   "body_text": "거래처에서 오는 PDF 발주서(양식 3종)를 엑셀로 자동 변환하는 프로그램이 필요합니다.\n매주 100건 정도 들어옵니다.\n제작해 주실 수 있는 분 견적 보내주세요.\n윈도우 PC에서 돌아가면 됩니다.",
-  "body_retained_until": "2026-10-26T06:40:01.506736Z",
+  "body_retained_until": "2026-10-26T07:04:31.551849Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -88,7 +88,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-26T06:40:01.506736Z",
+  "last_seen_at": "2026-09-26T07:04:31.551849Z",
   "work_period": {
     "start": {
       "at": null,
@@ -102,9 +102,9 @@
     }
   },
   "evidence": {
-    "demand_intent": [
+    "engagement_type": [
       {
-        "id": "ev_01a0dd4cee8c36977a0798",
+        "id": "ev_01a0dd635d152357a9cbc3",
         "quote": "제작해 주실 수 있는 분 견적 보내주세요.",
         "span": {
           "start": 68,
@@ -112,15 +112,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T10:40:01.506736Z",
-        "source_record_id": "rec_01a0dd4cee830b3cf997bd",
-        "version": "rules-2026.09.7",
+        "observed_at": "2026-09-26T11:04:31.551849Z",
+        "source_record_id": "rec_01a0dd635d071bb0278c07",
+        "version": "rules-2026.09.8",
         "note": null
       }
     ],
-    "engagement_type": [
+    "demand_intent": [
       {
-        "id": "ev_01a0dd4cee8c6f1008a479",
+        "id": "ev_01a0dd635d15d9521964ae",
         "quote": "제작해 주실 수 있는 분 견적 보내주세요.",
         "span": {
           "start": 68,
@@ -128,9 +128,9 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T10:40:01.506736Z",
-        "source_record_id": "rec_01a0dd4cee830b3cf997bd",
-        "version": "rules-2026.09.7",
+        "observed_at": "2026-09-26T11:04:31.551849Z",
+        "source_record_id": "rec_01a0dd635d071bb0278c07",
+        "version": "rules-2026.09.8",
         "note": null
       }
     ]
@@ -178,7 +178,7 @@
       "score": 0,
       "reasons": []
     },
-    "rule_version": "rules-2026.09.7"
+    "rule_version": "rules-2026.09.8"
   },
   "analysis": {
     "status": "failed",
@@ -205,8 +205,8 @@
     "next_action": "핵심 질문 확인 후 범위·일정 포함 견적 제시",
     "conversion_opportunity": null,
     "engine": "ai:demo",
-    "version": "rules-2026.09.7",
-    "analyzed_at": "2026-09-26T06:40:01.506736Z",
+    "version": "rules-2026.09.8",
+    "analyzed_at": "2026-09-26T07:04:31.551849Z",
     "failure": {
       "code": "ai_timeout",
       "message": "외부 AI 응답 시간 초과 (60초). 같은 입력으로 자동 재요청하지 않았습니다."
@@ -232,14 +232,14 @@
       "region_scope": "경남 창원시",
       "region_label": "경남 창원시",
       "query_group": "demo",
-      "first_seen_at": "2026-09-26T06:40:01.506736Z",
-      "last_seen_at": "2026-09-26T06:40:01.506736Z",
+      "first_seen_at": "2026-09-26T07:04:31.551849Z",
+      "last_seen_at": "2026-09-26T07:04:31.551849Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-26T06:40:01.506736Z",
+      "at": "2026-09-26T07:04:31.551849Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

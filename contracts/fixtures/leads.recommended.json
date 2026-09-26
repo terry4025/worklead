@@ -1,7 +1,7 @@
 {
   "items": [
     {
-      "id": "lead_01a0dd4cee13e91d738669",
+      "id": "lead_01a0dd635c7216bccad02f",
       "source_id": "demo-synthetic",
       "title": "카페 브랜드 소개 랜딩페이지 제작 의뢰 (반응형 1페이지)",
       "categories": [
@@ -39,13 +39,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T05:40:01.506736Z",
+      "last_checked_at": "2026-09-26T06:04:31.551849Z",
       "published": {
-        "at": "2026-09-25T04:40:01.506736Z",
+        "at": "2026-09-25T05:04:31.551849Z",
         "precision": "exact",
         "raw": null
       },
-      "first_seen_at": "2026-09-25T05:40:01.506736Z",
+      "first_seen_at": "2026-09-25T06:04:31.551849Z",
       "deadline": {
         "at": null,
         "precision": "unknown",
@@ -63,15 +63,15 @@
       "reasons": [
         {
           "tone": "positive",
+          "text": "1회성·건당 작업"
+        },
+        {
+          "tone": "positive",
           "text": "구매 의뢰 명시"
         },
         {
           "tone": "positive",
           "text": "재택·온라인 명시"
-        },
-        {
-          "tone": "positive",
-          "text": "전국 지원"
         }
       ],
       "user_mark": "interested",
@@ -80,7 +80,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dd4ceded9e310d873f",
+      "id": "lead_01a0dd635c4bed616b81f6",
       "source_id": "demo-synthetic",
       "title": "스마트스토어 주문 엑셀 정리 매크로(VBA) 만들어주실 분",
       "categories": [
@@ -119,13 +119,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T08:40:01.506736Z",
+      "last_checked_at": "2026-09-26T09:04:31.551849Z",
       "published": {
-        "at": "2026-09-25T08:40:01.506736Z",
+        "at": "2026-09-25T09:04:31.551849Z",
         "precision": "exact",
         "raw": null
       },
-      "first_seen_at": "2026-09-25T14:40:01.506736Z",
+      "first_seen_at": "2026-09-25T15:04:31.551849Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -143,15 +143,15 @@
       "reasons": [
         {
           "tone": "positive",
+          "text": "1회성·건당 작업"
+        },
+        {
+          "tone": "positive",
           "text": "구매 의뢰 명시"
         },
         {
           "tone": "positive",
           "text": "재택·온라인 명시"
-        },
-        {
-          "tone": "positive",
-          "text": "전국 지원"
         }
       ],
       "user_mark": null,
@@ -160,7 +160,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dd4cee227a67d68641",
+      "id": "lead_01a0dd635c8152b2c51f4f",
       "source_id": "demo-synthetic",
       "title": "구글 시트 주문 내역 → 카카오 알림톡 자동 발송 연동",
       "categories": [
@@ -198,13 +198,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T09:40:01.506736Z",
+      "last_checked_at": "2026-09-26T10:04:31.551849Z",
       "published": {
-        "at": "2026-09-26T02:40:01.506736Z",
+        "at": "2026-09-26T03:04:31.551849Z",
         "precision": "exact",
         "raw": null
       },
-      "first_seen_at": "2026-09-26T03:40:01.506736Z",
+      "first_seen_at": "2026-09-26T04:04:31.551849Z",
       "deadline": {
         "at": null,
         "precision": "unknown",
@@ -231,85 +231,6 @@
         {
           "tone": "caution",
           "text": "금액 협의 — 견적 필요"
-        }
-      ],
-      "user_mark": null,
-      "sales_stage": "new",
-      "has_memo": false,
-      "active_job": null
-    },
-    {
-      "id": "lead_01a0dd4cee322f210c1719",
-      "source_id": "demo-synthetic",
-      "title": "쇼핑몰 상세페이지 수정·기존 사이트 유지보수 (월 단위)",
-      "categories": [
-        "shop"
-      ],
-      "demand_intent": {
-        "value": "buyer_ongoing",
-        "basis": "explicit"
-      },
-      "engagement_type": {
-        "value": "project",
-        "basis": "inferred"
-      },
-      "work_mode": {
-        "value": "fully_remote",
-        "basis": "explicit"
-      },
-      "collaboration_mode": {
-        "value": "online_only",
-        "basis": "explicit"
-      },
-      "applicant_scope": {
-        "value": "nationwide",
-        "basis": "explicit"
-      },
-      "pay": {
-        "raw": "월 30만원 고정, 3개월 후 재계약 여부 결정합니다.",
-        "currency": "KRW",
-        "min": 300000,
-        "max": 300000,
-        "unit": "month",
-        "negotiable": false
-      },
-      "source_status": "open",
-      "access_status": "accessible",
-      "analysis_status": "rules_only",
-      "recheck_due": false,
-      "last_checked_at": "2026-09-26T01:40:01.506736Z",
-      "published": {
-        "at": "2026-09-22T14:40:01.506736Z",
-        "precision": "approximate",
-        "raw": "2일 전"
-      },
-      "first_seen_at": "2026-09-24T14:40:01.506736Z",
-      "deadline": {
-        "at": null,
-        "precision": "unknown",
-        "raw": null
-      },
-      "posted_region": "대구 중구",
-      "found_in": [
-        "대구 중구"
-      ],
-      "recommendation": "recommended",
-      "priority": {
-        "total": 84,
-        "unknown_factors": 0
-      },
-      "reasons": [
-        {
-          "tone": "positive",
-          "text": "지속 의뢰 명시"
-        },
-        {
-          "tone": "positive",
-          "text": "재택·온라인 명시"
-        },
-        {
-          "tone": "positive",
-          "text": "전국 지원"
         }
       ],
       "user_mark": null,

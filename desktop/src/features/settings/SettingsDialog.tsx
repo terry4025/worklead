@@ -165,6 +165,10 @@ export function SettingsDialog({
               <input type="checkbox" checked={d.profile.allowShortTermEmployment} onChange={(e) => set((x) => void (x.profile.allowShortTermEmployment = e.target.checked))} />
               <span>프리랜서·단기 작업 구인(알바·계약 형식)도 일거리 후보로 보기</span>
             </label>
+            <label className="toggle">
+              <input type="checkbox" checked={d.profile.gigOnly} onChange={(e) => set((x) => void (x.profile.gigOnly = e.target.checked))} />
+              <span>건당·1회성 작업만 보기 (시급·일급·주급·월급·연봉 공고는 자동 제외, 장기·정기 작업은 확인 필요)</span>
+            </label>
             <label className="field">
               <span className="field-label">빠른 연락 — 한 줄 소개</span>
               <input value={d.profile.intro} maxLength={200} placeholder="예: 엑셀 자동화·홈페이지를 만드는 DCORE LAB입니다." onChange={(e) => set((x) => void (x.profile.intro = e.target.value))} />

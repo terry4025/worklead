@@ -1,7 +1,7 @@
 {
   "items": [
     {
-      "id": "lead_01a0dbca25eeabfeb73bce",
+      "id": "lead_01a0dbe583c88068e0b0be",
       "source_id": "fixture-site",
       "title": "쇼핑몰 주문 엑셀 매크로 만들어주실 분",
       "categories": [
@@ -40,13 +40,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T03:37:33.418700Z",
+      "last_checked_at": "2026-09-26T04:07:26.917391Z",
       "published": {
-        "at": "2026-09-25T17:37:33.420267Z",
+        "at": "2026-09-25T18:07:26.918974Z",
         "precision": "exact",
-        "raw": "2026-09-25T17:37:33.420267+00:00"
+        "raw": "2026-09-25T18:07:26.918974+00:00"
       },
-      "first_seen_at": "2026-09-26T03:37:33.418700Z",
+      "first_seen_at": "2026-09-26T04:07:26.917391Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -81,7 +81,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dbca25cf2e5f1b8e2f",
+      "id": "lead_01a0dbe583a93f065bbf7d",
       "source_id": "fixture-site",
       "title": "관리자 페이지 수정 의뢰",
       "categories": [
@@ -108,7 +108,7 @@
         "basis": null
       },
       "pay": {
-        "raw": "기존 사이트 관리자 페이지 수정해 주실 분 구합니다. 비대면 진행, 예산 40만원.",
+        "raw": "비대면 진행, 예산 40만원.",
         "currency": "KRW",
         "min": 400000,
         "max": 400000,
@@ -119,13 +119,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T03:37:33.387588Z",
+      "last_checked_at": "2026-09-26T04:07:26.885875Z",
       "published": {
-        "at": "2026-09-25T17:37:33.389283Z",
+        "at": "2026-09-25T18:07:26.887541Z",
         "precision": "exact",
-        "raw": "2026-09-25T17:37:33.389283+00:00"
+        "raw": "2026-09-25T18:07:26.887541+00:00"
       },
-      "first_seen_at": "2026-09-26T03:37:33.387588Z",
+      "first_seen_at": "2026-09-26T04:07:26.885875Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -160,7 +160,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dbca259f20aecaff99",
+      "id": "lead_01a0dbe58377713e82a2a5",
       "source_id": "fixture-site",
       "title": "카페 랜딩페이지 제작 의뢰",
       "categories": [
@@ -198,13 +198,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T03:37:33.336054Z",
+      "last_checked_at": "2026-09-26T04:07:26.831753Z",
       "published": {
-        "at": "2026-09-25T17:37:33.339512Z",
+        "at": "2026-09-25T18:07:26.835454Z",
         "precision": "exact",
-        "raw": "2026-09-25T17:37:33.339512+00:00"
+        "raw": "2026-09-25T18:07:26.835454+00:00"
       },
-      "first_seen_at": "2026-09-26T03:37:33.336054Z",
+      "first_seen_at": "2026-09-26T04:07:26.831753Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -240,7 +240,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dbca25dfc5267efbe7",
+      "id": "lead_01a0dbe583b93716af1bbf",
       "source_id": "fixture-site",
       "title": "예약 페이지 개발 외주",
       "categories": [
@@ -278,13 +278,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T03:37:33.403795Z",
+      "last_checked_at": "2026-09-26T04:07:26.901886Z",
       "published": {
-        "at": "2026-09-25T17:37:33.405408Z",
+        "at": "2026-09-25T18:07:26.903796Z",
         "precision": "exact",
-        "raw": "2026-09-25T17:37:33.405408+00:00"
+        "raw": "2026-09-25T18:07:26.903796+00:00"
       },
-      "first_seen_at": "2026-09-26T03:37:33.403795Z",
+      "first_seen_at": "2026-09-26T04:07:26.901886Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -319,7 +319,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dbca260cbabf761c8e",
+      "id": "lead_01a0dbe583e7c9bf06383b",
       "source_id": "fixture-site",
       "title": "홈페이지 제작해 드립니다",
       "categories": [
@@ -346,7 +346,7 @@
         "basis": null
       },
       "pay": {
-        "raw": "홈페이지 제작해 드립니다. 30만원부터.",
+        "raw": "30만원부터.",
         "currency": "KRW",
         "min": 300000,
         "max": null,
@@ -357,13 +357,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T03:37:33.448708Z",
+      "last_checked_at": "2026-09-26T04:07:26.947487Z",
       "published": {
-        "at": "2026-09-25T17:37:33.450314Z",
+        "at": "2026-09-25T18:07:26.949042Z",
         "precision": "exact",
-        "raw": "2026-09-25T17:37:33.450314+00:00"
+        "raw": "2026-09-25T18:07:26.949042+00:00"
       },
-      "first_seen_at": "2026-09-26T03:37:33.448708Z",
+      "first_seen_at": "2026-09-26T04:07:26.947487Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",
@@ -390,7 +390,7 @@
       "active_job": null
     },
     {
-      "id": "lead_01a0dbca2602bda8721dfd",
+      "id": "lead_01a0dbe583dc9bc185cb12",
       "source_id": "fixture-site",
       "title": "온라인 쇼핑몰 CS 직원 (주 5일 출근)",
       "categories": [
@@ -417,7 +417,7 @@
         "basis": null
       },
       "pay": {
-        "raw": "상품 등록과 고객 응대 업무입니다. 주 5일 출근, 월급 220만원, 4대보험.",
+        "raw": "주 5일 출근, 월급 220만원, 4대보험.",
         "currency": "KRW",
         "min": 2200000,
         "max": 2200000,
@@ -428,13 +428,13 @@
       "access_status": "accessible",
       "analysis_status": "rules_only",
       "recheck_due": false,
-      "last_checked_at": "2026-09-26T03:37:33.438878Z",
+      "last_checked_at": "2026-09-26T04:07:26.937459Z",
       "published": {
-        "at": "2026-09-25T17:37:33.440345Z",
+        "at": "2026-09-25T18:07:26.939050Z",
         "precision": "exact",
-        "raw": "2026-09-25T17:37:33.440345+00:00"
+        "raw": "2026-09-25T18:07:26.939050+00:00"
       },
-      "first_seen_at": "2026-09-26T03:37:33.438878Z",
+      "first_seen_at": "2026-09-26T04:07:26.937459Z",
       "deadline": {
         "at": "2026-10-02T15:00:00Z",
         "precision": "day",

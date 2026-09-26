@@ -1,0 +1,121 @@
+/*
+ * 디자인 토큰. 조용한 업무 도구: 중립 회색 바탕 + 흰 작업면 + 선택·포커스·주요 동작에만 쓰는 잉크 블루.
+ * 상태는 색 + 기호 모양 + 글자로 함께 전달한다 (색만으로 구분하지 않음).
+ */
+:root {
+  color-scheme: light;
+  --font: 'Pretendard Variable', Pretendard, 'Malgun Gothic', '맑은 고딕', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Cascadia Mono', Consolas, 'D2Coding', ui-monospace, monospace;
+
+  --fs-xs: 0.8125rem; /* 13px */
+  --fs-sm: 0.875rem; /* 14px */
+  --fs-md: 0.9375rem; /* 15px */
+  --fs-lg: 1.0625rem; /* 17px */
+  --fs-xl: 1.25rem; /* 20px */
+  --lh: 1.5;
+
+  --bg: #f3f4f6;
+  --surface: #ffffff;
+  --surface-2: #f7f8fa;
+  --surface-3: #eef0f3;
+  --line: #e2e5e9;
+  --line-strong: #c9ced5;
+  --text: #15181c;
+  --text-2: #464e58;
+  --text-3: #636b76;
+
+  --accent: #1f5bd6;
+  --accent-hover: #1a4fbd;
+  --accent-weak: #e9f0fd;
+  --accent-line: #b9cdf6;
+  --on-accent: #ffffff;
+
+  --good: #17804d;
+  --good-bg: #e7f5ed;
+  --warn: #9a5800;
+  --warn-bg: #fdf2df;
+  --bad: #bf3329;
+  --bad-bg: #fcebe9;
+  --muted: #7b838d;
+  --info-bg: #eef3fb;
+
+  --highlight: #fff1b8;
+  --highlight-strong: #ffd95a;
+
+  --radius: 6px;
+  --radius-sm: 4px;
+  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
+  --shadow-pop: 0 10px 30px rgba(16, 24, 40, 0.14), 0 2px 6px rgba(16, 24, 40, 0.08);
+  --row-selected: #e9f0fd;
+  --row-hover: #f5f7fa;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #101215;
+  --surface: #171a1e;
+  --surface-2: #1c2025;
+  --surface-3: #232830;
+  --line: #2a3038;
+  --line-strong: #3a424c;
+  --text: #e9ecef;
+  --text-2: #b8c0c9;
+  --text-3: #939ca7;
+  --accent: #6d9dff;
+  --accent-hover: #8ab0ff;
+  --accent-weak: #1c2a45;
+  --accent-line: #33497a;
+  --on-accent: #0c1424;
+  --good: #52c38c;
+  --good-bg: #173226;
+  --warn: #f0a846;
+  --warn-bg: #3a2a12;
+  --bad: #ff7b6f;
+  --bad-bg: #3d1c1a;
+  --muted: #8b939d;
+  --info-bg: #18233a;
+  --highlight: #54491b;
+  --highlight-strong: #7a6516;
+  --shadow-pop: 0 10px 30px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.4);
+  --row-selected: #1c2a45;
+  --row-hover: #1d2127;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #101215;
+    --surface: #171a1e;
+    --surface-2: #1c2025;
+    --surface-3: #232830;
+    --line: #2a3038;
+    --line-strong: #3a424c;
+    --text: #e9ecef;
+    --text-2: #b8c0c9;
+    --text-3: #939ca7;
+    --accent: #6d9dff;
+    --accent-hover: #8ab0ff;
+    --accent-weak: #1c2a45;
+    --accent-line: #33497a;
+    --on-accent: #0c1424;
+    --good: #52c38c;
+    --good-bg: #173226;
+    --warn: #f0a846;
+    --warn-bg: #3a2a12;
+    --bad: #ff7b6f;
+    --bad-bg: #3d1c1a;
+    --muted: #8b939d;
+    --info-bg: #18233a;
+    --highlight: #54491b;
+    --highlight-strong: #7a6516;
+    --shadow-pop: 0 10px 30px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.4);
+    --row-selected: #1c2a45;
+    --row-hover: #1d2127;
+  }
+}
+
+@media (forced-colors: active) {
+  :root {
+    --focus-ring: 0 0 0 3px Highlight;
+  }
+}

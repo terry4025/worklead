@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dbca212f02dbaee685",
+  "id": "lead_01a0dbe57f33a7b64de3f5",
   "source_id": "demo-synthetic",
   "title": "쇼핑몰 상세페이지 수정·기존 사이트 유지보수 (월 단위)",
   "categories": [
@@ -37,13 +37,13 @@
   "access_status": "accessible",
   "analysis_status": "rules_only",
   "recheck_due": false,
-  "last_checked_at": "2026-09-25T18:37:32.124333Z",
+  "last_checked_at": "2026-09-25T19:07:25.677716Z",
   "published": {
-    "at": "2026-09-22T07:37:32.124333Z",
+    "at": "2026-09-22T08:07:25.677716Z",
     "precision": "approximate",
     "raw": "2일 전"
   },
-  "first_seen_at": "2026-09-24T07:37:32.124333Z",
+  "first_seen_at": "2026-09-24T08:07:25.677716Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -77,7 +77,7 @@
   "has_memo": false,
   "active_job": null,
   "body_text": "카페24로 운영 중인 쇼핑몰의 상세페이지 수정과 간단한 유지보수를 맡아주실 분 구합니다.\n한 달에 5~8건 정도 수정 요청이 있고, 급한 건은 이틀 안에 처리해 주시면 됩니다.\n\n완전 재택이며 소통은 슬랙으로 합니다.\n월 30만원 고정, 3개월 후 재계약 여부 결정합니다.\n전국 누구나 지원 가능.",
-  "body_retained_until": "2026-10-24T07:37:32.124333Z",
+  "body_retained_until": "2026-10-24T08:07:25.677716Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -87,7 +87,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-24T07:37:32.124333Z",
+  "last_seen_at": "2026-09-24T08:07:25.677716Z",
   "work_period": {
     "start": {
       "at": null,
@@ -101,9 +101,39 @@
     }
   },
   "evidence": {
+    "demand_intent": [
+      {
+        "id": "ev_01a0dbe57f3c42f9e88fa4",
+        "quote": "카페24로 운영 중인 쇼핑몰의 상세페이지 수정과 간단한 유지보수를 맡아주실 분 구합니다.",
+        "span": {
+          "start": 0,
+          "end": 49
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57f3267b7bace60",
+        "version": "rules-2026.09.1",
+        "note": null
+      },
+      {
+        "id": "ev_01a0dbe57f3c613ccf9ca1",
+        "quote": "카페24로 운영 중인 쇼핑몰의 상세페이지 수정과 간단한 유지보수를 맡아주실 분 구합니다.",
+        "span": {
+          "start": 0,
+          "end": 49
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57f3267b7bace60",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
     "collaboration_mode": [
       {
-        "id": "ev_01a0dbca21402411bdb147",
+        "id": "ev_01a0dbe57f3c77a5898a10",
         "quote": "완전 재택이며 소통은 슬랙으로 합니다.",
         "span": {
           "start": 100,
@@ -111,15 +141,31 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca212e927e05a5c9",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57f3267b7bace60",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "work_mode": [
+      {
+        "id": "ev_01a0dbe57f3ca4823823d3",
+        "quote": "완전 재택이며 소통은 슬랙으로 합니다.",
+        "span": {
+          "start": 100,
+          "end": 121
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57f3267b7bace60",
         "version": "rules-2026.09.1",
         "note": null
       }
     ],
     "applicant_scope": [
       {
-        "id": "ev_01a0dbca21404624c7f57d",
+        "id": "ev_01a0dbe57f3ca8fc1c93b5",
         "quote": "전국 누구나 지원 가능.",
         "span": {
           "start": 153,
@@ -127,61 +173,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca212e927e05a5c9",
-        "version": "rules-2026.09.1",
-        "note": null
-      }
-    ],
-    "demand_intent": [
-      {
-        "id": "ev_01a0dbca21405f529f6687",
-        "quote": "카페24로 운영 중인 쇼핑몰의 상세페이지 수정과 간단한 유지보수를 맡아주실 분 구합니다.",
-        "span": {
-          "start": 0,
-          "end": 49
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca212e927e05a5c9",
-        "version": "rules-2026.09.1",
-        "note": null
-      },
-      {
-        "id": "ev_01a0dbca2140cc156889d7",
-        "quote": "카페24로 운영 중인 쇼핑몰의 상세페이지 수정과 간단한 유지보수를 맡아주실 분 구합니다.",
-        "span": {
-          "start": 0,
-          "end": 49
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca212e927e05a5c9",
-        "version": "rules-2026.09.1",
-        "note": null
-      }
-    ],
-    "work_mode": [
-      {
-        "id": "ev_01a0dbca21406f2b1ec6d1",
-        "quote": "완전 재택이며 소통은 슬랙으로 합니다.",
-        "span": {
-          "start": 100,
-          "end": 121
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca212e927e05a5c9",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57f3267b7bace60",
         "version": "rules-2026.09.1",
         "note": null
       }
     ],
     "pay": [
       {
-        "id": "ev_01a0dbca2140f5045296b8",
+        "id": "ev_01a0dbe57f3cb57637d9a7",
         "quote": "월 30만원 고정, 3개월 후 재계약 여부 결정합니다.",
         "span": {
           "start": 122,
@@ -189,8 +189,8 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca212e927e05a5c9",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57f3267b7bace60",
         "version": "rules-2026.09.1",
         "note": null
       }
@@ -261,7 +261,7 @@
     "conversion_opportunity": null,
     "engine": "rules",
     "version": "rules-2026.09.1",
-    "analyzed_at": "2026-09-24T07:37:32.124333Z",
+    "analyzed_at": "2026-09-24T08:07:25.677716Z",
     "failure": null
   },
   "risks": [],
@@ -283,14 +283,14 @@
       "region_scope": "대구 중구",
       "region_label": "대구 중구",
       "query_group": "demo",
-      "first_seen_at": "2026-09-24T07:37:32.124333Z",
-      "last_seen_at": "2026-09-24T07:37:32.124333Z",
+      "first_seen_at": "2026-09-24T08:07:25.677716Z",
+      "last_seen_at": "2026-09-24T08:07:25.677716Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-24T07:37:32.124333Z",
+      "at": "2026-09-24T08:07:25.677716Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

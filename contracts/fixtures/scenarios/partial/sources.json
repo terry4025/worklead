@@ -22,7 +22,7 @@
       },
       "health": {
         "status": "degraded",
-        "checked_at": "2026-09-26T03:37:33.739433Z",
+        "checked_at": "2026-09-26T04:07:27.253543Z",
         "message": "요청 제한 응답(429) — Retry-After 까지 유예합니다",
         "code": "rate_limited"
       },
@@ -93,7 +93,7 @@
         "blocked": 0,
         "failed": 0,
         "scan_cycle": 1,
-        "last_visited_at": "2026-09-26T03:37:33.728510Z",
+        "last_visited_at": "2026-09-26T04:07:27.242099Z",
         "next_up": "부산 수영구 · 홈페이지",
         "depth_limit": 2,
         "budget": {
@@ -114,7 +114,7 @@
         "ready": true,
         "missing": []
       },
-      "last_run_id": "run_01a0dbca26e44c6382c838"
+      "last_run_id": "run_01a0dbe584cd036644d1e1"
     },
     {
       "id": "manual",

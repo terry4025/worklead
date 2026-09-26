@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dbca2118a686bcf025",
+  "id": "lead_01a0dbe57f26f7908f951b",
   "source_id": "demo-synthetic",
   "title": "구글 시트 주문 내역 → 카카오 알림톡 자동 발송 연동",
   "categories": [
@@ -37,13 +37,13 @@
   "access_status": "accessible",
   "analysis_status": "rules_only",
   "recheck_due": false,
-  "last_checked_at": "2026-09-26T02:37:32.124333Z",
+  "last_checked_at": "2026-09-26T03:07:25.677716Z",
   "published": {
-    "at": "2026-09-25T19:37:32.124333Z",
+    "at": "2026-09-25T20:07:25.677716Z",
     "precision": "exact",
     "raw": null
   },
-  "first_seen_at": "2026-09-25T20:37:32.124333Z",
+  "first_seen_at": "2026-09-25T21:07:25.677716Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -77,7 +77,7 @@
   "has_memo": false,
   "active_job": null,
   "body_text": "구글 스프레드시트에 주문이 들어오면 고객에게 카카오 알림톡이 자동으로 나가도록 연동해 주실 분을 찾습니다.\n현재는 직원이 하나씩 복사해서 보내고 있어요.\n\n알림톡 발송 대행사 계정은 이미 있습니다(API 키 보유).\n작업은 원격으로 진행하고, 화면 공유로 설명드릴 수 있습니다.\n금액은 작업 범위 보고 협의하고 싶습니다. 견적 부탁드립니다.",
-  "body_retained_until": "2026-10-25T20:37:32.124333Z",
+  "body_retained_until": "2026-10-25T21:07:25.677716Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -87,7 +87,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-25T20:37:32.124333Z",
+  "last_seen_at": "2026-09-25T21:07:25.677716Z",
   "work_period": {
     "start": {
       "at": null,
@@ -101,57 +101,9 @@
     }
   },
   "evidence": {
-    "demand_intent": [
-      {
-        "id": "ev_01a0dbca21241b9a5eb5e3",
-        "quote": "구글 스프레드시트에 주문이 들어오면 고객에게 카카오 알림톡이 자동으로 나가도록 연동해 주실 분을 찾습니다.",
-        "span": {
-          "start": 0,
-          "end": 59
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca2118f36f8a05f9",
-        "version": "rules-2026.09.1",
-        "note": null
-      }
-    ],
-    "pay": [
-      {
-        "id": "ev_01a0dbca212428ab5737bc",
-        "quote": "금액은 작업 범위 보고 협의하고 싶습니다. 견적 부탁드립니다.",
-        "span": {
-          "start": 156,
-          "end": 190
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca2118f36f8a05f9",
-        "version": "rules-2026.09.1",
-        "note": null
-      }
-    ],
-    "engagement_type": [
-      {
-        "id": "ev_01a0dbca21244feb5c487e",
-        "quote": "견적 부탁드립니다.",
-        "span": {
-          "start": 180,
-          "end": 190
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca2118f36f8a05f9",
-        "version": "rules-2026.09.1",
-        "note": null
-      }
-    ],
     "collaboration_mode": [
       {
-        "id": "ev_01a0dbca212451740d6195",
+        "id": "ev_01a0dbe57f30439c743620",
         "quote": "작업은 원격으로 진행하고, 화면 공유로 설명드릴 수 있습니다.",
         "span": {
           "start": 121,
@@ -159,15 +111,15 @@
         },
         "basis": "inferred",
         "confidence": "medium",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca2118f36f8a05f9",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57f25fe9a827148",
         "version": "rules-2026.09.1",
         "note": null
       }
     ],
     "work_mode": [
       {
-        "id": "ev_01a0dbca2124a5c76c648e",
+        "id": "ev_01a0dbe57f305db743f90e",
         "quote": "작업은 원격으로 진행하고, 화면 공유로 설명드릴 수 있습니다.",
         "span": {
           "start": 121,
@@ -175,8 +127,56 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca2118f36f8a05f9",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57f25fe9a827148",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "pay": [
+      {
+        "id": "ev_01a0dbe57f30c842bf1031",
+        "quote": "금액은 작업 범위 보고 협의하고 싶습니다. 견적 부탁드립니다.",
+        "span": {
+          "start": 156,
+          "end": 190
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57f25fe9a827148",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "demand_intent": [
+      {
+        "id": "ev_01a0dbe57f30d6bc839302",
+        "quote": "구글 스프레드시트에 주문이 들어오면 고객에게 카카오 알림톡이 자동으로 나가도록 연동해 주실 분을 찾습니다.",
+        "span": {
+          "start": 0,
+          "end": 59
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57f25fe9a827148",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "engagement_type": [
+      {
+        "id": "ev_01a0dbe57f30fa69982a1d",
+        "quote": "견적 부탁드립니다.",
+        "span": {
+          "start": 180,
+          "end": 190
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57f25fe9a827148",
         "version": "rules-2026.09.1",
         "note": null
       }
@@ -252,7 +252,7 @@
     "conversion_opportunity": null,
     "engine": "rules",
     "version": "rules-2026.09.1",
-    "analyzed_at": "2026-09-25T20:37:32.124333Z",
+    "analyzed_at": "2026-09-25T21:07:25.677716Z",
     "failure": null
   },
   "risks": [],
@@ -274,14 +274,14 @@
       "region_scope": "서울 송파구",
       "region_label": "서울 송파구",
       "query_group": "demo",
-      "first_seen_at": "2026-09-25T20:37:32.124333Z",
-      "last_seen_at": "2026-09-25T20:37:32.124333Z",
+      "first_seen_at": "2026-09-25T21:07:25.677716Z",
+      "last_seen_at": "2026-09-25T21:07:25.677716Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-25T20:37:32.124333Z",
+      "at": "2026-09-25T21:07:25.677716Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

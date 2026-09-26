@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dbca21c93963d2befd",
+  "id": "lead_01a0dbe57fb9c3927606b3",
   "source_id": "demo-synthetic",
   "title": "고수익 재택 부업! 누구나 가능한 데이터 입력",
   "categories": [
@@ -37,13 +37,13 @@
   "access_status": "accessible",
   "analysis_status": "rules_only",
   "recheck_due": false,
-  "last_checked_at": "2026-09-25T15:37:32.124333Z",
+  "last_checked_at": "2026-09-25T16:07:25.677716Z",
   "published": {
-    "at": "2026-09-25T07:37:32.124333Z",
+    "at": "2026-09-25T08:07:25.677716Z",
     "precision": "exact",
     "raw": null
   },
-  "first_seen_at": "2026-09-25T08:37:32.124333Z",
+  "first_seen_at": "2026-09-25T09:07:25.677716Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -69,7 +69,7 @@
   "has_memo": false,
   "active_job": null,
   "body_text": "하루 1시간, 월 300만원 이상 고수익 보장!\n재택으로 누구나 가능합니다.\n시작 전 교육 자료비 5만원 입금 후 안내드립니다.",
-  "body_retained_until": "2026-10-25T08:37:32.124333Z",
+  "body_retained_until": "2026-10-25T09:07:25.677716Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -79,7 +79,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-25T08:37:32.124333Z",
+  "last_seen_at": "2026-09-25T09:07:25.677716Z",
   "work_period": {
     "start": {
       "at": null,
@@ -93,57 +93,9 @@
     }
   },
   "evidence": {
-    "engagement_type": [
-      {
-        "id": "ev_01a0dbca21d20dfe1a0567",
-        "quote": "하루 1시간, 월 300만원 이상 고수익 보장!",
-        "span": {
-          "start": 0,
-          "end": 26
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca21c82aa5d9ca71",
-        "version": "rules-2026.09.1",
-        "note": null
-      }
-    ],
-    "pay": [
-      {
-        "id": "ev_01a0dbca21d24e8d6f50a1",
-        "quote": "하루 1시간, 월 300만원 이상 고수익 보장!",
-        "span": {
-          "start": 0,
-          "end": 26
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca21c82aa5d9ca71",
-        "version": "rules-2026.09.1",
-        "note": null
-      }
-    ],
-    "work_mode": [
-      {
-        "id": "ev_01a0dbca21d2616c923d0b",
-        "quote": "재택으로 누구나 가능합니다.",
-        "span": {
-          "start": 27,
-          "end": 42
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca21c82aa5d9ca71",
-        "version": "rules-2026.09.1",
-        "note": null
-      }
-    ],
     "demand_intent": [
       {
-        "id": "ev_01a0dbca21d2a5af34e349",
+        "id": "ev_01a0dbe57fc20e3b0a2b03",
         "quote": "하루 1시간, 월 300만원 이상 고수익 보장!",
         "span": {
           "start": 0,
@@ -151,10 +103,58 @@
         },
         "basis": "inferred",
         "confidence": "medium",
-        "observed_at": "2026-09-26T03:37:32.124333Z",
-        "source_record_id": "rec_01a0dbca21c82aa5d9ca71",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57fb870cd364ab2",
         "version": "rules-2026.09.1",
         "note": "시급·근무시간 기재 — 단기 고용으로 판단"
+      }
+    ],
+    "work_mode": [
+      {
+        "id": "ev_01a0dbe57fc28e6e3fa1b3",
+        "quote": "재택으로 누구나 가능합니다.",
+        "span": {
+          "start": 27,
+          "end": 42
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57fb870cd364ab2",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "pay": [
+      {
+        "id": "ev_01a0dbe57fc2bb1d736ee8",
+        "quote": "하루 1시간, 월 300만원 이상 고수익 보장!",
+        "span": {
+          "start": 0,
+          "end": 26
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57fb870cd364ab2",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "engagement_type": [
+      {
+        "id": "ev_01a0dbe57fc2d4ed6e2979",
+        "quote": "하루 1시간, 월 300만원 이상 고수익 보장!",
+        "span": {
+          "start": 0,
+          "end": 26
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T04:07:25.677716Z",
+        "source_record_id": "rec_01a0dbe57fb870cd364ab2",
+        "version": "rules-2026.09.1",
+        "note": null
       }
     ]
   },
@@ -228,7 +228,7 @@
     "conversion_opportunity": "반복 정리 작업이라 자동화 도구 납품을 제안할 여지가 있습니다. 이미 존재하는 개발 의뢰로 집계하지 않습니다.",
     "engine": "rules",
     "version": "rules-2026.09.1",
-    "analyzed_at": "2026-09-25T08:37:32.124333Z",
+    "analyzed_at": "2026-09-25T09:07:25.677716Z",
     "failure": null
   },
   "risks": [
@@ -269,14 +269,14 @@
       "region_scope": "서울 중구",
       "region_label": "서울 중구",
       "query_group": "demo",
-      "first_seen_at": "2026-09-25T08:37:32.124333Z",
-      "last_seen_at": "2026-09-25T08:37:32.124333Z",
+      "first_seen_at": "2026-09-25T09:07:25.677716Z",
+      "last_seen_at": "2026-09-25T09:07:25.677716Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-25T08:37:32.124333Z",
+      "at": "2026-09-25T09:07:25.677716Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

@@ -25,7 +25,7 @@ import type {
  *
  * 화면 코드는 이 인터페이스만 사용한다. 구현체:
  * - data/mock: 데모 데이터 (mode = 'demo')
- * - data/live: contracts/client 기반 어댑터 (계약 도착 후 구현)
+ * - data/live: contracts/client 기반 어댑터 (실제 로컬 API)
  *
  * 메서드 이름·인자는 화면 관점의 요구이며 HTTP 경로와 1:1 대응을 강제하지 않는다.
  */

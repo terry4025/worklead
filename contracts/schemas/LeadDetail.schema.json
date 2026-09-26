@@ -1,0 +1,1712 @@
+{
+  "$defs": {
+    "Activity": {
+      "additionalProperties": false,
+      "properties": {
+        "at": {
+          "format": "date-time",
+          "title": "At",
+          "type": "string"
+        },
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "at",
+        "kind",
+        "text"
+      ],
+      "title": "Activity",
+      "type": "object"
+    },
+    "Analysis": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "pending",
+            "rules_only",
+            "complete",
+            "failed",
+            "stale"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "summary": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Summary"
+        },
+        "summary_engine": {
+          "anyOf": [
+            {
+              "enum": [
+                "rules",
+                "ai"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Summary Engine"
+        },
+        "fit": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Fit",
+          "type": "array"
+        },
+        "unfit": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Unfit",
+          "type": "array"
+        },
+        "uncertain": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Uncertain",
+          "type": "array"
+        },
+        "deliverables": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Deliverables",
+          "type": "array"
+        },
+        "tech_requirements": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tech Requirements",
+          "type": "array"
+        },
+        "questions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Questions",
+          "type": "array"
+        },
+        "next_action": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Next Action"
+        },
+        "conversion_opportunity": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Conversion Opportunity"
+        },
+        "engine": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Engine"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Version"
+        },
+        "analyzed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Analyzed At"
+        },
+        "failure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AnalysisFailure"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "summary",
+        "summary_engine",
+        "fit",
+        "unfit",
+        "uncertain",
+        "deliverables",
+        "tech_requirements",
+        "questions",
+        "next_action",
+        "conversion_opportunity",
+        "engine",
+        "version",
+        "analyzed_at",
+        "failure"
+      ],
+      "title": "Analysis",
+      "type": "object"
+    },
+    "AnalysisFailure": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "title": "AnalysisFailure",
+      "type": "object"
+    },
+    "CollaborationAssessed": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "enum": [
+            "online_only",
+            "onsite_required",
+            "negotiable",
+            "unknown"
+          ],
+          "title": "Value",
+          "type": "string"
+        },
+        "basis": {
+          "anyOf": [
+            {
+              "enum": [
+                "explicit",
+                "inferred",
+                "user_confirmed"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Basis"
+        }
+      },
+      "required": [
+        "value",
+        "basis"
+      ],
+      "title": "CollaborationAssessed",
+      "type": "object"
+    },
+    "DiscoveryPath": {
+      "additionalProperties": false,
+      "properties": {
+        "region_scope": {
+          "title": "Region Scope",
+          "type": "string"
+        },
+        "region_label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Region Label"
+        },
+        "query_group": {
+          "title": "Query Group",
+          "type": "string"
+        },
+        "first_seen_at": {
+          "format": "date-time",
+          "title": "First Seen At",
+          "type": "string"
+        },
+        "last_seen_at": {
+          "format": "date-time",
+          "title": "Last Seen At",
+          "type": "string"
+        },
+        "times_seen": {
+          "title": "Times Seen",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "region_scope",
+        "region_label",
+        "query_group",
+        "first_seen_at",
+        "last_seen_at",
+        "times_seen"
+      ],
+      "title": "DiscoveryPath",
+      "type": "object"
+    },
+    "Draft": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "generated_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Generated At"
+        },
+        "edited_by_user": {
+          "title": "Edited By User",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "text",
+        "generated_at",
+        "edited_by_user"
+      ],
+      "title": "Draft",
+      "type": "object"
+    },
+    "EngagementAssessed": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "enum": [
+            "project",
+            "hourly_contract",
+            "part_time",
+            "full_time",
+            "unknown"
+          ],
+          "title": "Value",
+          "type": "string"
+        },
+        "basis": {
+          "anyOf": [
+            {
+              "enum": [
+                "explicit",
+                "inferred",
+                "user_confirmed"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Basis"
+        }
+      },
+      "required": [
+        "value",
+        "basis"
+      ],
+      "title": "EngagementAssessed",
+      "type": "object"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "quote": {
+          "title": "Quote",
+          "type": "string"
+        },
+        "span": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Span"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "body_text 기준 문자 위치"
+        },
+        "basis": {
+          "enum": [
+            "explicit",
+            "inferred",
+            "user_confirmed"
+          ],
+          "title": "Basis",
+          "type": "string"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "enum": [
+                "high",
+                "medium",
+                "low"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "규칙 신뢰 수준. 모델 자기평가 확률이 아니다.",
+          "title": "Confidence"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "source_record_id": {
+          "title": "Source Record Id",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Version"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Note"
+        }
+      },
+      "required": [
+        "id",
+        "quote",
+        "span",
+        "basis",
+        "confidence",
+        "observed_at",
+        "source_record_id",
+        "version",
+        "note"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "FeedbackState": {
+      "additionalProperties": false,
+      "properties": {
+        "remote": {
+          "anyOf": [
+            {
+              "enum": [
+                "confirmed",
+                "denied"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Remote"
+        },
+        "real_request": {
+          "anyOf": [
+            {
+              "enum": [
+                "yes",
+                "no"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Real Request"
+        }
+      },
+      "required": [
+        "remote",
+        "real_request"
+      ],
+      "title": "FeedbackState",
+      "type": "object"
+    },
+    "FuzzyDate": {
+      "additionalProperties": false,
+      "properties": {
+        "at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "At"
+        },
+        "precision": {
+          "enum": [
+            "exact",
+            "day",
+            "approximate",
+            "unknown"
+          ],
+          "title": "Precision",
+          "type": "string"
+        },
+        "raw": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Raw"
+        }
+      },
+      "required": [
+        "at",
+        "precision",
+        "raw"
+      ],
+      "title": "FuzzyDate",
+      "type": "object"
+    },
+    "IntentAssessed": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "enum": [
+            "buyer_project",
+            "buyer_ongoing",
+            "employee_hiring",
+            "seller_service",
+            "job_seeker",
+            "information",
+            "unknown"
+          ],
+          "title": "Value",
+          "type": "string"
+        },
+        "basis": {
+          "anyOf": [
+            {
+              "enum": [
+                "explicit",
+                "inferred",
+                "user_confirmed"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Basis"
+        }
+      },
+      "required": [
+        "value",
+        "basis"
+      ],
+      "title": "IntentAssessed",
+      "type": "object"
+    },
+    "Outcome": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "contract_confirmed",
+            "payment_received",
+            "refund",
+            "direct_cost"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "amount": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Amount"
+        },
+        "currency": {
+          "title": "Currency",
+          "type": "string"
+        },
+        "occurred_on": {
+          "format": "date",
+          "title": "Occurred On",
+          "type": "string"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Note"
+        },
+        "evidence_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Evidence Ref"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "amount",
+        "currency",
+        "occurred_on",
+        "note",
+        "evidence_ref",
+        "recorded_at"
+      ],
+      "title": "Outcome",
+      "type": "object"
+    },
+    "Pay": {
+      "additionalProperties": false,
+      "properties": {
+        "raw": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Raw"
+        },
+        "currency": {
+          "title": "Currency",
+          "type": "string"
+        },
+        "min": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Min"
+        },
+        "max": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Max"
+        },
+        "unit": {
+          "enum": [
+            "project",
+            "hour",
+            "day",
+            "week",
+            "month",
+            "negotiable",
+            "unknown"
+          ],
+          "title": "Unit",
+          "type": "string"
+        },
+        "negotiable": {
+          "title": "Negotiable",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "raw",
+        "currency",
+        "min",
+        "max",
+        "unit",
+        "negotiable"
+      ],
+      "title": "Pay",
+      "type": "object"
+    },
+    "Priority": {
+      "additionalProperties": false,
+      "properties": {
+        "total": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "규칙 기반 우선순위 (0-100). 수주 확률이 아니다.",
+          "title": "Total"
+        },
+        "unknown_factors": {
+          "title": "Unknown Factors",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "total",
+        "unknown_factors"
+      ],
+      "title": "Priority",
+      "type": "object"
+    },
+    "ProfitScenario": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "enum": [
+            "conservative",
+            "base",
+            "optimistic"
+          ],
+          "title": "Key",
+          "type": "string"
+        },
+        "contract_value": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Contract Value"
+        },
+        "direct_cost": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Direct Cost"
+        },
+        "hours": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Hours"
+        },
+        "contribution": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "예상 기여액 = 계약 대가 - 직접 비용 (세후 순이익 아님)",
+          "title": "Contribution"
+        },
+        "effective_hourly": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Effective Hourly"
+        },
+        "residual_after_target": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Residual After Target"
+        }
+      },
+      "required": [
+        "key",
+        "contract_value",
+        "direct_cost",
+        "hours",
+        "contribution",
+        "effective_hourly",
+        "residual_after_target"
+      ],
+      "title": "ProfitScenario",
+      "type": "object"
+    },
+    "Profitability": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "calculated",
+            "hypothesis",
+            "not_calculated"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "basis": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Basis"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason"
+        },
+        "assumptions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Assumptions",
+          "type": "array"
+        },
+        "scenarios": {
+          "items": {
+            "$ref": "#/$defs/ProfitScenario"
+          },
+          "title": "Scenarios",
+          "type": "array"
+        },
+        "revenue_type": {
+          "enum": [
+            "one_time",
+            "recurring",
+            "unknown"
+          ],
+          "title": "Revenue Type",
+          "type": "string"
+        },
+        "target_hourly": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Target Hourly"
+        }
+      },
+      "required": [
+        "status",
+        "basis",
+        "reason",
+        "assumptions",
+        "scenarios",
+        "revenue_type",
+        "target_hourly"
+      ],
+      "title": "Profitability",
+      "type": "object"
+    },
+    "Reason": {
+      "additionalProperties": false,
+      "properties": {
+        "tone": {
+          "enum": [
+            "positive",
+            "caution",
+            "negative"
+          ],
+          "title": "Tone",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tone",
+        "text"
+      ],
+      "title": "Reason",
+      "type": "object"
+    },
+    "RelatedRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "lead_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Lead Id"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Url"
+        },
+        "relation": {
+          "enum": [
+            "duplicate",
+            "repost",
+            "similar"
+          ],
+          "title": "Relation",
+          "type": "string"
+        },
+        "basis": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Basis"
+        },
+        "seen_at": {
+          "format": "date-time",
+          "title": "Seen At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "lead_id",
+        "source_id",
+        "title",
+        "url",
+        "relation",
+        "basis",
+        "seen_at"
+      ],
+      "title": "RelatedRecord",
+      "type": "object"
+    },
+    "RiskPenalty": {
+      "additionalProperties": false,
+      "properties": {
+        "score": {
+          "title": "Score",
+          "type": "integer"
+        },
+        "reasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reasons",
+          "type": "array"
+        }
+      },
+      "required": [
+        "score",
+        "reasons"
+      ],
+      "title": "RiskPenalty",
+      "type": "object"
+    },
+    "RiskSignal": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "quote": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Quote"
+        },
+        "span": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Span"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "quote",
+        "span"
+      ],
+      "title": "RiskSignal",
+      "type": "object"
+    },
+    "ScopeAssessed": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "enum": [
+            "nationwide",
+            "regional_restriction",
+            "unknown"
+          ],
+          "title": "Value",
+          "type": "string"
+        },
+        "basis": {
+          "anyOf": [
+            {
+              "enum": [
+                "explicit",
+                "inferred",
+                "user_confirmed"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Basis"
+        }
+      },
+      "required": [
+        "value",
+        "basis"
+      ],
+      "title": "ScopeAssessed",
+      "type": "object"
+    },
+    "ScoreBreakdown": {
+      "additionalProperties": false,
+      "properties": {
+        "total": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Total"
+        },
+        "factors": {
+          "items": {
+            "$ref": "#/$defs/ScoreFactor"
+          },
+          "title": "Factors",
+          "type": "array"
+        },
+        "risk_penalty": {
+          "$ref": "#/$defs/RiskPenalty"
+        },
+        "rule_version": {
+          "title": "Rule Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "total",
+        "factors",
+        "risk_penalty",
+        "rule_version"
+      ],
+      "title": "ScoreBreakdown",
+      "type": "object"
+    },
+    "ScoreFactor": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "max": {
+          "title": "Max",
+          "type": "integer"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "null = 근거 부족으로 평가하지 않음 (0점과 구분)",
+          "title": "Score"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "label",
+        "max",
+        "score",
+        "reason"
+      ],
+      "title": "ScoreFactor",
+      "type": "object"
+    },
+    "Span": {
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "title": "Start",
+          "type": "integer"
+        },
+        "end": {
+          "title": "End",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "Span",
+      "type": "object"
+    },
+    "WorkModeAssessed": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "enum": [
+            "fully_remote",
+            "hybrid",
+            "onsite",
+            "negotiable",
+            "unknown"
+          ],
+          "title": "Value",
+          "type": "string"
+        },
+        "basis": {
+          "anyOf": [
+            {
+              "enum": [
+                "explicit",
+                "inferred",
+                "user_confirmed"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Basis"
+        }
+      },
+      "required": [
+        "value",
+        "basis"
+      ],
+      "title": "WorkModeAssessed",
+      "type": "object"
+    },
+    "WorkPeriod": {
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "$ref": "#/$defs/FuzzyDate"
+        },
+        "end": {
+          "$ref": "#/$defs/FuzzyDate"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "WorkPeriod",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "source_id": {
+      "title": "Source Id",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "categories": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Categories",
+      "type": "array"
+    },
+    "demand_intent": {
+      "$ref": "#/$defs/IntentAssessed"
+    },
+    "engagement_type": {
+      "$ref": "#/$defs/EngagementAssessed"
+    },
+    "work_mode": {
+      "$ref": "#/$defs/WorkModeAssessed"
+    },
+    "collaboration_mode": {
+      "$ref": "#/$defs/CollaborationAssessed"
+    },
+    "applicant_scope": {
+      "$ref": "#/$defs/ScopeAssessed"
+    },
+    "pay": {
+      "$ref": "#/$defs/Pay"
+    },
+    "source_status": {
+      "enum": [
+        "open",
+        "closed",
+        "deleted",
+        "unknown"
+      ],
+      "title": "Source Status",
+      "type": "string"
+    },
+    "access_status": {
+      "enum": [
+        "accessible",
+        "login_required",
+        "blocked",
+        "error"
+      ],
+      "title": "Access Status",
+      "type": "string"
+    },
+    "analysis_status": {
+      "enum": [
+        "pending",
+        "rules_only",
+        "complete",
+        "failed",
+        "stale"
+      ],
+      "title": "Analysis Status",
+      "type": "string"
+    },
+    "recheck_due": {
+      "description": "모집 중이지만 확인 TTL 이 지남",
+      "title": "Recheck Due",
+      "type": "boolean"
+    },
+    "last_checked_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Last Checked At"
+    },
+    "published": {
+      "$ref": "#/$defs/FuzzyDate"
+    },
+    "first_seen_at": {
+      "format": "date-time",
+      "title": "First Seen At",
+      "type": "string"
+    },
+    "deadline": {
+      "$ref": "#/$defs/FuzzyDate",
+      "description": "구인 마감일 (근무일·납기와 다름)"
+    },
+    "posted_region": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Posted Region"
+    },
+    "found_in": {
+      "description": "이 공고가 발견된 탐색 지역 (게시 지역과 다를 수 있음)",
+      "items": {
+        "type": "string"
+      },
+      "title": "Found In",
+      "type": "array"
+    },
+    "recommendation": {
+      "enum": [
+        "recommended",
+        "needs_review",
+        "excluded"
+      ],
+      "title": "Recommendation",
+      "type": "string"
+    },
+    "priority": {
+      "$ref": "#/$defs/Priority"
+    },
+    "reasons": {
+      "items": {
+        "$ref": "#/$defs/Reason"
+      },
+      "title": "Reasons",
+      "type": "array"
+    },
+    "user_mark": {
+      "anyOf": [
+        {
+          "enum": [
+            "interested",
+            "dismissed"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "User Mark"
+    },
+    "sales_stage": {
+      "enum": [
+        "new",
+        "reviewing",
+        "contacted",
+        "negotiating",
+        "won",
+        "lost",
+        "on_hold",
+        "ignored"
+      ],
+      "title": "Sales Stage",
+      "type": "string"
+    },
+    "has_memo": {
+      "title": "Has Memo",
+      "type": "boolean"
+    },
+    "active_job": {
+      "anyOf": [
+        {
+          "enum": [
+            "recheck",
+            "reanalyze"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Active Job"
+    },
+    "body_text": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "안전한 텍스트. 보존 기간이 지나면 null",
+      "title": "Body Text"
+    },
+    "body_retained_until": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Body Retained Until"
+    },
+    "original_url": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Original Url"
+    },
+    "contact_channel": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Contact Channel"
+    },
+    "workplace": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Workplace"
+    },
+    "applicant_region": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Applicant Region"
+    },
+    "source_updated": {
+      "$ref": "#/$defs/FuzzyDate"
+    },
+    "last_seen_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Last Seen At"
+    },
+    "work_period": {
+      "$ref": "#/$defs/WorkPeriod"
+    },
+    "evidence": {
+      "additionalProperties": {
+        "items": {
+          "$ref": "#/$defs/Evidence"
+        },
+        "type": "array"
+      },
+      "title": "Evidence",
+      "type": "object"
+    },
+    "score": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ScoreBreakdown"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "analysis": {
+      "$ref": "#/$defs/Analysis"
+    },
+    "risks": {
+      "items": {
+        "$ref": "#/$defs/RiskSignal"
+      },
+      "title": "Risks",
+      "type": "array"
+    },
+    "profitability": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Profitability"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "draft": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Draft"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "memo": {
+      "title": "Memo",
+      "type": "string"
+    },
+    "outcomes": {
+      "items": {
+        "$ref": "#/$defs/Outcome"
+      },
+      "title": "Outcomes",
+      "type": "array"
+    },
+    "related": {
+      "items": {
+        "$ref": "#/$defs/RelatedRecord"
+      },
+      "title": "Related",
+      "type": "array"
+    },
+    "discovery_paths": {
+      "items": {
+        "$ref": "#/$defs/DiscoveryPath"
+      },
+      "title": "Discovery Paths",
+      "type": "array"
+    },
+    "activity": {
+      "items": {
+        "$ref": "#/$defs/Activity"
+      },
+      "title": "Activity",
+      "type": "array"
+    },
+    "feedback": {
+      "$ref": "#/$defs/FeedbackState"
+    },
+    "parser_version": {
+      "title": "Parser Version",
+      "type": "string"
+    },
+    "content_hash": {
+      "title": "Content Hash",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "source_id",
+    "title",
+    "categories",
+    "demand_intent",
+    "engagement_type",
+    "work_mode",
+    "collaboration_mode",
+    "applicant_scope",
+    "pay",
+    "source_status",
+    "access_status",
+    "analysis_status",
+    "recheck_due",
+    "last_checked_at",
+    "published",
+    "first_seen_at",
+    "deadline",
+    "posted_region",
+    "found_in",
+    "recommendation",
+    "priority",
+    "reasons",
+    "user_mark",
+    "sales_stage",
+    "has_memo",
+    "active_job",
+    "body_text",
+    "body_retained_until",
+    "original_url",
+    "contact_channel",
+    "workplace",
+    "applicant_region",
+    "source_updated",
+    "last_seen_at",
+    "work_period",
+    "evidence",
+    "score",
+    "analysis",
+    "risks",
+    "profitability",
+    "draft",
+    "memo",
+    "outcomes",
+    "related",
+    "discovery_paths",
+    "activity",
+    "feedback",
+    "parser_version",
+    "content_hash"
+  ],
+  "title": "LeadDetail",
+  "type": "object"
+}

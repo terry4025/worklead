@@ -1,0 +1,233 @@
+{
+  "id": "lead_01a0dbca217894b990b168",
+  "source_id": "demo-synthetic",
+  "title": "네일샵 예약 페이지 만들어주세요",
+  "categories": [
+    "website"
+  ],
+  "demand_intent": {
+    "value": "buyer_project",
+    "basis": "explicit"
+  },
+  "engagement_type": {
+    "value": "project",
+    "basis": "inferred"
+  },
+  "work_mode": {
+    "value": "unknown",
+    "basis": null
+  },
+  "collaboration_mode": {
+    "value": "unknown",
+    "basis": null
+  },
+  "applicant_scope": {
+    "value": "unknown",
+    "basis": null
+  },
+  "pay": {
+    "raw": null,
+    "currency": "KRW",
+    "min": null,
+    "max": null,
+    "unit": "unknown",
+    "negotiable": false
+  },
+  "source_status": "unknown",
+  "access_status": "accessible",
+  "analysis_status": "rules_only",
+  "recheck_due": false,
+  "last_checked_at": "2026-09-25T23:37:32.124333Z",
+  "published": {
+    "at": null,
+    "precision": "unknown",
+    "raw": null
+  },
+  "first_seen_at": "2026-09-25T23:37:32.124333Z",
+  "deadline": {
+    "at": null,
+    "precision": "unknown",
+    "raw": null
+  },
+  "posted_region": "제주 제주시",
+  "found_in": [
+    "제주 제주시"
+  ],
+  "recommendation": "needs_review",
+  "priority": {
+    "total": 60,
+    "unknown_factors": 1
+  },
+  "reasons": [
+    {
+      "tone": "caution",
+      "text": "모집 상태 미확인 — 마감 표시 없음만으로 판단 안 함"
+    },
+    {
+      "tone": "caution",
+      "text": "재택 미확인"
+    },
+    {
+      "tone": "caution",
+      "text": "예산 미기재 — 확인 필요"
+    }
+  ],
+  "user_mark": null,
+  "sales_stage": "new",
+  "has_memo": false,
+  "active_job": null,
+  "body_text": "네일샵 예약 페이지를 만들고 싶어요.\n날짜랑 시간 선택하면 예약되고, 사장님한테 알림 가는 정도면 됩니다.",
+  "body_retained_until": "2026-10-25T23:37:32.124333Z",
+  "original_url": null,
+  "contact_channel": "원문에서 직접 (데모)",
+  "workplace": null,
+  "applicant_region": null,
+  "source_updated": {
+    "at": null,
+    "precision": "unknown",
+    "raw": null
+  },
+  "last_seen_at": "2026-09-25T23:37:32.124333Z",
+  "work_period": {
+    "start": {
+      "at": null,
+      "precision": "unknown",
+      "raw": null
+    },
+    "end": {
+      "at": null,
+      "precision": "unknown",
+      "raw": null
+    }
+  },
+  "evidence": {
+    "demand_intent": [
+      {
+        "id": "ev_01a0dbca2183b80acf21f9",
+        "quote": "네일샵 예약 페이지를 만들고 싶어요.",
+        "span": {
+          "start": 0,
+          "end": 20
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca21770143456798",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ]
+  },
+  "score": {
+    "total": 60,
+    "factors": [
+      {
+        "key": "work_fit",
+        "label": "업무 적합성",
+        "max": 30,
+        "score": 27,
+        "reason": "웹사이트 — 제공 서비스와 일치"
+      },
+      {
+        "key": "buyer_intent",
+        "label": "구매 의도",
+        "max": 25,
+        "score": 23,
+        "reason": "구매 표현 명시"
+      },
+      {
+        "key": "remote_fit",
+        "label": "원격 적합성",
+        "max": 20,
+        "score": null,
+        "reason": "근거 부족: 재택·온라인 언급 없음"
+      },
+      {
+        "key": "freshness",
+        "label": "최신성",
+        "max": 15,
+        "score": 8,
+        "reason": "게시일 미확인, 최초 발견 4시간 전"
+      },
+      {
+        "key": "scope_clarity",
+        "label": "범위 명확성",
+        "max": 10,
+        "score": 2,
+        "reason": "업무 내용이 거의 없음"
+      }
+    ],
+    "risk_penalty": {
+      "score": 0,
+      "reasons": []
+    },
+    "rule_version": "rules-2026.09.1"
+  },
+  "analysis": {
+    "status": "rules_only",
+    "summary": "네일샵 예약 페이지를 만들고 싶어요.",
+    "summary_engine": "rules",
+    "fit": [
+      "웹사이트 업무",
+      "구매 수요"
+    ],
+    "unfit": [],
+    "uncertain": [
+      "원격 진행 가능 여부",
+      "예산",
+      "현재 모집 여부",
+      "세부 요구 범위"
+    ],
+    "deliverables": [],
+    "tech_requirements": [],
+    "questions": [
+      "원격으로만 진행해도 괜찮을까요?",
+      "생각하시는 예산 범위가 있으신가요?",
+      "아직 작업자를 찾고 계신가요?",
+      "필요한 기능이나 페이지 목록을 받을 수 있을까요?"
+    ],
+    "next_action": "핵심 질문 확인 후 범위·일정 포함 견적 제시",
+    "conversion_opportunity": null,
+    "engine": "rules",
+    "version": "rules-2026.09.1",
+    "analyzed_at": "2026-09-25T23:37:32.124333Z",
+    "failure": null
+  },
+  "risks": [],
+  "profitability": {
+    "status": "not_calculated",
+    "basis": null,
+    "reason": "예산 미기재이고 목표 시간당 가치가 설정되지 않아 견적 가설도 만들지 않았습니다.",
+    "assumptions": [],
+    "scenarios": [],
+    "revenue_type": "unknown",
+    "target_hourly": null
+  },
+  "draft": null,
+  "memo": "",
+  "outcomes": [],
+  "related": [],
+  "discovery_paths": [
+    {
+      "region_scope": "제주 제주시",
+      "region_label": "제주 제주시",
+      "query_group": "demo",
+      "first_seen_at": "2026-09-25T23:37:32.124333Z",
+      "last_seen_at": "2026-09-25T23:37:32.124333Z",
+      "times_seen": 1
+    }
+  ],
+  "activity": [
+    {
+      "at": "2026-09-25T23:37:32.124333Z",
+      "kind": "created",
+      "text": "신규 탐색에서 발견"
+    }
+  ],
+  "feedback": {
+    "remote": null,
+    "real_request": null
+  },
+  "parser_version": "demo",
+  "content_hash": "80c096b2de0e30c59ec6b7acc8172c084427140b6da412195825f55ab7731448"
+}

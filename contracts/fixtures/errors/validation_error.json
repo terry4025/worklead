@@ -1,0 +1,18 @@
+{
+  "error": {
+    "code": "validation_error",
+    "message": "요청 형식이 올바르지 않습니다",
+    "details": [
+      {
+        "loc": [
+          "query",
+          "limit"
+        ],
+        "msg": "Input should be greater than or equal to 1",
+        "type": "greater_than_equal"
+      }
+    ],
+    "request_id": "b3d3ac889d8e15aa",
+    "retryable": false
+  }
+}

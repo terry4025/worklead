@@ -1,0 +1,308 @@
+{
+  "$defs": {
+    "AISettings": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "external_transfer_consent": {
+          "title": "External Transfer Consent",
+          "type": "boolean"
+        },
+        "engine_label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Engine Label"
+        },
+        "monthly_cost_cap": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Monthly Cost Cap"
+        },
+        "daily_cost_cap": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Daily Cost Cap"
+        },
+        "key_configured": {
+          "description": "API 키 저장 여부 (값은 절대 반환하지 않음)",
+          "title": "Key Configured",
+          "type": "boolean"
+        },
+        "provider_available": {
+          "title": "Provider Available",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "enabled",
+        "external_transfer_consent",
+        "engine_label",
+        "monthly_cost_cap",
+        "daily_cost_cap",
+        "key_configured",
+        "provider_available"
+      ],
+      "title": "AISettings",
+      "type": "object"
+    },
+    "NotificationSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "new_recommended": {
+          "title": "New Recommended",
+          "type": "boolean"
+        },
+        "meaningful_change": {
+          "title": "Meaningful Change",
+          "type": "boolean"
+        },
+        "source_issue": {
+          "title": "Source Issue",
+          "type": "boolean"
+        },
+        "quiet_hours": {
+          "$ref": "#/$defs/QuietHours"
+        }
+      },
+      "required": [
+        "new_recommended",
+        "meaningful_change",
+        "source_issue",
+        "quiet_hours"
+      ],
+      "title": "NotificationSettings",
+      "type": "object"
+    },
+    "ProfileSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "services": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Services",
+          "type": "array"
+        },
+        "skills": {
+          "title": "Skills",
+          "type": "string"
+        },
+        "excluded_work": {
+          "title": "Excluded Work",
+          "type": "string"
+        },
+        "min_contract": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Min Contract"
+        },
+        "target_hourly": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Target Hourly"
+        },
+        "weekly_hours": {
+          "anyOf": [
+            {
+              "maximum": 168,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Weekly Hours"
+        },
+        "onsite": {
+          "enum": [
+            "no",
+            "first_meeting",
+            "yes"
+          ],
+          "title": "Onsite",
+          "type": "string"
+        },
+        "allow_short_term_employment": {
+          "title": "Allow Short Term Employment",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "services",
+        "skills",
+        "excluded_work",
+        "min_contract",
+        "target_hourly",
+        "weekly_hours",
+        "onsite",
+        "allow_short_term_employment"
+      ],
+      "title": "ProfileSettings",
+      "type": "object"
+    },
+    "QueryGroup": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9_]{1,32}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "enabled": {
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "keywords": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Keywords",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "enabled",
+        "keywords"
+      ],
+      "title": "QueryGroup",
+      "type": "object"
+    },
+    "QueryGroups": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "title": "Version",
+          "type": "integer"
+        },
+        "groups": {
+          "items": {
+            "$ref": "#/$defs/QueryGroup"
+          },
+          "title": "Groups",
+          "type": "array"
+        }
+      },
+      "required": [
+        "version",
+        "groups"
+      ],
+      "title": "QueryGroups",
+      "type": "object"
+    },
+    "QuietHours": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "start": {
+          "pattern": "^\\d{2}:\\d{2}$",
+          "title": "Start",
+          "type": "string"
+        },
+        "end": {
+          "pattern": "^\\d{2}:\\d{2}$",
+          "title": "End",
+          "type": "string"
+        }
+      },
+      "required": [
+        "enabled",
+        "start",
+        "end"
+      ],
+      "title": "QuietHours",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "profile": {
+      "$ref": "#/$defs/ProfileSettings"
+    },
+    "recheck": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "propertyNames": {
+        "const": "ttl_hours"
+      },
+      "title": "Recheck",
+      "type": "object"
+    },
+    "notifications": {
+      "$ref": "#/$defs/NotificationSettings"
+    },
+    "ai": {
+      "$ref": "#/$defs/AISettings"
+    },
+    "retention": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "propertyNames": {
+        "const": "raw_days"
+      },
+      "title": "Retention",
+      "type": "object"
+    },
+    "query_groups": {
+      "$ref": "#/$defs/QueryGroups"
+    }
+  },
+  "required": [
+    "profile",
+    "recheck",
+    "notifications",
+    "ai",
+    "retention",
+    "query_groups"
+  ],
+  "title": "SettingsOut",
+  "type": "object"
+}

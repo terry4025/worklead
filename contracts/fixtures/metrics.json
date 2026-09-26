@@ -1,0 +1,37 @@
+{
+  "collection": {
+    "period_days": 30,
+    "runs": 0,
+    "requests": 0,
+    "details_fetched": 0,
+    "created": 0,
+    "duplicates": 0,
+    "parse_failures": 0,
+    "fetch_failures": 0,
+    "policy_stops": 0,
+    "ai_failures": 0,
+    "ai_cost_krw": null
+  },
+  "quality": {
+    "period_days": 30,
+    "reviewed": 4,
+    "confirmed_fit": 4,
+    "remote_false_positive": 0,
+    "buyer_false_positive": 0,
+    "median_hours_to_review": null,
+    "note": "사용자 판단 기록 기준. 사람이 라벨링한 검수 표본이 아니므로 정밀도로 해석하지 않는다."
+  },
+  "sales": {
+    "period_days": 30,
+    "reviewed": 4,
+    "contacted": 1,
+    "negotiating": 1,
+    "won": 1,
+    "contracts_confirmed": 1,
+    "contract_amount": 600000,
+    "collected": 300000,
+    "refunded": 0,
+    "direct_cost": 0
+  },
+  "note": "최근 30일. 수금은 실제 기록만 합산하며 예상 금액·수주 표시는 포함하지 않는다. 원천 전체 공고 수를 모르므로 재현율은 계산하지 않는다."
+}

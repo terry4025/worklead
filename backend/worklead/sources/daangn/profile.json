@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "source_id": "daangn-alba",
+  "verified": false,
+  "research": {
+    "document": "docs/SOURCE_RESEARCH.md",
+    "reviewed_at": null,
+    "notes": "2026-09-26 개발 환경에서 jobs.daangn.com 접근이 네트워크 정책으로 차단되어 실제 확인을 하지 못함. 아래 항목은 모두 조사 후 채운다."
+  },
+  "allowed_hosts": ["jobs.daangn.com"],
+  "request_budget_per_day": 300,
+  "min_interval_seconds": 6,
+  "default_interval_minutes": 360,
+  "search": {
+    "status": "unverified",
+    "url_template": null,
+    "nationwide_url_template": null,
+    "query_mode": "per_keyword",
+    "joiner": " ",
+    "first_page": 1,
+    "max_pages": 2
+  },
+  "regions": {
+    "status": "unverified",
+    "items": []
+  },
+  "list": {
+    "detail_link_pattern": null,
+    "post_id_pattern": null,
+    "empty_markers": []
+  },
+  "detail": {
+    "strategy": null,
+    "closed_markers": [],
+    "open_markers": [],
+    "block_markers": [],
+    "valid_through_means_open": false,
+    "deletion_reliable": false,
+    "contact_channel_label": "당근알바 원문에서 직접 (지원·채팅)"
+  },
+  "capabilities": {
+    "nationwide_search": {"support": "unverified", "note": "전국 단일 검색 지원 여부 미확인"},
+    "region_search": {"support": "unverified", "note": "지역 기준 검색이 관찰됐다는 사전 기록만 있음 (재확인 필요)"},
+    "remote_filter": {"support": "unverified", "note": "재택 전용 필터 존재 여부 미확인"},
+    "sort": {"support": "unverified"},
+    "pagination": {"support": "unverified"},
+    "incremental": {"support": "unverified"},
+    "detail": {"support": "unverified", "note": "상세 페이지의 마감 표시가 관찰됐다는 사전 기록만 있음"},
+    "revalidate": {"support": "unverified"},
+    "structured_data": {"support": "unverified", "note": "JobPosting JSON-LD 제공 여부 미확인"}
+  }
+}

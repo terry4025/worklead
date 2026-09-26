@@ -1,0 +1,110 @@
+[
+  {
+    "id": "evt_01a0dbca20fd033ab60b73",
+    "seq": 1,
+    "type": "lead.created",
+    "at": "2026-09-26T03:37:32.157779+00:00",
+    "lead_id": "lead_01a0dbca20e55c6dec69de",
+    "recommendation": "recommended"
+  },
+  {
+    "id": "evt_01a0dbca20ff8cbd48e778",
+    "seq": 2,
+    "type": "notification.created",
+    "at": "2026-09-26T03:37:32.159545+00:00",
+    "kind": "new_lead",
+    "title": "새 추천 리드: 스마트스토어 주문 엑셀 정리 매크로(VBA) 만들어주실 분",
+    "lead_id": "lead_01a0dbca20e55c6dec69de",
+    "source_id": null,
+    "suppressed_reason": null
+  },
+  {
+    "id": "evt_01a0dbca2111f32816a50a",
+    "seq": 3,
+    "type": "lead.created",
+    "at": "2026-09-26T03:37:32.177178+00:00",
+    "lead_id": "lead_01a0dbca210aea7af21b8a",
+    "recommendation": "recommended"
+  },
+  {
+    "id": "evt_01a0dbca2111e79271aa85",
+    "seq": 4,
+    "type": "notification.created",
+    "at": "2026-09-26T03:37:32.177814+00:00",
+    "kind": "new_lead",
+    "title": "새 추천 리드: 카페 브랜드 소개 랜딩페이지 제작 의뢰 (반응형 1페이지)",
+    "lead_id": "lead_01a0dbca210aea7af21b8a",
+    "source_id": null,
+    "suppressed_reason": "quiet_hours"
+  },
+  {
+    "id": "evt_01a0dbca211f475bcc4eb4",
+    "seq": 5,
+    "type": "lead.created",
+    "at": "2026-09-26T03:37:32.191783+00:00",
+    "lead_id": "lead_01a0dbca2118a686bcf025",
+    "recommendation": "recommended"
+  },
+  {
+    "id": "evt_01a0dbca2120eef16a28a5",
+    "seq": 6,
+    "type": "notification.created",
+    "at": "2026-09-26T03:37:32.192513+00:00",
+    "kind": "new_lead",
+    "title": "새 추천 리드: 구글 시트 주문 내역 → 카카오 알림톡 자동 발송 연동",
+    "lead_id": "lead_01a0dbca2118a686bcf025",
+    "source_id": null,
+    "suppressed_reason": "quiet_hours"
+  },
+  {
+    "id": "evt_01a0dbca213bd831ab9317",
+    "seq": 7,
+    "type": "lead.created",
+    "at": "2026-09-26T03:37:32.219796+00:00",
+    "lead_id": "lead_01a0dbca212f02dbaee685",
+    "recommendation": "recommended"
+  },
+  {
+    "id": "evt_01a0dbca213cae731475c2",
+    "seq": 8,
+    "type": "notification.created",
+    "at": "2026-09-26T03:37:32.220573+00:00",
+    "kind": "new_lead",
+    "title": "새 추천 리드: 쇼핑몰 상세페이지 수정·기존 사이트 유지보수 (월 단위)",
+    "lead_id": "lead_01a0dbca212f02dbaee685",
+    "source_id": null,
+    "suppressed_reason": null
+  },
+  {
+    "id": "evt_01a0dbca214a221a1835da",
+    "seq": 9,
+    "type": "lead.created",
+    "at": "2026-09-26T03:37:32.234054+00:00",
+    "lead_id": "lead_01a0dbca2143cce4eab05e",
+    "recommendation": "needs_review"
+  },
+  {
+    "id": "evt_01a0dbca21580565eb0630",
+    "seq": 10,
+    "type": "lead.created",
+    "at": "2026-09-26T03:37:32.248382+00:00",
+    "lead_id": "lead_01a0dbca2151073c7b1e14",
+    "recommendation": "needs_review"
+  },
+  {
+    "id": "evt_01a0dbca216475cea46d27",
+    "seq": 11,
+    "type": "lead.created",
+    "at": "2026-09-26T03:37:32.260827+00:00",
+    "lead_id": "lead_01a0dbca215ea57b1e4d15",
+    "recommendation": "needs_review"
+  },
+  {
+    "id": "evt_01a0dbca2171bba4b6fae7",
+    "seq": 12,
+    "type": "lead.created",
+    "at": "2026-09-26T03:37:32.273527+00:00",
+    "lead_id": "lead_01a0dbca216b50a8b02a19",
+    "recommendation": "needs_review"
+  }
+]

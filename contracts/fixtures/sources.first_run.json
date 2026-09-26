@@ -1,0 +1,227 @@
+{
+  "items": [
+    {
+      "id": "daangn-alba",
+      "name": "당근알바",
+      "kind": "site",
+      "scope_note": "허용된 공개 구인글만 대상 · 중고거래·동네생활·비즈프로필·채팅은 범위 밖",
+      "adapter_version": "0.1.0",
+      "policy": {
+        "status": "permission_pending",
+        "basis": null,
+        "note": null,
+        "reviewed_at": null,
+        "reviewed_by": "system",
+        "robots_status": "unchecked",
+        "robots_checked_at": null,
+        "robots_summary": null
+      },
+      "auto_collect": {
+        "enabled": false,
+        "interval_minutes": 360
+      },
+      "health": {
+        "status": "unknown",
+        "checked_at": null,
+        "message": null,
+        "code": null
+      },
+      "stopped_reason": null,
+      "capabilities": [
+        {
+          "key": "nationwide_search",
+          "label": "전국 단일 검색",
+          "support": "unverified",
+          "note": "전국 단일 검색 지원 여부 미확인"
+        },
+        {
+          "key": "region_search",
+          "label": "지역별 검색",
+          "support": "unverified",
+          "note": "지역 기준 검색이 관찰됐다는 사전 기록만 있음 (재확인 필요)"
+        },
+        {
+          "key": "remote_filter",
+          "label": "재택 전용 필터",
+          "support": "unverified",
+          "note": "재택 전용 필터 존재 여부 미확인"
+        },
+        {
+          "key": "sort",
+          "label": "정렬",
+          "support": "unverified",
+          "note": null
+        },
+        {
+          "key": "pagination",
+          "label": "페이지 이동",
+          "support": "unverified",
+          "note": null
+        },
+        {
+          "key": "incremental",
+          "label": "증분 수집",
+          "support": "unverified",
+          "note": null
+        },
+        {
+          "key": "detail",
+          "label": "상세 조회",
+          "support": "unverified",
+          "note": "상세 페이지의 마감 표시가 관찰됐다는 사전 기록만 있음"
+        },
+        {
+          "key": "revalidate",
+          "label": "상태 재확인",
+          "support": "unverified",
+          "note": null
+        },
+        {
+          "key": "structured_data",
+          "label": "구조화 데이터",
+          "support": "unverified",
+          "note": "JobPosting JSON-LD 제공 여부 미확인"
+        }
+      ],
+      "coverage": {
+        "target_label": "전국",
+        "region_list_status": "unknown",
+        "unit_label": "지역×검색어",
+        "planned": null,
+        "completed": 0,
+        "pending": 0,
+        "blocked": 0,
+        "failed": 0,
+        "scan_cycle": null,
+        "last_visited_at": null,
+        "next_up": null,
+        "depth_limit": null,
+        "budget": {
+          "used": 0,
+          "limit": 300,
+          "unit_label": "요청/일"
+        },
+        "market_coverage": "unknown",
+        "target_units_total": 17,
+        "target_units_covered": null,
+        "estimated_cycle_days": null,
+        "notes": [
+          "사이트 조사 미완료 — 탐색 범위를 계획할 수 없습니다 (조사 검증 완료 표시(verified), 검색 URL 형식, 공개 지역 목록, 상세 링크 형식, 상세 해석 방식)"
+        ]
+      },
+      "research": {
+        "ready": false,
+        "missing": [
+          "조사 검증 완료 표시(verified)",
+          "검색 URL 형식",
+          "공개 지역 목록",
+          "상세 링크 형식",
+          "상세 해석 방식"
+        ]
+      },
+      "last_run_id": null
+    },
+    {
+      "id": "manual",
+      "name": "수동 입력",
+      "kind": "manual",
+      "scope_note": "직접 확보한 글을 붙여넣거나 CSV·JSON 파일로 입력",
+      "adapter_version": "0.1.0",
+      "policy": {
+        "status": "not_required",
+        "basis": null,
+        "note": null,
+        "reviewed_at": null,
+        "reviewed_by": "system",
+        "robots_status": "unchecked",
+        "robots_checked_at": null,
+        "robots_summary": null
+      },
+      "auto_collect": {
+        "enabled": false,
+        "interval_minutes": null
+      },
+      "health": {
+        "status": "ok",
+        "checked_at": null,
+        "message": null,
+        "code": null
+      },
+      "stopped_reason": null,
+      "capabilities": [
+        {
+          "key": "import_text",
+          "label": "텍스트 붙여넣기",
+          "support": "supported",
+          "note": null
+        },
+        {
+          "key": "import_csv",
+          "label": "CSV 가져오기",
+          "support": "supported",
+          "note": "최대 1000행, 2MB"
+        },
+        {
+          "key": "import_json",
+          "label": "JSON 가져오기",
+          "support": "supported",
+          "note": null
+        },
+        {
+          "key": "revalidate",
+          "label": "상태 재확인",
+          "support": "unsupported",
+          "note": "원문을 대신 내려받지 않습니다"
+        }
+      ],
+      "coverage": null,
+      "research": {
+        "ready": true,
+        "missing": []
+      },
+      "last_run_id": null
+    },
+    {
+      "id": "demo-synthetic",
+      "name": "데모 합성 데이터",
+      "kind": "manual",
+      "scope_note": "화면 확인용 합성 글 — 실제 수집 결과 아님",
+      "adapter_version": "demo",
+      "policy": {
+        "status": "not_required",
+        "basis": null,
+        "note": null,
+        "reviewed_at": null,
+        "reviewed_by": "system",
+        "robots_status": "unchecked",
+        "robots_checked_at": null,
+        "robots_summary": null
+      },
+      "auto_collect": {
+        "enabled": false,
+        "interval_minutes": null
+      },
+      "health": {
+        "status": "ok",
+        "checked_at": null,
+        "message": null,
+        "code": null
+      },
+      "stopped_reason": null,
+      "capabilities": [
+        {
+          "key": "demo",
+          "label": "합성 데이터",
+          "support": "supported",
+          "note": "실제 사이트와 연결되지 않음"
+        }
+      ],
+      "coverage": null,
+      "research": {
+        "ready": true,
+        "missing": []
+      },
+      "last_run_id": null
+    }
+  ]
+}

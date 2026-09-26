@@ -1,0 +1,85 @@
+{
+  "items": [
+    {
+      "id": "lead_01a0dbca27090121b68dde",
+      "source_id": "fixture-site",
+      "title": "카페 랜딩페이지 제작 의뢰",
+      "categories": [
+        "landing"
+      ],
+      "demand_intent": {
+        "value": "buyer_project",
+        "basis": "explicit"
+      },
+      "engagement_type": {
+        "value": "project",
+        "basis": "explicit"
+      },
+      "work_mode": {
+        "value": "fully_remote",
+        "basis": "explicit"
+      },
+      "collaboration_mode": {
+        "value": "online_only",
+        "basis": "explicit"
+      },
+      "applicant_scope": {
+        "value": "unknown",
+        "basis": null
+      },
+      "pay": {
+        "raw": "예산은 150만원입니다.",
+        "currency": "KRW",
+        "min": 1500000,
+        "max": 1500000,
+        "unit": "project",
+        "negotiable": false
+      },
+      "source_status": "open",
+      "access_status": "accessible",
+      "analysis_status": "rules_only",
+      "recheck_due": false,
+      "last_checked_at": "2026-09-26T03:37:33.698357Z",
+      "published": {
+        "at": "2026-09-25T17:37:33.701842Z",
+        "precision": "exact",
+        "raw": "2026-09-25T17:37:33.701842+00:00"
+      },
+      "first_seen_at": "2026-09-26T03:37:33.698357Z",
+      "deadline": {
+        "at": "2026-10-02T15:00:00Z",
+        "precision": "day",
+        "raw": "2026-10-03"
+      },
+      "posted_region": null,
+      "found_in": [
+        "부산 해운대구"
+      ],
+      "recommendation": "recommended",
+      "priority": {
+        "total": 88,
+        "unknown_factors": 0
+      },
+      "reasons": [
+        {
+          "tone": "positive",
+          "text": "구매 의뢰 명시"
+        },
+        {
+          "tone": "positive",
+          "text": "재택·온라인 명시"
+        },
+        {
+          "tone": "positive",
+          "text": "예산 150만원"
+        }
+      ],
+      "user_mark": null,
+      "sales_stage": "new",
+      "has_memo": false,
+      "active_job": null
+    }
+  ],
+  "next_cursor": null,
+  "has_more": false
+}

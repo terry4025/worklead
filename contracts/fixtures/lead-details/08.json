@@ -1,0 +1,310 @@
+{
+  "id": "lead_01a0dbca2194cdb988ef0b",
+  "source_id": "demo-synthetic",
+  "title": "치과 홈페이지 제작 의뢰 (기존 도메인 있음)",
+  "categories": [
+    "website"
+  ],
+  "demand_intent": {
+    "value": "buyer_project",
+    "basis": "explicit"
+  },
+  "engagement_type": {
+    "value": "project",
+    "basis": "explicit"
+  },
+  "work_mode": {
+    "value": "fully_remote",
+    "basis": "explicit"
+  },
+  "collaboration_mode": {
+    "value": "unknown",
+    "basis": null
+  },
+  "applicant_scope": {
+    "value": "unknown",
+    "basis": null
+  },
+  "pay": {
+    "raw": "원격 작업 가능. 예산 200만원.",
+    "currency": "KRW",
+    "min": 2000000,
+    "max": 2000000,
+    "unit": "project",
+    "negotiable": false
+  },
+  "source_status": "open",
+  "access_status": "blocked",
+  "analysis_status": "rules_only",
+  "recheck_due": true,
+  "last_checked_at": "2026-09-24T01:37:32.124333Z",
+  "published": {
+    "at": "2026-09-22T19:37:32.124333Z",
+    "precision": "exact",
+    "raw": null
+  },
+  "first_seen_at": "2026-09-22T23:37:32.124333Z",
+  "deadline": {
+    "at": null,
+    "precision": "unknown",
+    "raw": null
+  },
+  "posted_region": "울산 남구",
+  "found_in": [
+    "울산 남구"
+  ],
+  "recommendation": "needs_review",
+  "priority": {
+    "total": 72,
+    "unknown_factors": 0
+  },
+  "reasons": [
+    {
+      "tone": "caution",
+      "text": "접근 차단 — 모집 상태 확인 불가"
+    },
+    {
+      "tone": "caution",
+      "text": "진행 방식(대면 여부) 미확인"
+    },
+    {
+      "tone": "positive",
+      "text": "구매 의뢰 명시"
+    }
+  ],
+  "user_mark": null,
+  "sales_stage": "new",
+  "has_memo": false,
+  "active_job": null,
+  "body_text": "치과 홈페이지 새로 제작 의뢰드립니다. 기존 도메인은 있고 호스팅은 새로 알아보려 합니다.\n진료 안내, 의료진 소개, 온라인 상담 신청 페이지 필요합니다.\n원격 작업 가능. 예산 200만원.",
+  "body_retained_until": "2026-10-22T23:37:32.124333Z",
+  "original_url": null,
+  "contact_channel": "원문에서 직접 (데모)",
+  "workplace": null,
+  "applicant_region": null,
+  "source_updated": {
+    "at": null,
+    "precision": "unknown",
+    "raw": null
+  },
+  "last_seen_at": "2026-09-22T23:37:32.124333Z",
+  "work_period": {
+    "start": {
+      "at": null,
+      "precision": "unknown",
+      "raw": null
+    },
+    "end": {
+      "at": null,
+      "precision": "unknown",
+      "raw": null
+    }
+  },
+  "evidence": {
+    "demand_intent": [
+      {
+        "id": "ev_01a0dbca21a008e48b3ef1",
+        "quote": "치과 홈페이지 새로 제작 의뢰드립니다.",
+        "span": {
+          "start": 0,
+          "end": 21
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca21933e606debb2",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "pay": [
+      {
+        "id": "ev_01a0dbca21a06393bb3b73",
+        "quote": "원격 작업 가능. 예산 200만원.",
+        "span": {
+          "start": 87,
+          "end": 106
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca21933e606debb2",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "work_mode": [
+      {
+        "id": "ev_01a0dbca21a0d4d9ef79b4",
+        "quote": "원격 작업 가능.",
+        "span": {
+          "start": 87,
+          "end": 96
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca21933e606debb2",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "engagement_type": [
+      {
+        "id": "ev_01a0dbca21a0fb5ee56a96",
+        "quote": "치과 홈페이지 새로 제작 의뢰드립니다.",
+        "span": {
+          "start": 0,
+          "end": 21
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca21933e606debb2",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ]
+  },
+  "score": {
+    "total": 72,
+    "factors": [
+      {
+        "key": "work_fit",
+        "label": "업무 적합성",
+        "max": 30,
+        "score": 27,
+        "reason": "웹사이트 — 제공 서비스와 일치"
+      },
+      {
+        "key": "buyer_intent",
+        "label": "구매 의도",
+        "max": 25,
+        "score": 23,
+        "reason": "구매 표현 명시"
+      },
+      {
+        "key": "remote_fit",
+        "label": "원격 적합성",
+        "max": 20,
+        "score": 17,
+        "reason": "재택 명시, 진행 방식 일부 불명확"
+      },
+      {
+        "key": "freshness",
+        "label": "최신성",
+        "max": 15,
+        "score": 2,
+        "reason": "게시 3일 전 · 모집 재확인 필요"
+      },
+      {
+        "key": "scope_clarity",
+        "label": "범위 명확성",
+        "max": 10,
+        "score": 3,
+        "reason": "업무 내용이 거의 없음"
+      }
+    ],
+    "risk_penalty": {
+      "score": 0,
+      "reasons": []
+    },
+    "rule_version": "rules-2026.09.1"
+  },
+  "analysis": {
+    "status": "rules_only",
+    "summary": "치과 홈페이지 새로 제작 의뢰드립니다.",
+    "summary_engine": "rules",
+    "fit": [
+      "웹사이트 업무",
+      "구매 수요",
+      "재택 명시"
+    ],
+    "unfit": [],
+    "uncertain": [
+      "현재 모집 여부",
+      "세부 요구 범위"
+    ],
+    "deliverables": [],
+    "tech_requirements": [],
+    "questions": [
+      "아직 작업자를 찾고 계신가요?",
+      "필요한 기능이나 페이지 목록을 받을 수 있을까요?",
+      "희망하시는 완료 일정이 있으신가요?"
+    ],
+    "next_action": "원문을 직접 열어 모집 여부 확인",
+    "conversion_opportunity": null,
+    "engine": "rules",
+    "version": "rules-2026.09.1",
+    "analyzed_at": "2026-09-22T23:37:32.124333Z",
+    "failure": null
+  },
+  "risks": [],
+  "profitability": {
+    "status": "calculated",
+    "basis": "게시 금액 예산 200만원",
+    "reason": null,
+    "assumptions": [
+      "투입 시간은 규칙 추정치 (웹사이트 기준 34시간, 요구 확인·개발·테스트·배포·소통·수정·지원 포함)",
+      "확인된 직접 비용 없음 — 확인되지 않은 세금·수수료는 반영하지 않음"
+    ],
+    "scenarios": [
+      {
+        "key": "conservative",
+        "contract_value": 2000000,
+        "direct_cost": 0,
+        "hours": 45.0,
+        "contribution": 2000000,
+        "effective_hourly": 44444,
+        "residual_after_target": null
+      },
+      {
+        "key": "base",
+        "contract_value": 2000000,
+        "direct_cost": 0,
+        "hours": 34.0,
+        "contribution": 2000000,
+        "effective_hourly": 58824,
+        "residual_after_target": null
+      },
+      {
+        "key": "optimistic",
+        "contract_value": 2000000,
+        "direct_cost": 0,
+        "hours": 25.0,
+        "contribution": 2000000,
+        "effective_hourly": 80000,
+        "residual_after_target": null
+      }
+    ],
+    "revenue_type": "one_time",
+    "target_hourly": null
+  },
+  "draft": null,
+  "memo": "",
+  "outcomes": [],
+  "related": [],
+  "discovery_paths": [
+    {
+      "region_scope": "울산 남구",
+      "region_label": "울산 남구",
+      "query_group": "demo",
+      "first_seen_at": "2026-09-22T23:37:32.124333Z",
+      "last_seen_at": "2026-09-22T23:37:32.124333Z",
+      "times_seen": 1
+    }
+  ],
+  "activity": [
+    {
+      "at": "2026-09-22T23:37:32.124333Z",
+      "kind": "created",
+      "text": "신규 탐색에서 발견"
+    }
+  ],
+  "feedback": {
+    "remote": null,
+    "real_request": null
+  },
+  "parser_version": "demo",
+  "content_hash": "dfe7ff9f33cfd1033ef2737ba6c45efa490827b043fd5b5ebd3c9cfa2a8582dd"
+}

@@ -1,0 +1,336 @@
+{
+  "id": "lead_01a0dbca20e55c6dec69de",
+  "source_id": "demo-synthetic",
+  "title": "스마트스토어 주문 엑셀 정리 매크로(VBA) 만들어주실 분",
+  "categories": [
+    "vba",
+    "data"
+  ],
+  "demand_intent": {
+    "value": "buyer_project",
+    "basis": "explicit"
+  },
+  "engagement_type": {
+    "value": "project",
+    "basis": "inferred"
+  },
+  "work_mode": {
+    "value": "fully_remote",
+    "basis": "explicit"
+  },
+  "collaboration_mode": {
+    "value": "online_only",
+    "basis": "explicit"
+  },
+  "applicant_scope": {
+    "value": "nationwide",
+    "basis": "explicit"
+  },
+  "pay": {
+    "raw": "예산: 50~80만원 (범위 확인 후 조정 가능)",
+    "currency": "KRW",
+    "min": 500000,
+    "max": 800000,
+    "unit": "project",
+    "negotiable": true
+  },
+  "source_status": "open",
+  "access_status": "accessible",
+  "analysis_status": "rules_only",
+  "recheck_due": false,
+  "last_checked_at": "2026-09-26T01:37:32.124333Z",
+  "published": {
+    "at": "2026-09-25T01:37:32.124333Z",
+    "precision": "exact",
+    "raw": null
+  },
+  "first_seen_at": "2026-09-25T07:37:32.124333Z",
+  "deadline": {
+    "at": "2026-10-02T15:00:00Z",
+    "precision": "day",
+    "raw": "10월 3일까지"
+  },
+  "posted_region": "경기 성남시 분당구",
+  "found_in": [
+    "경기 성남시 분당구"
+  ],
+  "recommendation": "recommended",
+  "priority": {
+    "total": 92,
+    "unknown_factors": 0
+  },
+  "reasons": [
+    {
+      "tone": "positive",
+      "text": "구매 의뢰 명시"
+    },
+    {
+      "tone": "positive",
+      "text": "재택·온라인 명시"
+    },
+    {
+      "tone": "positive",
+      "text": "전국 지원"
+    }
+  ],
+  "user_mark": null,
+  "sales_stage": "new",
+  "has_memo": false,
+  "active_job": null,
+  "body_text": "스마트스토어에서 내려받는 주문 엑셀을 매일 손으로 정리하고 있습니다.\n주문 파일을 넣으면 택배 송장 양식과 일별 매출 시트로 자동 정리되는 매크로를 만들어주실 분 구합니다.\n\n- 엑셀 2019 사용 중, 파일 샘플 제공 가능\n- 작업은 전 과정 원격으로 진행합니다. 자료는 메일과 카톡으로 드려요.\n- 지역 상관없이 지원 가능합니다.\n- 예산: 50~80만원 (범위 확인 후 조정 가능)\n- 10월 3일까지 지원 받습니다.",
+  "body_retained_until": "2026-10-25T07:37:32.124333Z",
+  "original_url": null,
+  "contact_channel": "원문에서 직접 (데모)",
+  "workplace": null,
+  "applicant_region": null,
+  "source_updated": {
+    "at": null,
+    "precision": "unknown",
+    "raw": null
+  },
+  "last_seen_at": "2026-09-25T07:37:32.124333Z",
+  "work_period": {
+    "start": {
+      "at": null,
+      "precision": "unknown",
+      "raw": null
+    },
+    "end": {
+      "at": null,
+      "precision": "unknown",
+      "raw": null
+    }
+  },
+  "evidence": {
+    "deadline": [
+      {
+        "id": "ev_01a0dbca210652d71bc532",
+        "quote": "10월 3일까지",
+        "span": {
+          "start": 219,
+          "end": 227
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca20e265137a8169",
+        "version": "rules-2026.09.1",
+        "note": "구인 마감일 (근무일·납기와 다름)"
+      }
+    ],
+    "demand_intent": [
+      {
+        "id": "ev_01a0dbca21065e52cd8acb",
+        "quote": "주문 파일을 넣으면 택배 송장 양식과 일별 매출 시트로 자동 정리되는 매크로를 만들어주실 분 구합니다.",
+        "span": {
+          "start": 39,
+          "end": 96
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca20e265137a8169",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "applicant_scope": [
+      {
+        "id": "ev_01a0dbca21068c4091593d",
+        "quote": "지역 상관없이 지원 가능합니다.",
+        "span": {
+          "start": 169,
+          "end": 186
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca20e265137a8169",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "work_mode": [
+      {
+        "id": "ev_01a0dbca210699e80c1c0b",
+        "quote": "작업은 전 과정 원격으로 진행합니다.",
+        "span": {
+          "start": 128,
+          "end": 148
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca20e265137a8169",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "collaboration_mode": [
+      {
+        "id": "ev_01a0dbca2106a168435afc",
+        "quote": "작업은 전 과정 원격으로 진행합니다.",
+        "span": {
+          "start": 128,
+          "end": 148
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca20e265137a8169",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "pay": [
+      {
+        "id": "ev_01a0dbca2106eb45d7c4b4",
+        "quote": "예산: 50~80만원 (범위 확인 후 조정 가능)",
+        "span": {
+          "start": 189,
+          "end": 216
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca20e265137a8169",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ]
+  },
+  "score": {
+    "total": 92,
+    "factors": [
+      {
+        "key": "work_fit",
+        "label": "업무 적합성",
+        "max": 30,
+        "score": 27,
+        "reason": "엑셀·VBA·매크로, 데이터 정리 — 제공 서비스와 일치"
+      },
+      {
+        "key": "buyer_intent",
+        "label": "구매 의도",
+        "max": 25,
+        "score": 23,
+        "reason": "구매 표현 명시"
+      },
+      {
+        "key": "remote_fit",
+        "label": "원격 적합성",
+        "max": 20,
+        "score": 20,
+        "reason": "재택·온라인 진행 명시"
+      },
+      {
+        "key": "freshness",
+        "label": "최신성",
+        "max": 15,
+        "score": 12,
+        "reason": "게시 26시간 전"
+      },
+      {
+        "key": "scope_clarity",
+        "label": "범위 명확성",
+        "max": 10,
+        "score": 10,
+        "reason": "요구 범위 구체적"
+      }
+    ],
+    "risk_penalty": {
+      "score": 0,
+      "reasons": []
+    },
+    "rule_version": "rules-2026.09.1"
+  },
+  "analysis": {
+    "status": "rules_only",
+    "summary": "스마트스토어에서 내려받는 주문 엑셀을 매일 손으로 정리하고 있습니다.",
+    "summary_engine": "rules",
+    "fit": [
+      "엑셀·VBA·매크로, 데이터 정리 업무",
+      "구매 수요",
+      "재택 명시"
+    ],
+    "unfit": [],
+    "uncertain": [],
+    "deliverables": [],
+    "tech_requirements": [],
+    "questions": [],
+    "next_action": null,
+    "conversion_opportunity": null,
+    "engine": "rules",
+    "version": "rules-2026.09.1",
+    "analyzed_at": "2026-09-25T07:37:32.124333Z",
+    "failure": null
+  },
+  "risks": [],
+  "profitability": {
+    "status": "calculated",
+    "basis": "게시 금액 예산 50만원~80만원",
+    "reason": null,
+    "assumptions": [
+      "투입 시간은 규칙 추정치 (엑셀·VBA·매크로 기준 16시간, 요구 확인·개발·테스트·배포·소통·수정·지원 포함)",
+      "확인된 직접 비용 없음 — 확인되지 않은 세금·수수료는 반영하지 않음"
+    ],
+    "scenarios": [
+      {
+        "key": "conservative",
+        "contract_value": 500000,
+        "direct_cost": 0,
+        "hours": 22.0,
+        "contribution": 500000,
+        "effective_hourly": 22727,
+        "residual_after_target": null
+      },
+      {
+        "key": "base",
+        "contract_value": 650000,
+        "direct_cost": 0,
+        "hours": 16.0,
+        "contribution": 650000,
+        "effective_hourly": 40625,
+        "residual_after_target": null
+      },
+      {
+        "key": "optimistic",
+        "contract_value": 800000,
+        "direct_cost": 0,
+        "hours": 12.0,
+        "contribution": 800000,
+        "effective_hourly": 66667,
+        "residual_after_target": null
+      }
+    ],
+    "revenue_type": "one_time",
+    "target_hourly": null
+  },
+  "draft": null,
+  "memo": "",
+  "outcomes": [],
+  "related": [],
+  "discovery_paths": [
+    {
+      "region_scope": "경기 성남시 분당구",
+      "region_label": "경기 성남시 분당구",
+      "query_group": "demo",
+      "first_seen_at": "2026-09-25T07:37:32.124333Z",
+      "last_seen_at": "2026-09-25T07:37:32.124333Z",
+      "times_seen": 1
+    }
+  ],
+  "activity": [
+    {
+      "at": "2026-09-25T07:37:32.124333Z",
+      "kind": "created",
+      "text": "신규 탐색에서 발견"
+    }
+  ],
+  "feedback": {
+    "remote": null,
+    "real_request": null
+  },
+  "parser_version": "demo",
+  "content_hash": "fdbd7eb93ff51453649bcdabb7c71c0cd5a770fca65050eeaf9d64c00c5ecb09"
+}

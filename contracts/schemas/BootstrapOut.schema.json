@@ -1,0 +1,119 @@
+{
+  "$defs": {
+    "CategoryOut": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ],
+      "title": "CategoryOut",
+      "type": "object"
+    },
+    "QueueOut": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "enum": [
+            "recommended",
+            "needs_review",
+            "interested",
+            "active",
+            "dismissed",
+            "auto_excluded",
+            "all"
+          ],
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "description"
+      ],
+      "title": "QueueOut",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "mode": {
+      "enum": [
+        "live",
+        "demo"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "app_version": {
+      "title": "App Version",
+      "type": "string"
+    },
+    "api_version": {
+      "title": "Api Version",
+      "type": "string"
+    },
+    "contract_version": {
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "server_time": {
+      "format": "date-time",
+      "title": "Server Time",
+      "type": "string"
+    },
+    "categories": {
+      "items": {
+        "$ref": "#/$defs/CategoryOut"
+      },
+      "title": "Categories",
+      "type": "array"
+    },
+    "queues": {
+      "items": {
+        "$ref": "#/$defs/QueueOut"
+      },
+      "title": "Queues",
+      "type": "array"
+    },
+    "recheck_ttl_hours": {
+      "title": "Recheck Ttl Hours",
+      "type": "integer"
+    },
+    "event_seq": {
+      "title": "Event Seq",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "mode",
+    "app_version",
+    "api_version",
+    "contract_version",
+    "server_time",
+    "categories",
+    "queues",
+    "recheck_ttl_hours",
+    "event_seq"
+  ],
+  "title": "BootstrapOut",
+  "type": "object"
+}

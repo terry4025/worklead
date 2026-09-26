@@ -1,0 +1,559 @@
+{
+  "$defs": {
+    "AutoCollect": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "interval_minutes": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Interval Minutes"
+        }
+      },
+      "required": [
+        "enabled",
+        "interval_minutes"
+      ],
+      "title": "AutoCollect",
+      "type": "object"
+    },
+    "Budget": {
+      "additionalProperties": false,
+      "properties": {
+        "used": {
+          "title": "Used",
+          "type": "integer"
+        },
+        "limit": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Limit"
+        },
+        "unit_label": {
+          "title": "Unit Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "used",
+        "limit",
+        "unit_label"
+      ],
+      "title": "Budget",
+      "type": "object"
+    },
+    "Capability": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "support": {
+          "enum": [
+            "supported",
+            "unsupported",
+            "unverified"
+          ],
+          "title": "Support",
+          "type": "string"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Note"
+        }
+      },
+      "required": [
+        "key",
+        "label",
+        "support",
+        "note"
+      ],
+      "title": "Capability",
+      "type": "object"
+    },
+    "Coverage": {
+      "additionalProperties": false,
+      "properties": {
+        "target_label": {
+          "description": "탐색 목표 (예: 전국). 실제 확인 범위와 별개",
+          "title": "Target Label",
+          "type": "string"
+        },
+        "region_list_status": {
+          "enum": [
+            "verified",
+            "unverified",
+            "not_applicable",
+            "unknown"
+          ],
+          "title": "Region List Status",
+          "type": "string"
+        },
+        "unit_label": {
+          "title": "Unit Label",
+          "type": "string"
+        },
+        "planned": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Planned"
+        },
+        "completed": {
+          "title": "Completed",
+          "type": "integer"
+        },
+        "pending": {
+          "title": "Pending",
+          "type": "integer"
+        },
+        "blocked": {
+          "title": "Blocked",
+          "type": "integer"
+        },
+        "failed": {
+          "title": "Failed",
+          "type": "integer"
+        },
+        "scan_cycle": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Scan Cycle"
+        },
+        "last_visited_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last Visited At"
+        },
+        "next_up": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Next Up"
+        },
+        "depth_limit": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Depth Limit"
+        },
+        "budget": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Budget"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "market_coverage": {
+          "const": "unknown",
+          "description": "원천 전체 모집단을 모르면 unknown",
+          "title": "Market Coverage",
+          "type": "string"
+        },
+        "target_units_total": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Target Units Total"
+        },
+        "target_units_covered": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Target Units Covered"
+        },
+        "estimated_cycle_days": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Estimated Cycle Days"
+        },
+        "notes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Notes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "target_label",
+        "region_list_status",
+        "unit_label",
+        "planned",
+        "completed",
+        "pending",
+        "blocked",
+        "failed",
+        "scan_cycle",
+        "last_visited_at",
+        "next_up",
+        "depth_limit",
+        "budget",
+        "market_coverage",
+        "target_units_total",
+        "target_units_covered",
+        "estimated_cycle_days",
+        "notes"
+      ],
+      "title": "Coverage",
+      "type": "object"
+    },
+    "Health": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "ok",
+            "degraded",
+            "blocked",
+            "error",
+            "paused",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "checked_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Checked At"
+        },
+        "message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Message"
+        },
+        "code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Code"
+        }
+      },
+      "required": [
+        "status",
+        "checked_at",
+        "message",
+        "code"
+      ],
+      "title": "Health",
+      "type": "object"
+    },
+    "Policy": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "permission_pending",
+            "allowed",
+            "restricted",
+            "blocked",
+            "not_required"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "basis": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Basis"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Note"
+        },
+        "reviewed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reviewed At"
+        },
+        "reviewed_by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reviewed By"
+        },
+        "robots_status": {
+          "title": "Robots Status",
+          "type": "string"
+        },
+        "robots_checked_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Robots Checked At"
+        },
+        "robots_summary": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Robots Summary"
+        }
+      },
+      "required": [
+        "status",
+        "basis",
+        "note",
+        "reviewed_at",
+        "reviewed_by",
+        "robots_status",
+        "robots_checked_at",
+        "robots_summary"
+      ],
+      "title": "Policy",
+      "type": "object"
+    },
+    "Research": {
+      "additionalProperties": false,
+      "properties": {
+        "ready": {
+          "title": "Ready",
+          "type": "boolean"
+        },
+        "missing": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Missing",
+          "type": "array"
+        }
+      },
+      "required": [
+        "ready",
+        "missing"
+      ],
+      "title": "Research",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "site",
+        "manual"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "scope_note": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Scope Note"
+    },
+    "adapter_version": {
+      "title": "Adapter Version",
+      "type": "string"
+    },
+    "policy": {
+      "$ref": "#/$defs/Policy"
+    },
+    "auto_collect": {
+      "$ref": "#/$defs/AutoCollect"
+    },
+    "health": {
+      "$ref": "#/$defs/Health"
+    },
+    "stopped_reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Stopped Reason"
+    },
+    "capabilities": {
+      "items": {
+        "$ref": "#/$defs/Capability"
+      },
+      "title": "Capabilities",
+      "type": "array"
+    },
+    "coverage": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Coverage"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "research": {
+      "$ref": "#/$defs/Research"
+    },
+    "last_run_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Last Run Id"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "kind",
+    "scope_note",
+    "adapter_version",
+    "policy",
+    "auto_collect",
+    "health",
+    "stopped_reason",
+    "capabilities",
+    "coverage",
+    "research",
+    "last_run_id"
+  ],
+  "title": "SourceOut",
+  "type": "object"
+}

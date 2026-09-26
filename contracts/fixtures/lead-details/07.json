@@ -1,0 +1,318 @@
+{
+  "id": "lead_01a0dbca21bb6be132c5c7",
+  "source_id": "demo-synthetic",
+  "title": "필라테스 센터 오픈 이벤트 랜딩페이지 제작",
+  "categories": [
+    "landing"
+  ],
+  "demand_intent": {
+    "value": "buyer_project",
+    "basis": "explicit"
+  },
+  "engagement_type": {
+    "value": "project",
+    "basis": "explicit"
+  },
+  "work_mode": {
+    "value": "fully_remote",
+    "basis": "explicit"
+  },
+  "collaboration_mode": {
+    "value": "unknown",
+    "basis": null
+  },
+  "applicant_scope": {
+    "value": "unknown",
+    "basis": null
+  },
+  "pay": {
+    "raw": "재택 작업 가능, 예산 80만원.",
+    "currency": "KRW",
+    "min": 800000,
+    "max": 800000,
+    "unit": "project",
+    "negotiable": false
+  },
+  "source_status": "closed",
+  "access_status": "accessible",
+  "analysis_status": "rules_only",
+  "recheck_due": false,
+  "last_checked_at": "2026-09-25T05:37:32.124333Z",
+  "published": {
+    "at": "2026-09-20T07:37:32.124333Z",
+    "precision": "exact",
+    "raw": null
+  },
+  "first_seen_at": "2026-09-20T17:37:32.124333Z",
+  "deadline": {
+    "at": null,
+    "precision": "unknown",
+    "raw": null
+  },
+  "posted_region": "경기 고양시",
+  "found_in": [
+    "경기 고양시"
+  ],
+  "recommendation": "excluded",
+  "priority": {
+    "total": 72,
+    "unknown_factors": 0
+  },
+  "reasons": [
+    {
+      "tone": "negative",
+      "text": "모집 마감 (원문 표시)"
+    }
+  ],
+  "user_mark": null,
+  "sales_stage": "new",
+  "has_memo": false,
+  "active_job": null,
+  "body_text": "[마감] 필라테스 센터 오픈 이벤트용 랜딩페이지 제작 의뢰합니다.\n재택 작업 가능, 예산 80만원.",
+  "body_retained_until": "2026-10-20T17:37:32.124333Z",
+  "original_url": null,
+  "contact_channel": "원문에서 직접 (데모)",
+  "workplace": null,
+  "applicant_region": null,
+  "source_updated": {
+    "at": null,
+    "precision": "unknown",
+    "raw": null
+  },
+  "last_seen_at": "2026-09-20T17:37:32.124333Z",
+  "work_period": {
+    "start": {
+      "at": null,
+      "precision": "unknown",
+      "raw": null
+    },
+    "end": {
+      "at": null,
+      "precision": "unknown",
+      "raw": null
+    }
+  },
+  "evidence": {
+    "demand_intent": [
+      {
+        "id": "ev_01a0dbca21c540ff922924",
+        "quote": "[마감] 필라테스 센터 오픈 이벤트용 랜딩페이지 제작 의뢰합니다.",
+        "span": {
+          "start": 0,
+          "end": 36
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca21bacdc93f2e46",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "pay": [
+      {
+        "id": "ev_01a0dbca21c558b23a0c67",
+        "quote": "재택 작업 가능, 예산 80만원.",
+        "span": {
+          "start": 37,
+          "end": 55
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca21bacdc93f2e46",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "source_status": [
+      {
+        "id": "ev_01a0dbca21c58b464cff6a",
+        "quote": "[마감]",
+        "span": {
+          "start": 0,
+          "end": 4
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca21bacdc93f2e46",
+        "version": "rules-2026.09.1",
+        "note": "원문 마감 표시"
+      }
+    ],
+    "work_mode": [
+      {
+        "id": "ev_01a0dbca21c5b6eb4a8931",
+        "quote": "재택 작업 가능, 예산 80만원.",
+        "span": {
+          "start": 37,
+          "end": 55
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca21bacdc93f2e46",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "engagement_type": [
+      {
+        "id": "ev_01a0dbca21c5ce16b5b094",
+        "quote": "[마감] 필라테스 센터 오픈 이벤트용 랜딩페이지 제작 의뢰합니다.",
+        "span": {
+          "start": 0,
+          "end": 36
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca21bacdc93f2e46",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ]
+  },
+  "score": {
+    "total": 72,
+    "factors": [
+      {
+        "key": "work_fit",
+        "label": "업무 적합성",
+        "max": 30,
+        "score": 27,
+        "reason": "랜딩페이지 — 제공 서비스와 일치"
+      },
+      {
+        "key": "buyer_intent",
+        "label": "구매 의도",
+        "max": 25,
+        "score": 23,
+        "reason": "구매 표현 명시"
+      },
+      {
+        "key": "remote_fit",
+        "label": "원격 적합성",
+        "max": 20,
+        "score": 17,
+        "reason": "재택 명시, 진행 방식 일부 불명확"
+      },
+      {
+        "key": "freshness",
+        "label": "최신성",
+        "max": 15,
+        "score": 0,
+        "reason": "마감"
+      },
+      {
+        "key": "scope_clarity",
+        "label": "범위 명확성",
+        "max": 10,
+        "score": 5,
+        "reason": "범위 일부만 명시"
+      }
+    ],
+    "risk_penalty": {
+      "score": 0,
+      "reasons": []
+    },
+    "rule_version": "rules-2026.09.1"
+  },
+  "analysis": {
+    "status": "rules_only",
+    "summary": "[마감] 필라테스 센터 오픈 이벤트용 랜딩페이지 제작 의뢰합니다.",
+    "summary_engine": "rules",
+    "fit": [
+      "랜딩페이지 업무",
+      "구매 수요",
+      "재택 명시"
+    ],
+    "unfit": [
+      "모집 마감 (원문 표시)"
+    ],
+    "uncertain": [
+      "세부 요구 범위"
+    ],
+    "deliverables": [],
+    "tech_requirements": [],
+    "questions": [
+      "필요한 기능이나 페이지 목록을 받을 수 있을까요?",
+      "희망하시는 완료 일정이 있으신가요?"
+    ],
+    "next_action": "검토 불필요",
+    "conversion_opportunity": null,
+    "engine": "rules",
+    "version": "rules-2026.09.1",
+    "analyzed_at": "2026-09-20T17:37:32.124333Z",
+    "failure": null
+  },
+  "risks": [],
+  "profitability": {
+    "status": "calculated",
+    "basis": "게시 금액 예산 80만원",
+    "reason": null,
+    "assumptions": [
+      "투입 시간은 규칙 추정치 (랜딩페이지 기준 20시간, 요구 확인·개발·테스트·배포·소통·수정·지원 포함)",
+      "확인된 직접 비용 없음 — 확인되지 않은 세금·수수료는 반영하지 않음"
+    ],
+    "scenarios": [
+      {
+        "key": "conservative",
+        "contract_value": 800000,
+        "direct_cost": 0,
+        "hours": 27.0,
+        "contribution": 800000,
+        "effective_hourly": 29630,
+        "residual_after_target": null
+      },
+      {
+        "key": "base",
+        "contract_value": 800000,
+        "direct_cost": 0,
+        "hours": 20.0,
+        "contribution": 800000,
+        "effective_hourly": 40000,
+        "residual_after_target": null
+      },
+      {
+        "key": "optimistic",
+        "contract_value": 800000,
+        "direct_cost": 0,
+        "hours": 15.0,
+        "contribution": 800000,
+        "effective_hourly": 53333,
+        "residual_after_target": null
+      }
+    ],
+    "revenue_type": "one_time",
+    "target_hourly": null
+  },
+  "draft": null,
+  "memo": "",
+  "outcomes": [],
+  "related": [],
+  "discovery_paths": [
+    {
+      "region_scope": "경기 고양시",
+      "region_label": "경기 고양시",
+      "query_group": "demo",
+      "first_seen_at": "2026-09-20T17:37:32.124333Z",
+      "last_seen_at": "2026-09-20T17:37:32.124333Z",
+      "times_seen": 1
+    }
+  ],
+  "activity": [
+    {
+      "at": "2026-09-20T17:37:32.124333Z",
+      "kind": "created",
+      "text": "신규 탐색에서 발견"
+    }
+  ],
+  "feedback": {
+    "remote": null,
+    "real_request": null
+  },
+  "parser_version": "demo",
+  "content_hash": "7ef4fe41e48d6bf9b0b69ecb4797945db36708b2ac6886f731fc93092779aa28"
+}

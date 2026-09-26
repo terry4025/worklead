@@ -1,0 +1,180 @@
+{
+  "items": [
+    {
+      "id": "fixture-site",
+      "name": "합성 테스트 사이트",
+      "kind": "site",
+      "scope_note": "테스트 전용",
+      "adapter_version": "test",
+      "policy": {
+        "status": "allowed",
+        "basis": "합성 테스트 사이트",
+        "note": null,
+        "reviewed_at": null,
+        "reviewed_by": "system",
+        "robots_status": "unchecked",
+        "robots_checked_at": null,
+        "robots_summary": null
+      },
+      "auto_collect": {
+        "enabled": false,
+        "interval_minutes": 180
+      },
+      "health": {
+        "status": "degraded",
+        "checked_at": "2026-09-26T03:37:33.739433Z",
+        "message": "요청 제한 응답(429) — Retry-After 까지 유예합니다",
+        "code": "rate_limited"
+      },
+      "stopped_reason": null,
+      "capabilities": [
+        {
+          "key": "nationwide_search",
+          "label": "전국 단일 검색",
+          "support": "unverified",
+          "note": null
+        },
+        {
+          "key": "region_search",
+          "label": "지역별 검색",
+          "support": "supported",
+          "note": null
+        },
+        {
+          "key": "remote_filter",
+          "label": "재택 전용 필터",
+          "support": "unverified",
+          "note": null
+        },
+        {
+          "key": "sort",
+          "label": "정렬",
+          "support": "unverified",
+          "note": null
+        },
+        {
+          "key": "pagination",
+          "label": "페이지 이동",
+          "support": "unverified",
+          "note": null
+        },
+        {
+          "key": "incremental",
+          "label": "증분 수집",
+          "support": "unverified",
+          "note": null
+        },
+        {
+          "key": "detail",
+          "label": "상세 조회",
+          "support": "supported",
+          "note": null
+        },
+        {
+          "key": "revalidate",
+          "label": "상태 재확인",
+          "support": "unverified",
+          "note": null
+        },
+        {
+          "key": "structured_data",
+          "label": "구조화 데이터",
+          "support": "unverified",
+          "note": null
+        }
+      ],
+      "coverage": {
+        "target_label": "전국",
+        "region_list_status": "unverified",
+        "unit_label": "지역×검색어",
+        "planned": 5,
+        "completed": 1,
+        "pending": 4,
+        "blocked": 0,
+        "failed": 0,
+        "scan_cycle": 1,
+        "last_visited_at": "2026-09-26T03:37:33.728510Z",
+        "next_up": "부산 수영구 · 홈페이지",
+        "depth_limit": 2,
+        "budget": {
+          "used": 5,
+          "limit": 500,
+          "unit_label": "요청/일"
+        },
+        "market_coverage": "unknown",
+        "target_units_total": 17,
+        "target_units_covered": 3,
+        "estimated_cycle_days": 0.0,
+        "notes": [
+          "지역 목록의 전체성이 확인되지 않아 부분 탐색으로 표시합니다",
+          "전국 17개 시·도 중 3곳만 지역 목록 확보"
+        ]
+      },
+      "research": {
+        "ready": true,
+        "missing": []
+      },
+      "last_run_id": "run_01a0dbca26e44c6382c838"
+    },
+    {
+      "id": "manual",
+      "name": "수동 입력",
+      "kind": "manual",
+      "scope_note": "직접 확보한 글을 붙여넣거나 CSV·JSON 파일로 입력",
+      "adapter_version": "0.1.0",
+      "policy": {
+        "status": "not_required",
+        "basis": null,
+        "note": null,
+        "reviewed_at": null,
+        "reviewed_by": "system",
+        "robots_status": "unchecked",
+        "robots_checked_at": null,
+        "robots_summary": null
+      },
+      "auto_collect": {
+        "enabled": false,
+        "interval_minutes": null
+      },
+      "health": {
+        "status": "ok",
+        "checked_at": null,
+        "message": null,
+        "code": null
+      },
+      "stopped_reason": null,
+      "capabilities": [
+        {
+          "key": "import_text",
+          "label": "텍스트 붙여넣기",
+          "support": "supported",
+          "note": null
+        },
+        {
+          "key": "import_csv",
+          "label": "CSV 가져오기",
+          "support": "supported",
+          "note": "최대 1000행, 2MB"
+        },
+        {
+          "key": "import_json",
+          "label": "JSON 가져오기",
+          "support": "supported",
+          "note": null
+        },
+        {
+          "key": "revalidate",
+          "label": "상태 재확인",
+          "support": "unsupported",
+          "note": "원문을 대신 내려받지 않습니다"
+        }
+      ],
+      "coverage": null,
+      "research": {
+        "ready": true,
+        "missing": []
+      },
+      "last_run_id": null
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "job_id": {
+      "title": "Job Id",
+      "type": "string"
+    },
+    "run_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Run Id"
+    }
+  },
+  "required": [
+    "job_id",
+    "run_id"
+  ],
+  "title": "JobAccepted",
+  "type": "object"
+}

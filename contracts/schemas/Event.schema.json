@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Event",
+  "description": "SSE data. id: 이벤트 ID, seq: 이어받기 순서값, at: 발생 시각(UTC), type 별 참조 ID 포함",
+  "type": "object",
+  "required": [
+    "id",
+    "seq",
+    "type",
+    "at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "seq": {
+      "type": "integer"
+    },
+    "at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "type": {
+      "enum": [
+        "run.progress",
+        "run.state_changed",
+        "lead.created",
+        "lead.updated",
+        "source.health_changed",
+        "analysis.completed",
+        "notification.created",
+        "stream.reset"
+      ]
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "lead_id": {
+      "type": "string"
+    },
+    "source_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": true
+}

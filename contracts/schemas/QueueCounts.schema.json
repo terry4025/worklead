@@ -1,0 +1,28 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "counts": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "propertyNames": {
+        "enum": [
+          "recommended",
+          "needs_review",
+          "interested",
+          "active",
+          "dismissed",
+          "auto_excluded",
+          "all"
+        ]
+      },
+      "title": "Counts",
+      "type": "object"
+    }
+  },
+  "required": [
+    "counts"
+  ],
+  "title": "QueueCounts",
+  "type": "object"
+}

@@ -1,0 +1,310 @@
+{
+  "id": "lead_01a0dbca21f2e37affe97b",
+  "source_id": "demo-synthetic",
+  "title": "플라워샵 꽃 정기구독 신청 랜딩페이지",
+  "categories": [
+    "landing"
+  ],
+  "demand_intent": {
+    "value": "buyer_project",
+    "basis": "explicit"
+  },
+  "engagement_type": {
+    "value": "project",
+    "basis": "inferred"
+  },
+  "work_mode": {
+    "value": "fully_remote",
+    "basis": "explicit"
+  },
+  "collaboration_mode": {
+    "value": "online_only",
+    "basis": "explicit"
+  },
+  "applicant_scope": {
+    "value": "unknown",
+    "basis": null
+  },
+  "pay": {
+    "raw": "온라인으로만 진행 가능하신 분, 재택 환영합니다. 예산 100만원 내외.",
+    "currency": "KRW",
+    "min": 1000000,
+    "max": 1000000,
+    "unit": "project",
+    "negotiable": false
+  },
+  "source_status": "open",
+  "access_status": "accessible",
+  "analysis_status": "rules_only",
+  "recheck_due": true,
+  "last_checked_at": "2026-09-24T21:37:32.124333Z",
+  "published": {
+    "at": "2026-09-21T03:37:32.124333Z",
+    "precision": "exact",
+    "raw": null
+  },
+  "first_seen_at": "2026-09-21T05:37:32.124333Z",
+  "deadline": {
+    "at": null,
+    "precision": "unknown",
+    "raw": null
+  },
+  "posted_region": "경기 수원시",
+  "found_in": [
+    "경기 수원시"
+  ],
+  "recommendation": "needs_review",
+  "priority": {
+    "total": 75,
+    "unknown_factors": 0
+  },
+  "reasons": [
+    {
+      "tone": "caution",
+      "text": "모집 재확인 필요"
+    },
+    {
+      "tone": "positive",
+      "text": "구매 의뢰 명시"
+    },
+    {
+      "tone": "positive",
+      "text": "재택·온라인 명시"
+    }
+  ],
+  "user_mark": null,
+  "sales_stage": "negotiating",
+  "has_memo": true,
+  "active_job": null,
+  "body_text": "꽃 정기구독 서비스 신청을 받는 랜딩페이지를 만들고 싶습니다.\n결제는 스마트스토어 링크로 연결할 예정이에요.\n온라인으로만 진행 가능하신 분, 재택 환영합니다. 예산 100만원 내외.",
+  "body_retained_until": "2026-10-21T05:37:32.124333Z",
+  "original_url": null,
+  "contact_channel": "원문에서 직접 (데모)",
+  "workplace": null,
+  "applicant_region": null,
+  "source_updated": {
+    "at": null,
+    "precision": "unknown",
+    "raw": null
+  },
+  "last_seen_at": "2026-09-21T05:37:32.124333Z",
+  "work_period": {
+    "start": {
+      "at": null,
+      "precision": "unknown",
+      "raw": null
+    },
+    "end": {
+      "at": null,
+      "precision": "unknown",
+      "raw": null
+    }
+  },
+  "evidence": {
+    "work_mode": [
+      {
+        "id": "ev_01a0dbca21fc2a01ef6ae6",
+        "quote": "온라인으로만 진행 가능하신 분, 재택 환영합니다.",
+        "span": {
+          "start": 61,
+          "end": 88
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca21f10c25338508",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "demand_intent": [
+      {
+        "id": "ev_01a0dbca21fc9e92267117",
+        "quote": "꽃 정기구독 서비스 신청을 받는 랜딩페이지를 만들고 싶습니다.",
+        "span": {
+          "start": 0,
+          "end": 34
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca21f10c25338508",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "pay": [
+      {
+        "id": "ev_01a0dbca21fcc39f672713",
+        "quote": "온라인으로만 진행 가능하신 분, 재택 환영합니다. 예산 100만원 내외.",
+        "span": {
+          "start": 61,
+          "end": 101
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca21f10c25338508",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ],
+    "collaboration_mode": [
+      {
+        "id": "ev_01a0dbca21fcf56bd732c7",
+        "quote": "온라인으로만 진행 가능하신 분, 재택 환영합니다.",
+        "span": {
+          "start": 61,
+          "end": 88
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T03:37:32.124333Z",
+        "source_record_id": "rec_01a0dbca21f10c25338508",
+        "version": "rules-2026.09.1",
+        "note": null
+      }
+    ]
+  },
+  "score": {
+    "total": 75,
+    "factors": [
+      {
+        "key": "work_fit",
+        "label": "업무 적합성",
+        "max": 30,
+        "score": 27,
+        "reason": "랜딩페이지 — 제공 서비스와 일치"
+      },
+      {
+        "key": "buyer_intent",
+        "label": "구매 의도",
+        "max": 25,
+        "score": 23,
+        "reason": "구매 표현 명시"
+      },
+      {
+        "key": "remote_fit",
+        "label": "원격 적합성",
+        "max": 20,
+        "score": 20,
+        "reason": "재택·온라인 진행 명시"
+      },
+      {
+        "key": "freshness",
+        "label": "최신성",
+        "max": 15,
+        "score": 2,
+        "reason": "게시 5일 전 · 모집 재확인 필요"
+      },
+      {
+        "key": "scope_clarity",
+        "label": "범위 명확성",
+        "max": 10,
+        "score": 3,
+        "reason": "업무 내용이 거의 없음"
+      }
+    ],
+    "risk_penalty": {
+      "score": 0,
+      "reasons": []
+    },
+    "rule_version": "rules-2026.09.1"
+  },
+  "analysis": {
+    "status": "rules_only",
+    "summary": "꽃 정기구독 서비스 신청을 받는 랜딩페이지를 만들고 싶습니다.",
+    "summary_engine": "rules",
+    "fit": [
+      "랜딩페이지 업무",
+      "구매 수요",
+      "재택 명시"
+    ],
+    "unfit": [],
+    "uncertain": [
+      "현재 모집 여부",
+      "세부 요구 범위"
+    ],
+    "deliverables": [],
+    "tech_requirements": [],
+    "questions": [
+      "아직 작업자를 찾고 계신가요?",
+      "필요한 기능이나 페이지 목록을 받을 수 있을까요?",
+      "희망하시는 완료 일정이 있으신가요?"
+    ],
+    "next_action": "핵심 질문 확인 후 범위·일정 포함 견적 제시",
+    "conversion_opportunity": null,
+    "engine": "rules",
+    "version": "rules-2026.09.1",
+    "analyzed_at": "2026-09-21T05:37:32.124333Z",
+    "failure": null
+  },
+  "risks": [],
+  "profitability": {
+    "status": "calculated",
+    "basis": "게시 금액 예산 100만원",
+    "reason": null,
+    "assumptions": [
+      "투입 시간은 규칙 추정치 (랜딩페이지 기준 24시간, 요구 확인·개발·테스트·배포·소통·수정·지원 포함)",
+      "확인된 직접 비용 없음 — 확인되지 않은 세금·수수료는 반영하지 않음"
+    ],
+    "scenarios": [
+      {
+        "key": "conservative",
+        "contract_value": 1000000,
+        "direct_cost": 0,
+        "hours": 32.0,
+        "contribution": 1000000,
+        "effective_hourly": 31250,
+        "residual_after_target": null
+      },
+      {
+        "key": "base",
+        "contract_value": 1000000,
+        "direct_cost": 0,
+        "hours": 24.0,
+        "contribution": 1000000,
+        "effective_hourly": 41667,
+        "residual_after_target": null
+      },
+      {
+        "key": "optimistic",
+        "contract_value": 1000000,
+        "direct_cost": 0,
+        "hours": 18.0,
+        "contribution": 1000000,
+        "effective_hourly": 55556,
+        "residual_after_target": null
+      }
+    ],
+    "revenue_type": "one_time",
+    "target_hourly": null
+  },
+  "draft": null,
+  "memo": "견적 120만원 제시, 상대는 100만원 희망. 수정 횟수 줄이는 안으로 조율 중.",
+  "outcomes": [],
+  "related": [],
+  "discovery_paths": [
+    {
+      "region_scope": "경기 수원시",
+      "region_label": "경기 수원시",
+      "query_group": "demo",
+      "first_seen_at": "2026-09-21T05:37:32.124333Z",
+      "last_seen_at": "2026-09-21T05:37:32.124333Z",
+      "times_seen": 1
+    }
+  ],
+  "activity": [
+    {
+      "at": "2026-09-21T05:37:32.124333Z",
+      "kind": "created",
+      "text": "신규 탐색에서 발견"
+    }
+  ],
+  "feedback": {
+    "remote": null,
+    "real_request": null
+  },
+  "parser_version": "demo",
+  "content_hash": "9bbd22dcb00cdc5215569c59bb7c5312688d9507b45d29542b53e0b02d289c0e"
+}

@@ -189,8 +189,19 @@ def serve(argv: list[str] | None = None) -> int:
         ready = {"event": "ready", "port": port, "pid": os.getpid(), "version": APP_VERSION, "api": "v1", "mode": "demo" if cfg.demo else "live"}
         if not args.dev:
             ready["token"] = ctx.token
-        _emit_line(ready)
-        log.info("backend ready port=%s mode=%s", port, ready["mode"])
+        sock.listen(128)
+
+        def _announce_when_serving() -> None:
+            # 요청을 실제로 받을 수 있을 때만 준비 줄을 낸다 (셸이 바로 연결해도 거부되지 않도록)
+            for _ in range(1500):
+                if server.started:
+                    _emit_line(ready)
+                    log.info("backend ready port=%s mode=%s", port, ready["mode"])
+                    return
+                threading.Event().wait(0.02)
+            _emit_line({"event": "error", "code": "startup_timeout", "message": "서버 시작 시간이 초과되었습니다"})
+
+        threading.Thread(target=_announce_when_serving, name="ready-announce", daemon=True).start()
         try:
             server.run(sockets=[sock])
         finally:

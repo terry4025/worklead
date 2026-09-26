@@ -296,9 +296,22 @@
   max-width: 14rem;
   text-overflow: ellipsis;
 }
-.select.is-active select {
+.filterbar .select select {
+  border-color: transparent;
+  background-color: transparent;
+  color: var(--text-2);
+  padding-left: 8px;
+}
+.filterbar .select select:hover {
+  background-color: var(--surface);
+  border-color: var(--line);
+  color: var(--text);
+}
+.select.is-active select,
+.filterbar .select.is-active select {
   border-color: var(--accent-line);
   background-color: var(--accent-weak);
+  color: var(--text);
   font-weight: 600;
 }
 .select select:focus-visible,
@@ -791,8 +804,9 @@
   color: var(--accent);
 }
 .section-hint {
-  font-size: var(--fs-xs);
+  font-size: 0.75rem;
   color: var(--text-3);
+  opacity: 0.85;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1111,9 +1125,9 @@
 }
 .cond-row {
   display: grid;
-  grid-template-columns: 88px minmax(0, 1fr);
+  grid-template-columns: 84px minmax(0, 1fr);
   gap: 12px;
-  padding: 7px 0;
+  padding: 8px 0;
   border-top: 1px solid var(--line);
 }
 .cond-row:first-child {
@@ -1860,4 +1874,15 @@ input[aria-invalid='true'] {
   .policy-form {
     grid-template-columns: 1fr;
   }
+}
+
+/* 빈 상태·오류·불러오는 중일 때도 목록 바닥글은 아래에 둔다 */
+.pane-list > .state,
+.pane-list > .skeleton-list {
+  flex: 1 1 auto;
+  align-content: start;
+  padding-top: 8vh;
+}
+.pane-list > .skeleton-list {
+  padding-top: 4px;
 }

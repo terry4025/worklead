@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dc35a7bf57ec7e150d",
+  "id": "lead_01a0dc3c19d0e72052e30d",
   "source_id": "demo-synthetic",
   "title": "플라워샵 꽃 정기구독 신청 랜딩페이지",
   "categories": [
@@ -37,13 +37,13 @@
   "access_status": "accessible",
   "analysis_status": "rules_only",
   "recheck_due": true,
-  "last_checked_at": "2026-09-24T23:34:58.733792Z",
+  "last_checked_at": "2026-09-24T23:42:01.149126Z",
   "published": {
-    "at": "2026-09-21T05:34:58.733792Z",
+    "at": "2026-09-21T05:42:01.149126Z",
     "precision": "exact",
     "raw": null
   },
-  "first_seen_at": "2026-09-21T07:34:58.733792Z",
+  "first_seen_at": "2026-09-21T07:42:01.149126Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -77,7 +77,7 @@
   "has_memo": true,
   "active_job": null,
   "body_text": "꽃 정기구독 서비스 신청을 받는 랜딩페이지를 만들고 싶습니다.\n결제는 스마트스토어 링크로 연결할 예정이에요.\n온라인으로만 진행 가능하신 분, 재택 환영합니다. 예산 100만원 내외.",
-  "body_retained_until": "2026-10-21T07:34:58.733792Z",
+  "body_retained_until": "2026-10-21T07:42:01.149126Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -87,7 +87,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-21T07:34:58.733792Z",
+  "last_seen_at": "2026-09-21T07:42:01.149126Z",
   "work_period": {
     "start": {
       "at": null,
@@ -103,7 +103,7 @@
   "evidence": {
     "work_mode": [
       {
-        "id": "ev_01a0dc35a7c81cafc7601b",
+        "id": "ev_01a0dc3c19d91ce7d9ff54",
         "quote": "온라인으로만 진행 가능하신 분, 재택 환영합니다.",
         "span": {
           "start": 61,
@@ -111,47 +111,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:34:58.733792Z",
-        "source_record_id": "rec_01a0dc35a7be1020399236",
-        "version": "rules-2026.09.5",
-        "note": null
-      }
-    ],
-    "pay": [
-      {
-        "id": "ev_01a0dc35a7c82e0b02880a",
-        "quote": "예산 100만원 내외.",
-        "span": {
-          "start": 89,
-          "end": 101
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T05:34:58.733792Z",
-        "source_record_id": "rec_01a0dc35a7be1020399236",
-        "version": "rules-2026.09.5",
-        "note": null
-      }
-    ],
-    "collaboration_mode": [
-      {
-        "id": "ev_01a0dc35a7c851d4978161",
-        "quote": "온라인으로만 진행 가능하신 분, 재택 환영합니다.",
-        "span": {
-          "start": 61,
-          "end": 88
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T05:34:58.733792Z",
-        "source_record_id": "rec_01a0dc35a7be1020399236",
+        "observed_at": "2026-09-26T05:42:01.149126Z",
+        "source_record_id": "rec_01a0dc3c19cfd4d56f5fb0",
         "version": "rules-2026.09.5",
         "note": null
       }
     ],
     "demand_intent": [
       {
-        "id": "ev_01a0dc35a7c8a34714d967",
+        "id": "ev_01a0dc3c19d97b138decd4",
         "quote": "꽃 정기구독 서비스 신청을 받는 랜딩페이지를 만들고 싶습니다.",
         "span": {
           "start": 0,
@@ -159,8 +127,40 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:34:58.733792Z",
-        "source_record_id": "rec_01a0dc35a7be1020399236",
+        "observed_at": "2026-09-26T05:42:01.149126Z",
+        "source_record_id": "rec_01a0dc3c19cfd4d56f5fb0",
+        "version": "rules-2026.09.5",
+        "note": null
+      }
+    ],
+    "pay": [
+      {
+        "id": "ev_01a0dc3c19da41a5b37eb9",
+        "quote": "예산 100만원 내외.",
+        "span": {
+          "start": 89,
+          "end": 101
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T05:42:01.149126Z",
+        "source_record_id": "rec_01a0dc3c19cfd4d56f5fb0",
+        "version": "rules-2026.09.5",
+        "note": null
+      }
+    ],
+    "collaboration_mode": [
+      {
+        "id": "ev_01a0dc3c19da6f81bdab70",
+        "quote": "온라인으로만 진행 가능하신 분, 재택 환영합니다.",
+        "span": {
+          "start": 61,
+          "end": 88
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T05:42:01.149126Z",
+        "source_record_id": "rec_01a0dc3c19cfd4d56f5fb0",
         "version": "rules-2026.09.5",
         "note": null
       }
@@ -236,7 +236,7 @@
     "conversion_opportunity": null,
     "engine": "rules",
     "version": "rules-2026.09.5",
-    "analyzed_at": "2026-09-21T07:34:58.733792Z",
+    "analyzed_at": "2026-09-21T07:42:01.149126Z",
     "failure": null
   },
   "risks": [],
@@ -289,14 +289,14 @@
       "region_scope": "경기 수원시",
       "region_label": "경기 수원시",
       "query_group": "demo",
-      "first_seen_at": "2026-09-21T07:34:58.733792Z",
-      "last_seen_at": "2026-09-21T07:34:58.733792Z",
+      "first_seen_at": "2026-09-21T07:42:01.149126Z",
+      "last_seen_at": "2026-09-21T07:42:01.149126Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-21T07:34:58.733792Z",
+      "at": "2026-09-21T07:42:01.149126Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

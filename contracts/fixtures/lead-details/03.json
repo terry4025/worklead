@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dc35a7b2596060dda0",
+  "id": "lead_01a0dc3c19c0705f7cec42",
   "source_id": "demo-synthetic",
   "title": "소규모 법률사무소 홈페이지 제작",
   "categories": [
@@ -37,13 +37,13 @@
   "access_status": "accessible",
   "analysis_status": "rules_only",
   "recheck_due": false,
-  "last_checked_at": "2026-09-25T15:34:58.733792Z",
+  "last_checked_at": "2026-09-25T15:42:01.149126Z",
   "published": {
-    "at": "2026-09-23T17:34:58.733792Z",
+    "at": "2026-09-23T17:42:01.149126Z",
     "precision": "exact",
     "raw": null
   },
-  "first_seen_at": "2026-09-23T19:34:58.733792Z",
+  "first_seen_at": "2026-09-23T19:42:01.149126Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -77,7 +77,7 @@
   "has_memo": true,
   "active_job": null,
   "body_text": "변호사 2인 사무소 홈페이지 제작 의뢰합니다.\n업무분야 소개, 상담 예약 폼, 블로그형 칼럼 게시판이 필요합니다.\n전 과정 비대면 진행 원합니다. 예산 250만원.",
-  "body_retained_until": "2026-10-23T19:34:58.733792Z",
+  "body_retained_until": "2026-10-23T19:42:01.149126Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -87,7 +87,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-23T19:34:58.733792Z",
+  "last_seen_at": "2026-09-23T19:42:01.149126Z",
   "work_period": {
     "start": {
       "at": null,
@@ -103,7 +103,7 @@
   "evidence": {
     "demand_intent": [
       {
-        "id": "ev_01a0dc35a7bb4e79eb3538",
+        "id": "ev_01a0dc3c19ca72f97ff232",
         "quote": "변호사 2인 사무소 홈페이지 제작 의뢰합니다.",
         "span": {
           "start": 0,
@@ -111,15 +111,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:34:58.733792Z",
-        "source_record_id": "rec_01a0dc35a7b1db08f008a8",
+        "observed_at": "2026-09-26T05:42:01.149126Z",
+        "source_record_id": "rec_01a0dc3c19bf63547d0dc4",
         "version": "rules-2026.09.5",
         "note": null
       }
     ],
     "collaboration_mode": [
       {
-        "id": "ev_01a0dc35a7bb9f9e8b1dc1",
+        "id": "ev_01a0dc3c19ca8c3b799a76",
         "quote": "전 과정 비대면 진행 원합니다.",
         "span": {
           "start": 64,
@@ -127,15 +127,31 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:34:58.733792Z",
-        "source_record_id": "rec_01a0dc35a7b1db08f008a8",
+        "observed_at": "2026-09-26T05:42:01.149126Z",
+        "source_record_id": "rec_01a0dc3c19bf63547d0dc4",
+        "version": "rules-2026.09.5",
+        "note": null
+      }
+    ],
+    "engagement_type": [
+      {
+        "id": "ev_01a0dc3c19cae65a1cec4b",
+        "quote": "변호사 2인 사무소 홈페이지 제작 의뢰합니다.",
+        "span": {
+          "start": 0,
+          "end": 25
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T05:42:01.149126Z",
+        "source_record_id": "rec_01a0dc3c19bf63547d0dc4",
         "version": "rules-2026.09.5",
         "note": null
       }
     ],
     "pay": [
       {
-        "id": "ev_01a0dc35a7bba57cd5c068",
+        "id": "ev_01a0dc3c19caec47f8aa60",
         "quote": "예산 250만원.",
         "span": {
           "start": 82,
@@ -143,15 +159,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:34:58.733792Z",
-        "source_record_id": "rec_01a0dc35a7b1db08f008a8",
+        "observed_at": "2026-09-26T05:42:01.149126Z",
+        "source_record_id": "rec_01a0dc3c19bf63547d0dc4",
         "version": "rules-2026.09.5",
         "note": null
       }
     ],
     "work_mode": [
       {
-        "id": "ev_01a0dc35a7bbe0a46ec663",
+        "id": "ev_01a0dc3c19caf93f094e4f",
         "quote": "전 과정 비대면 진행 원합니다.",
         "span": {
           "start": 64,
@@ -159,24 +175,8 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:34:58.733792Z",
-        "source_record_id": "rec_01a0dc35a7b1db08f008a8",
-        "version": "rules-2026.09.5",
-        "note": null
-      }
-    ],
-    "engagement_type": [
-      {
-        "id": "ev_01a0dc35a7bbf324363708",
-        "quote": "변호사 2인 사무소 홈페이지 제작 의뢰합니다.",
-        "span": {
-          "start": 0,
-          "end": 25
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T05:34:58.733792Z",
-        "source_record_id": "rec_01a0dc35a7b1db08f008a8",
+        "observed_at": "2026-09-26T05:42:01.149126Z",
+        "source_record_id": "rec_01a0dc3c19bf63547d0dc4",
         "version": "rules-2026.09.5",
         "note": null
       }
@@ -250,7 +250,7 @@
     "conversion_opportunity": null,
     "engine": "rules",
     "version": "rules-2026.09.5",
-    "analyzed_at": "2026-09-23T19:34:58.733792Z",
+    "analyzed_at": "2026-09-23T19:42:01.149126Z",
     "failure": null
   },
   "risks": [],
@@ -296,7 +296,7 @@
   },
   "draft": {
     "text": "안녕하세요, 올려주신 글 보고 연락드립니다.\n'소규모 법률사무소 홈페이지 제작' 관련해 원격으로 작업 가능한지 여쭙고 싶습니다.\n\n[간단한 소개와 비슷한 작업 경험 — 직접 작성]\n\n진행 전에 몇 가지 확인하고 싶습니다.\n1) 필요한 기능이나 페이지 목록을 받을 수 있을까요?\n2) 희망하시는 완료 일정이 있으신가요?\n\n답변 주시면 범위와 일정, 견적을 정리해 드리겠습니다.",
-    "generated_at": "2026-09-24T13:34:58.733792Z",
+    "generated_at": "2026-09-24T13:42:01.149126Z",
     "edited_by_user": false
   },
   "memo": "당근 채팅으로 문의 보냄. 회신 대기.",
@@ -307,14 +307,14 @@
       "region_scope": "서울 서초구",
       "region_label": "서울 서초구",
       "query_group": "demo",
-      "first_seen_at": "2026-09-23T19:34:58.733792Z",
-      "last_seen_at": "2026-09-23T19:34:58.733792Z",
+      "first_seen_at": "2026-09-23T19:42:01.149126Z",
+      "last_seen_at": "2026-09-23T19:42:01.149126Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-23T19:34:58.733792Z",
+      "at": "2026-09-23T19:42:01.149126Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

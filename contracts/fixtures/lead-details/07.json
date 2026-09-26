@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dc35a78e3a7385f206",
+  "id": "lead_01a0dc3c1999bad3bcf2c7",
   "source_id": "demo-synthetic",
   "title": "필라테스 센터 오픈 이벤트 랜딩페이지 제작",
   "categories": [
@@ -37,13 +37,13 @@
   "access_status": "accessible",
   "analysis_status": "rules_only",
   "recheck_due": false,
-  "last_checked_at": "2026-09-25T07:34:58.733792Z",
+  "last_checked_at": "2026-09-25T07:42:01.149126Z",
   "published": {
-    "at": "2026-09-20T09:34:58.733792Z",
+    "at": "2026-09-20T09:42:01.149126Z",
     "precision": "exact",
     "raw": null
   },
-  "first_seen_at": "2026-09-20T19:34:58.733792Z",
+  "first_seen_at": "2026-09-20T19:42:01.149126Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -69,7 +69,7 @@
   "has_memo": false,
   "active_job": null,
   "body_text": "[마감] 필라테스 센터 오픈 이벤트용 랜딩페이지 제작 의뢰합니다.\n재택 작업 가능, 예산 80만원.",
-  "body_retained_until": "2026-10-20T19:34:58.733792Z",
+  "body_retained_until": "2026-10-20T19:42:01.149126Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -79,7 +79,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-20T19:34:58.733792Z",
+  "last_seen_at": "2026-09-20T19:42:01.149126Z",
   "work_period": {
     "start": {
       "at": null,
@@ -93,41 +93,25 @@
     }
   },
   "evidence": {
-    "engagement_type": [
+    "work_mode": [
       {
-        "id": "ev_01a0dc35a7981fab79cfa6",
-        "quote": "[마감] 필라테스 센터 오픈 이벤트용 랜딩페이지 제작 의뢰합니다.",
+        "id": "ev_01a0dc3c19a2293477d42d",
+        "quote": "재택 작업 가능, 예산 80만원.",
         "span": {
-          "start": 0,
-          "end": 36
+          "start": 37,
+          "end": 55
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:34:58.733792Z",
-        "source_record_id": "rec_01a0dc35a78e1c2452c781",
-        "version": "rules-2026.09.5",
-        "note": null
-      }
-    ],
-    "demand_intent": [
-      {
-        "id": "ev_01a0dc35a7982a99670a12",
-        "quote": "[마감] 필라테스 센터 오픈 이벤트용 랜딩페이지 제작 의뢰합니다.",
-        "span": {
-          "start": 0,
-          "end": 36
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T05:34:58.733792Z",
-        "source_record_id": "rec_01a0dc35a78e1c2452c781",
+        "observed_at": "2026-09-26T05:42:01.149126Z",
+        "source_record_id": "rec_01a0dc3c199833c763c18a",
         "version": "rules-2026.09.5",
         "note": null
       }
     ],
     "source_status": [
       {
-        "id": "ev_01a0dc35a798a51723c21b",
+        "id": "ev_01a0dc3c19a23492e32798",
         "quote": "[마감]",
         "span": {
           "start": 0,
@@ -135,31 +119,31 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:34:58.733792Z",
-        "source_record_id": "rec_01a0dc35a78e1c2452c781",
+        "observed_at": "2026-09-26T05:42:01.149126Z",
+        "source_record_id": "rec_01a0dc3c199833c763c18a",
         "version": "rules-2026.09.5",
         "note": "원문 마감 표시"
       }
     ],
-    "work_mode": [
+    "demand_intent": [
       {
-        "id": "ev_01a0dc35a798c6bb6ebfd1",
-        "quote": "재택 작업 가능, 예산 80만원.",
+        "id": "ev_01a0dc3c19a23d0ada4520",
+        "quote": "[마감] 필라테스 센터 오픈 이벤트용 랜딩페이지 제작 의뢰합니다.",
         "span": {
-          "start": 37,
-          "end": 55
+          "start": 0,
+          "end": 36
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:34:58.733792Z",
-        "source_record_id": "rec_01a0dc35a78e1c2452c781",
+        "observed_at": "2026-09-26T05:42:01.149126Z",
+        "source_record_id": "rec_01a0dc3c199833c763c18a",
         "version": "rules-2026.09.5",
         "note": null
       }
     ],
     "pay": [
       {
-        "id": "ev_01a0dc35a798d2dafd326e",
+        "id": "ev_01a0dc3c19a265b865c71c",
         "quote": "재택 작업 가능, 예산 80만원.",
         "span": {
           "start": 37,
@@ -167,8 +151,24 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:34:58.733792Z",
-        "source_record_id": "rec_01a0dc35a78e1c2452c781",
+        "observed_at": "2026-09-26T05:42:01.149126Z",
+        "source_record_id": "rec_01a0dc3c199833c763c18a",
+        "version": "rules-2026.09.5",
+        "note": null
+      }
+    ],
+    "engagement_type": [
+      {
+        "id": "ev_01a0dc3c19a293527ecac3",
+        "quote": "[마감] 필라테스 센터 오픈 이벤트용 랜딩페이지 제작 의뢰합니다.",
+        "span": {
+          "start": 0,
+          "end": 36
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T05:42:01.149126Z",
+        "source_record_id": "rec_01a0dc3c199833c763c18a",
         "version": "rules-2026.09.5",
         "note": null
       }
@@ -244,7 +244,7 @@
     "conversion_opportunity": null,
     "engine": "rules",
     "version": "rules-2026.09.5",
-    "analyzed_at": "2026-09-20T19:34:58.733792Z",
+    "analyzed_at": "2026-09-20T19:42:01.149126Z",
     "failure": null
   },
   "risks": [],
@@ -297,14 +297,14 @@
       "region_scope": "경기 고양시",
       "region_label": "경기 고양시",
       "query_group": "demo",
-      "first_seen_at": "2026-09-20T19:34:58.733792Z",
-      "last_seen_at": "2026-09-20T19:34:58.733792Z",
+      "first_seen_at": "2026-09-20T19:42:01.149126Z",
+      "last_seen_at": "2026-09-20T19:42:01.149126Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-20T19:34:58.733792Z",
+      "at": "2026-09-20T19:42:01.149126Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

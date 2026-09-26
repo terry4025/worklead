@@ -1,5 +1,5 @@
 {
-  "id": "lead_01a0dc35a7cb6a90690a65",
+  "id": "lead_01a0dc3c19ddd760cbc3d3",
   "source_id": "demo-synthetic",
   "title": "견적서·거래명세서 엑셀 자동 작성 VBA",
   "categories": [
@@ -37,13 +37,13 @@
   "access_status": "accessible",
   "analysis_status": "rules_only",
   "recheck_due": false,
-  "last_checked_at": "2026-09-24T05:34:58.733792Z",
+  "last_checked_at": "2026-09-24T05:42:01.149126Z",
   "published": {
-    "at": "2026-09-15T09:34:58.733792Z",
+    "at": "2026-09-15T09:42:01.149126Z",
     "precision": "exact",
     "raw": null
   },
-  "first_seen_at": "2026-09-15T19:34:58.733792Z",
+  "first_seen_at": "2026-09-15T19:42:01.149126Z",
   "deadline": {
     "at": null,
     "precision": "unknown",
@@ -69,7 +69,7 @@
   "has_memo": true,
   "active_job": null,
   "body_text": "견적서와 거래명세서를 엑셀로 자동 작성하는 VBA를 제작해 주실 분 구합니다.\n품목 DB 시트에서 선택하면 양식이 채워지고 PDF로 저장되면 좋겠습니다.\n재택 진행, 예산 60만원.",
-  "body_retained_until": "2026-10-15T19:34:58.733792Z",
+  "body_retained_until": "2026-10-15T19:42:01.149126Z",
   "original_url": null,
   "contact_channel": "원문에서 직접 (데모)",
   "workplace": null,
@@ -79,7 +79,7 @@
     "precision": "unknown",
     "raw": null
   },
-  "last_seen_at": "2026-09-15T19:34:58.733792Z",
+  "last_seen_at": "2026-09-15T19:42:01.149126Z",
   "work_period": {
     "start": {
       "at": null,
@@ -93,41 +93,9 @@
     }
   },
   "evidence": {
-    "pay": [
-      {
-        "id": "ev_01a0dc35a7d3259a926f4a",
-        "quote": "재택 진행, 예산 60만원.",
-        "span": {
-          "start": 86,
-          "end": 101
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T05:34:58.733792Z",
-        "source_record_id": "rec_01a0dc35a7ca264a79038e",
-        "version": "rules-2026.09.5",
-        "note": null
-      }
-    ],
-    "work_mode": [
-      {
-        "id": "ev_01a0dc35a7d3b9691698bc",
-        "quote": "재택 진행, 예산 60만원.",
-        "span": {
-          "start": 86,
-          "end": 101
-        },
-        "basis": "explicit",
-        "confidence": "high",
-        "observed_at": "2026-09-26T05:34:58.733792Z",
-        "source_record_id": "rec_01a0dc35a7ca264a79038e",
-        "version": "rules-2026.09.5",
-        "note": null
-      }
-    ],
     "engagement_type": [
       {
-        "id": "ev_01a0dc35a7d3bb6908709a",
+        "id": "ev_01a0dc3c19e63570d585a3",
         "quote": "견적서와 거래명세서를 엑셀로 자동 작성하는 VBA를 제작해 주실 분 구합니다.",
         "span": {
           "start": 0,
@@ -135,15 +103,15 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:34:58.733792Z",
-        "source_record_id": "rec_01a0dc35a7ca264a79038e",
+        "observed_at": "2026-09-26T05:42:01.149126Z",
+        "source_record_id": "rec_01a0dc3c19dcf43c5a2b33",
         "version": "rules-2026.09.5",
         "note": null
       }
     ],
     "demand_intent": [
       {
-        "id": "ev_01a0dc35a7d3c3f292aa6f",
+        "id": "ev_01a0dc3c19e68587a89eb4",
         "quote": "견적서와 거래명세서를 엑셀로 자동 작성하는 VBA를 제작해 주실 분 구합니다.",
         "span": {
           "start": 0,
@@ -151,8 +119,40 @@
         },
         "basis": "explicit",
         "confidence": "high",
-        "observed_at": "2026-09-26T05:34:58.733792Z",
-        "source_record_id": "rec_01a0dc35a7ca264a79038e",
+        "observed_at": "2026-09-26T05:42:01.149126Z",
+        "source_record_id": "rec_01a0dc3c19dcf43c5a2b33",
+        "version": "rules-2026.09.5",
+        "note": null
+      }
+    ],
+    "work_mode": [
+      {
+        "id": "ev_01a0dc3c19e6e6f48ddd0e",
+        "quote": "재택 진행, 예산 60만원.",
+        "span": {
+          "start": 86,
+          "end": 101
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T05:42:01.149126Z",
+        "source_record_id": "rec_01a0dc3c19dcf43c5a2b33",
+        "version": "rules-2026.09.5",
+        "note": null
+      }
+    ],
+    "pay": [
+      {
+        "id": "ev_01a0dc3c19e6f0290de24c",
+        "quote": "재택 진행, 예산 60만원.",
+        "span": {
+          "start": 86,
+          "end": 101
+        },
+        "basis": "explicit",
+        "confidence": "high",
+        "observed_at": "2026-09-26T05:42:01.149126Z",
+        "source_record_id": "rec_01a0dc3c19dcf43c5a2b33",
         "version": "rules-2026.09.5",
         "note": null
       }
@@ -228,7 +228,7 @@
     "conversion_opportunity": null,
     "engine": "rules",
     "version": "rules-2026.09.5",
-    "analyzed_at": "2026-09-15T19:34:58.733792Z",
+    "analyzed_at": "2026-09-15T19:42:01.149126Z",
     "failure": null
   },
   "risks": [],
@@ -276,24 +276,24 @@
   "memo": "착수금 30만원 입금 확인. 잔금은 납품 후.",
   "outcomes": [
     {
-      "id": "out_01a0dc35a7d42d48d4b36f",
+      "id": "out_01a0dc3c19e7c79b007262",
       "kind": "contract_confirmed",
       "amount": 600000,
       "currency": "KRW",
       "occurred_on": "2026-09-20",
       "note": "채팅으로 금액·범위 합의",
       "evidence_ref": null,
-      "recorded_at": "2026-09-20T05:34:58.733792Z"
+      "recorded_at": "2026-09-20T05:42:01.149126Z"
     },
     {
-      "id": "out_01a0dc35a7d4ffbb06bfb9",
+      "id": "out_01a0dc3c19e7d4b65866a0",
       "kind": "payment_received",
       "amount": 300000,
       "currency": "KRW",
       "occurred_on": "2026-09-21",
       "note": "착수금",
       "evidence_ref": null,
-      "recorded_at": "2026-09-21T05:34:58.733792Z"
+      "recorded_at": "2026-09-21T05:42:01.149126Z"
     }
   ],
   "related": [],
@@ -302,24 +302,24 @@
       "region_scope": "경북 구미시",
       "region_label": "경북 구미시",
       "query_group": "demo",
-      "first_seen_at": "2026-09-15T19:34:58.733792Z",
-      "last_seen_at": "2026-09-15T19:34:58.733792Z",
+      "first_seen_at": "2026-09-15T19:42:01.149126Z",
+      "last_seen_at": "2026-09-15T19:42:01.149126Z",
       "times_seen": 1
     }
   ],
   "activity": [
     {
-      "at": "2026-09-21T05:34:58.733792Z",
+      "at": "2026-09-21T05:42:01.149126Z",
       "kind": "outcome",
       "text": "착수금 기록"
     },
     {
-      "at": "2026-09-20T05:34:58.733792Z",
+      "at": "2026-09-20T05:42:01.149126Z",
       "kind": "outcome",
       "text": "채팅으로 금액·범위 합의 기록"
     },
     {
-      "at": "2026-09-15T19:34:58.733792Z",
+      "at": "2026-09-15T19:42:01.149126Z",
       "kind": "created",
       "text": "신규 탐색에서 발견"
     }

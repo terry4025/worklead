@@ -1,0 +1,98 @@
+# Windows 설치 파일(NSIS .exe) 빌드. 결과물은 실행 페이지의 Artifacts 에서 내려받는다.
+# 코드 서명은 하지 않는다 (처음 실행 시 SmartScreen 경고가 뜰 수 있음).
+name: windows-installer
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/loving-mccarthy-h9rqrk]
+    paths:
+      - backend/**
+      - desktop/**
+      - contracts/**
+      - .github/workflows/windows-installer.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-installer-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.11"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: desktop/src-tauri
+
+      - name: 백엔드 테스트 (Windows)
+        working-directory: backend
+        run: |
+          uv sync --frozen --group dev --group package
+          uv run pytest -q -p no:warnings
+
+      - name: 백엔드 sidecar 패키징 (PyInstaller)
+        working-directory: backend
+        run: |
+          uv run pyinstaller packaging\worklead-backend.spec --noconfirm --distpath build\dist --workpath build\work
+          $triple = ((rustc -vV) | Select-String '^host:').ToString().Split(' ')[1].Trim()
+          New-Item -ItemType Directory -Force ..\desktop\src-tauri\binaries | Out-Null
+          Copy-Item build\dist\worklead-backend.exe "..\desktop\src-tauri\binaries\worklead-backend-$triple.exe" -Force
+
+      - name: sidecar 단독 실행 확인 (준비 줄·인증)
+        working-directory: backend
+        run: |
+          $env:WORKLEAD_DATA_DIR = "$env:RUNNER_TEMP\wl-smoke"
+          # --sidecar 는 stdin 이 닫히면 종료하므로 여기서는 쓰지 않는다 (러너의 stdin 은 비어 있을 수 있음)
+          $p = Start-Process -FilePath build\dist\worklead-backend.exe -RedirectStandardOutput "$env:RUNNER_TEMP\ready.txt" -RedirectStandardError "$env:RUNNER_TEMP\err.txt" -PassThru -NoNewWindow
+          $ready = $null
+          for ($i = 0; $i -lt 60 -and -not $ready; $i++) {
+            Start-Sleep -Milliseconds 500
+            if (Test-Path "$env:RUNNER_TEMP\ready.txt") { $ready = Get-Content "$env:RUNNER_TEMP\ready.txt" | Where-Object { $_ -match '"event": "ready"' } | Select-Object -First 1 }
+          }
+          if (-not $ready) { Get-Content "$env:RUNNER_TEMP\err.txt"; throw 'sidecar did not announce ready' }
+          $info = $ready | ConvertFrom-Json
+          $unauth = try { Invoke-WebRequest "http://127.0.0.1:$($info.port)/v1/health" -UseBasicParsing; 'open' } catch { $_.Exception.Response.StatusCode.value__ }
+          if ($unauth -ne 401) { throw "expected 401 without token, got $unauth" }
+          $h = Invoke-RestMethod "http://127.0.0.1:$($info.port)/v1/health" -Headers @{ Authorization = "Bearer $($info.token)" }
+          if ($h.status -ne 'ok') { throw "health not ok: $($h | ConvertTo-Json)" }
+          Stop-Process -Id $p.Id -Force
+          Write-Host "sidecar ok (port $($info.port))"
+
+      - name: 화면 테스트
+        working-directory: desktop
+        run: |
+          npm ci
+          npm run typecheck
+          npm test
+
+      - name: Tauri 번들 (NSIS)
+        working-directory: desktop
+        run: npm run tauri build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Worklead-Windows-installer
+          path: desktop/src-tauri/target/release/bundle/nsis/*.exe
+          if-no-files-found: error
+          retention-days: 30

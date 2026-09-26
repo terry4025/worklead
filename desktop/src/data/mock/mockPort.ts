@@ -113,8 +113,8 @@ const DEFAULT_SETTINGS: SettingsView = {
   queryGroups: {
     version: 1,
     groups: [
-      { id: 'direct_build', label: '직접 제작 수요', enabled: true, keywords: ['홈페이지', '웹사이트', '사이트 제작', '랜딩페이지', '쇼핑몰 제작', '쇼핑몰 오픈', '자사몰', '카페24', '워드프레스', '앱 개발', '앱 제작', '어플', '웹앱', '프로그램 개발', '프로그램 제작', '프로그래머', '소프트웨어', '풀스택', '개발자', '웹 개발'] },
-      { id: 'automation', label: '자동화 수요', enabled: true, keywords: ['엑셀', 'VBA', '매크로', '자동화', '크롤링', '파이썬', '구글 시트', '업무툴', 'API 연동'] },
+      { id: 'direct_build', label: '직접 제작 수요', enabled: true, keywords: ['홈페이지', '웹사이트', '웹페이지', '사이트 제작', '랜딩페이지', '쇼핑몰 제작', '쇼핑몰 오픈', '자사몰', '카페24', '워드프레스', '앱 개발', '앱 제작', '어플', '웹앱', '프로그램 개발', '프로그램 제작', '프로그래머', '소프트웨어', '풀스택', '개발자', '웹 개발'] },
+      { id: 'automation', label: '자동화 수요', enabled: true, keywords: ['엑셀', 'VBA', '매크로', '자동화', '크롤링', '파이썬', '챗봇', '구글 시트', '업무툴', 'API 연동'] },
       { id: 'buyer_intent', label: '구매 의도', enabled: true, keywords: ['만들어주실', '제작해주실', '개발해주실', '수정해주실', '의뢰', '외주', '견적', '구합니다'] },
       { id: 'problem', label: '문제 표현', enabled: false, keywords: ['반복 입력', '엑셀 취합', '수작업', '관리 페이지 필요', '기존 사이트 수정'] },
     ],

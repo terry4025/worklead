@@ -16,6 +16,8 @@ import { Conditions } from './Conditions';
 import { Profit } from './Profit';
 import { DraftBox, FeedbackControls, MemoBox, Outcomes, StageSelect } from './Records';
 import { SourceText, type Mark } from './SourceText';
+import { RelatedRecordsPanel } from './RelatedRecordsPanel';
+import { AiInterpretationPanel } from './AiInterpretationPanel';
 
 export interface DetailHandle {
   openOriginal: () => void;
@@ -263,13 +265,13 @@ export const LeadDetailPane = forwardRef<
                       <td className="score-bar-cell">
                         {f.score === null ? (
                           <span className="score-na">미평가</span>
-                        ) : (
+                        ) : f.max <= 0 ? null : (
                           <span className="score-bar" aria-hidden="true">
                             <span style={{ width: `${(f.score / f.max) * 100}%` }} />
                           </span>
                         )}
                       </td>
-                      <td className="num score-num">{f.score === null ? '—' : `${f.score}/${f.max}`}</td>
+                      <td className={`num score-num${(f.score ?? 0) < 0 ? ' is-negative' : ''}`}>{f.score === null ? '—' : f.max <= 0 ? `${f.score}점` : `${f.score}/${f.max}`}</td>
                       <td className="score-reason">{f.reason}</td>
                     </tr>
                   ))}
@@ -292,6 +294,7 @@ export const LeadDetailPane = forwardRef<
 
         {full ? (
           <>
+            <AiInterpretationPanel value={full.analysis.aiInterpretation} />
             <section className="d-section" aria-labelledby="sec-cond">
               <h3 id="sec-cond" className="d-h">
                 조건과 근거
@@ -357,7 +360,7 @@ export const LeadDetailPane = forwardRef<
               <h3 id="sec-mine" className="d-h">
                 내 기록
               </h3>
-              <MemoBox lead={full} ref={memoRef} />
+              <MemoBox key={full.id} lead={full} ref={memoRef} />
               <FeedbackControls lead={full} />
             </section>
 
@@ -365,14 +368,14 @@ export const LeadDetailPane = forwardRef<
               <h3 id="sec-draft" className="d-h">
                 문의 초안
               </h3>
-              <DraftBox lead={full} mode={mode} />
+              <DraftBox key={full.id} lead={full} mode={mode} />
             </section>
 
             <section className="d-section" aria-labelledby="sec-out">
               <h3 id="sec-out" className="d-h">
                 계약·수금
               </h3>
-              <Outcomes lead={full} />
+              <Outcomes key={full.id} lead={full} />
             </section>
 
             <section className="d-section" aria-labelledby="sec-prov">
@@ -389,16 +392,7 @@ export const LeadDetailPane = forwardRef<
                     ))}
                   </ul>
                 ) : null}
-                {full.related.length ? (
-                  <ul className="plain-list">
-                    {full.related.map((r) => (
-                      <li key={r.id}>
-                        {{ duplicate: '중복', repost: '재게시 후보', similar: '유사 글 후보' }[r.relation]}: {r.title}
-                        {r.basis ? <span className="muted-text"> — {r.basis}</span> : null}
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
+                <RelatedRecordsPanel lead={full} />
                 <ul className="activity">
                   {full.activity.map((a, i) => (
                     <li key={i}>

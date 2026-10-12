@@ -34,14 +34,21 @@ export async function resolveConnection(): Promise<Connection> {
   });
 }
 
-/** 셸 쪽 백엔드 재시작 요청 (연결 실패 화면의 "다시 시작") */
-export async function restartBackend(): Promise<boolean> {
-  if (!isTauri()) return false;
-  const { invoke } = await import('@tauri-apps/api/core');
-  try {
-    await invoke('restart_backend');
-    return true;
-  } catch {
-    return false;
-  }
+let restartPending: Promise<boolean> | null = null;
+
+/** Wait for the replacement's readiness; overlapping user actions share one restart. */
+export function restartBackend(): Promise<boolean> {
+  if (!isTauri()) return Promise.resolve(false);
+  if (restartPending) return restartPending;
+  restartPending = (async () => {
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      await invoke('restart_backend');
+      await resolveConnection();
+      return true;
+    } catch {
+      return false;
+    }
+  })().finally(() => { restartPending = null; });
+  return restartPending;
 }

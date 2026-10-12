@@ -57,9 +57,15 @@ def check_profile(p: dict[str, Any]) -> ProfileCheck:
     if not p.get("verified"):
         missing.append("조사 검증 완료 표시(verified)")
     search = p.get("search", {})
-    if not (search.get("url_template") or search.get("nationwide_url_template")):
+    sitemap = p.get("discovery", {}).get("strategy") == "public_sitemap"
+    public_board = p.get("discovery", {}).get("strategy") == "public_board"
+    if sitemap and not p["discovery"].get("index_url"):
+        missing.append("공개 사이트맵 주소")
+    if public_board and not p["discovery"].get("index_url"):
+        missing.append("공개 의뢰 목록 주소")
+    if not sitemap and not public_board and not (search.get("url_template") or search.get("nationwide_url_template")):
         missing.append("검색 URL 형식")
-    if not search.get("nationwide_url_template"):
+    if not sitemap and not public_board and not search.get("nationwide_url_template"):
         regions = p.get("regions", {})
         if not regions.get("items"):
             missing.append("공개 지역 목록")

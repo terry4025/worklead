@@ -13,7 +13,7 @@ from pathlib import Path
 APP_NAME = "Worklead"
 APP_VERSION = "0.1.0"
 API_VERSION = "v1"
-CONTRACT_VERSION = "2026-09-26.1"
+CONTRACT_VERSION = "2026-09-30.1"
 
 
 def default_data_dir() -> Path:
@@ -43,7 +43,7 @@ class RuntimeConfig:
     #: 개발 모드에서만 추가되는 Origin
     dev_origins: tuple[str, ...] = ("http://127.0.0.1:5173", "http://localhost:5173")
     #: 수집기 User-Agent. 식별 가능한 이름을 쓴다 (위장하지 않음)
-    user_agent: str = f"WorkleadLocal/{APP_VERSION} (+personal desktop lead review; non-commercial)"
+    user_agent: str = f"WorkleadLocal/{APP_VERSION} (+personal desktop lead review)"
     worker_poll_seconds: float = 1.0
     lease_seconds: int = 60
     scheduler_interval_seconds: int = 60

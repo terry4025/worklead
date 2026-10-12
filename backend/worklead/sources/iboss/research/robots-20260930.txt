@@ -1,0 +1,89 @@
+User-agent: Bytespider 
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+# Meta AI 학습 및 크롤링 봇 차단
+User-agent: Meta-ExternalAgent
+Disallow: /
+
+User-agent: Meta-ExternalFetcher
+Disallow: /
+
+User-agent: FacebookBot
+Disallow: /
+
+
+User-agent: *
+Disallow: /design/upload_file/BD8166/5UBM65NV467DW3HBEDM83AVW0GSMYF8I8NJHJULJ_1754881258481837.jpg
+Disallow: /design/upload_file/BD8166/7T3AU3R1ZQBQPS0PY7T1II48H9U1CVM21FY60PKH_1754881018071874.jpg
+Disallow: /design/upload_file/BD8166/02e6e451441f1f9dc4c66da70fc84c44_66133_1.jpg
+Disallow: /design/upload_file/BD8166/VH6QN2NH6QDXQT34MYE188736V3LH25PSBFZLAUQ_1754881430862720.jpg
+Disallow: /design/upload_file/BD8166/AN466COISOXX5SV1WALB2TOHO1YINKNRB4DV6CDL_1754880853219574.jpg
+
+Disallow: /design/upload_file/__HTMLEDITOR__/202507/JHURZPZ22ZOJ92VXUD9RNCOQ2YY6RTV3EICW6GGY_1753868796331434.jpg
+Disallow: /design/upload_file/__HTMLEDITOR__/202508/7T3AU3R1ZQBQPS0PY7T1II48H9U1CVM21FY60PKH_1754881018071874.jpg
+Disallow: /design/upload_file/__HTMLEDITOR__/202508/VH6QN2NH6QDXQT34MYE188736V3LH25PSBFZLAUQ_1754881430862720.jpg
+Disallow: /design/upload_file/__HTMLEDITOR__/202508/AN466COISOXX5SV1WALB2TOHO1YINKNRB4DV6CDL_1754880853219574.jpg
+Disallow: /design/upload_file/__HTMLEDITOR__/202508/5UBM65NV467DW3HBEDM83AVW0GSMYF8I8NJHJULJ_1754881258481837.jpg
+
+Disallow: /*pc=*
+Disallow: /*OTSKIN=layout_ptr.php*
+Disallow: /*&AJAX=Y*
+Disallow: /*&SI_F_*
+Disallow: /new/*
+Disallow: /*design_file=75009.php*
+Disallow: /ab-m_board*
+Disallow: /ab-1486505-14473*
+Disallow: /ab-74638-513*
+Disallow: /ab-3037*
+Disallow: /ab-3038*
+Disallow: /ab-5501*
+Disallow: /ab-7569*
+Disallow: /ab-scrapbook*
+Disallow: /ab-instea_union_v*
+Disallow: /template/PLUGIN_OAuth2*
+Disallow: /template/*
+
+Disallow: /ab-74895-1304*
+Disallow: /ab-74895-1357*
+Disallow: /ab-74895-1397*
+Disallow: /ab-74895-1564*
+Disallow: /ab-74895-1581*
+Disallow: /ab-74895-1656*
+Disallow: /ab-74895-1706*
+Disallow: /ab-74895-1736*
+Disallow: /ab-74895-1748*
+Disallow: /ab-74895-1796*
+Disallow: /ab-74895-1863*
+Disallow: /ab-74895-1915*
+Disallow: /ab-74895-1932*
+Disallow: /ab-74895-1944*
+Disallow: /ab-74895-1950*
+Disallow: /ab-74895-1963*
+Disallow: /ab-74895-1966*
+Disallow: /ab-74895-1998*
+Disallow: /ab-74895-2034*
+Disallow: /ab-74895-2136*
+Disallow: /ab-74895-2173*
+Disallow: /ab-74895-2242*
+Disallow: /ab-74895-2245*
+Disallow: /ab-74895-2255*
+Disallow: /ab-74895-2314*
+Disallow: /ab-74895-2331*
+Disallow: /ab-74895-2334*
+Disallow: /ab-74895-2360*
+Disallow: /ab-74895-2386*
+Disallow: /ab-74895-2390*
+Disallow: /ab-74895-2399*
+Disallow: /ab-74895-2461*
+Disallow: /ab-74895-2482*
+Disallow: /ab-74895-2477*
+Disallow: /ab-1486505-30631*
+Disallow: /ab-msg_*
+Disallow: /ab-message*
+Disallow: /ab-6141-29678*
+
+#DaumWebMasterTool:8e0ded19ef2a8a99417e5056f8e2e47aeef8f5352b5beb5159bbedb006587415:M1mjqqdyQomEGNmsts9ZDw==
+

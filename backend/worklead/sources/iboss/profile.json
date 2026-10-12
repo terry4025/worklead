@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "source_id": "iboss",
+  "verified": true,
+  "research": {
+    "document": "worklead/sources/iboss/RESEARCH.md",
+    "reviewed_at": "2026-09-30",
+    "notes": "공개 모집 중 전체 분류 목록·페이지 이동·상세 DOM을 확인. robots/약관의 확인 내용과 제한은 RESEARCH.md 참고. robots 허용은 별도 이용 승낙이나 공식 요청 쿼터를 뜻하지 않음."
+  },
+  "allowed_hosts": ["www.i-boss.co.kr"],
+  "request_budget_per_day": 600,
+  "min_interval_seconds": 6,
+  "default_interval_minutes": 180,
+  "search": {"status": "unsupported"},
+  "regions": {"status": "not_applicable", "items": []},
+  "list": {
+    "detail_link_pattern": "^https://www\\.i-boss\\.co\\.kr/ab-1958-([0-9]+)$",
+    "post_id_pattern": "/ab-1958-([0-9]+)$",
+    "empty_markers": ["등록된 게시물이 없습니다", "등록된 게시글이 없습니다", "검색된 게시물이 없습니다"]
+  },
+  "detail": {
+    "strategy": "iboss_public_html",
+    "deletion_reliable": false,
+    "contact_channel_label": "아이보스 원문에서 직접 (연락처 열람은 로그인·사이트 정책 적용)"
+  },
+  "discovery": {
+    "strategy": "public_board",
+    "index_url": "https://www.i-boss.co.kr/ab-1957?sort=now",
+    "request_limit_per_run": 120,
+    "batch_resume_seconds": 60,
+    "body_filter": "all_public",
+    "title_filter": "none"
+  },
+  "capabilities": {
+    "nationwide_search": {"support": "supported", "note": "지역·분류 제한 없이 공개 모집 중 의뢰 목록을 확인. 사이트 검색 API 사용 아님"},
+    "region_search": {"support": "unsupported", "note": "지역별 검색은 사용하지 않음"},
+    "remote_filter": {"support": "unsupported", "note": "공개 상세 본문을 기존 규칙으로 판단"},
+    "sort": {"support": "supported", "note": "사이트의 마감 제외 목록 순서 유지"},
+    "pagination": {"support": "supported", "note": "공개 다음 페이지 링크를 따라 마지막 페이지까지 예산 내에서 이어서 확인"},
+    "incremental": {"support": "supported", "note": "공고 ID 중복·상세 캐시와 공통 엔진의 영속 체크포인트 사용"},
+    "detail": {"support": "supported", "note": "공개 본문·게시 시각·예산·마감만 확인. 유료 연락처 제외"},
+    "revalidate": {"support": "supported", "note": "공개 상세 마감 표시와 한국 날짜를 다시 확인. 404는 삭제로 단정하지 않음"},
+    "structured_data": {"support": "unsupported", "note": "JobPosting JSON-LD 대신 확인된 공개 DOM을 해석"}
+  }
+}

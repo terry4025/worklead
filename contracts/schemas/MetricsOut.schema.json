@@ -72,6 +72,79 @@
       "title": "CollectionMetrics",
       "type": "object"
     },
+    "CurrencySales": {
+      "additionalProperties": false,
+      "properties": {
+        "currency": {
+          "description": "원본 통화 코드. 기존 자료의 코드도 보존하며 서로 환산하지 않음",
+          "title": "Currency",
+          "type": "string"
+        },
+        "contract": {
+          "$ref": "#/$defs/MoneyTotal"
+        },
+        "collected": {
+          "$ref": "#/$defs/MoneyTotal"
+        },
+        "refunded": {
+          "$ref": "#/$defs/MoneyTotal"
+        },
+        "direct_cost": {
+          "$ref": "#/$defs/MoneyTotal"
+        }
+      },
+      "required": [
+        "currency",
+        "contract",
+        "collected",
+        "refunded",
+        "direct_cost"
+      ],
+      "title": "CurrencySales",
+      "type": "object"
+    },
+    "MoneyTotal": {
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "anyOf": [
+            {
+              "pattern": "^-?\\d+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "정확한 최소 통화 단위 10진 정수 문자열. 미기록 금액이 있으면 null. 기록이 없거나 실제 합계가 0이면 '0'",
+          "title": "Amount"
+        },
+        "known_amount": {
+          "description": "금액이 기록된 행만 합산한 정확한 10진 정수 문자열. 미기록분은 추정하지 않음",
+          "pattern": "^-?\\d+$",
+          "title": "Known Amount",
+          "type": "string"
+        },
+        "records": {
+          "minimum": 0,
+          "title": "Records",
+          "type": "integer"
+        },
+        "missing_amounts": {
+          "minimum": 0,
+          "title": "Missing Amounts",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "amount",
+        "known_amount",
+        "records",
+        "missing_amounts"
+      ],
+      "title": "MoneyTotal",
+      "type": "object"
+    },
     "QualityMetrics": {
       "additionalProperties": false,
       "properties": {
@@ -131,6 +204,45 @@
           "title": "Period Days",
           "type": "integer"
         },
+        "period_start": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Period Start"
+        },
+        "period_end": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Period End"
+        },
+        "time_zone": {
+          "const": "Asia/Seoul",
+          "default": "Asia/Seoul",
+          "title": "Time Zone",
+          "type": "string"
+        },
+        "stage_scope": {
+          "const": "current_all",
+          "default": "current_all",
+          "description": "연락·협의·수주 수는 기간 전환율이 아닌 현재 전체 리드의 단계별 수",
+          "title": "Stage Scope",
+          "type": "string"
+        },
         "reviewed": {
           "title": "Reviewed",
           "type": "integer"
@@ -148,6 +260,7 @@
           "type": "integer"
         },
         "contracts_confirmed": {
+          "description": "발생일 기간 안의 전체 통화 계약 확인 기록 수",
           "title": "Contracts Confirmed",
           "type": "integer"
         },
@@ -160,20 +273,51 @@
               "type": "null"
             }
           ],
+          "description": "KRW 계약 확인 합계. 금액 미기록 또는 안전한 JS 정수 범위를 넘으면 null. 정확값은 by_currency에 보존",
           "title": "Contract Amount"
         },
         "collected": {
-          "description": "실제 수금 기록 합계 (won 표시만으로 늘지 않음)",
-          "title": "Collected",
-          "type": "integer"
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "KRW 실제 수금 합계. 금액 미기록 또는 안전한 JS 정수 범위를 넘으면 null. 정확값은 by_currency에 보존. 수주 표시만으로 늘지 않음",
+          "title": "Collected"
         },
         "refunded": {
-          "title": "Refunded",
-          "type": "integer"
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "KRW 환불 합계. 금액 미기록 또는 안전한 JS 정수 범위를 넘으면 null. 정확값은 by_currency에 보존",
+          "title": "Refunded"
         },
         "direct_cost": {
-          "title": "Direct Cost",
-          "type": "integer"
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "KRW 직접 비용 합계. 금액 미기록 또는 안전한 JS 정수 범위를 넘으면 null. 정확값은 by_currency에 보존",
+          "title": "Direct Cost"
+        },
+        "by_currency": {
+          "items": {
+            "$ref": "#/$defs/CurrencySales"
+          },
+          "title": "By Currency",
+          "type": "array"
         }
       },
       "required": [

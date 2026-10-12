@@ -36,6 +36,8 @@
       "webviewInstallMode": { "type": "downloadBootstrapper", "silent": true },
       "nsis": {
         "installMode": "currentUser",
+        "installerHooks": "installer-hooks.nsh",
+        "template": "installer-template.nsi",
         "languages": ["Korean", "English"]
       }
     }

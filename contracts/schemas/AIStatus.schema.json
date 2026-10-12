@@ -1,0 +1,203 @@
+{
+  "$defs": {
+    "AIBudgetPeriod": {
+      "additionalProperties": false,
+      "properties": {
+        "period": {
+          "title": "Period",
+          "type": "string"
+        },
+        "estimated_krw": {
+          "minimum": 0,
+          "title": "Estimated Krw",
+          "type": "integer"
+        },
+        "reserved_krw": {
+          "minimum": 0,
+          "title": "Reserved Krw",
+          "type": "integer"
+        },
+        "uncertain_krw": {
+          "minimum": 0,
+          "title": "Uncertain Krw",
+          "type": "integer"
+        },
+        "attempts": {
+          "minimum": 0,
+          "title": "Attempts",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "period",
+        "estimated_krw",
+        "reserved_krw",
+        "uncertain_krw",
+        "attempts"
+      ],
+      "title": "AIBudgetPeriod",
+      "type": "object"
+    },
+    "AILedgerStatus": {
+      "additionalProperties": false,
+      "properties": {
+        "day": {
+          "$ref": "#/$defs/AIBudgetPeriod"
+        },
+        "month": {
+          "$ref": "#/$defs/AIBudgetPeriod"
+        }
+      },
+      "required": [
+        "day",
+        "month"
+      ],
+      "title": "AILedgerStatus",
+      "type": "object"
+    },
+    "AIPriceMetadata": {
+      "additionalProperties": false,
+      "properties": {
+        "input_usd_per_million": {
+          "minimum": 0,
+          "title": "Input Usd Per Million",
+          "type": "number"
+        },
+        "cached_input_usd_per_million": {
+          "minimum": 0,
+          "title": "Cached Input Usd Per Million",
+          "type": "number"
+        },
+        "output_usd_per_million": {
+          "minimum": 0,
+          "title": "Output Usd Per Million",
+          "type": "number"
+        },
+        "source_url": {
+          "title": "Source Url",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "input_usd_per_million",
+        "cached_input_usd_per_million",
+        "output_usd_per_million",
+        "source_url",
+        "version"
+      ],
+      "title": "AIPriceMetadata",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "provider": {
+      "const": "openai",
+      "title": "Provider",
+      "type": "string"
+    },
+    "model": {
+      "const": "gpt-4.1-mini-2025-04-14",
+      "title": "Model",
+      "type": "string"
+    },
+    "key_supported": {
+      "title": "Key Supported",
+      "type": "boolean"
+    },
+    "key_configured": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Key Configured"
+    },
+    "error_code": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Error Code"
+    },
+    "provider_available": {
+      "title": "Provider Available",
+      "type": "boolean"
+    },
+    "enabled": {
+      "title": "Enabled",
+      "type": "boolean"
+    },
+    "ready": {
+      "title": "Ready",
+      "type": "boolean"
+    },
+    "blocked_reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Blocked Reason"
+    },
+    "settings_revision": {
+      "minimum": 0,
+      "title": "Settings Revision",
+      "type": "integer"
+    },
+    "database_generation": {
+      "minimum": 0,
+      "title": "Database Generation",
+      "type": "integer"
+    },
+    "pricing_checked_at": {
+      "title": "Pricing Checked At",
+      "type": "string"
+    },
+    "price_metadata": {
+      "$ref": "#/$defs/AIPriceMetadata"
+    },
+    "ledger": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AILedgerStatus"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "provider",
+    "model",
+    "key_supported",
+    "key_configured",
+    "error_code",
+    "provider_available",
+    "enabled",
+    "ready",
+    "blocked_reason",
+    "settings_revision",
+    "database_generation",
+    "pricing_checked_at",
+    "price_metadata",
+    "ledger"
+  ],
+  "title": "AIStatus",
+  "type": "object"
+}

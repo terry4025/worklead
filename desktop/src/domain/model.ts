@@ -131,6 +131,7 @@ export type EvidenceKey =
   | 'applicantScope'
   | 'pay'
   | 'sourceStatus'
+  | 'workStart'
   | 'deadline';
 
 export interface ScoreFactor {
@@ -173,6 +174,7 @@ export interface AnalysisView {
   version: string | null;
   analyzedAt: IsoDateTime | null;
   failure: { code: string; message: string } | null;
+  aiInterpretation?: { suggestedIntent: DemandIntent; evidenceQuotes: string[]; uncertain: string[]; questions: string[] } | null;
 }
 
 export type ScenarioKey = 'conservative' | 'base' | 'optimistic';
@@ -225,6 +227,21 @@ export interface RelatedRecord {
   relation: 'duplicate' | 'repost' | 'similar';
   basis: string | null;
   seenAt: IsoDateTime;
+  confirmed: boolean;
+  dismissed: boolean;
+  revision: number;
+  databaseGeneration: number;
+}
+
+export interface RelationInput {
+  action: 'confirm' | 'dismiss';
+  expectedRevision: number;
+  expectedGeneration: number;
+}
+
+export interface RelationUpdate {
+  lead: LeadDetail;
+  relatedLead: LeadDetail;
 }
 
 export interface DiscoveryPathView {
@@ -345,6 +362,7 @@ export interface RunCounts {
   updated: number;
   duplicates: number;
   excluded: number;
+  skipped: number;
   parseFailures: number;
   fetchFailures: number;
   policyStops: number;
@@ -405,26 +423,111 @@ export interface SettingsView {
     engineLabel: string | null;
     monthlyCostCap: number | null;
     dailyCostCap: number | null;
-    keyConfigured: boolean;
+    keyConfigured: boolean | null;
     providerAvailable: boolean;
+    provider: 'openai';
+    model: 'gpt-4.1-mini-2025-04-14';
+    usdToKrwRate: number | null;
+    maxOutputTokens: number;
+    pricingConfirmed: boolean;
+    revision: number;
+    databaseGeneration: number;
   };
   retention: { rawDays: number };
   queryGroups: { version: number; groups: QueryGroup[] };
 }
 
+/** 비밀값 없이 조회하는 제공자·OS 저장소·비용 상태. */
+export interface AiStatus {
+  provider: SettingsView['ai']['provider'];
+  model: SettingsView['ai']['model'];
+  keySupported: boolean;
+  keyConfigured: boolean | null;
+  errorCode: string | null;
+  providerAvailable: boolean;
+  enabled: boolean;
+  ready: boolean;
+  blockedReason: string | null;
+  settingsRevision: number;
+  databaseGeneration: number;
+  pricingCheckedAt: string;
+  price: { inputUsdPerMillion: number; cachedInputUsdPerMillion: number; outputUsdPerMillion: number; sourceUrl: string; version: string };
+  ledger: { day: AiBudgetPeriod; month: AiBudgetPeriod } | null;
+}
+
+export interface AiBudgetPeriod {
+  period: string;
+  estimatedKrw: number;
+  reservedKrw: number;
+  uncertainKrw: number;
+  attempts: number;
+}
+
+export interface AiRevision { expectedRevision: number; expectedGeneration: number }
+
+export interface MoneyTotal {
+  /** 최소 통화 단위의 정확한 10진 정수. 하나라도 미기록이면 amount는 null. */
+  amount: string | null;
+  knownAmount: string;
+  records: number;
+  missingAmounts: number;
+}
+
+export interface CurrencySales {
+  currency: string;
+  contract: MoneyTotal;
+  collected: MoneyTotal;
+  refunded: MoneyTotal;
+  directCost: MoneyTotal;
+}
+
 export interface SalesSummary {
   periodDays: number;
+  periodStart: string | null;
+  periodEnd: string | null;
+  timeZone: string;
+  stageScope: 'current_all';
+  byCurrency: CurrencySales[];
   reviewed: number;
   contacted: number;
   negotiating: number;
   won: number;
   contractsConfirmed: number;
   /** 계약 확인 금액 합계 (수금 아님) */
-  contractAmount: number | null;
+  contractAmount: string | null;
   /** 실제 수금 기록 합계 (won 표시만으로 늘지 않음) */
-  collected: number;
-  refunded: number;
-  directCost: number;
+  collected: string | null;
+  refunded: string | null;
+  directCost: string | null;
+}
+
+export interface BackupInfo {
+  id: string;
+  fileName: string;
+  createdAt: IsoDateTime;
+  sizeBytes: number;
+}
+
+export interface BackupList {
+  directory: string;
+  items: BackupInfo[];
+}
+
+export interface BackupInspection {
+  backup: BackupInfo;
+  sha256: string;
+  revision: string | null;
+  canRestore: boolean;
+  problem: string | null;
+  leadCount: number | null;
+}
+
+export interface RestoreResult {
+  restoredBackupId: string;
+  safetyBackup: BackupInfo;
+  leadCount: number;
+  autoCollectionPaused: true;
+  aiAnalysisPaused?: true;
 }
 
 export interface Bootstrap {
@@ -509,7 +612,7 @@ interface EventBase {
 export type WorkleadEvent =
   | (EventBase & { type: 'run.progress'; runId: string; sourceId: string | null; progress: RunInfo['progress'] })
   | (EventBase & { type: 'run.state_changed'; runId: string; sourceId: string | null; state: RunState })
-  | (EventBase & { type: 'lead.created'; leadId: string })
+  | (EventBase & { type: 'lead.created'; leadId: string; recommendation?: Recommendation })
   | (EventBase & { type: 'lead.updated'; leadId: string })
   | (EventBase & { type: 'source.health_changed'; sourceId: string; health: SourceHealth })
   | (EventBase & { type: 'analysis.completed'; leadId: string; status: AnalysisStatus })

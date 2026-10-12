@@ -1,0 +1,30 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "new_lead",
+        "lead_changed",
+        "source_issue"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "kind",
+    "created_at"
+  ],
+  "title": "NativeNotificationItem",
+  "type": "object"
+}

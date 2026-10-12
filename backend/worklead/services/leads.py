@@ -8,13 +8,15 @@ import json
 from datetime import date, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import Select, and_, func, not_, or_, select
+from sqlalchemy import Select, and_, case, func, not_, or_, select
 from sqlalchemy.orm import Session
 
 from ..api import schemas as S
+from ..analysis.dates import KST
 from ..db import utcnow
 from ..models import AnalysisResult, DiscoveryPath, DuplicateLink, FieldEvidence, Lead, LeadActivity, Outcome, ScoreBreakdown, SourceRecord
 from .settings import ttl_hours
+from .relations import decision
 
 QUEUES: list[tuple[str, str, str]] = [
     ("recommended", "추천", "자동 판정 추천 · 내가 제외하지 않음 · 진행 전"),
@@ -38,13 +40,52 @@ def _not_dismissed():
     return and_(or_(Lead.user_mark.is_(None), Lead.user_mark != "dismissed"), Lead.sales_stage != "ignored")
 
 
-def queue_clause(queue: str):
+def _deadline_day_cutoff(now: datetime) -> datetime:
+    # An i-boss date-only deadline includes the whole Korean calendar day.
+    return now.astimezone(KST).replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+def _expired_deadline_clause(now: datetime):
+    record_expired = select(SourceRecord.id).where(
+        SourceRecord.id == Lead.primary_record_id,
+        SourceRecord.source_id == "iboss",
+        SourceRecord.deadline_precision == "day",
+        SourceRecord.deadline_at < _deadline_day_cutoff(now),
+    ).correlate(Lead).exists()
+    return and_(Lead.source_id == "iboss", Lead.source_status.in_(("open", "unknown")), record_expired)
+
+
+def _effective_source_status(now: datetime):
+    return case((_expired_deadline_clause(now), "closed"), else_=Lead.source_status)
+
+
+def _recheck_due_clause(now: datetime, ttl: int):
+    return and_(Lead.source_status == "open", not_(_expired_deadline_clause(now)), or_(Lead.last_checked_at.is_(None), Lead.last_checked_at < now - timedelta(hours=ttl)))
+
+
+def _stale_recommended_clause(now: datetime, ttl: int):
+    return and_(Lead.recommendation == "recommended", _recheck_due_clause(now, ttl))
+
+
+def _recommendation_clause(values: list[str], now: datetime, ttl: int):
+    clauses = []
+    expired = _expired_deadline_clause(now)
+    if "recommended" in values:
+        clauses.append(and_(Lead.recommendation == "recommended", not_(expired), not_(_recheck_due_clause(now, ttl))))
+    if "needs_review" in values:
+        clauses.append(and_(not_(expired), or_(Lead.recommendation == "needs_review", _stale_recommended_clause(now, ttl))))
+    if "excluded" in values:
+        clauses.append(or_(Lead.recommendation == "excluded", expired))
+    return or_(*clauses)
+
+
+def queue_clause(queue: str, now: datetime, ttl: int):
     if queue == "recommended":
-        return and_(Lead.recommendation == "recommended", _not_dismissed(), Lead.sales_stage.in_(PRE_STAGES))
+        return and_(_recommendation_clause(["recommended"], now, ttl), _not_dismissed(), Lead.sales_stage.in_(PRE_STAGES))
     if queue == "needs_review":
-        return and_(Lead.recommendation == "needs_review", _not_dismissed(), Lead.sales_stage.in_(PRE_STAGES))
+        return and_(_recommendation_clause(["needs_review"], now, ttl), _not_dismissed(), Lead.sales_stage.in_(PRE_STAGES))
     if queue == "auto_excluded":
-        return and_(Lead.recommendation == "excluded", _not_dismissed(), Lead.sales_stage.in_(PRE_STAGES))
+        return and_(_recommendation_clause(["excluded"], now, ttl), _not_dismissed(), Lead.sales_stage.in_(PRE_STAGES))
     if queue == "interested":
         return and_(Lead.user_mark == "interested", Lead.sales_stage.in_(PRE_STAGES))
     if queue == "active":
@@ -75,16 +116,17 @@ def filter_clauses(f: dict[str, Any], now: datetime, ttl: int) -> list[Any]:
         out.append(or_(Lead.work_mode == "onsite", Lead.collaboration_mode == "onsite_required"))
     cutoff = now - timedelta(hours=ttl)
     recruit = f.get("recruit") or "any"
-    closed = Lead.source_status.in_(("closed", "deleted"))
+    source_status = _effective_source_status(now)
+    closed = source_status.in_(("closed", "deleted"))
     ok = Lead.access_status == "accessible"
     if recruit == "not_closed":
         out.append(not_(closed))
     elif recruit == "open_fresh":
-        out.append(and_(Lead.source_status == "open", ok, Lead.last_checked_at >= cutoff))
+        out.append(and_(source_status == "open", ok, Lead.last_checked_at >= cutoff))
     elif recruit == "recheck":
-        out.append(and_(Lead.source_status == "open", ok, or_(Lead.last_checked_at.is_(None), Lead.last_checked_at < cutoff)))
+        out.append(and_(source_status == "open", ok, or_(Lead.last_checked_at.is_(None), Lead.last_checked_at < cutoff)))
     elif recruit == "unknown":
-        out.append(and_(Lead.source_status == "unknown", ok))
+        out.append(and_(source_status == "unknown", ok))
     elif recruit == "closed":
         out.append(closed)
     elif recruit == "access_issue":
@@ -100,14 +142,15 @@ def filter_clauses(f: dict[str, Any], now: datetime, ttl: int) -> list[Any]:
         out.append(Lead.demand_intent.in_(("job_seeker", "information", "unknown")))
     for key, col in (
         ("work_mode", Lead.work_mode),
-        ("recommendation", Lead.recommendation),
-        ("source_status", Lead.source_status),
+        ("source_status", source_status),
         ("sales_stage", Lead.sales_stage),
         ("pay_unit", Lead.pay_unit),
     ):
         vals = f.get(key)
         if vals:
             out.append(col.in_(vals))
+    if f.get("recommendation"):
+        out.append(_recommendation_clause(f["recommendation"], now, ttl))
     if f.get("checked_since"):
         out.append(Lead.last_checked_at >= f["checked_since"])
     return out
@@ -115,9 +158,9 @@ def filter_clauses(f: dict[str, Any], now: datetime, ttl: int) -> list[Any]:
 
 def _sort_expr(sort: str):
     if sort == "published":
-        return func.coalesce(func.strftime("%Y%m%d%H%M%f", Lead.published_at), "0")
+        return Lead.published_at
     if sort == "checked":
-        return func.coalesce(func.strftime("%Y%m%d%H%M%f", Lead.last_checked_at), "0")
+        return Lead.last_checked_at
     return func.coalesce(Lead.priority_total, -1)
 
 
@@ -127,21 +170,28 @@ def _filter_hash(queue: str, f: dict[str, Any]) -> str:
 
 
 def encode_cursor(sort: str, value: Any, lead_id: str, fh: str) -> str:
-    raw = json.dumps({"s": sort, "v": value, "id": lead_id, "h": fh}, separators=(",", ":"))
+    payload = {"s": sort, "v": value, "id": lead_id, "h": fh}
+    if sort in ("published", "checked"):
+        payload["v"] = value.isoformat(timespec="microseconds") if value is not None else None
+        payload["cv"] = 2
+    raw = json.dumps(payload, separators=(",", ":"))
     return base64.urlsafe_b64encode(raw.encode()).decode().rstrip("=")
 
 
 def decode_cursor(cursor: str) -> dict[str, Any]:
     try:
         pad = "=" * (-len(cursor) % 4)
-        return json.loads(base64.urlsafe_b64decode(cursor + pad))
+        value = json.loads(base64.urlsafe_b64decode(cursor + pad))
+        if not isinstance(value, dict):
+            raise CursorError("잘못된 커서입니다")
+        return value
     except (ValueError, json.JSONDecodeError) as exc:
         raise CursorError("잘못된 커서입니다") from exc
 
 
 def base_query(queue: str, f: dict[str, Any], now: datetime, ttl: int) -> Select[tuple[Lead]]:
     q = select(Lead)
-    qc = queue_clause(queue)
+    qc = queue_clause(queue, now, ttl)
     if qc is not None:
         q = q.where(qc)
     for c in filter_clauses(f, now, ttl):
@@ -156,12 +206,40 @@ def list_leads(s: Session, queue: str, f: dict[str, Any], cursor: str | None, li
     fh = _filter_hash(queue, f)
     expr = _sort_expr(sort)
     q = base_query(queue, f, now, ttl)
+    rows = None
+
+    def fetch_rows(query, count):
+        return s.execute(query.add_columns(expr.label("sortv")).order_by(expr.desc(), Lead.id.desc()).limit(count)).all()
+
     if cursor:
         c = decode_cursor(cursor)
         if c.get("h") != fh or c.get("s") != sort:
             raise CursorError("필터·정렬이 바뀌어 커서를 사용할 수 없습니다. 처음부터 다시 조회하세요.")
-        q = q.where(or_(expr < c["v"], and_(expr == c["v"], Lead.id < c["id"])))
-    rows = s.execute(q.add_columns(expr.label("sortv")).order_by(expr.desc(), Lead.id.desc()).limit(limit + 1)).all()
+        if "v" not in c or not isinstance(c.get("id"), str) or not c["id"]:
+            raise CursorError("잘못된 커서입니다")
+        if sort in ("published", "checked"):
+            if c.get("cv") != 2:
+                raise CursorError("날짜 정렬 방식이 바뀌었습니다. 처음부터 다시 조회하세요.")
+            value = c["v"]
+            if value is None:
+                q = q.where(expr.is_(None), Lead.id < c["id"])
+            else:
+                try:
+                    value = datetime.fromisoformat(value)
+                    if value.tzinfo is None:
+                        raise ValueError("cursor datetime must include a timezone")
+                except (TypeError, ValueError) as exc:
+                    raise CursorError("잘못된 날짜 커서입니다") from exc
+                # A bounded non-null range uses the native (timestamp, id)
+                # index. Mixing the NULL tail into an OR makes SQLite merge
+                # ranges and sort the whole result into a temporary B-tree.
+                rows = fetch_rows(q.where(expr <= value, or_(expr < value, Lead.id < c["id"])), limit + 1)
+                if len(rows) < limit + 1:
+                    rows.extend(fetch_rows(q.where(expr.is_(None)), limit + 1 - len(rows)))
+        else:
+            q = q.where(or_(expr < c["v"], and_(expr == c["v"], Lead.id < c["id"])))
+    if rows is None:
+        rows = fetch_rows(q, limit + 1)
     items = [r[0] for r in rows[:limit]]
     next_cursor = None
     if len(rows) > limit:
@@ -173,11 +251,16 @@ def list_leads(s: Session, queue: str, f: dict[str, Any], cursor: str | None, li
 def queue_counts(s: Session, f: dict[str, Any]) -> dict[str, int]:
     now = utcnow()
     ttl = ttl_hours(s)
-    out: dict[str, int] = {}
+    columns = []
     for qid, _, _ in QUEUES:
-        q = base_query(qid, f, now, ttl).with_only_columns(func.count(Lead.id))
-        out[qid] = s.scalar(q) or 0
-    return out
+        clause = queue_clause(qid, now, ttl)
+        aggregate = func.count(Lead.id) if clause is None else func.coalesce(func.sum(case((clause, 1), else_=0)), 0)
+        columns.append(aggregate.label(qid))
+    # Queues overlap (e.g. interested + recommended); count each predicate
+    # independently while scanning the shared filtered rows once.
+    query = select(*columns).select_from(Lead).where(*filter_clauses(f, now, ttl))
+    values = s.execute(query).one()._mapping
+    return {qid: int(values[qid]) for qid, _, _ in QUEUES}
 
 
 # ── 직렬화 ─────────────────────────────────────────────────────────
@@ -188,7 +271,20 @@ def _fuzzy(at: datetime | None, precision: str, raw: str | None) -> S.FuzzyDate:
 
 
 def summary(lead: Lead, rec: SourceRecord | None, now: datetime, ttl: int) -> S.LeadSummary:
-    recheck_due = lead.source_status == "open" and (lead.last_checked_at is None or now - lead.last_checked_at > timedelta(hours=ttl))
+    expired = bool(
+        lead.source_id == "iboss" and lead.source_status in ("open", "unknown")
+        and rec is not None and rec.id == lead.primary_record_id and rec.source_id == "iboss"
+        and rec.deadline_precision == "day" and rec.deadline_at is not None
+        and rec.deadline_at < _deadline_day_cutoff(now)
+    )
+    source_status = "closed" if expired else lead.source_status
+    recheck_due = source_status == "open" and (lead.last_checked_at is None or now - lead.last_checked_at > timedelta(hours=ttl))
+    recommendation = "excluded" if expired else "needs_review" if recheck_due and lead.recommendation == "recommended" else lead.recommendation
+    reasons = [S.Reason(**r) for r in (lead.reasons or [])]
+    if expired:
+        reasons = [S.Reason(tone="negative", text="원문 마감일 경과(한국시간) · 저장된 날짜 기준"), *reasons][:3]
+    elif recommendation != lead.recommendation:
+        reasons = [S.Reason(tone="caution", text="모집 재확인 필요 · 확인 시각이 없거나 유효기간을 지났습니다"), *reasons][:3]
     prov = (rec.provenance or {}) if rec else {}
     return S.LeadSummary(
         id=lead.id,
@@ -208,7 +304,7 @@ def summary(lead: Lead, rec: SourceRecord | None, now: datetime, ttl: int) -> S.
             unit=lead.pay_unit,  # type: ignore[arg-type]
             negotiable=bool(rec.pay_negotiable) if rec else False,
         ),
-        source_status=lead.source_status,  # type: ignore[arg-type]
+        source_status=source_status,  # type: ignore[arg-type]
         access_status=lead.access_status,  # type: ignore[arg-type]
         analysis_status=lead.analysis_status,  # type: ignore[arg-type]
         recheck_due=recheck_due,
@@ -218,9 +314,9 @@ def summary(lead: Lead, rec: SourceRecord | None, now: datetime, ttl: int) -> S.
         deadline=_fuzzy(rec.deadline_at, rec.deadline_precision, rec.deadline_raw) if rec else _fuzzy(None, "unknown", None),
         posted_region=rec.posted_region_raw if rec else None,
         found_in=list(prov.get("found_in", [])),
-        recommendation=lead.recommendation,  # type: ignore[arg-type]
+        recommendation=recommendation,  # type: ignore[arg-type]
         priority=S.Priority(total=lead.priority_total, unknown_factors=lead.priority_unknown),
-        reasons=[S.Reason(**r) for r in (lead.reasons or [])],
+        reasons=reasons,
         user_mark=lead.user_mark,  # type: ignore[arg-type]
         sales_stage=lead.sales_stage,  # type: ignore[arg-type]
         has_memo=bool(lead.memo),
@@ -313,6 +409,12 @@ def detail(s: Session, lead: Lead) -> S.LeadDetail:
         failure=S.AnalysisFailure(code=analysis_row.failure_code, message=analysis_row.failure_message or "")
         if analysis_row and analysis_row.failure_code
         else None,
+        ai_interpretation=S.AIInterpretation(
+            suggested_intent=payload["ai"]["suggested_intent"],
+            evidence_quotes=payload["ai"].get("evidence_quotes", []),
+            uncertain=payload["ai"].get("uncertain", []),
+            questions=payload["ai"].get("questions", []),
+        ) if payload.get("ai", {}).get("suggested_intent") else None,
     )
     risks = [S.RiskSignal(id=r["id"], label=r["label"], quote=r.get("quote"), span=_span(r.get("start"), r.get("end"))) for r in payload.get("risks", [])]
     outcomes = [
@@ -331,6 +433,7 @@ def detail(s: Session, lead: Lead) -> S.LeadDetail:
     related: list[S.RelatedRecord] = []
     own_records = [r for r in s.scalars(select(SourceRecord.id).where(SourceRecord.lead_id == lead.id))]
     links = s.scalars(select(DuplicateLink).where(or_(DuplicateLink.lead_id == lead.id, DuplicateLink.source_record_id.in_(own_records)))).all()
+    grouped: dict[str, tuple[SourceRecord, str | None, list[DuplicateLink]]] = {}
     for link in links:
         if link.lead_id == lead.id:
             other = s.get(SourceRecord, link.source_record_id)
@@ -341,6 +444,13 @@ def detail(s: Session, lead: Lead) -> S.LeadDetail:
             other = s.get(SourceRecord, other_lead_row.primary_record_id) if other_lead_row and other_lead_row.primary_record_id else None
         if other is None or other_lead == lead.id:
             continue
+        key = other_lead or link.id
+        if key not in grouped:
+            grouped[key] = (other, other_lead, [])
+        grouped[key][2].append(link)
+    for other, other_lead, pair_links in grouped.values():
+        state = decision(pair_links)
+        link = state.primary
         related.append(
             S.RelatedRecord(
                 id=link.id,
@@ -351,6 +461,10 @@ def detail(s: Session, lead: Lead) -> S.LeadDetail:
                 relation=link.relation,  # type: ignore[arg-type]
                 basis=link.basis,
                 seen_at=other.last_seen_at or other.first_seen_at,
+                confirmed=state.confirmed,
+                dismissed=state.dismissed,
+                revision=state.revision,
+                database_generation=s.info.get("database_generation", 0),
             )
         )
     labels = (rec.provenance or {}).get("found_in", [])

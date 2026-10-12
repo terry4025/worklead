@@ -1,0 +1,55 @@
+{
+  "$defs": {
+    "BackupOut": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "file_name": {
+          "title": "File Name",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "size_bytes": {
+          "minimum": 0,
+          "title": "Size Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "file_name",
+        "created_at",
+        "size_bytes"
+      ],
+      "title": "BackupOut",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "directory": {
+      "title": "Directory",
+      "type": "string"
+    },
+    "items": {
+      "items": {
+        "$ref": "#/$defs/BackupOut"
+      },
+      "title": "Items",
+      "type": "array"
+    }
+  },
+  "required": [
+    "directory",
+    "items"
+  ],
+  "title": "BackupList",
+  "type": "object"
+}

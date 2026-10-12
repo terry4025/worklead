@@ -47,7 +47,8 @@ export const FilterBar = forwardRef<HTMLInputElement, {
         <input
           ref={searchRef}
           type="search"
-          placeholder="제목·본문 검색  ( / )"
+          placeholder="저장된 제목·본문 검색  ( / )"
+          title="이 기기에 저장된 공고에서 검색합니다. 외부 사이트 검색이나 추가 수집을 실행하지 않습니다."
           value={kw}
           onChange={(e) => setKw(e.target.value)}
           onKeyDown={(e) => {

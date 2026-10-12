@@ -1,0 +1,413 @@
+{
+  "$defs": {
+    "AISettingsPatch": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Enabled"
+        },
+        "external_transfer_consent": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "External Transfer Consent"
+        },
+        "monthly_cost_cap": {
+          "anyOf": [
+            {
+              "maximum": 100000000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Monthly Cost Cap"
+        },
+        "daily_cost_cap": {
+          "anyOf": [
+            {
+              "maximum": 100000000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Daily Cost Cap"
+        },
+        "provider": {
+          "anyOf": [
+            {
+              "const": "openai",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Provider"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "const": "gpt-4.1-mini-2025-04-14",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "usd_to_krw_rate": {
+          "anyOf": [
+            {
+              "maximum": 100000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Usd To Krw Rate"
+        },
+        "max_output_tokens": {
+          "anyOf": [
+            {
+              "maximum": 4096,
+              "minimum": 256,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Output Tokens"
+        },
+        "pricing_confirmed": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pricing Confirmed"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "expected_generation": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Generation"
+        }
+      },
+      "title": "AISettingsPatch",
+      "type": "object"
+    },
+    "NotificationSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "new_recommended": {
+          "title": "New Recommended",
+          "type": "boolean"
+        },
+        "meaningful_change": {
+          "title": "Meaningful Change",
+          "type": "boolean"
+        },
+        "source_issue": {
+          "title": "Source Issue",
+          "type": "boolean"
+        },
+        "quiet_hours": {
+          "$ref": "#/$defs/QuietHours"
+        }
+      },
+      "required": [
+        "new_recommended",
+        "meaningful_change",
+        "source_issue",
+        "quiet_hours"
+      ],
+      "title": "NotificationSettings",
+      "type": "object"
+    },
+    "ProfileSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "services": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Services",
+          "type": "array"
+        },
+        "skills": {
+          "title": "Skills",
+          "type": "string"
+        },
+        "excluded_work": {
+          "title": "Excluded Work",
+          "type": "string"
+        },
+        "min_contract": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Min Contract"
+        },
+        "target_hourly": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Target Hourly"
+        },
+        "weekly_hours": {
+          "anyOf": [
+            {
+              "maximum": 168,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Weekly Hours"
+        },
+        "onsite": {
+          "enum": [
+            "no",
+            "first_meeting",
+            "yes"
+          ],
+          "title": "Onsite",
+          "type": "string"
+        },
+        "allow_short_term_employment": {
+          "title": "Allow Short Term Employment",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "services",
+        "skills",
+        "excluded_work",
+        "min_contract",
+        "target_hourly",
+        "weekly_hours",
+        "onsite",
+        "allow_short_term_employment"
+      ],
+      "title": "ProfileSettings",
+      "type": "object"
+    },
+    "QueryGroup": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9_]{1,32}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "enabled": {
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "keywords": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Keywords",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "enabled",
+        "keywords"
+      ],
+      "title": "QueryGroup",
+      "type": "object"
+    },
+    "QuietHours": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "start": {
+          "pattern": "^\\d{2}:\\d{2}$",
+          "title": "Start",
+          "type": "string"
+        },
+        "end": {
+          "pattern": "^\\d{2}:\\d{2}$",
+          "title": "End",
+          "type": "string"
+        }
+      },
+      "required": [
+        "enabled",
+        "start",
+        "end"
+      ],
+      "title": "QuietHours",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "profile": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ProfileSettings"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "recheck": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "propertyNames": {
+            "const": "ttl_hours"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Recheck"
+    },
+    "notifications": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/NotificationSettings"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "ai": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AISettingsPatch"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "retention": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "propertyNames": {
+            "const": "raw_days"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Retention"
+    },
+    "query_groups": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/QueryGroup"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Query Groups"
+    }
+  },
+  "title": "SettingsPatch",
+  "type": "object"
+}

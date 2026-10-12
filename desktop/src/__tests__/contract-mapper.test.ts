@@ -21,7 +21,9 @@ describe('계약 fixture → 화면 모델', () => {
     expect(s.recheck.ttlHours).toBeGreaterThan(0);
     expect(s.ai.keyConfigured).toBe(false);
     const m = mapSales(read('metrics.json'));
-    expect(m.collected).toBeLessThanOrEqual(m.contractAmount ?? Infinity);
+    expect(m.collected).not.toBeNull();
+    expect(m.contractAmount).not.toBeNull();
+    expect(BigInt(m.collected!)).toBeLessThanOrEqual(BigInt(m.contractAmount!));
   });
 
   it('모든 리드 상세를 변환하고 표시 규칙을 적용할 수 있다', () => {

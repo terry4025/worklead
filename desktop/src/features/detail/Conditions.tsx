@@ -87,7 +87,7 @@ export function Conditions({ lead, categoryLabel, onShowEvidence, now }: { lead:
         <span className="cond-sub">구인 마감: {lead.deadline.at || lead.deadline.raw ? formatFuzzyDate(lead.deadline, now) : '표시 없음'}</span>
       </Row>
       {lead.workPeriod.start.at || lead.workPeriod.start.raw ? (
-        <Row label="작업 시작" onShow={onShowEvidence}>
+        <Row label="작업 시작" evidence={ev('workStart')} onShow={onShowEvidence}>
           {formatFuzzyDate(lead.workPeriod.start, now)} <span className="cond-sub">(작업 일정 — 구인 마감과 다름)</span>
         </Row>
       ) : null}

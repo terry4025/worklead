@@ -7,6 +7,7 @@ import { ErrorState, RowSkeleton } from '../../ui/States';
 import { LeadRow } from './LeadRow';
 import { formatTime } from '../../domain/format';
 import { scrollWithin } from '../../ui/scroll';
+import { toPortError } from '../../data/port';
 
 export interface ListSnapshot {
   ids: string[];
@@ -100,6 +101,7 @@ export function LeadList({
   if (snapshot.ids.length === 0) return <>{empty}</>;
 
   const refetchFailed = sections.find((s) => s.q.isRefetchError);
+  const refetchError = refetchFailed ? toPortError(refetchFailed.q.error) : null;
 
   return (
     <div
@@ -114,6 +116,7 @@ export function LeadList({
       {refetchFailed ? (
         <div className="inline-alert inline-alert-warn" role="alert">
           목록을 새로 불러오지 못했습니다 — {refetchFailed.q.dataUpdatedAt ? `${formatTime(new Date(refetchFailed.q.dataUpdatedAt).toISOString())}에 불러온 목록 표시 중` : '이전 목록 표시 중'}
+          {refetchError ? ` · 오류 코드 ${refetchError.code}${refetchError.requestId ? ` · 요청 ID ${refetchError.requestId}` : ''}` : ''}
           <Button size="sm" variant="ghost" onClick={() => void refetchFailed.q.refetch()}>
             다시 시도
           </Button>

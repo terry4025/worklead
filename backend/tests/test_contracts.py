@@ -20,6 +20,13 @@ CASES = [
     ("queue-counts.json", S.QueueCounts),
     ("leads.all.json", S.LeadPage),
     ("leads.empty.json", S.LeadPage),
+    ("backup.json", S.BackupOut),
+    ("backups.json", S.BackupList),
+    ("backup-inspection.json", S.BackupInspection),
+    ("restore.json", S.RestoreOut),
+    ("ai-status-unconfigured.json", S.AIStatus),
+    ("ai-status-configured.json", S.AIStatus),
+    ("ai-status-deleted.json", S.AIStatus),
 ]
 
 

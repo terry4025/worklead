@@ -1,0 +1,44 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "kind": {
+      "anyOf": [
+        {
+          "enum": [
+            "new_lead",
+            "lead_changed",
+            "source_issue"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Kind"
+    },
+    "state": {
+      "enum": [
+        "pending",
+        "attempted",
+        "accepted",
+        "failed",
+        "unknown",
+        "suppressed"
+      ],
+      "title": "State",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "kind",
+    "state"
+  ],
+  "title": "NativeNotificationResultOut",
+  "type": "object"
+}

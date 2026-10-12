@@ -1,0 +1,30 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "enum": [
+        "confirm",
+        "dismiss"
+      ],
+      "title": "Action",
+      "type": "string"
+    },
+    "expected_revision": {
+      "minimum": 0,
+      "title": "Expected Revision",
+      "type": "integer"
+    },
+    "expected_generation": {
+      "minimum": 0,
+      "title": "Expected Generation",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "action",
+    "expected_revision",
+    "expected_generation"
+  ],
+  "title": "RelationUpdateIn",
+  "type": "object"
+}

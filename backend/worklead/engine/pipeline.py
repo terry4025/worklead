@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import json
+from dataclasses import asdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any
@@ -18,7 +20,7 @@ from sqlalchemy.orm import Session
 
 from ..analysis import provider as ai
 from ..analysis.service import analyze, inquiry_draft
-from ..analysis.types import DateInfo, PostInput, RuleAnalysis
+from ..analysis.types import DateInfo, Ev, PayInfo, PostInput, RuleAnalysis
 from ..models import (
     AnalysisResult,
     DiscoveryPath,
@@ -33,6 +35,7 @@ from ..models import (
     new_id,
 )
 from ..services.settings import get_profile, get_setting, ttl_hours
+from ..services.relations import between
 from ..sources.base import ParsedPost
 from .events import emit, notify
 
@@ -163,12 +166,21 @@ def ingest(
             # 원천에서 다시 확인한 경우에만 확인 시각을 갱신한다 (수동 입력은 모집 상태를 확인하지 않음)
             rec.last_checked_at = now
             rec.access_status = "accessible"
+            rec.provenance = {k: v for k, v in (rec.provenance or {}).items() if k != "collection_block_reason"}
         record_path(s, rec, path, run_id, now)
         lead = s.get(Lead, rec.lead_id) if rec.lead_id else None
         if rec.content_hash == chash and lead is not None:
+            body_was_purged = rec.body_text is None
+            _apply_parsed(rec, p)
+            if p.source_status:
+                rec.source_status = p.source_status
+            rec.parser_version = parser_version
+            rec.raw_retained_until = now + timedelta(days=retain_days)
+            if body_was_purged:
+                s.add(Snapshot(id=new_id("snap"), source_record_id=rec.id, captured_at=now, content_hash=chash, http_status=200 if source_kind == "site" else None, access_status="accessible", source_status=rec.source_status, title=p.title, body_text=p.body, retained_until=rec.raw_retained_until))
             _sync_lead_from_record(lead, rec)
             before = _snapshot_state(lead)
-            analysis = apply_analysis(s, lead, rec, now=now, provider=provider, source_kind=source_kind)
+            analysis = apply_analysis(s, lead, rec, now=now, provider=provider, source_kind=source_kind, parsed=p)
             changes = _diff(before, _snapshot_state(lead))
             return IngestResult("unchanged", lead.id, rec.id, analysis.recommendation, changes)
         _apply_parsed(rec, p)
@@ -236,18 +248,20 @@ def _link_candidates(s: Session, lead: Lead, rec: SourceRecord, chash: str) -> N
     same = s.scalars(select(SourceRecord).where(SourceRecord.content_hash == chash, SourceRecord.id != rec.id).limit(5)).all()
     linked: set[str] = set()
     for other in same:
-        if other.lead_id and other.lead_id not in linked:
+        if other.lead_id and other.lead_id != lead.id and other.lead_id not in linked:
             relation = "repost" if other.source_id == rec.source_id else "duplicate"
-            s.add(DuplicateLink(id=new_id("dup"), lead_id=lead.id, source_record_id=other.id, relation=relation, basis="본문·조건 동일 (원천 ID 다름) — 병합하지 않음"))
+            if not between(s, lead.id, other.lead_id):
+                s.add(DuplicateLink(id=new_id("dup"), lead_id=lead.id, source_record_id=other.id, relation=relation, basis="본문·조건 동일 (원천 ID 다름) — 병합하지 않음"))
             linked.add(other.lead_id)
     norm = _norm_title(rec.title)
     candidates = s.scalars(select(SourceRecord).where(SourceRecord.id != rec.id, SourceRecord.title == rec.title).limit(20)).all()
     for other in candidates:
-        if other.lead_id in linked or not other.lead_id or _norm_title(other.title) != norm:
+        if other.lead_id in linked or not other.lead_id or other.lead_id == lead.id or _norm_title(other.title) != norm:
             continue
         sim = _similar(rec.body_text or "", other.body_text or "")
         if sim >= 0.6:
-            s.add(DuplicateLink(id=new_id("dup"), lead_id=lead.id, source_record_id=other.id, relation="similar", basis=f"제목 동일·본문 유사도 {sim:.2f} — 후보 연결만"))
+            if not between(s, lead.id, other.lead_id):
+                s.add(DuplicateLink(id=new_id("dup"), lead_id=lead.id, source_record_id=other.id, relation="similar", basis=f"제목 동일·본문 유사도 {sim:.2f} — 후보 연결만"))
             linked.add(other.lead_id)
 
 
@@ -297,9 +311,19 @@ def feedback_map(s: Session, lead_id: str) -> dict[str, str]:
 def post_input_from_record(rec: SourceRecord, source_kind: str, parsed: ParsedPost | None = None) -> PostInput:
     status_ev = []
     if rec.provenance and rec.provenance.get("status_evidence"):
-        from ..analysis.types import Ev
-
         status_ev = [Ev(**e) for e in rec.provenance["status_evidence"]]
+    # Structured pay/deadlines often live outside the body. Reanalysis must use
+    # the stored source fields; a newly fetched post must use its fresh fields
+    # even when it explicitly removed a previously displayed amount.
+    if parsed is not None:
+        pay_hint, deadline_hint = parsed.pay, parsed.deadline
+    else:
+        pay_hint = PayInfo(
+            raw=rec.pay_raw, currency=rec.pay_currency or "KRW", min=rec.pay_min, max=rec.pay_max,
+            unit=rec.pay_unit or "unknown", negotiable=bool(rec.pay_negotiable),
+            evidence=[Ev(rec.pay_raw, None, None, "explicit", "high", "저장된 원문 보수")] if rec.pay_raw else [],
+        ) if rec.pay_raw or rec.pay_min is not None or rec.pay_max is not None else None
+        deadline_hint = DateInfo(rec.deadline_at, rec.deadline_precision, rec.deadline_raw) if rec.deadline_at or rec.deadline_raw else None
     return PostInput(
         title=rec.title,
         body=rec.body_text or "",
@@ -310,9 +334,10 @@ def post_input_from_record(rec: SourceRecord, source_kind: str, parsed: ParsedPo
         last_checked_at=rec.last_checked_at,
         published=DateInfo(rec.published_at, rec.published_precision, rec.published_raw),  # type: ignore[arg-type]
         first_seen_at=rec.first_seen_at,
-        pay_hint=parsed.pay if parsed and parsed.pay else None,
-        deadline_hint=parsed.deadline if parsed and parsed.deadline else None,
+        pay_hint=pay_hint,
+        deadline_hint=deadline_hint,
         source_kind=source_kind,
+        collection_allowed=False if (rec.provenance or {}).get("collection_block_reason") else None,
     )
 
 
@@ -355,16 +380,28 @@ def apply_analysis(
     rec.work_start_at, rec.work_start_precision, rec.work_start_raw = ra.work_start.at, ra.work_start.precision, ra.work_start.raw
 
     ai_cfg = get_setting(s, "ai")
-    ai_on = bool(ai_cfg.get("enabled") and ai_cfg.get("external_transfer_consent") and provider is not None and provider.available())
+    deferred = bool(provider is not None and getattr(provider, "requires_deferred", False))
+    ai_on = bool(ai_cfg.get("enabled") and ai_cfg.get("external_transfer_consent") and provider is not None
+                 and (not deferred or (ra.recommendation != "excluded" and ra.pay.unit == "project" and ra.dev_relevant))
+                 and (deferred or provider.available()))
     engine = f"ai:{provider.engine}" if ai_on and provider else "rules"
-    cache_key = f"{rec.content_hash}:{engine}:{ra.rule_version}:{ai.PROMPT_VERSION if ai_on else '-'}:{profile.version}:{sorted(fb.items())}"
+    model = provider.model if ai_on and provider else None
+    data = ai.AIInput(ai.mask_personal(rec.title), ai.mask_personal(rec.body_text or ""), ra.categories, ai.mask_personal(ra.summary) if ra.summary else None)
+    if deferred and ai_on:
+        # Semantic cache excludes keys/consent/cost controls and DB generation.
+        # A separate coordinator execution guard covers mutable permissions.
+        cache_key = hashlib.sha256(json.dumps({"content": rec.content_hash, "input": asdict(data), "engine": engine,
+                "model": model, "rule": ra.rule_version, "prompt": ai.PROMPT_VERSION, "schema": ai.SCHEMA_VERSION,
+                "profile": asdict(profile), "feedback": sorted(fb.items())}, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
+    else:
+        cache_key = f"{rec.content_hash}:{engine}:{model}:{ra.rule_version}:{ai.PROMPT_VERSION if ai_on else '-'}:{profile.version}:{sorted(fb.items())}"
 
     existing = s.scalar(
         select(AnalysisResult).where(AnalysisResult.lead_id == lead.id, AnalysisResult.cache_key == cache_key).order_by(AnalysisResult.created_at.desc())
     )
     ai_payload: dict[str, Any] = {}
     failure: tuple[str, str] | None = None
-    reuse = existing is not None and (not ai_on or existing.status == "complete" or (existing.status == "failed" and not retry_ai))
+    reuse = existing is not None and (not ai_on or existing.status == "complete" or (deferred and existing.status == "pending") or (existing.status == "failed" and not retry_ai))
     if reuse:
         # 같은 입력(원문 해시·엔진·규칙/프롬프트·프로필 버전)은 다시 분석 비용을 쓰지 않는다. 실패도 자동 재요청하지 않음.
         assert existing is not None
@@ -376,10 +413,12 @@ def apply_analysis(
         result.payload = _analysis_payload(ra, ai_payload)
     else:
         status = "rules_only"
-        if ai_on:
+        if ai_on and deferred:
+            status = "pending"
+        elif ai_on:
             try:
                 out = ai.validate_output(
-                    provider.analyze(ai.AIInput(rec.title, ai.mask_personal(rec.body_text or ""), ra.categories, ra.summary))  # type: ignore[union-attr]
+                    provider.analyze(data)  # type: ignore[union-attr]
                 )
                 ai_payload = {
                     "summary": out.summary,
@@ -391,6 +430,8 @@ def apply_analysis(
                     "tokens_out": out.tokens_out,
                     "latency_ms": out.latency_ms,
                     "cost_krw": out.cost_krw,
+                    "suggested_intent": out.suggested_intent,
+                    "evidence_quotes": out.evidence_quotes,
                 }
                 status = "complete"
             except ai.AIFailure as exc:
@@ -429,6 +470,8 @@ def apply_analysis(
         s.add(_evidence_row(lead.id, result.id, rec.id, "pay", ra.pay.unit, ev, now, ra.rule_version))
     for ev in ra.deadline.evidence:
         s.add(_evidence_row(lead.id, result.id, rec.id, "deadline", ra.deadline.precision, ev, now, ra.rule_version))
+    for ev in ra.work_start.evidence:
+        s.add(_evidence_row(lead.id, result.id, rec.id, "work_start", ra.work_start.precision, ev, now, ra.rule_version))
     status_evs = list(post.status_evidence) + ([ra.closed_marker] if ra.closed_marker else [])
     for ev in status_evs:
         s.add(_evidence_row(lead.id, result.id, rec.id, "source_status", rec.source_status, ev, now, ra.rule_version))

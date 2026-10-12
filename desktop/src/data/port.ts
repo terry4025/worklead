@@ -1,4 +1,9 @@
 import type {
+  AiRevision,
+  AiStatus,
+  BackupInfo,
+  BackupInspection,
+  BackupList,
   Bootstrap,
   JobAccepted,
   LeadDetail,
@@ -7,12 +12,15 @@ import type {
   LeadPatch,
   LeadSummary,
   QueueId,
+  RelationInput,
+  RelationUpdate,
   ExportInput,
   ManualImportInput,
   OutcomeInput,
   Page,
   RunInfo,
   RunKind,
+  RestoreResult,
   SalesSummary,
   SettingsView,
   SourceInfo,
@@ -42,6 +50,7 @@ export interface WorkleadPort {
   recheckLead(id: string): Promise<JobAccepted>;
   reanalyzeLead(id: string): Promise<JobAccepted>;
   sendFeedback(id: string, feedback: LeadFeedback): Promise<LeadDetail>;
+  updateRelation(id: string, relationId: string, input: RelationInput): Promise<RelationUpdate>;
   addOutcome(id: string, input: OutcomeInput): Promise<LeadDetail>;
   /** 문의 초안 생성 요청. 발송 기능은 없다. */
   generateDraft(id: string): Promise<LeadDetail>;
@@ -56,17 +65,26 @@ export interface WorkleadPort {
       policy?: { status: 'permission_pending' | 'allowed' | 'restricted' | 'blocked'; basis: string | null; note: string | null };
     },
   ): Promise<SourceInfo>;
-  listRuns(req: { sourceId?: string; limit: number }): Promise<RunInfo[]>;
+  listRuns(req: { sourceId?: string; kinds?: RunKind[]; states?: RunInfo['state'][]; limit: number }): Promise<RunInfo[]>;
   getRun(id: string): Promise<RunInfo>;
   startRun(req: { sourceId: string; kind: Extract<RunKind, 'discovery' | 'recheck_recent' | 'recheck_stale'> }): Promise<JobAccepted>;
   runAction(runId: string, action: 'pause' | 'resume' | 'cancel'): Promise<RunInfo>;
   importManual(input: ManualImportInput): Promise<JobAccepted>;
   exportData(input: ExportInput): Promise<JobAccepted>;
 
+  listBackups(): Promise<BackupList>;
+  createBackup(): Promise<BackupInfo>;
+  inspectBackup(id: string): Promise<BackupInspection>;
+  restoreBackup(id: string, input: { sha256: string; confirm: true }): Promise<RestoreResult>;
+
   getSettings(): Promise<SettingsView>;
+  getAiStatus(): Promise<AiStatus>;
+  /** 키는 이 요청에만 사용하며 설정·조회·변경 캐시에 저장하지 않는다. */
+  saveAiCredential(input: AiRevision & { key: string }): Promise<AiStatus>;
+  deleteAiCredential(input: AiRevision): Promise<AiStatus>;
   /** 바뀐 구획만 보낸다 */
   updateSettings(patch: Partial<Pick<SettingsView, 'profile' | 'recheck' | 'notifications' | 'retention'>> & {
-    ai?: Partial<Pick<SettingsView['ai'], 'enabled' | 'externalTransferConsent' | 'monthlyCostCap' | 'dailyCostCap'>>;
+    ai?: Partial<Pick<SettingsView['ai'], 'enabled' | 'externalTransferConsent' | 'monthlyCostCap' | 'dailyCostCap' | 'provider' | 'model' | 'usdToKrwRate' | 'maxOutputTokens' | 'pricingConfirmed'>> & Partial<AiRevision>;
     queryGroups?: SettingsView['queryGroups']['groups'];
   }): Promise<SettingsView>;
   getSalesSummary(): Promise<SalesSummary>;

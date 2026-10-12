@@ -3,22 +3,30 @@ import type { RunInfo, SourceInfo, StreamStatus } from '../../domain/model';
 import { SCENARIOS, type ScenarioId } from '../../data/mock/scenarios';
 import { formatRelative } from '../../domain/format';
 import { StatusGlyph } from '../../ui/StatusMark';
+import { policyLabel, runKindLabel } from '../../domain/labels';
+import { ServiceRecovery } from './ServiceRecovery';
 
 function coverageSummary(sources: SourceInfo[]): { text: string; title: string } {
-  const site = sources.find((s) => s.kind === 'site' && s.coverage);
+  const sites = sources.filter((s) => s.kind === 'site');
+  if (sites.length > 1) return {
+    text: `수집 소스 ${sites.length}개 · 소스별 범위 확인`,
+    title: sites.map((site) => `${site.name}: ${site.coverage?.targetLabel ?? '범위 미확인'} · ${policyLabel[site.policy.status]}`).join('\n'),
+  };
+  const site = sites[0];
   const c = site?.coverage;
-  if (!site || !c) return { text: '전국 목표 · 탐색 범위 없음', title: '자동 수집 소스가 없습니다' };
+  if (!site) return { text: '탐색 범위 없음', title: '자동 수집 소스가 없습니다' };
+  if (!c) return { text: `${site.name} · 탐색 범위 미확인`, title: `${site.name}: 수집 범위를 확인하세요` };
   if (c.planned === null) {
     return {
-      text: '전국 목표 · 확인 범위 미확인',
+      text: `${site.name} · 확인 범위 미확인`,
       title: `${site.name}: 탐색 범위를 계획할 수 없습니다. ${c.notes.join(' ')}`,
     };
   }
-  const units = c.targetUnitsCovered !== null && c.targetUnitsTotal ? ` · 시·도 ${c.targetUnitsCovered}/${c.targetUnitsTotal}` : '';
-  const verified = c.regionListStatus === 'verified' ? '' : ' (목록 미검증)';
+  const units = site.id === 'daangn-alba' && c.targetUnitsCovered !== null && c.targetUnitsTotal ? ` · 시·도 ${c.targetUnitsCovered}/${c.targetUnitsTotal}` : '';
+  const verified = ['verified', 'not_applicable'].includes(c.regionListStatus) ? '' : ' (목록 미검증)';
   return {
-    text: `전국 목표 · 이번 주기 ${c.completed}/${c.planned}${units}${verified}`,
-    title: `탐색 목표는 전국이며, 표시 값은 계획한 탐색 작업 완료 수입니다. 전체 시장 포괄률은 알 수 없습니다.\n${c.notes.join('\n')}`,
+    text: `${site.name} · 이번 주기 ${c.completed}/${c.planned}${units}${verified}`,
+    title: `탐색 목표: ${c.targetLabel}. 표시 값은 계획한 탐색 작업 완료 수입니다. 전체 시장 포괄률은 알 수 없습니다.\n${c.notes.join('\n')}`,
   };
 }
 
@@ -46,6 +54,7 @@ export function TopBar({
   now: Date;
 }) {
   const running = runs.find((r) => r.state === 'running' || r.state === 'queued');
+  const runningSource = running?.sourceId ? sources.find((source) => source.id === running.sourceId)?.name ?? running.sourceId : null;
   const cov = coverageSummary(sources);
   const lastDone = runs.find((r) => r.kind === 'discovery' && r.finishedAt);
   const streamTone = stream === 'open' ? 'good' : stream === 'connecting' ? 'unknown' : 'warn';
@@ -77,7 +86,7 @@ export function TopBar({
           <>
             <span className="run-pulse" aria-hidden="true" />
             <span>
-              {running.state === 'queued' ? '탐색 대기' : '탐색 중'} {running.progress.label ? `· ${running.progress.label}` : ''} ·{' '}
+              {runningSource ? `${runningSource} · ` : ''}{runKindLabel[running.kind]} {running.state === 'queued' ? '대기' : '진행 중'} {running.progress.label ? `· ${running.progress.label}` : ''} ·{' '}
               <span className="num">
                 {running.progress.done}/{running.progress.total ?? '?'}
               </span>
@@ -99,6 +108,7 @@ export function TopBar({
           <StatusGlyph tone={streamTone} />
           <span>{streamText}</span>
         </span>
+        <ServiceRecovery mode={mode} stream={stream} />
         <button type="button" className="tb-btn" onClick={onCollection} title="수집 제어·수동 입력 (C)">
           <Database size={16} aria-hidden="true" />
           <span>수집</span>

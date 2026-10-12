@@ -1,0 +1,68 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "allowed": {
+      "title": "Allowed",
+      "type": "boolean"
+    },
+    "kind": {
+      "anyOf": [
+        {
+          "enum": [
+            "new_lead",
+            "lead_changed",
+            "source_issue"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Kind"
+    },
+    "state": {
+      "enum": [
+        "pending",
+        "attempted",
+        "accepted",
+        "failed",
+        "unknown",
+        "suppressed"
+      ],
+      "title": "State",
+      "type": "string"
+    },
+    "claim_token": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Claim Token"
+    },
+    "reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Reason"
+    }
+  },
+  "required": [
+    "allowed",
+    "kind",
+    "state",
+    "claim_token",
+    "reason"
+  ],
+  "title": "NativeNotificationClaimOut",
+  "type": "object"
+}

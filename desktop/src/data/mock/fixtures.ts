@@ -93,7 +93,7 @@ interface LeadSpec {
   memo?: string;
   draft?: Omit<Draft, 'generatedAt'> & { generatedAgoH: number | null };
   outcomes?: (Omit<Outcome, 'recordedAt' | 'occurredOn' | 'currency'> & { daysAgo: number })[];
-  related?: (Omit<RelatedRecord, 'seenAt'> & { seenAgoH: number })[];
+  related?: (Omit<RelatedRecord, 'seenAt' | 'confirmed' | 'dismissed' | 'revision' | 'databaseGeneration'> & { seenAgoH: number })[];
   foundIn?: string[];
   contactChannel?: string | null;
 }
@@ -319,7 +319,7 @@ function buildLead(spec: LeadSpec, now: number): LeadDetail {
       occurredOn: kstYmd(now - daysAgo * DAY),
       recordedAt: iso(now, -daysAgo * DAY),
     })),
-    related: (spec.related ?? []).map(({ seenAgoH, ...r }) => ({ ...r, seenAt: iso(now, -seenAgoH * HOUR) })),
+    related: (spec.related ?? []).map(({ seenAgoH, ...r }) => ({ ...r, seenAt: iso(now, -seenAgoH * HOUR), confirmed: false, dismissed: false, revision: 0, databaseGeneration: 0 })),
     discoveryPaths: (spec.foundIn ?? (spec.region ? [spec.region] : [])).map((label) => ({
       regionScope: label,
       regionLabel: label,

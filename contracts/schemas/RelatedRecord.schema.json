@@ -1,0 +1,98 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "lead_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Lead Id"
+    },
+    "source_id": {
+      "title": "Source Id",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "url": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Url"
+    },
+    "relation": {
+      "enum": [
+        "duplicate",
+        "repost",
+        "similar"
+      ],
+      "title": "Relation",
+      "type": "string"
+    },
+    "basis": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Basis"
+    },
+    "seen_at": {
+      "format": "date-time",
+      "title": "Seen At",
+      "type": "string"
+    },
+    "confirmed": {
+      "default": false,
+      "title": "Confirmed",
+      "type": "boolean"
+    },
+    "dismissed": {
+      "default": false,
+      "title": "Dismissed",
+      "type": "boolean"
+    },
+    "revision": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Revision",
+      "type": "integer"
+    },
+    "database_generation": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Database Generation",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "id",
+    "lead_id",
+    "source_id",
+    "title",
+    "url",
+    "relation",
+    "basis",
+    "seen_at"
+  ],
+  "title": "RelatedRecord",
+  "type": "object"
+}

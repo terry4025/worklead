@@ -1,5 +1,52 @@
 {
   "$defs": {
+    "AIInterpretation": {
+      "additionalProperties": false,
+      "properties": {
+        "suggested_intent": {
+          "enum": [
+            "buyer_project",
+            "buyer_ongoing",
+            "employee_hiring",
+            "seller_service",
+            "job_seeker",
+            "information",
+            "unknown"
+          ],
+          "title": "Suggested Intent",
+          "type": "string"
+        },
+        "evidence_quotes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Quotes",
+          "type": "array"
+        },
+        "uncertain": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Uncertain",
+          "type": "array"
+        },
+        "questions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Questions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "suggested_intent",
+        "evidence_quotes",
+        "uncertain",
+        "questions"
+      ],
+      "title": "AIInterpretation",
+      "type": "object"
+    },
     "Activity": {
       "additionalProperties": false,
       "properties": {
@@ -172,6 +219,17 @@
               "type": "null"
             }
           ]
+        },
+        "ai_interpretation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AIInterpretation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -1020,6 +1078,28 @@
           "format": "date-time",
           "title": "Seen At",
           "type": "string"
+        },
+        "confirmed": {
+          "default": false,
+          "title": "Confirmed",
+          "type": "boolean"
+        },
+        "dismissed": {
+          "default": false,
+          "title": "Dismissed",
+          "type": "boolean"
+        },
+        "revision": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "database_generation": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Database Generation",
+          "type": "integer"
         }
       },
       "required": [

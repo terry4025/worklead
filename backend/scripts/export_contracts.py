@@ -10,6 +10,7 @@ import json
 import shutil
 import sys
 import tempfile
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -22,6 +23,7 @@ from tests import fixture_site as fx  # noqa: E402
 from tests.conftest import client_for, make_ctx  # noqa: E402
 from worklead.api import schemas as S  # noqa: E402
 from worklead.engine import runs  # noqa: E402
+from worklead.engine.events import emit  # noqa: E402
 from worklead.engine.worker import Worker  # noqa: E402
 from worklead.models import SourcePolicy  # noqa: E402
 from worklead.services.demo import seed  # noqa: E402
@@ -29,6 +31,9 @@ from worklead.services.settings import put_setting  # noqa: E402
 from worklead.sources.manual import ManualAdapter  # noqa: E402
 
 OUT = ROOT / "contracts"
+NATIVE_SCHEMAS = ("NativeNotificationItem", "NativeNotificationList", "NativeNotificationClaimOut", "NativeNotificationResultIn", "NativeNotificationResultOut")
+RELATION_SCHEMAS = ("RelationUpdateIn", "RelationUpdateOut", "RelatedRecord")
+AI_SCHEMAS = ("AISettings", "AISettingsPatch", "AIStatus", "AICredentialIn", "AICredentialAction", "SettingsOut", "SettingsPatch", "AIInterpretation", "Analysis", "BootstrapOut", "LeadDetail", "RestoreOut")
 
 
 def dump(path: Path, data: object) -> None:
@@ -42,7 +47,122 @@ def drain(ctx, kinds) -> None:  # type: ignore[no-untyped-def]
         pass
 
 
+def native_fixtures(ctx, c) -> None:  # type: ignore[no-untyped-def]
+    # Actual private API responses from a disposable DB. Preserve all unrelated
+    # fixtures during the incremental --native-only contract export.
+    with ctx.db.session() as s:
+        put_setting(s, "notifications", {"quiet_hours": {"enabled": False}})
+        row = emit(s, "notification.created", {"kind": "new_lead", "title": "합성 알림 원문"}, notify=True)
+        row.created_at = datetime.now(UTC)
+        id_ = row.id
+    dump(OUT / "fixtures" / "native-notifications.json", c.get("/v1/native-notifications").json())
+    claimed = c.post(f"/v1/native-notifications/{id_}/claim").json()
+    dump(OUT / "fixtures" / "native-notification-claim.json", claimed)
+    dump(OUT / "fixtures" / "native-notification-result.json", c.post(f"/v1/native-notifications/{id_}/result", json={"state": "unknown", "claim_token": claimed["claim_token"]}).json())
+
+
+def native_only() -> None:
+    with tempfile.TemporaryDirectory(prefix="worklead-native-contracts-") as tmp:
+        ctx = make_ctx(Path(tmp), dev=True)
+        try:
+            c = client_for(ctx)
+            spec = c.app.openapi()
+            spec["servers"] = [{"url": "http://127.0.0.1:{port}", "variables": {"port": {"default": "0", "description": "실행마다 바뀌는 임의 포트"}}}]
+            spec.setdefault("components", {})["securitySchemes"] = {"bearer": {"type": "http", "scheme": "bearer", "description": "실행마다 바뀌는 토큰 (Tauri 브리지로 전달)"}}
+            spec["security"] = [{"bearer": []}]
+            dump(OUT / "openapi.json", spec)
+            for name in NATIVE_SCHEMAS:
+                dump(OUT / "schemas" / f"{name}.schema.json", getattr(S, name).model_json_schema())
+            native_fixtures(ctx, c)
+        finally:
+            ctx.db.dispose()
+    print("native contracts written; existing fixtures preserved")
+
+
+def relations_only() -> None:
+    """Add actual relation API fixtures without rewriting existing fixtures."""
+    from tests.test_source_fields import sample
+    from worklead.engine.pipeline import ingest
+
+    with tempfile.TemporaryDirectory(prefix="worklead-relations-contracts-") as tmp:
+        ctx = make_ctx(Path(tmp), dev=True)
+        try:
+            with ctx.db.session() as s:
+                ids = []
+                for suffix in ("relation-a", "relation-b"):
+                    post = sample()
+                    post.source_post_id = suffix
+                    post.original_url = post.canonical_url = "https://jobs.daangn.com/job-posts/" + suffix
+                    ids.append(ingest(s, "daangn-alba", post, parser_version="fixture", now=datetime.now(UTC)).lead_id)
+            with client_for(ctx) as c:
+                spec = c.app.openapi()
+                spec["servers"] = [{"url": "http://127.0.0.1:{port}", "variables": {"port": {"default": "0", "description": "실행마다 바뀌는 임의 포트"}}}]
+                spec.setdefault("components", {})["securitySchemes"] = {"bearer": {"type": "http", "scheme": "bearer", "description": "실행마다 바뀌는 토큰 (Tauri 브리지로 전달)"}}
+                spec["security"] = [{"bearer": []}]
+                dump(OUT / "openapi.json", spec)
+                for name in RELATION_SCHEMAS:
+                    dump(OUT / "schemas" / f"{name}.schema.json", getattr(S, name).model_json_schema())
+                first = c.get(f"/v1/leads/{ids[0]}").json()
+                dump(OUT / "fixtures" / "relation-candidate.json", first)
+                related = first["related"][0]
+                for action, name in (("confirm", "relation-confirmed"), ("dismiss", "relation-dismissed")):
+                    response = c.post(f"/v1/leads/{ids[0]}/relations/{related['id']}", json={
+                        "action": action, "expected_revision": related["revision"],
+                        "expected_generation": related["database_generation"],
+                    })
+                    response.raise_for_status()
+                    payload = response.json()
+                    dump(OUT / "fixtures" / f"{name}.json", payload)
+                    related = payload["lead"]["related"][0]
+        finally:
+            ctx.db.dispose()
+    print("relation contracts written; existing fixtures preserved")
+
+
+def ai_only(*, schemas_only: bool = False) -> None:
+    """Generate additive AI contracts without changing original demo fixtures."""
+    from worklead.services.credentials import FakeCredentialStore
+    with tempfile.TemporaryDirectory(prefix="worklead-ai-contracts-") as tmp:
+        ctx = make_ctx(Path(tmp), dev=True)
+        try:
+            ctx.credential_store = FakeCredentialStore()
+            with client_for(ctx) as c:
+                spec = c.app.openapi()
+                spec["servers"] = [{"url": "http://127.0.0.1:{port}", "variables": {"port": {"default": "0", "description": "실행마다 바뀌는 임의 포트"}}}]
+                spec.setdefault("components", {})["securitySchemes"] = {"bearer": {"type": "http", "scheme": "bearer", "description": "실행마다 바뀌는 토큰 (Tauri 브리지로 전달)"}}
+                spec["security"] = [{"bearer": []}]
+                dump(OUT / "openapi.json", spec)
+                for name in AI_SCHEMAS:
+                    dump(OUT / "schemas" / f"{name}.schema.json", getattr(S, name).model_json_schema())
+                if schemas_only:
+                    return
+                state = c.get("/v1/ai/status")
+                state.raise_for_status()
+                dump(OUT / "fixtures" / "ai-status-unconfigured.json", state.json())
+                pre = state.json()
+                # Synthetic store only. No actual OS key and no API call.
+                response = c.post("/v1/ai/credentials", json={"key": "synthetic-contract-key", "expected_revision": pre["settings_revision"], "expected_generation": pre["database_generation"]})
+                response.raise_for_status()
+                dump(OUT / "fixtures" / "ai-status-configured.json", response.json())
+                pre = response.json()
+                response = c.post("/v1/ai/credentials/delete", json={"expected_revision": pre["settings_revision"], "expected_generation": pre["database_generation"]})
+                response.raise_for_status()
+                dump(OUT / "fixtures" / "ai-status-deleted.json", response.json())
+        finally:
+            ctx.db.dispose()
+    print("AI contracts written; existing fixtures preserved")
+
+
 def main() -> None:
+    if "--ai-only" in sys.argv or "--ai-schema-only" in sys.argv:
+        ai_only(schemas_only="--ai-schema-only" in sys.argv)
+        return
+    if "--relations-only" in sys.argv:
+        relations_only()
+        return
+    if "--native-only" in sys.argv:
+        native_only()
+        return
     tmp = Path(tempfile.mkdtemp(prefix="worklead-contracts-"))
     try:
         # ── OpenAPI ─────────────────────────────────────────────────
@@ -57,7 +177,13 @@ def main() -> None:
 
         # ── JSON Schema ────────────────────────────────────────────
         shutil.rmtree(OUT / "schemas", ignore_errors=True)
-        for name in ("LeadSummary", "LeadDetail", "LeadPage", "QueueCounts", "SourceOut", "RunOut", "SettingsOut", "BootstrapOut", "MetricsOut", "ErrorResponse", "JobAccepted", "HealthOut"):
+        for name in ("LeadSummary", "LeadDetail", "LeadPage", "QueueCounts", "SourceOut", "RunOut", "SettingsOut", "BootstrapOut", "MetricsOut", "ErrorResponse", "JobAccepted", "HealthOut", "BackupOut", "BackupList", "BackupInspection", "RestoreIn", "RestoreOut"):
+            dump(OUT / "schemas" / f"{name}.schema.json", getattr(S, name).model_json_schema())
+        for name in NATIVE_SCHEMAS:
+            dump(OUT / "schemas" / f"{name}.schema.json", getattr(S, name).model_json_schema())
+        for name in RELATION_SCHEMAS:
+            dump(OUT / "schemas" / f"{name}.schema.json", getattr(S, name).model_json_schema())
+        for name in AI_SCHEMAS:
             dump(OUT / "schemas" / f"{name}.schema.json", getattr(S, name).model_json_schema())
         dump(
             OUT / "schemas" / "Event.schema.json",
@@ -136,6 +262,7 @@ def main() -> None:
             return out
 
         dump(fdir / "events.sample.json", asyncio.run(sample()))
+        native_fixtures(ctx, c)
         ctx.db.dispose()
 
         # ── fixtures: 수집 시나리오 (합성 사이트 + 실제 엔진) ───────────
@@ -160,6 +287,7 @@ def main() -> None:
             dump(fdir / "scenarios" / name / "runs.json", sc.get("/v1/runs").json())
             dump(fdir / "scenarios" / name / "leads.json", sc.get("/v1/leads", params={"limit": 50}).json())
             sctx.db.dispose()
+        relations_only()
         print(f"contracts written to {OUT}")
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

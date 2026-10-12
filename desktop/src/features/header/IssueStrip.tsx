@@ -51,7 +51,11 @@ export function deriveIssues({
     }
   }
   const last = runs.find((r) => r.kind === 'discovery' && ['succeeded', 'partial', 'failed'].includes(r.state));
-  if (last && last.state === 'partial') {
+  const continuation = last?.state === 'partial' && last.result?.continuation_pending === true && !last.error;
+  if (continuation && last) {
+    const sourceName = sources.find((source) => source.id === last.sourceId)?.name;
+    out.push({ key: `run-${last.id}`, tone: 'unknown', text: `${sourceName ? `${sourceName} · ` : ''}이번 확인을 저장했습니다. 남은 공개 목록은 다음 실행에서 이어서 확인합니다.`, action: detail });
+  } else if (last && last.state === 'partial') {
     const retry = last.error?.retryAfter ? ` · ${formatTime(last.error.retryAfter)} 이후 재개` : '';
     out.push({
       key: `run-${last.id}`,

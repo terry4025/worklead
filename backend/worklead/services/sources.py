@@ -12,6 +12,8 @@ from sqlalchemy.orm import Session
 
 from ..api import schemas as S
 from ..engine.http import budget_status
+from ..engine.schedule import next_due
+from ..db import utcnow
 from ..models import CollectionTask, CoverageUnit, Run, Source, SourcePolicy
 from ..sources.profiled import check_profile
 from ..sources.regions import SIDO
@@ -39,10 +41,12 @@ def coverage(s: Session, db: Any, source: Source, adapter: Any) -> S.Coverage | 
         notes = []
         if not research.ready:
             notes.append("사이트 조사 미완료 — 탐색 범위를 계획할 수 없습니다 (" + ", ".join(research.missing) + ")")
+        board = getattr(adapter, "profile", {}).get("discovery", {}).get("strategy") == "public_board"
+        initial_plan = adapter.plan_discovery([], utcnow()) if board and research.ready else None
         return S.Coverage(
-            target_label="전국",
-            region_list_status="unknown",
-            unit_label="지역×검색어",
+            target_label=initial_plan.target_label if initial_plan else "전국",
+            region_list_status=initial_plan.region_list_status if initial_plan else "unknown",
+            unit_label=initial_plan.unit_label if initial_plan else "지역×검색어",
             planned=None,
             completed=0,
             pending=0,
@@ -51,21 +55,27 @@ def coverage(s: Session, db: Any, source: Source, adapter: Any) -> S.Coverage | 
             scan_cycle=None,
             last_visited_at=None,
             next_up=None,
-            depth_limit=None,
+            depth_limit=initial_plan.depth_limit if initial_plan else None,
             budget=budget,
             market_coverage="unknown",
-            target_units_total=len(SIDO),
-            target_units_covered=None,
+            target_units_total=initial_plan.target_units_total if initial_plan else len(SIDO),
+            target_units_covered=initial_plan.target_units_covered if initial_plan else None,
             estimated_cycle_days=None,
-            notes=notes,
+            notes=notes + (initial_plan.notes if initial_plan else []),
         )
     cycle = s.scalar(select(func.max(CollectionTask.scan_cycle)).where(CollectionTask.source_id == source.id))
+    task_scope = [(CollectionTask.region_scope + "|" + CollectionTask.query_group).in_(plan["unit_keys"])] if plan.get("unit_keys") else []
     rows = s.execute(
-        select(CollectionTask.state, func.count(func.distinct(CollectionTask.region_scope + "|" + CollectionTask.query_group)))
-        .where(CollectionTask.source_id == source.id, CollectionTask.scan_cycle == cycle, CollectionTask.depth == 0)
-        .group_by(CollectionTask.state)
+        select(CollectionTask.region_scope, CollectionTask.query_group, CollectionTask.state)
+        .where(CollectionTask.source_id == source.id, CollectionTask.scan_cycle == cycle, *task_scope)
     ).all()
-    by_state = {k: v for k, v in rows}
+    units: dict[str, set[str]] = {}
+    for region, query, state in rows:
+        units.setdefault(region + "|" + query, set()).add(state)
+    by_state = {state: 0 for state in ("done", "blocked", "failed", "pending")}
+    for states in units.values():
+        state = "blocked" if "blocked" in states else "failed" if "failed" in states else "done" if states == {"done"} else "pending"
+        by_state[state] += 1
     planned = int(plan.get("units") or 0)
     completed = by_state.get("done", 0)
     blocked = by_state.get("blocked", 0)
@@ -74,23 +84,29 @@ def coverage(s: Session, db: Any, source: Source, adapter: Any) -> S.Coverage | 
     last_visit = s.scalar(select(func.max(CoverageUnit.last_visited_at)).where(CoverageUnit.source_id == source.id))
     nxt = s.scalar(
         select(CoverageUnit)
-        .where(CoverageUnit.source_id == source.id)
+        .where(CoverageUnit.source_id == source.id, *([CoverageUnit.unit_key.in_(plan["unit_keys"])] if plan.get("unit_keys") else []))
         .order_by(CoverageUnit.last_visited_at.is_not(None), CoverageUnit.last_visited_at, CoverageUnit.unit_key)
         .limit(1)
     )
     labels = plan.get("labels", {})
-    queries = plan.get("queries", {})
+    queries = {**plan.get("queries", {}), **plan.get("query_labels", {})}
     next_up = f"{labels.get(nxt.region_scope) or nxt.region_scope} · {queries.get(nxt.query_group) or nxt.query_group}" if nxt else None
     req = s.scalar(select(func.sum(func.json_extract(Run.counts, "$.requests"))).where(Run.source_id == source.id, Run.kind == "discovery", Run.scan_cycle == cycle)) or 0
     per_unit = (req / completed) if completed else float(plan.get("depth_limit") or 1)
     est = round(planned * per_unit / daily, 1) if daily and planned else None
     notes = list(plan.get("notes", []))
+    if source.auto_collect_enabled:
+        now = utcnow()
+        due = next_due(s, source, "discovery", now)
+        when = "진행·대기 중인 탐색이 끝난 뒤" if due is None else due.astimezone().strftime("%m/%d %H:%M") if due > now else "곧 실행"
+        notes.append(f"다음 자동 탐색: {when}. 앱 실행 중 {source.interval_minutes or 360}분 간격이며, 재시작하면 지난 일정은 한 번만 보충합니다.")
+        notes.append("최근 후보 재확인 작업은 6시간, 오래된 후보는 24시간 간격입니다. 각 공고의 마지막 확인 시각과 유효기간에 따라 대상을 선정합니다.")
     if est and est > 1:
-        notes.append(f"요청 예산 기준 전국 한 바퀴 약 {est}일 예상 (추정)")
+        notes.append(f"요청 예산 기준 탐색 한 주기 약 {est}일 예상 (추정)")
     return S.Coverage(
         target_label=plan.get("target_label", "전국"),
         region_list_status=plan.get("region_list_status", "unknown"),
-        unit_label="지역×검색어",
+        unit_label=plan.get("unit_label", "지역×검색어"),
         planned=planned,
         completed=completed,
         pending=pending,

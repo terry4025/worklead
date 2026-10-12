@@ -1,10 +1,11 @@
 /** 실제 로컬 API 에 연결하는 데이터 계층 (mode = 'live'). */
 import { WorkleadApiError, createClient, type ConnectionSource, type WorkleadClient } from '@contracts/index';
-import type { QueueId, StreamStatus, WorkleadEvent } from '../../domain/model';
+import type { BackupInfo, QueueId, StreamStatus, WorkleadEvent } from '../../domain/model';
 import { PortError, type WorkleadPort } from '../port';
 import {
   filterToQuery,
   mapBootstrap,
+  mapAiStatus,
   mapDetail,
   mapEvent,
   mapRun,
@@ -37,6 +38,10 @@ async function wrap<T>(p: Promise<T>): Promise<T> {
   } catch (err) {
     throw toPortError(err);
   }
+}
+
+function mapBackup(b: { id: string; file_name: string; created_at: string; size_bytes: number }): BackupInfo {
+  return { id: b.id, fileName: b.file_name, createdAt: b.created_at, sizeBytes: b.size_bytes };
 }
 
 export class LivePort implements WorkleadPort {
@@ -89,6 +94,15 @@ export class LivePort implements WorkleadPort {
     return mapDetail(await wrap(this.client.feedback(id, { kind: fb.kind, value: fb.value })));
   }
 
+  async updateRelation(id: string, relationId: string, input: Parameters<WorkleadPort['updateRelation']>[2]) {
+    const result = await wrap(this.client.relation(id, relationId, {
+      action: input.action,
+      expected_revision: input.expectedRevision,
+      expected_generation: input.expectedGeneration,
+    }));
+    return { lead: mapDetail(result.lead), relatedLead: mapDetail(result.related_lead) };
+  }
+
   async addOutcome(id: string, input: Parameters<WorkleadPort['addOutcome']>[1]) {
     return mapDetail(
       await wrap(
@@ -125,8 +139,8 @@ export class LivePort implements WorkleadPort {
     );
   }
 
-  async listRuns(req: { sourceId?: string; limit: number }) {
-    return (await wrap(this.client.listRuns({ source_id: req.sourceId, limit: req.limit }))).items.map(mapRun);
+  async listRuns(req: Parameters<WorkleadPort['listRuns']>[0]) {
+    return (await wrap(this.client.listRuns({ source_id: req.sourceId, kind: req.kinds, state: req.states, limit: req.limit }))).items.map(mapRun);
   }
 
   async getRun(id: string) {
@@ -152,8 +166,37 @@ export class LivePort implements WorkleadPort {
     return { jobId: r.job_id, runId: r.job_id };
   }
 
+  async listBackups() {
+    const r = await wrap(this.client.listBackups());
+    return { directory: r.directory, items: r.items.map(mapBackup) };
+  }
+
+  async createBackup() {
+    return mapBackup(await wrap(this.client.createBackup()));
+  }
+
+  async inspectBackup(id: string) {
+    const r = await wrap(this.client.inspectBackup(id));
+    return { backup: mapBackup(r.backup), sha256: r.sha256, revision: r.revision, canRestore: r.can_restore, problem: r.problem, leadCount: r.lead_count };
+  }
+
+  async restoreBackup(id: string, input: Parameters<WorkleadPort['restoreBackup']>[1]) {
+    const r = await wrap(this.client.restoreBackup(id, input));
+    return { restoredBackupId: r.restored_backup_id, safetyBackup: mapBackup(r.safety_backup), leadCount: r.lead_count, autoCollectionPaused: r.auto_collection_paused, aiAnalysisPaused: r.ai_analysis_paused ?? true };
+  }
+
   async getSettings() {
     return mapSettings(await wrap(this.client.getSettings()));
+  }
+
+  async getAiStatus() { return mapAiStatus(await wrap(this.client.aiStatus())); }
+
+  async saveAiCredential(input: Parameters<WorkleadPort['saveAiCredential']>[0]) {
+    return mapAiStatus(await wrap(this.client.saveAiCredential({ key: input.key, expected_revision: input.expectedRevision, expected_generation: input.expectedGeneration })));
+  }
+
+  async deleteAiCredential(input: Parameters<WorkleadPort['deleteAiCredential']>[0]) {
+    return mapAiStatus(await wrap(this.client.deleteAiCredential({ expected_revision: input.expectedRevision, expected_generation: input.expectedGeneration })));
   }
 
   async updateSettings(patch: Parameters<WorkleadPort['updateSettings']>[0]) {

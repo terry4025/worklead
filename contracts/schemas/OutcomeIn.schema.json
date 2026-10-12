@@ -1,0 +1,73 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "enum": [
+        "contract_confirmed",
+        "payment_received",
+        "refund",
+        "direct_cost"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "amount": {
+      "anyOf": [
+        {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "최소 통화 단위의 안전한 정수. 모르면 null",
+      "title": "Amount"
+    },
+    "currency": {
+      "default": "KRW",
+      "pattern": "^[A-Z]{3}$",
+      "title": "Currency",
+      "type": "string"
+    },
+    "occurred_on": {
+      "format": "date",
+      "title": "Occurred On",
+      "type": "string"
+    },
+    "note": {
+      "anyOf": [
+        {
+          "maxLength": 2000,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Note"
+    },
+    "evidence_ref": {
+      "anyOf": [
+        {
+          "maxLength": 500,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Evidence Ref"
+    }
+  },
+  "required": [
+    "kind",
+    "occurred_on"
+  ],
+  "title": "OutcomeIn",
+  "type": "object"
+}

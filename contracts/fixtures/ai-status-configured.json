@@ -1,0 +1,37 @@
+{
+  "provider": "openai",
+  "model": "gpt-4.1-mini-2025-04-14",
+  "key_supported": true,
+  "key_configured": true,
+  "error_code": null,
+  "provider_available": true,
+  "enabled": false,
+  "ready": false,
+  "blocked_reason": "disabled",
+  "settings_revision": 1,
+  "database_generation": 2950684978966528,
+  "pricing_checked_at": "2026-09-30",
+  "price_metadata": {
+    "input_usd_per_million": 0.4,
+    "cached_input_usd_per_million": 0.1,
+    "output_usd_per_million": 1.6,
+    "source_url": "https://developers.openai.com/api/docs/models/gpt-4.1-mini",
+    "version": "openai-standard-gpt4.1mini-2026-09-30"
+  },
+  "ledger": {
+    "day": {
+      "period": "2026-09-30",
+      "estimated_krw": 0,
+      "reserved_krw": 0,
+      "uncertain_krw": 0,
+      "attempts": 0
+    },
+    "month": {
+      "period": "2026-09",
+      "estimated_krw": 0,
+      "reserved_krw": 0,
+      "uncertain_krw": 0,
+      "attempts": 0
+    }
+  }
+}

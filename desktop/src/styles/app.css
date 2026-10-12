@@ -1344,9 +1344,9 @@
 .import-form input,
 .outcome-form input,
 .policy-form textarea,
-.settings input,
-.field input,
-.qgroup input {
+.settings input:where(:not([type='checkbox'], [type='radio'])),
+.field input:where(:not([type='checkbox'], [type='radio'])),
+.qgroup input:where(:not([type='checkbox'], [type='radio'])) {
   width: 100%;
   padding: 7px 9px;
   border: 1px solid var(--line-strong);
@@ -1636,9 +1636,13 @@ input[aria-invalid='true'] {
   gap: 6px;
   font-size: var(--fs-sm);
 }
-.toggle input {
+.toggle input[type='checkbox'],
+.chip input[type='checkbox'] {
+  flex: none;
   width: 16px;
   height: 16px;
+  margin: 0;
+  padding: 0;
   accent-color: var(--accent);
 }
 .policy-form {
@@ -1732,14 +1736,50 @@ input[aria-invalid='true'] {
   padding: 0 4px;
   font-weight: 700;
 }
+.ai-settings > .btn {
+  justify-self: start;
+}
+.ai-settings p,
+.ai-settings a {
+  overflow-wrap: anywhere;
+}
+.ai-budget {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+}
+.ai-budget-row {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 8px;
+}
+.ai-budget-row dt {
+  font-weight: 600;
+}
+.ai-budget-row dt span {
+  display: block;
+  font-weight: 400;
+}
+.ai-budget-row dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
 .field {
   display: grid;
   gap: 4px;
+  min-width: 0;
 }
 .field-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
   gap: 8px 12px;
+}
+.field-grid select {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 .field-inline {
   display: flex;
@@ -1764,19 +1804,18 @@ input[aria-invalid='true'] {
 }
 .chip {
   display: inline-flex;
+  flex: none;
   align-items: center;
   gap: 5px;
   padding: 3px 10px 3px 7px;
   border: 1px solid var(--line-strong);
   border-radius: 999px;
   font-size: var(--fs-xs);
+  white-space: nowrap;
 }
 .chip:has(input:checked) {
   background: var(--accent-weak);
   border-color: var(--accent-line);
-}
-.chip input {
-  accent-color: var(--accent);
 }
 .qgroup {
   display: grid;

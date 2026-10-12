@@ -50,6 +50,70 @@ def test_auth_host_origin(demo) -> None:
     assert set(err) == {"code", "message", "details", "request_id", "retryable"}
 
 
+@pytest.mark.parametrize("origin", ["http://tauri.localhost", "https://tauri.localhost", "tauri://localhost"])
+def test_desktop_private_network_preflight(client, origin: str) -> None:
+    response = client.options("/v1/bootstrap", headers={
+        "Authorization": "",
+        "Origin": origin,
+        "Access-Control-Request-Method": "GET",
+        "Access-Control-Request-Headers": "authorization",
+        "Access-Control-Request-Private-Network": "true",
+    })
+    assert response.status_code == 200, response.text
+    assert response.headers["access-control-allow-origin"] == origin
+    assert response.headers["access-control-allow-private-network"] == "true"
+    assert "authorization" in response.headers["access-control-allow-headers"].lower()
+
+
+@pytest.mark.parametrize("authorization", ["", "Bearer wrong"])
+def test_auth_failure_is_readable_by_desktop(client, authorization: str) -> None:
+    response = client.get("/v1/health", headers={
+        "Authorization": authorization,
+        "Origin": "http://tauri.localhost",
+    })
+    assert response.status_code == 401
+    assert response.json()["error"]["code"] == "unauthorized"
+    assert response.headers["access-control-allow-origin"] == "http://tauri.localhost"
+    assert response.headers["x-request-id"] == response.json()["error"]["request_id"]
+
+
+@pytest.mark.parametrize("origin", ["https://evil.example", "http://tauri.localhost.evil.example", "null", "http://localhost:5173"])
+def test_private_network_preflight_rejects_untrusted_origin(client, origin: str) -> None:
+    response = client.options("/v1/bootstrap", headers={
+        "Origin": origin,
+        "Access-Control-Request-Method": "GET",
+        "Access-Control-Request-Headers": "authorization",
+        "Access-Control-Request-Private-Network": "true",
+    })
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "origin_not_allowed"
+    assert "access-control-allow-origin" not in response.headers
+    assert "access-control-allow-private-network" not in response.headers
+
+
+def test_private_network_preflight_rejects_untrusted_host(client) -> None:
+    response = client.options("/v1/bootstrap", headers={
+        "Host": "evil.example",
+        "Origin": "http://tauri.localhost",
+        "Access-Control-Request-Method": "GET",
+        "Access-Control-Request-Private-Network": "true",
+    })
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "invalid_host"
+    assert "access-control-allow-private-network" not in response.headers
+
+
+@pytest.mark.parametrize("method,headers", [("DELETE", "authorization"), ("GET", "x-unapproved")])
+def test_private_network_preflight_preserves_method_and_header_limits(client, method: str, headers: str) -> None:
+    response = client.options("/v1/bootstrap", headers={
+        "Origin": "http://tauri.localhost",
+        "Access-Control-Request-Method": method,
+        "Access-Control-Request-Headers": headers,
+        "Access-Control-Request-Private-Network": "true",
+    })
+    assert response.status_code == 400
+
+
 # ── 목록·커서 ───────────────────────────────────────────────────────
 def test_cursor_pagination_is_stable(demo) -> None:
     _, c = demo
@@ -122,8 +186,11 @@ def test_won_does_not_increase_collected(demo) -> None:
 
 
 def test_feedback_is_separate_from_auto(demo) -> None:
-    _, c = demo
-    lead = next(i for i in c.get("/v1/leads", params={"queue": "needs_review", "limit": 50}).json()["items"] if i["work_mode"]["value"] == "unknown" and i["demand_intent"]["value"] == "buyer_project" and i["source_status"] == "open")
+    ctx, c = demo
+    with ctx.db.session() as s:
+        result = ingest(s, "demo-synthetic", ParsedPost(title="홈페이지 제작 의뢰", body="홈페이지 제작 의뢰합니다. 건당 100만원.", original_url=None, canonical_url=None, source_post_id="feedback-fixture", source_status="open"), parser_version="test", now=ctx.clock())
+    lead = c.get(f"/v1/leads/{result.lead_id}").json()
+    assert lead["recommendation"] == "needs_review" and lead["work_mode"]["value"] == "unknown"
     d = c.post(f"/v1/leads/{lead['id']}/feedback", json={"kind": "remote", "value": "confirmed"}).json()
     assert d["feedback"]["remote"] == "confirmed"
     assert d["work_mode"]["basis"] == "user_confirmed"

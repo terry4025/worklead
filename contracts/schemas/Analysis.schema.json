@@ -1,0 +1,248 @@
+{
+  "$defs": {
+    "AIInterpretation": {
+      "additionalProperties": false,
+      "properties": {
+        "suggested_intent": {
+          "enum": [
+            "buyer_project",
+            "buyer_ongoing",
+            "employee_hiring",
+            "seller_service",
+            "job_seeker",
+            "information",
+            "unknown"
+          ],
+          "title": "Suggested Intent",
+          "type": "string"
+        },
+        "evidence_quotes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Quotes",
+          "type": "array"
+        },
+        "uncertain": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Uncertain",
+          "type": "array"
+        },
+        "questions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Questions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "suggested_intent",
+        "evidence_quotes",
+        "uncertain",
+        "questions"
+      ],
+      "title": "AIInterpretation",
+      "type": "object"
+    },
+    "AnalysisFailure": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "title": "AnalysisFailure",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "status": {
+      "enum": [
+        "pending",
+        "rules_only",
+        "complete",
+        "failed",
+        "stale"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "summary": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Summary"
+    },
+    "summary_engine": {
+      "anyOf": [
+        {
+          "enum": [
+            "rules",
+            "ai"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Summary Engine"
+    },
+    "fit": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Fit",
+      "type": "array"
+    },
+    "unfit": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Unfit",
+      "type": "array"
+    },
+    "uncertain": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Uncertain",
+      "type": "array"
+    },
+    "deliverables": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Deliverables",
+      "type": "array"
+    },
+    "tech_requirements": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Tech Requirements",
+      "type": "array"
+    },
+    "questions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Questions",
+      "type": "array"
+    },
+    "next_action": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Next Action"
+    },
+    "conversion_opportunity": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Conversion Opportunity"
+    },
+    "engine": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Engine"
+    },
+    "version": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Version"
+    },
+    "analyzed_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Analyzed At"
+    },
+    "failure": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AnalysisFailure"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "ai_interpretation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AIInterpretation"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "status",
+    "summary",
+    "summary_engine",
+    "fit",
+    "unfit",
+    "uncertain",
+    "deliverables",
+    "tech_requirements",
+    "questions",
+    "next_action",
+    "conversion_opportunity",
+    "engine",
+    "version",
+    "analyzed_at",
+    "failure"
+  ],
+  "title": "Analysis",
+  "type": "object"
+}

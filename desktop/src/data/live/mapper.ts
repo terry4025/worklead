@@ -3,7 +3,10 @@
  * 계약 필드가 바뀌면 여기서 타입 오류가 난다 (화면 코드는 그대로).
  */
 import type * as C from '@contracts/index';
+import { legacyScalar } from '../../domain/sales';
 import type {
+  AiBudgetPeriod,
+  AiStatus,
   Bootstrap,
   Evidence,
   EvidenceKey,
@@ -62,6 +65,7 @@ const EVIDENCE_KEYS: Record<string, EvidenceKey> = {
   applicant_scope: 'applicantScope',
   pay: 'pay',
   source_status: 'sourceStatus',
+  work_start: 'workStart',
   deadline: 'deadline',
 };
 
@@ -122,6 +126,8 @@ export function mapDetail(x: C.LeadDetail): LeadDetail {
       version: x.analysis.version,
       analyzedAt: x.analysis.analyzed_at,
       failure: x.analysis.failure,
+      aiInterpretation: x.analysis.ai_interpretation ? { suggestedIntent: x.analysis.ai_interpretation.suggested_intent,
+        evidenceQuotes: x.analysis.ai_interpretation.evidence_quotes, uncertain: x.analysis.ai_interpretation.uncertain, questions: x.analysis.ai_interpretation.questions } : null,
     },
     risks: x.risks.map((r) => ({ id: r.id, label: r.label, quote: r.quote, span: r.span ? { start: r.span.start, end: r.span.end } : null })),
     profitability: p
@@ -155,7 +161,7 @@ export function mapDetail(x: C.LeadDetail): LeadDetail {
       evidenceRef: o.evidence_ref,
       recordedAt: o.recorded_at,
     })),
-    related: x.related.map((r) => ({ id: r.id, leadId: r.lead_id, sourceId: r.source_id, title: r.title, url: r.url, relation: r.relation, basis: r.basis, seenAt: r.seen_at })),
+    related: x.related.map((r) => ({ id: r.id, leadId: r.lead_id, sourceId: r.source_id, title: r.title, url: r.url, relation: r.relation, basis: r.basis, seenAt: r.seen_at, confirmed: r.confirmed ?? false, dismissed: r.dismissed ?? false, revision: r.revision ?? 0, databaseGeneration: r.database_generation ?? 0 })),
     discoveryPaths: x.discovery_paths.map((d) => ({
       regionScope: d.region_scope,
       regionLabel: d.region_label,
@@ -235,6 +241,7 @@ export function mapRun(x: C.RunOut): RunInfo {
       updated: x.counts.updated,
       duplicates: x.counts.duplicates,
       excluded: x.counts.excluded,
+      skipped: x.counts.skipped ?? 0,
       parseFailures: x.counts.parse_failures,
       fetchFailures: x.counts.fetch_failures,
       policyStops: x.counts.policy_stops,
@@ -274,6 +281,13 @@ export function mapSettings(x: C.SettingsOut): SettingsView {
       dailyCostCap: x.ai.daily_cost_cap,
       keyConfigured: x.ai.key_configured,
       providerAvailable: x.ai.provider_available,
+      provider: x.ai.provider ?? 'openai',
+      model: x.ai.model ?? 'gpt-4.1-mini-2025-04-14',
+      usdToKrwRate: x.ai.usd_to_krw_rate ?? null,
+      maxOutputTokens: x.ai.max_output_tokens ?? 1024,
+      pricingConfirmed: x.ai.pricing_confirmed ?? false,
+      revision: x.ai.revision ?? 0,
+      databaseGeneration: x.ai.database_generation ?? 0,
     },
     retention: { rawDays: x.retention.raw_days ?? 30 },
     queryGroups: { version: x.query_groups.version, groups: x.query_groups.groups.map((g) => ({ id: g.id, label: g.label, enabled: g.enabled, keywords: g.keywords })) },
@@ -303,15 +317,32 @@ export function settingsPatchToContract(p: Parameters<import('../port').Worklead
     };
   if (p.retention) out.retention = { raw_days: p.retention.rawDays };
   if (p.ai) {
-    const ai: Record<string, boolean | number | null> = {};
+    const ai: Record<string, boolean | number | string | null> = {};
     if (p.ai.enabled !== undefined) ai.enabled = p.ai.enabled;
     if (p.ai.externalTransferConsent !== undefined) ai.external_transfer_consent = p.ai.externalTransferConsent;
     if (p.ai.monthlyCostCap !== undefined) ai.monthly_cost_cap = p.ai.monthlyCostCap;
     if (p.ai.dailyCostCap !== undefined) ai.daily_cost_cap = p.ai.dailyCostCap;
+    if (p.ai.provider !== undefined) ai.provider = p.ai.provider;
+    if (p.ai.model !== undefined) ai.model = p.ai.model;
+    if (p.ai.usdToKrwRate !== undefined) ai.usd_to_krw_rate = p.ai.usdToKrwRate;
+    if (p.ai.maxOutputTokens !== undefined) ai.max_output_tokens = p.ai.maxOutputTokens;
+    if (p.ai.pricingConfirmed !== undefined) ai.pricing_confirmed = p.ai.pricingConfirmed;
+    if (p.ai.expectedRevision !== undefined) ai.expected_revision = p.ai.expectedRevision;
+    if (p.ai.expectedGeneration !== undefined) ai.expected_generation = p.ai.expectedGeneration;
     out.ai = ai as C.SettingsPatch['ai'];
   }
   if (p.queryGroups) out.query_groups = p.queryGroups;
   return out;
+}
+
+export function mapAiStatus(x: C.AIStatus): AiStatus {
+  const period = (v: C.Schemas['AIBudgetPeriod']): AiBudgetPeriod => ({ period: v.period, estimatedKrw: v.estimated_krw, reservedKrw: v.reserved_krw, uncertainKrw: v.uncertain_krw, attempts: v.attempts });
+  return { provider: x.provider, model: x.model, keySupported: x.key_supported, keyConfigured: x.key_configured, errorCode: x.error_code,
+    providerAvailable: x.provider_available, enabled: x.enabled, ready: x.ready, blockedReason: x.blocked_reason,
+    settingsRevision: x.settings_revision, databaseGeneration: x.database_generation, pricingCheckedAt: x.pricing_checked_at,
+    price: { inputUsdPerMillion: x.price_metadata.input_usd_per_million, cachedInputUsdPerMillion: x.price_metadata.cached_input_usd_per_million,
+      outputUsdPerMillion: x.price_metadata.output_usd_per_million, sourceUrl: x.price_metadata.source_url, version: x.price_metadata.version },
+    ledger: x.ledger ? { day: period(x.ledger.day), month: period(x.ledger.month) } : null };
 }
 
 export function mapBootstrap(x: C.BootstrapOut): Bootstrap {
@@ -328,17 +359,23 @@ export function mapBootstrap(x: C.BootstrapOut): Bootstrap {
 
 export function mapSales(m: C.MetricsOut): SalesSummary {
   const s = m.sales;
+  const money = (value: C.Schemas['MoneyTotal']) => ({ amount: value.amount, knownAmount: value.known_amount, records: value.records, missingAmounts: value.missing_amounts });
   return {
     periodDays: s.period_days,
+    periodStart: s.period_start ?? null,
+    periodEnd: s.period_end ?? null,
+    timeZone: s.time_zone ?? 'Asia/Seoul',
+    stageScope: s.stage_scope ?? 'current_all',
+    byCurrency: (s.by_currency ?? []).map((group) => ({ currency: group.currency, contract: money(group.contract), collected: money(group.collected), refunded: money(group.refunded), directCost: money(group.direct_cost) })),
     reviewed: s.reviewed,
     contacted: s.contacted,
     negotiating: s.negotiating,
     won: s.won,
     contractsConfirmed: s.contracts_confirmed,
-    contractAmount: s.contract_amount,
-    collected: s.collected,
-    refunded: s.refunded,
-    directCost: s.direct_cost,
+    contractAmount: legacyScalar(s.contract_amount),
+    collected: legacyScalar(s.collected),
+    refunded: legacyScalar(s.refunded),
+    directCost: legacyScalar(s.direct_cost),
   };
 }
 
@@ -365,6 +402,7 @@ export function mapEvent(e: C.ApiEvent): WorkleadEvent | null {
     case 'run.state_changed':
       return { ...base, type: e.type, runId: str('run_id') ?? '', sourceId: str('source_id'), state: e.state as RunInfo['state'] };
     case 'lead.created':
+      return { ...base, type: e.type, leadId: str('lead_id') ?? '', recommendation: e.recommendation as LeadSummary['recommendation'] | undefined };
     case 'lead.updated':
       return { ...base, type: e.type, leadId: str('lead_id') ?? '' };
     case 'analysis.completed':

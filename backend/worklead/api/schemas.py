@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
 
 Basis = Literal["explicit", "inferred", "user_confirmed"]
 Confidence = Literal["high", "medium", "low"]
@@ -197,6 +197,13 @@ class AnalysisFailure(Model):
     message: str
 
 
+class AIInterpretation(Model):
+    suggested_intent: DemandIntent
+    evidence_quotes: list[str]
+    uncertain: list[str]
+    questions: list[str]
+
+
 class Analysis(Model):
     status: AnalysisStatus
     summary: str | None
@@ -213,6 +220,7 @@ class Analysis(Model):
     version: str | None
     analyzed_at: datetime | None
     failure: AnalysisFailure | None
+    ai_interpretation: AIInterpretation | None = None
 
 
 class ProfitScenario(Model):
@@ -255,6 +263,16 @@ class RelatedRecord(Model):
     relation: Literal["duplicate", "repost", "similar"]
     basis: str | None
     seen_at: datetime
+    confirmed: bool = False
+    dismissed: bool = False
+    revision: int = Field(default=0, ge=0)
+    database_generation: int = Field(default=0, ge=0)
+
+
+class RelationUpdateIn(Model):
+    action: Literal["confirm", "dismiss"]
+    expected_revision: int = Field(ge=0)
+    expected_generation: int = Field(ge=0)
 
 
 class DiscoveryPath(Model):
@@ -321,6 +339,11 @@ class LeadPatch(Model):
     draft_text: str | None = Field(default=None, max_length=20000)
 
 
+class RelationUpdateOut(Model):
+    lead: LeadDetail
+    related_lead: LeadDetail
+
+
 class FeedbackIn(Model):
     kind: Literal["remote", "real_request"]
     value: Literal["confirmed", "denied", "yes", "no", "clear"]
@@ -329,8 +352,8 @@ class FeedbackIn(Model):
 
 class OutcomeIn(Model):
     kind: OutcomeKind
-    amount: int | None = Field(default=None, ge=0, description="최소 통화 단위 정수. 모르면 null")
-    currency: str = "KRW"
+    amount: int | None = Field(default=None, strict=True, ge=0, le=9_007_199_254_740_991, description="최소 통화 단위의 안전한 정수. 모르면 null")
+    currency: str = Field(default="KRW", strict=True, pattern=r"^[A-Z]{3}$")
     occurred_on: date
     note: str | None = Field(default=None, max_length=2000)
     evidence_ref: str | None = Field(default=None, max_length=500)
@@ -445,6 +468,7 @@ class RunCounts(Model):
     updated: int
     duplicates: int
     excluded: int
+    skipped: int = 0
     parse_failures: int
     fetch_failures: int
     policy_stops: int
@@ -527,8 +551,108 @@ class AISettings(Model):
     engine_label: str | None
     monthly_cost_cap: int | None = Field(ge=0)
     daily_cost_cap: int | None = Field(ge=0)
-    key_configured: bool = Field(description="API 키 저장 여부 (값은 절대 반환하지 않음)")
+    key_configured: bool | None = Field(description="API 키 저장 여부. 저장소 상태를 확인하지 못하면 null. 값은 반환하지 않음")
     provider_available: bool
+    provider: Literal["openai"] = "openai"
+    model: Literal["gpt-4.1-mini-2025-04-14"] = "gpt-4.1-mini-2025-04-14"
+    usd_to_krw_rate: int | None = Field(default=None, ge=1, le=100000)
+    max_output_tokens: int = Field(default=1024, ge=256, le=4096)
+    pricing_confirmed: bool = False
+    price_version: str | None = Field(default=None, description="확인한 서버 요금표 버전; 읽기 전용")
+    revision: int = Field(default=0, ge=0)
+    database_generation: int = Field(default=0, ge=0)
+
+
+class AISettingsPatch(Model):
+    enabled: bool | None = None
+    external_transfer_consent: bool | None = None
+    monthly_cost_cap: int | None = Field(default=None, ge=0, le=100000000)
+    daily_cost_cap: int | None = Field(default=None, ge=0, le=100000000)
+    provider: Literal["openai"] | None = None
+    model: Literal["gpt-4.1-mini-2025-04-14"] | None = None
+    usd_to_krw_rate: int | None = Field(default=None, ge=1, le=100000)
+    max_output_tokens: int | None = Field(default=None, ge=256, le=4096)
+    pricing_confirmed: bool | None = None
+    expected_revision: int | None = Field(default=None, ge=0)
+    expected_generation: int | None = Field(default=None, ge=0)
+
+    @field_validator("enabled", "external_transfer_consent", "pricing_confirmed", mode="before")
+    @classmethod
+    def strict_boolean(cls, value: Any) -> Any:
+        if type(value) is not bool:
+            raise ValueError("a boolean is required")
+        return value
+
+    @field_validator("monthly_cost_cap", "daily_cost_cap", "usd_to_krw_rate", "max_output_tokens", "expected_revision", "expected_generation", mode="before")
+    @classmethod
+    def strict_integer(cls, value: Any, info: Any) -> Any:
+        if value is None and info.field_name in ("monthly_cost_cap", "daily_cost_cap", "usd_to_krw_rate"):
+            return value
+        if type(value) is not int:
+            raise ValueError("an integer is required")
+        return value
+
+    @field_validator("provider", "model", mode="before")
+    @classmethod
+    def required_choice(cls, value: Any) -> Any:
+        if value is None:
+            raise ValueError("a supported provider or model is required")
+        return value
+
+
+class AIPriceMetadata(Model):
+    input_usd_per_million: float = Field(ge=0)
+    cached_input_usd_per_million: float = Field(ge=0)
+    output_usd_per_million: float = Field(ge=0)
+    source_url: str
+    version: str
+
+
+class AIBudgetPeriod(Model):
+    period: str
+    estimated_krw: int = Field(ge=0)
+    reserved_krw: int = Field(ge=0)
+    uncertain_krw: int = Field(ge=0)
+    attempts: int = Field(ge=0)
+
+
+class AILedgerStatus(Model):
+    day: AIBudgetPeriod
+    month: AIBudgetPeriod
+
+
+class AIStatus(Model):
+    provider: Literal["openai"]
+    model: Literal["gpt-4.1-mini-2025-04-14"]
+    key_supported: bool
+    key_configured: bool | None
+    error_code: str | None
+    provider_available: bool
+    enabled: bool
+    ready: bool
+    blocked_reason: str | None
+    settings_revision: int = Field(ge=0)
+    database_generation: int = Field(ge=0)
+    pricing_checked_at: str
+    price_metadata: AIPriceMetadata
+    ledger: AILedgerStatus | None
+
+
+class AICredentialAction(Model):
+    expected_revision: int = Field(ge=0, strict=True)
+    expected_generation: int = Field(ge=0, strict=True)
+
+
+class AICredentialIn(AICredentialAction):
+    key: SecretStr = Field(json_schema_extra={"writeOnly": True})
+
+    @field_validator("key", mode="before")
+    @classmethod
+    def validate_secret(cls, value: Any) -> Any:
+        # Fixed validation text; no key or submitted value in the exception.
+        if not isinstance(value, str) or not value or len(value) > 2560 or any(not 33 <= ord(c) <= 126 for c in value):
+            raise ValueError("invalid credential")
+        return value
 
 
 class QueryGroup(Model):
@@ -556,10 +680,9 @@ class SettingsPatch(Model):
     profile: ProfileSettings | None = None
     recheck: dict[Literal["ttl_hours"], int] | None = None
     notifications: NotificationSettings | None = None
-    ai: dict[Literal["enabled", "external_transfer_consent", "monthly_cost_cap", "daily_cost_cap"], bool | int | None] | None = None
+    ai: AISettingsPatch | None = None
     retention: dict[Literal["raw_days"], int] | None = None
     query_groups: list[QueryGroup] | None = None
-
 
 # ── 가져오기·내보내기·지표·부트스트랩 ─────────────────────────────────
 class ImportIn(Model):
@@ -571,6 +694,82 @@ class ImportIn(Model):
 
 class ExportIn(Model):
     kind: Literal["leads_csv", "leads_json", "diagnostics"]
+
+
+class BackupOut(Model):
+    id: str
+    file_name: str
+    created_at: datetime
+    size_bytes: int = Field(ge=0)
+
+
+class BackupList(Model):
+    directory: str
+    items: list[BackupOut]
+
+
+class BackupInspection(Model):
+    backup: BackupOut
+    sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    revision: str | None
+    can_restore: bool
+    problem: str | None
+    lead_count: int | None = Field(ge=0)
+
+
+class RestoreIn(Model):
+    sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    confirm: Literal[True]
+
+    @field_validator("confirm", mode="before")
+    @classmethod
+    def require_confirmation(cls, value: Any) -> Any:
+        if value is not True:
+            raise ValueError("explicit confirmation is required")
+        return value
+
+
+class RestoreOut(Model):
+    restored_backup_id: str
+    safety_backup: BackupOut
+    lead_count: int = Field(ge=0)
+    auto_collection_paused: Literal[True]
+    ai_analysis_paused: Literal[True] = True
+
+
+# Native delivery never contains source titles, bodies, or contact details.
+NativeNotificationKind = Literal["new_lead", "lead_changed", "source_issue"]
+NativeNotificationState = Literal["pending", "attempted", "accepted", "failed", "unknown", "suppressed"]
+
+
+class NativeNotificationItem(Model):
+    id: str
+    kind: NativeNotificationKind
+    created_at: datetime
+
+
+class NativeNotificationList(Model):
+    items: list[NativeNotificationItem]
+    backlog_count: int = Field(ge=0, description="현재 시각·설정·created_after 조건에서 미시도인 알림 수")
+
+
+class NativeNotificationClaimOut(Model):
+    allowed: bool
+    kind: NativeNotificationKind | None
+    state: NativeNotificationState
+    claim_token: str | None
+    reason: str | None
+
+
+class NativeNotificationResultIn(Model):
+    state: Literal["accepted", "failed", "unknown"]
+    claim_token: str = Field(pattern=r"^[a-f0-9]{32}$")
+
+
+class NativeNotificationResultOut(Model):
+    id: str
+    kind: NativeNotificationKind | None
+    state: NativeNotificationState
 
 
 class CategoryOut(Model):
@@ -628,17 +827,37 @@ class QualityMetrics(Model):
     note: str
 
 
+class MoneyTotal(Model):
+    amount: str | None = Field(pattern=r"^-?\d+$", description="정확한 최소 통화 단위 10진 정수 문자열. 미기록 금액이 있으면 null. 기록이 없거나 실제 합계가 0이면 '0'")
+    known_amount: str = Field(pattern=r"^-?\d+$", description="금액이 기록된 행만 합산한 정확한 10진 정수 문자열. 미기록분은 추정하지 않음")
+    records: int = Field(ge=0)
+    missing_amounts: int = Field(ge=0)
+
+
+class CurrencySales(Model):
+    currency: str = Field(description="원본 통화 코드. 기존 자료의 코드도 보존하며 서로 환산하지 않음")
+    contract: MoneyTotal
+    collected: MoneyTotal
+    refunded: MoneyTotal
+    direct_cost: MoneyTotal
+
+
 class SalesMetrics(Model):
     period_days: int
+    period_start: date | None = None
+    period_end: date | None = None
+    time_zone: Literal["Asia/Seoul"] = "Asia/Seoul"
+    stage_scope: Literal["current_all"] = Field(default="current_all", description="연락·협의·수주 수는 기간 전환율이 아닌 현재 전체 리드의 단계별 수")
     reviewed: int
     contacted: int
     negotiating: int
     won: int
-    contracts_confirmed: int
-    contract_amount: int | None
-    collected: int = Field(description="실제 수금 기록 합계 (won 표시만으로 늘지 않음)")
-    refunded: int
-    direct_cost: int
+    contracts_confirmed: int = Field(description="발생일 기간 안의 전체 통화 계약 확인 기록 수")
+    contract_amount: int | None = Field(description="KRW 계약 확인 합계. 금액 미기록 또는 안전한 JS 정수 범위를 넘으면 null. 정확값은 by_currency에 보존")
+    collected: int | None = Field(description="KRW 실제 수금 합계. 금액 미기록 또는 안전한 JS 정수 범위를 넘으면 null. 정확값은 by_currency에 보존. 수주 표시만으로 늘지 않음")
+    refunded: int | None = Field(description="KRW 환불 합계. 금액 미기록 또는 안전한 JS 정수 범위를 넘으면 null. 정확값은 by_currency에 보존")
+    direct_cost: int | None = Field(description="KRW 직접 비용 합계. 금액 미기록 또는 안전한 JS 정수 범위를 넘으면 null. 정확값은 by_currency에 보존")
+    by_currency: list[CurrencySales] = Field(default_factory=list)
 
 
 class MetricsOut(Model):

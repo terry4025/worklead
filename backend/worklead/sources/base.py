@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import TYPE_CHECKING, Literal, Protocol
+from typing import TYPE_CHECKING, Any, Literal, Protocol
 
 from ..analysis.types import DateInfo, Ev, PayInfo
 
@@ -48,6 +48,7 @@ class DiscoveryPlan:
     #: 전국 목표 대비 지역 목록이 확보된 광역 단위 수 (알 수 없으면 None)
     target_units_total: int | None = None
     target_units_covered: int | None = None
+    query_labels: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
@@ -55,12 +56,17 @@ class PostRef:
     url: str
     source_post_id: str | None = None
     title_hint: str | None = None
+    source_updated_at: datetime | None = None
 
 
 @dataclass
 class DiscoverResult:
     refs: list[PostRef]
     next_cursor: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+    # Optional candidates for a bounded, rotating detail check after core refs.
+    # Appended to preserve existing positional adapter calls.
+    exploration_refs: list[PostRef] = field(default_factory=list)
 
 
 @dataclass
@@ -111,6 +117,15 @@ class SourceNotReady(Exception):
 
 class ParseError(Exception):
     pass
+
+
+class PostNotCollectable(ParseError):
+    """A valid listing that must be skipped without storing its body."""
+
+    def __init__(self, code: str, message: str):
+        super().__init__(message)
+        self.code = code
+        self.message = message
 
 
 class SourceAdapter(Protocol):

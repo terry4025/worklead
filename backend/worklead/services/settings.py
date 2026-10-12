@@ -6,10 +6,12 @@ import copy
 from typing import Any
 
 from sqlalchemy.orm import Session
+from sqlalchemy import select, update
+from sqlalchemy.dialects.sqlite import insert
 
 from ..analysis.types import Profile
 from ..db import utcnow
-from ..models import AppSetting, UserProfile
+from ..models import AppSetting, UserProfile, AnalysisResult, Lead
 
 DEFAULT_QUERY_GROUPS: dict[str, Any] = {
     "version": 1,
@@ -31,6 +33,12 @@ DEFAULT_QUERY_GROUPS: dict[str, Any] = {
             "label": "구매 의도",
             "enabled": True,
             "keywords": ["만들어주실", "제작해주실", "개발해주실", "수정해주실", "의뢰", "외주", "견적", "구합니다"],
+        },
+        {
+            "id": "development_aliases",
+            "label": "앱·웹·자동화 표현",
+            "enabled": True,
+            "keywords": ["앱", "어플", "홈피", "웹페이지", "RPA", "크롤링", "크롤러", "파이썬", "워드프레스", "카페24", "시스템 개발", "시스템 구축"],
         },
         {
             "id": "problem",
@@ -55,7 +63,14 @@ DEFAULTS: dict[str, Any] = {
         "engine_label": None,
         "monthly_cost_cap": None,
         "daily_cost_cap": None,
+        "provider": "openai",
+        "model": "gpt-4.1-mini-2025-04-14",
+        "usd_to_krw_rate": None,
+        "max_output_tokens": 1024,
+        "pricing_confirmed": False,
+        "price_version": None,
     },
+    "ai_revision": 0,
     "retention": {"raw_days": 30},
     "query_groups": DEFAULT_QUERY_GROUPS,
     #: 이 seq 이하의 일반 이벤트는 정리됨 → 이보다 앞에서 이어받으려 하면 전체 재조회
@@ -70,7 +85,7 @@ DEFAULT_PROFILE: dict[str, Any] = {
     "target_hourly": None,
     "weekly_hours": None,
     "onsite": "no",
-    "allow_short_term_employment": True,
+    "allow_short_term_employment": False,
 }
 
 
@@ -91,6 +106,33 @@ def put_setting(s: Session, key: str, value: Any) -> None:
     else:
         row.value = value
         row.updated_at = utcnow()
+
+
+class AISettingsChanged(Exception):
+    pass
+
+
+def advance_ai_revision(s: Session, expected: int) -> int:
+    """Acquire the SQLite writer and compare atomically before OS key changes."""
+    s.execute(insert(AppSetting).values(key="ai_revision", value=0).on_conflict_do_nothing(index_elements=[AppSetting.key]))
+    result = s.execute(update(AppSetting).where(AppSetting.key == "ai_revision", AppSetting.value == expected)
+                       .values(value=expected + 1, updated_at=utcnow()).execution_options(synchronize_session=False))
+    if result.rowcount != 1:
+        raise AISettingsChanged()
+    row = s.get(AppSetting, "ai_revision")
+    if row is not None:
+        s.expire(row)
+    return expected + 1
+
+
+def stop_pending_ai(s: Session) -> list[str]:
+    pending = select(AnalysisResult.id).where(AnalysisResult.engine == "ai:openai", AnalysisResult.status == "pending")
+    ids = list(s.scalars(select(Lead.id).where(Lead.analysis_id.in_(pending), Lead.analysis_status == "pending")))
+    changed = s.execute(update(Lead).where(Lead.analysis_id.in_(pending), Lead.analysis_status == "pending")
+                        .values(analysis_status="rules_only").execution_options(synchronize_session=False)).rowcount
+    s.execute(update(AnalysisResult).where(AnalysisResult.engine == "ai:openai", AnalysisResult.status == "pending")
+              .values(status="rules_only").execution_options(synchronize_session=False))
+    return ids if changed else []
 
 
 def _merge(base: dict[str, Any], over: dict[str, Any]) -> dict[str, Any]:
@@ -123,7 +165,7 @@ def get_profile(s: Session) -> Profile:
         target_hourly=data["target_hourly"],
         weekly_hours=data["weekly_hours"],
         onsite=data["onsite"],
-        allow_short_term_employment=bool(data.get("allow_short_term_employment", True)),
+        allow_short_term_employment=bool(data.get("allow_short_term_employment", False)),
         version=row.version,
     )
 

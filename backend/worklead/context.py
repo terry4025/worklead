@@ -7,12 +7,14 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 import httpx
+import threading
 
 from .analysis.provider import AnalysisProvider, NullProvider
 from .config import RuntimeConfig
 from .db import Database, utcnow
 from .engine.events import EventHub
 from .engine.http import Fetcher
+from .services.credentials import CredentialStore, WindowsCredentialStore
 
 
 @dataclass
@@ -28,6 +30,23 @@ class AppContext:
     sleep: Callable[[float], None] | None = None
     #: 토큰은 여기 외 어디에도 기록하지 않는다
     token: str = ""
+    credential_store: CredentialStore = field(default_factory=WindowsCredentialStore, repr=False)
+    ai_transport: httpx.BaseTransport | None = field(default=None, repr=False)
+    ai_control_lock: threading.RLock = field(default_factory=threading.RLock, repr=False)
+    _ai_coordinator: object | None = field(default=None, init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        if isinstance(self.provider, NullProvider):
+            from .analysis.coordinator import ManagedProvider
+            self.provider = ManagedProvider(self)
+
+    @property
+    def ai_coordinator(self):
+        from .analysis.coordinator import AnalysisCoordinator
+        with self.ai_control_lock:
+            if self._ai_coordinator is None:
+                self._ai_coordinator = AnalysisCoordinator(self)
+            return self._ai_coordinator
 
     def fetcher_for(self, adapter: object) -> Fetcher:
         kwargs = {}

@@ -102,6 +102,54 @@ def test_partial_coverage_is_reported(tmp_path: Path) -> None:
     assert any("17개 시·도 중 3곳" in n for n in cov["notes"])
 
 
+def test_slow_detail_batch_keeps_lease_alive(tmp_path: Path, monkeypatch) -> None:
+    from datetime import timedelta
+    import httpx
+    from worklead.db import utcnow
+
+    ctx, behavior = setup(tmp_path, regions=[fx.REGIONS[1]])
+    real_transport = fx.transport(behavior)
+    clock = [utcnow()]
+    recovered = []
+    monkeypatch.setattr(runs, "utcnow", lambda: clock[0])
+
+    def slow_request(request):
+        # A multi-detail page exceeds the 60s lease in aggregate, though each
+        # request finishes within it. Recovery must not reclaim the live run.
+        clock[0] += timedelta(seconds=40)
+        recovered.append(runs.recover_expired(ctx.db))
+        return real_transport.handle_request(request)
+
+    ctx.transport = httpx.MockTransport(slow_request)
+    run = run_discovery(ctx)
+    assert run.state == "succeeded"
+    assert sum(recovered) == 0
+    assert count(ctx, Lead) == 2
+    ctx.db.dispose()
+
+
+def test_changed_plan_does_not_adopt_old_pending_units(tmp_path: Path, monkeypatch) -> None:
+    behavior = fx.SiteBehavior(region_mode={"busan-suyeong": "429"})
+    ctx, _ = setup(tmp_path, behavior)
+    first = run_discovery(ctx)
+    assert first.state == "partial"
+    from datetime import timedelta
+    ctx.clock = lambda: first.retry_after + timedelta(seconds=1)
+    monkeypatch.setattr(runs, 'utcnow', ctx.clock)
+    behavior.region_mode.clear()
+    ctx.adapters['fixture-site'].profile['regions']['items'] = [fx.REGIONS[0]]
+    with ctx.db.session() as s:
+        put_setting(s, 'query_groups', {'version': 3, 'groups': [{"id": "changed", "label": "변경", "keywords": ["프로그램"], "enabled": True}]})
+    second = run_discovery(ctx)
+    assert second.state == 'succeeded'
+    with ctx.db.session() as s:
+        tasks = list(s.scalars(select(CollectionTask).where(CollectionTask.run_id == second.id)))
+        assert tasks and all(t.query_group == 'changed' for t in tasks)
+    cov = client_for(ctx).get('/v1/sources').json()['items'][0]['coverage']
+    assert cov['planned'] == cov['completed'] == 1
+    ctx.db.dispose()
+
+
 def test_403_stops_source_without_marking_closed(tmp_path: Path) -> None:
     # 사례 9: 403 은 정상 0건·마감이 아니라 소스 정지
     ctx, _ = setup(tmp_path, fx.SiteBehavior())
@@ -130,13 +178,16 @@ def test_captcha_page_is_policy_stop(tmp_path: Path) -> None:
     assert run.counts["created"] == 0 or run.state == "partial"
 
 
-def test_429_halts_and_next_run_resumes(tmp_path: Path) -> None:
+def test_429_halts_and_next_run_resumes(tmp_path: Path, monkeypatch) -> None:
     behavior = fx.SiteBehavior(region_mode={"busan-suyeong": "429"})
     ctx, _ = setup(tmp_path, behavior, region_status="verified")
     run = run_discovery(ctx)
     assert run.state == "partial"
     assert run.error_code == "rate_limited"
     assert run.retry_after is not None
+    from datetime import timedelta
+    ctx.clock = lambda: run.retry_after + timedelta(seconds=1)
+    monkeypatch.setattr(runs, 'utcnow', ctx.clock)
     with ctx.db.session() as s:
         pending = s.scalars(select(CollectionTask).where(CollectionTask.state == "pending")).all()
         assert pending, "남은 작업은 다음 실행으로 넘어가야 한다"
@@ -159,6 +210,7 @@ def test_detail_without_structured_data_counts_parse_failure(tmp_path: Path) -> 
     ctx, _ = setup(tmp_path, fx.SiteBehavior(detail_mode={"101": "noscript"}))
     run = run_discovery(ctx)
     assert run.counts["parse_failures"] == 1
+    assert run.state == "partial" and run.error_code == "detail_errors"
     assert count(ctx, Lead) == 5
 
 
@@ -245,11 +297,12 @@ def test_scheduler_idempotent_and_respects_policy(tmp_path: Path) -> None:
 
 def test_daangn_not_runnable_until_research(tmp_path: Path) -> None:
     ctx = make_ctx(tmp_path)
+    # The live profile is now researched; an incomplete profile must still fail closed.
+    ctx.adapters["daangn-alba"].profile["verified"] = False
     c = client_for(ctx)
     src = next(i for i in c.get("/v1/sources").json()["items"] if i["id"] == "daangn-alba")
     assert src["policy"]["status"] == "permission_pending"
     assert src["research"]["ready"] is False
-    assert all(cap["support"] == "unverified" for cap in src["capabilities"])
     # 정책만 허용으로 바꿔도 조사 미완료면 실행 불가 (가짜 결과 없음)
     r = c.patch("/v1/sources/daangn-alba", json={"policy": {"status": "allowed", "basis": "테스트"}})
     assert r.status_code == 200

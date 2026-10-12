@@ -1,0 +1,69 @@
+{
+  "$defs": {
+    "BackupOut": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "file_name": {
+          "title": "File Name",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "size_bytes": {
+          "minimum": 0,
+          "title": "Size Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "file_name",
+        "created_at",
+        "size_bytes"
+      ],
+      "title": "BackupOut",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "restored_backup_id": {
+      "title": "Restored Backup Id",
+      "type": "string"
+    },
+    "safety_backup": {
+      "$ref": "#/$defs/BackupOut"
+    },
+    "lead_count": {
+      "minimum": 0,
+      "title": "Lead Count",
+      "type": "integer"
+    },
+    "auto_collection_paused": {
+      "const": true,
+      "title": "Auto Collection Paused",
+      "type": "boolean"
+    },
+    "ai_analysis_paused": {
+      "const": true,
+      "default": true,
+      "title": "Ai Analysis Paused",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "restored_backup_id",
+    "safety_backup",
+    "lead_count",
+    "auto_collection_paused"
+  ],
+  "title": "RestoreOut",
+  "type": "object"
+}

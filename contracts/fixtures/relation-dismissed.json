@@ -1,0 +1,670 @@
+{
+  "lead": {
+    "id": "lead_01a0f12e4638c0a9fc02c4",
+    "source_id": "daangn-alba",
+    "title": "홈페이지 제작 의뢰",
+    "categories": [
+      "website"
+    ],
+    "demand_intent": {
+      "value": "buyer_project",
+      "basis": "explicit"
+    },
+    "engagement_type": {
+      "value": "project",
+      "basis": "explicit"
+    },
+    "work_mode": {
+      "value": "fully_remote",
+      "basis": "explicit"
+    },
+    "collaboration_mode": {
+      "value": "online_only",
+      "basis": "inferred"
+    },
+    "applicant_scope": {
+      "value": "unknown",
+      "basis": null
+    },
+    "pay": {
+      "raw": "건당 100만원",
+      "currency": "KRW",
+      "min": 1000000,
+      "max": 1000000,
+      "unit": "project",
+      "negotiable": false
+    },
+    "source_status": "open",
+    "access_status": "accessible",
+    "analysis_status": "rules_only",
+    "recheck_due": false,
+    "last_checked_at": "2026-09-30T07:18:56.821595Z",
+    "published": {
+      "at": null,
+      "precision": "unknown",
+      "raw": null
+    },
+    "first_seen_at": "2026-09-30T07:18:56.821595Z",
+    "deadline": {
+      "at": "2026-10-05T00:00:00Z",
+      "precision": "day",
+      "raw": "2026-10-05"
+    },
+    "posted_region": null,
+    "found_in": [],
+    "recommendation": "recommended",
+    "priority": {
+      "total": 81,
+      "unknown_factors": 0
+    },
+    "reasons": [
+      {
+        "tone": "positive",
+        "text": "구매 의뢰 명시"
+      },
+      {
+        "tone": "positive",
+        "text": "재택·온라인 명시"
+      },
+      {
+        "tone": "positive",
+        "text": "예산 100만원"
+      }
+    ],
+    "user_mark": null,
+    "sales_stage": "new",
+    "has_memo": false,
+    "active_job": null,
+    "body_text": "홈페이지 제작 의뢰합니다. 원격으로 진행합니다.",
+    "body_retained_until": "2026-10-30T07:18:56.821595Z",
+    "original_url": "https://jobs.daangn.com/job-posts/relation-a",
+    "contact_channel": null,
+    "workplace": null,
+    "applicant_region": null,
+    "source_updated": {
+      "at": null,
+      "precision": "unknown",
+      "raw": null
+    },
+    "last_seen_at": "2026-09-30T07:18:56.821595Z",
+    "work_period": {
+      "start": {
+        "at": null,
+        "precision": "unknown",
+        "raw": null
+      },
+      "end": {
+        "at": null,
+        "precision": "unknown",
+        "raw": null
+      }
+    },
+    "evidence": {
+      "engagement_type": [
+        {
+          "id": "ev_01a0f12e46402cd61ded96",
+          "quote": "홈페이지 제작 의뢰합니다.",
+          "span": {
+            "start": 0,
+            "end": 14
+          },
+          "basis": "explicit",
+          "confidence": "high",
+          "observed_at": "2026-09-30T07:18:56.821595Z",
+          "source_record_id": "rec_01a0f12e46377c23ffeb35",
+          "version": "rules-2026.09.8",
+          "note": null
+        }
+      ],
+      "demand_intent": [
+        {
+          "id": "ev_01a0f12e464070b918e3f1",
+          "quote": "홈페이지 제작 의뢰합니다.",
+          "span": {
+            "start": 0,
+            "end": 14
+          },
+          "basis": "explicit",
+          "confidence": "high",
+          "observed_at": "2026-09-30T07:18:56.821595Z",
+          "source_record_id": "rec_01a0f12e46377c23ffeb35",
+          "version": "rules-2026.09.8",
+          "note": null
+        }
+      ],
+      "work_mode": [
+        {
+          "id": "ev_01a0f12e464090c00e7b36",
+          "quote": "원격으로 진행합니다.",
+          "span": {
+            "start": 15,
+            "end": 26
+          },
+          "basis": "explicit",
+          "confidence": "high",
+          "observed_at": "2026-09-30T07:18:56.821595Z",
+          "source_record_id": "rec_01a0f12e46377c23ffeb35",
+          "version": "rules-2026.09.8",
+          "note": null
+        }
+      ],
+      "collaboration_mode": [
+        {
+          "id": "ev_01a0f12e46409f23b67416",
+          "quote": "원격으로 진행합니다.",
+          "span": {
+            "start": 15,
+            "end": 26
+          },
+          "basis": "inferred",
+          "confidence": "medium",
+          "observed_at": "2026-09-30T07:18:56.821595Z",
+          "source_record_id": "rec_01a0f12e46377c23ffeb35",
+          "version": "rules-2026.09.8",
+          "note": null
+        }
+      ],
+      "pay": [
+        {
+          "id": "ev_01a0f12e4640b0dfe5e987",
+          "quote": "건당 100만원",
+          "span": null,
+          "basis": "explicit",
+          "confidence": "high",
+          "observed_at": "2026-09-30T07:18:56.821595Z",
+          "source_record_id": "rec_01a0f12e46377c23ffeb35",
+          "version": "rules-2026.09.8",
+          "note": "사이트 보수"
+        }
+      ]
+    },
+    "score": {
+      "total": 81,
+      "factors": [
+        {
+          "key": "work_fit",
+          "label": "업무 적합성",
+          "max": 30,
+          "score": 27,
+          "reason": "웹사이트 — 제공 서비스와 일치"
+        },
+        {
+          "key": "buyer_intent",
+          "label": "구매 의도",
+          "max": 25,
+          "score": 23,
+          "reason": "구매 표현 명시"
+        },
+        {
+          "key": "remote_fit",
+          "label": "원격 적합성",
+          "max": 20,
+          "score": 20,
+          "reason": "재택·온라인 진행 명시"
+        },
+        {
+          "key": "freshness",
+          "label": "최신성",
+          "max": 15,
+          "score": 8,
+          "reason": "게시일 미확인, 최초 발견 0시간 전"
+        },
+        {
+          "key": "scope_clarity",
+          "label": "범위 명확성",
+          "max": 10,
+          "score": 3,
+          "reason": "업무 내용이 거의 없음"
+        }
+      ],
+      "risk_penalty": {
+        "score": 0,
+        "reasons": []
+      },
+      "rule_version": "rules-2026.09.8"
+    },
+    "analysis": {
+      "status": "rules_only",
+      "summary": "홈페이지 제작 의뢰합니다.",
+      "summary_engine": "rules",
+      "fit": [
+        "웹사이트 업무",
+        "구매 수요",
+        "재택 명시"
+      ],
+      "unfit": [],
+      "uncertain": [
+        "세부 요구 범위"
+      ],
+      "deliverables": [],
+      "tech_requirements": [],
+      "questions": [
+        "필요한 기능이나 페이지 목록을 받을 수 있을까요?"
+      ],
+      "next_action": "핵심 질문 확인 후 범위·일정 포함 견적 제시",
+      "conversion_opportunity": null,
+      "engine": "rules",
+      "version": "rules-2026.09.8",
+      "analyzed_at": "2026-09-30T07:18:56.821595Z",
+      "failure": null
+    },
+    "risks": [],
+    "profitability": {
+      "status": "calculated",
+      "basis": "게시 금액 예산 100만원",
+      "reason": null,
+      "assumptions": [
+        "투입 시간은 규칙 추정치 (웹사이트 기준 34시간, 요구 확인·개발·테스트·배포·소통·수정·지원 포함)",
+        "확인된 직접 비용 없음 — 확인되지 않은 세금·수수료는 반영하지 않음"
+      ],
+      "scenarios": [
+        {
+          "key": "conservative",
+          "contract_value": 1000000,
+          "direct_cost": 0,
+          "hours": 45.0,
+          "contribution": 1000000,
+          "effective_hourly": 22222,
+          "residual_after_target": null
+        },
+        {
+          "key": "base",
+          "contract_value": 1000000,
+          "direct_cost": 0,
+          "hours": 34.0,
+          "contribution": 1000000,
+          "effective_hourly": 29412,
+          "residual_after_target": null
+        },
+        {
+          "key": "optimistic",
+          "contract_value": 1000000,
+          "direct_cost": 0,
+          "hours": 25.0,
+          "contribution": 1000000,
+          "effective_hourly": 40000,
+          "residual_after_target": null
+        }
+      ],
+      "revenue_type": "one_time",
+      "target_hourly": null
+    },
+    "draft": null,
+    "memo": "",
+    "outcomes": [],
+    "related": [
+      {
+        "id": "dup_01a0f12e4646ce2dd1760f",
+        "lead_id": "lead_01a0f12e4644d156a52c03",
+        "source_id": "daangn-alba",
+        "title": "홈페이지 제작 의뢰",
+        "url": "https://jobs.daangn.com/job-posts/relation-b",
+        "relation": "repost",
+        "basis": "본문·조건 동일 (원천 ID 다름) — 병합하지 않음",
+        "seen_at": "2026-09-30T07:18:56.836108Z",
+        "confirmed": false,
+        "dismissed": true,
+        "revision": 2,
+        "database_generation": 400998599925760
+      }
+    ],
+    "discovery_paths": [],
+    "activity": [
+      {
+        "at": "2026-09-30T07:18:57.096104Z",
+        "kind": "relation",
+        "text": "관련 글 연결을 사용자 해제"
+      },
+      {
+        "at": "2026-09-30T07:18:57.087599Z",
+        "kind": "relation",
+        "text": "관련 글 관계를 사용자 확인"
+      },
+      {
+        "at": "2026-09-30T07:18:56.821595Z",
+        "kind": "created",
+        "text": "신규 탐색에서 발견"
+      }
+    ],
+    "feedback": {
+      "remote": null,
+      "real_request": null
+    },
+    "parser_version": "fixture",
+    "content_hash": "a4cd42f7d50bdc5b1db876acb61cf9b62198dfc74c6cb7258e68ef34aae8c635"
+  },
+  "related_lead": {
+    "id": "lead_01a0f12e4644d156a52c03",
+    "source_id": "daangn-alba",
+    "title": "홈페이지 제작 의뢰",
+    "categories": [
+      "website"
+    ],
+    "demand_intent": {
+      "value": "buyer_project",
+      "basis": "explicit"
+    },
+    "engagement_type": {
+      "value": "project",
+      "basis": "explicit"
+    },
+    "work_mode": {
+      "value": "fully_remote",
+      "basis": "explicit"
+    },
+    "collaboration_mode": {
+      "value": "online_only",
+      "basis": "inferred"
+    },
+    "applicant_scope": {
+      "value": "unknown",
+      "basis": null
+    },
+    "pay": {
+      "raw": "건당 100만원",
+      "currency": "KRW",
+      "min": 1000000,
+      "max": 1000000,
+      "unit": "project",
+      "negotiable": false
+    },
+    "source_status": "open",
+    "access_status": "accessible",
+    "analysis_status": "rules_only",
+    "recheck_due": false,
+    "last_checked_at": "2026-09-30T07:18:56.836108Z",
+    "published": {
+      "at": null,
+      "precision": "unknown",
+      "raw": null
+    },
+    "first_seen_at": "2026-09-30T07:18:56.836108Z",
+    "deadline": {
+      "at": "2026-10-05T00:00:00Z",
+      "precision": "day",
+      "raw": "2026-10-05"
+    },
+    "posted_region": null,
+    "found_in": [],
+    "recommendation": "recommended",
+    "priority": {
+      "total": 81,
+      "unknown_factors": 0
+    },
+    "reasons": [
+      {
+        "tone": "positive",
+        "text": "구매 의뢰 명시"
+      },
+      {
+        "tone": "positive",
+        "text": "재택·온라인 명시"
+      },
+      {
+        "tone": "positive",
+        "text": "예산 100만원"
+      }
+    ],
+    "user_mark": null,
+    "sales_stage": "new",
+    "has_memo": false,
+    "active_job": null,
+    "body_text": "홈페이지 제작 의뢰합니다. 원격으로 진행합니다.",
+    "body_retained_until": "2026-10-30T07:18:56.836108Z",
+    "original_url": "https://jobs.daangn.com/job-posts/relation-b",
+    "contact_channel": null,
+    "workplace": null,
+    "applicant_region": null,
+    "source_updated": {
+      "at": null,
+      "precision": "unknown",
+      "raw": null
+    },
+    "last_seen_at": "2026-09-30T07:18:56.836108Z",
+    "work_period": {
+      "start": {
+        "at": null,
+        "precision": "unknown",
+        "raw": null
+      },
+      "end": {
+        "at": null,
+        "precision": "unknown",
+        "raw": null
+      }
+    },
+    "evidence": {
+      "demand_intent": [
+        {
+          "id": "ev_01a0f12e46472e1a0fcb93",
+          "quote": "홈페이지 제작 의뢰합니다.",
+          "span": {
+            "start": 0,
+            "end": 14
+          },
+          "basis": "explicit",
+          "confidence": "high",
+          "observed_at": "2026-09-30T07:18:56.836108Z",
+          "source_record_id": "rec_01a0f12e464461442497b2",
+          "version": "rules-2026.09.8",
+          "note": null
+        }
+      ],
+      "collaboration_mode": [
+        {
+          "id": "ev_01a0f12e464772493b2a8d",
+          "quote": "원격으로 진행합니다.",
+          "span": {
+            "start": 15,
+            "end": 26
+          },
+          "basis": "inferred",
+          "confidence": "medium",
+          "observed_at": "2026-09-30T07:18:56.836108Z",
+          "source_record_id": "rec_01a0f12e464461442497b2",
+          "version": "rules-2026.09.8",
+          "note": null
+        }
+      ],
+      "engagement_type": [
+        {
+          "id": "ev_01a0f12e4647974cad92d1",
+          "quote": "홈페이지 제작 의뢰합니다.",
+          "span": {
+            "start": 0,
+            "end": 14
+          },
+          "basis": "explicit",
+          "confidence": "high",
+          "observed_at": "2026-09-30T07:18:56.836108Z",
+          "source_record_id": "rec_01a0f12e464461442497b2",
+          "version": "rules-2026.09.8",
+          "note": null
+        }
+      ],
+      "work_mode": [
+        {
+          "id": "ev_01a0f12e464798434cbaad",
+          "quote": "원격으로 진행합니다.",
+          "span": {
+            "start": 15,
+            "end": 26
+          },
+          "basis": "explicit",
+          "confidence": "high",
+          "observed_at": "2026-09-30T07:18:56.836108Z",
+          "source_record_id": "rec_01a0f12e464461442497b2",
+          "version": "rules-2026.09.8",
+          "note": null
+        }
+      ],
+      "pay": [
+        {
+          "id": "ev_01a0f12e464824d944aaf7",
+          "quote": "건당 100만원",
+          "span": null,
+          "basis": "explicit",
+          "confidence": "high",
+          "observed_at": "2026-09-30T07:18:56.836108Z",
+          "source_record_id": "rec_01a0f12e464461442497b2",
+          "version": "rules-2026.09.8",
+          "note": "사이트 보수"
+        }
+      ]
+    },
+    "score": {
+      "total": 81,
+      "factors": [
+        {
+          "key": "work_fit",
+          "label": "업무 적합성",
+          "max": 30,
+          "score": 27,
+          "reason": "웹사이트 — 제공 서비스와 일치"
+        },
+        {
+          "key": "buyer_intent",
+          "label": "구매 의도",
+          "max": 25,
+          "score": 23,
+          "reason": "구매 표현 명시"
+        },
+        {
+          "key": "remote_fit",
+          "label": "원격 적합성",
+          "max": 20,
+          "score": 20,
+          "reason": "재택·온라인 진행 명시"
+        },
+        {
+          "key": "freshness",
+          "label": "최신성",
+          "max": 15,
+          "score": 8,
+          "reason": "게시일 미확인, 최초 발견 0시간 전"
+        },
+        {
+          "key": "scope_clarity",
+          "label": "범위 명확성",
+          "max": 10,
+          "score": 3,
+          "reason": "업무 내용이 거의 없음"
+        }
+      ],
+      "risk_penalty": {
+        "score": 0,
+        "reasons": []
+      },
+      "rule_version": "rules-2026.09.8"
+    },
+    "analysis": {
+      "status": "rules_only",
+      "summary": "홈페이지 제작 의뢰합니다.",
+      "summary_engine": "rules",
+      "fit": [
+        "웹사이트 업무",
+        "구매 수요",
+        "재택 명시"
+      ],
+      "unfit": [],
+      "uncertain": [
+        "세부 요구 범위"
+      ],
+      "deliverables": [],
+      "tech_requirements": [],
+      "questions": [
+        "필요한 기능이나 페이지 목록을 받을 수 있을까요?"
+      ],
+      "next_action": "핵심 질문 확인 후 범위·일정 포함 견적 제시",
+      "conversion_opportunity": null,
+      "engine": "rules",
+      "version": "rules-2026.09.8",
+      "analyzed_at": "2026-09-30T07:18:56.836108Z",
+      "failure": null
+    },
+    "risks": [],
+    "profitability": {
+      "status": "calculated",
+      "basis": "게시 금액 예산 100만원",
+      "reason": null,
+      "assumptions": [
+        "투입 시간은 규칙 추정치 (웹사이트 기준 34시간, 요구 확인·개발·테스트·배포·소통·수정·지원 포함)",
+        "확인된 직접 비용 없음 — 확인되지 않은 세금·수수료는 반영하지 않음"
+      ],
+      "scenarios": [
+        {
+          "key": "conservative",
+          "contract_value": 1000000,
+          "direct_cost": 0,
+          "hours": 45.0,
+          "contribution": 1000000,
+          "effective_hourly": 22222,
+          "residual_after_target": null
+        },
+        {
+          "key": "base",
+          "contract_value": 1000000,
+          "direct_cost": 0,
+          "hours": 34.0,
+          "contribution": 1000000,
+          "effective_hourly": 29412,
+          "residual_after_target": null
+        },
+        {
+          "key": "optimistic",
+          "contract_value": 1000000,
+          "direct_cost": 0,
+          "hours": 25.0,
+          "contribution": 1000000,
+          "effective_hourly": 40000,
+          "residual_after_target": null
+        }
+      ],
+      "revenue_type": "one_time",
+      "target_hourly": null
+    },
+    "draft": null,
+    "memo": "",
+    "outcomes": [],
+    "related": [
+      {
+        "id": "dup_01a0f12e4646ce2dd1760f",
+        "lead_id": "lead_01a0f12e4638c0a9fc02c4",
+        "source_id": "daangn-alba",
+        "title": "홈페이지 제작 의뢰",
+        "url": "https://jobs.daangn.com/job-posts/relation-a",
+        "relation": "repost",
+        "basis": "본문·조건 동일 (원천 ID 다름) — 병합하지 않음",
+        "seen_at": "2026-09-30T07:18:56.821595Z",
+        "confirmed": false,
+        "dismissed": true,
+        "revision": 2,
+        "database_generation": 400998599925760
+      }
+    ],
+    "discovery_paths": [],
+    "activity": [
+      {
+        "at": "2026-09-30T07:18:57.096104Z",
+        "kind": "relation",
+        "text": "관련 글 연결을 사용자 해제"
+      },
+      {
+        "at": "2026-09-30T07:18:57.087599Z",
+        "kind": "relation",
+        "text": "관련 글 관계를 사용자 확인"
+      },
+      {
+        "at": "2026-09-30T07:18:56.836108Z",
+        "kind": "created",
+        "text": "신규 탐색에서 발견"
+      }
+    ],
+    "feedback": {
+      "remote": null,
+      "real_request": null
+    },
+    "parser_version": "fixture",
+    "content_hash": "a4cd42f7d50bdc5b1db876acb61cf9b62198dfc74c6cb7258e68ef34aae8c635"
+  }
+}

@@ -2,10 +2,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { LeadFilter } from '../domain/model';
-import { formatKrw } from '../domain/format';
+import { formatMoneyMinor, todayKst } from '../domain/format';
+import { emptyCollectionMessage } from '../domain/collection';
 import { VIEWS, type ViewId } from '../domain/queues';
 import { CollectionPanel } from '../features/collection/CollectionPanel';
 import { LeadDetailPane, type DetailHandle } from '../features/detail/LeadDetailPane';
+import { CurrencyTotals } from '../features/detail/Records';
 import { IssueStrip, deriveIssues } from '../features/header/IssueStrip';
 import { TopBar } from '../features/header/TopBar';
 import { ShortcutHelp } from '../features/help/ShortcutHelp';
@@ -17,7 +19,7 @@ import { Button } from '../ui/Button';
 import { EmptyState } from '../ui/States';
 import { usePortCtx } from './PortContext';
 import { applyDisplayPrefs, useMediaQuery, usePref, type FontScale, type ThemePref } from './prefs';
-import { qk, useBootstrap, useCounts, useRuns, useSales, useSources } from './queries';
+import { qk, useBootstrap, useCounts, useRunStatus, useSales, useSources } from './queries';
 import { useLiveEvents } from './useLiveEvents';
 
 function isTyping(el: EventTarget | null): boolean {
@@ -49,6 +51,7 @@ export function Workspace() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [overlayOpen, setOverlayOpen] = useState(false);
   const [collectionOpen, setCollectionOpen] = useState(false);
+  const [collectionTab, setCollectionTab] = useState<'sources' | 'import'>('sources');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [snapshot, setSnapshot] = useState<ListSnapshot>(EMPTY_SNAPSHOT);
@@ -61,13 +64,25 @@ export function Workspace() {
 
   const boot = useBootstrap();
   const sources = useSources();
-  const runs = useRuns();
+  const runs = useRunStatus();
   const counts = useCounts(filter);
   const sales = useSales(view === 'active');
   const viewDef = VIEWS.find((v) => v.id === view) ?? (VIEWS[0] as (typeof VIEWS)[number]);
 
   // 알림·가져오기 등 목록 밖에서 연 리드는 목록에 아직 없어도 선택을 유지한다
   const pinnedRef = useRef<string | null>(null);
+  const kstDay = todayKst(now);
+  const previousKstDay = useRef(kstDay);
+  useEffect(() => {
+    if (previousKstDay.current === kstDay) return;
+    previousKstDay.current = kstDay;
+    // 마감으로 목록에서 빠져도 열린 상세와 작성 중인 메모는 유지한다.
+    pinnedRef.current = selectedId;
+    void qc.invalidateQueries({ queryKey: ['counts'] });
+    void qc.invalidateQueries({ queryKey: qk.leadsAll });
+    void qc.invalidateQueries({ queryKey: ['lead'] });
+  }, [kstDay, qc, selectedId]);
+
   const openLead = useCallback((id: string) => {
     pinnedRef.current = id;
     setSelectedId(id);
@@ -119,7 +134,7 @@ export function Workspace() {
   );
 
   const refreshAll = useCallback(() => {
-    live.acknowledge();
+    void live.acknowledge();
     void qc.invalidateQueries({ queryKey: qk.sources });
     void qc.invalidateQueries({ queryKey: qk.runs });
   }, [live, qc]);
@@ -208,28 +223,21 @@ export function Workspace() {
 
   const totalAll = counts.data?.all ?? null;
   const emptyNode = (() => {
-    const site = (sources.data ?? []).find((s) => s.kind === 'site');
+    const sites = (sources.data ?? []).filter((s) => s.kind === 'site');
     if (totalAll === 0 && isDefaultFilter(filter)) {
-      const blocked = site && (!site.research.ready || (site.policy.status !== 'allowed' && site.policy.status !== 'restricted'));
       return (
         <EmptyState
           title="아직 리드가 없습니다"
           actions={
             <>
-              <Button variant="primary" onClick={() => setCollectionOpen(true)}>
+              <Button variant="primary" onClick={() => { setCollectionTab('import'); setCollectionOpen(true); }}>
                 수동 입력으로 추가
               </Button>
               <Button onClick={() => setCollectionOpen(true)}>수집 상태 보기</Button>
             </>
           }
         >
-          {blocked ? (
-            <p>
-              {site.name} 자동 수집은 권한 확인·사이트 조사 전이라 실행하지 않습니다. 직접 확보한 글은 수동 입력으로 바로 분석할 수 있습니다.
-            </p>
-          ) : (
-            <p>최근 탐색이 정상적으로 끝났지만 조건에 맞는 글이 없었습니다. 탐색 범위와 검색어는 수집 화면에서 확인할 수 있습니다.</p>
-          )}
+          {sites.length ? sites.map((site) => <p key={site.id}>{sites.length > 1 ? `${site.name}: ` : ''}{emptyCollectionMessage(site, runs.data ?? [])}</p>) : <p>{emptyCollectionMessage(undefined, runs.data ?? [])}</p>}
         </EmptyState>
       );
     }
@@ -280,15 +288,14 @@ export function Workspace() {
       {view === 'active' && sales.data ? (
         <div className="sales-strip" aria-label="영업 성과">
           <span>
-            최근 {sales.data.periodDays}일 · 연락 <b className="num">{sales.data.contacted}</b> · 협상 <b className="num">{sales.data.negotiating}</b> · 수주 표시{' '}
+            현재 전체 리드 · 연락 <b className="num">{sales.data.contacted}</b> · 협상 <b className="num">{sales.data.negotiating}</b> · 수주 표시{' '}
             <b className="num">{sales.data.won}</b>
           </span>
-          <span>
-            계약 확인 <b className="num">{sales.data.contractAmount === null ? '금액 일부 미기록' : formatKrw(sales.data.contractAmount)}</b> · 실제 수금{' '}
-            <b className="num">{formatKrw(sales.data.collected)}</b>
-            {sales.data.refunded ? <> · 환불 <b className="num">{formatKrw(sales.data.refunded)}</b></> : null}
-          </span>
-          <span className="field-hint">수금은 실제 기록만 합산 · 예상 금액 미포함</span>
+          <span className="field-hint">{sales.data.periodStart && sales.data.periodEnd ? `발생일 기준 최근 ${sales.data.periodDays}일 · ${sales.data.periodStart} ~ ${sales.data.periodEnd} (한국 시간)` : '금액 집계 기간 확인 필요'}</span>
+          {sales.data.byCurrency.length ? <CurrencyTotals groups={sales.data.byCurrency} /> : sales.data.periodStart ? <span>기간 내 계약·수금·환불·비용 기록 없음</span> : <span>
+            KRW · 계약 확인 <b className="num">{sales.data.contractAmount === null ? '금액 확인 필요' : formatMoneyMinor(sales.data.contractAmount, 'KRW')}</b> · 실제 수금 <b className="num">{sales.data.collected === null ? '금액 확인 필요' : formatMoneyMinor(sales.data.collected, 'KRW')}</b> · 환불 <b className="num">{sales.data.refunded === null ? '금액 확인 필요' : formatMoneyMinor(sales.data.refunded, 'KRW')}</b> · 직접 비용 <b className="num">{sales.data.directCost === null ? '금액 확인 필요' : formatMoneyMinor(sales.data.directCost, 'KRW')}</b> · 미기록 건수 확인 불가
+          </span>}
+          <span className="field-hint">통화별 실제 기록만 합산 · 예상 금액·통화 환산 미포함</span>
         </div>
       ) : null}
 
@@ -296,7 +303,7 @@ export function Workspace() {
         <div className="pane-list" role="tabpanel" aria-label={viewDef.label}>
           {live.newLeads > 0 || live.listStale ? (
             <div className="new-banner" role="status">
-              <span>{live.newLeads > 0 ? `새 리드 ${live.newLeads}건이 들어왔습니다` : '수집·재확인 결과가 반영됐습니다'}</span>
+              <span>{live.newLeads > 0 ? `새 리드 ${live.newLeads}건이 들어왔습니다` : '새 수집·재확인 결과가 있습니다'}</span>
               <Button size="sm" variant="primary" icon={<RefreshCw size={13} />} onClick={refreshAll}>
                 목록에 반영 (F5)
               </Button>
@@ -379,11 +386,13 @@ export function Workspace() {
 
       <CollectionPanel
         open={collectionOpen}
-        onClose={() => setCollectionOpen(false)}
+        initialTab={collectionTab}
+        onClose={() => { setCollectionOpen(false); setCollectionTab('sources'); }}
         onOpenLead={(id) => {
           setCollectionOpen(false);
+          setCollectionTab('sources');
           changeView('all');
-          live.acknowledge();
+          void live.acknowledge();
           openLead(id);
         }}
       />

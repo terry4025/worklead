@@ -65,6 +65,11 @@
           "title": "Excluded",
           "type": "integer"
         },
+        "skipped": {
+          "default": 0,
+          "title": "Skipped",
+          "type": "integer"
+        },
         "parse_failures": {
           "title": "Parse Failures",
           "type": "integer"

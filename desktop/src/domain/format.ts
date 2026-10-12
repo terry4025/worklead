@@ -1,4 +1,4 @@
-import type { FuzzyDate, IsoDateTime, Pay } from './model';
+import type { FuzzyDate, IsoDateTime, MoneyTotal, Pay } from './model';
 import { payUnitLabel } from './labels';
 
 const TZ = 'Asia/Seoul';
@@ -18,6 +18,33 @@ export function formatKrw(amount: number): string {
   const manText = man === 0 ? '' : `${numberFmt.format(Math.round(man * 10) / 10)}만`;
   if (eok > 0) return `${sign}${numberFmt.format(eok)}억${manText ? ` ${manText}` : ''}원`;
   return `${sign}${manText}원`;
+}
+
+const supportedCurrencies = new Set(Intl.supportedValuesOf('currency'));
+
+/** 성과 금액은 최소 통화 단위이며, 큰 정수와 소수부를 Number로 환산하지 않는다. */
+export function formatMoneyMinor(amount: string | number | bigint, currency: string): string {
+  if (typeof amount === 'number' && !Number.isSafeInteger(amount)) return '정확한 금액 확인 필요';
+  let value: bigint;
+  try { value = BigInt(amount); } catch { return '정확한 금액 확인 필요'; }
+  if (currency === 'KRW') return `${numberFmt.format(value)}원`;
+  if (!supportedCurrencies.has(currency)) return `${currency || '통화 미기록'} ${numberFmt.format(value)} (최소 단위)`;
+  const digits = new Intl.NumberFormat('ko-KR', { style: 'currency', currency }).resolvedOptions().maximumFractionDigits;
+  if (digits === undefined) return `${currency} ${numberFmt.format(value)} (최소 단위)`;
+  const scale = 10n ** BigInt(digits);
+  const negative = value < 0n;
+  const absolute = negative ? -value : value;
+  const major = numberFmt.format(absolute / scale);
+  const fraction = digits ? '.' + (absolute % scale).toString().padStart(digits, '0') : '';
+  return `${currency} ${negative ? '−' : ''}${major}${fraction}`;
+}
+
+export function formatMoneyTotal(total: MoneyTotal, currency: string): string {
+  if (total.missingAmounts > 0 || total.amount === null) {
+    const known = total.records > total.missingAmounts ? `확인 ${formatMoneyMinor(total.knownAmount, currency)} · ` : '';
+    return `${known}금액 미기록 ${formatCount(total.missingAmounts)}건`;
+  }
+  return total.records ? formatMoneyMinor(total.amount, currency) : '기록 없음';
 }
 
 function formatRange(min: number | null, max: number | null): string | null {

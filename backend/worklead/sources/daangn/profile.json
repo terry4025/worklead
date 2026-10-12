@@ -1,13 +1,15 @@
 {
   "schema_version": 1,
   "source_id": "daangn-alba",
-  "verified": false,
+  "verified": true,
   "research": {
     "document": "docs/SOURCE_RESEARCH.md",
-    "reviewed_at": null,
-    "notes": "2026-09-26 개발 환경에서 jobs.daangn.com 접근이 네트워크 정책으로 차단되어 실제 확인을 하지 못함. 아래 항목은 모두 조사 후 채운다."
+    "reviewed_at": "2026-09-28T11:49:46.500327+09:00",
+    "notes": "2026-09-28 robots가 공개한 sitemap.xml과 공고 사이트맵 전체 확인. 지역 제한 없이 제목으로 개발 관련 후보 선별 후 공개 상세 HTML 확인. 사이트맵 미등재·본문에만 관련 표현이 있는 공고의 누락 가능성 있음. 설치별 권한 기록 필요."
   },
-  "allowed_hosts": ["jobs.daangn.com"],
+  "allowed_hosts": [
+    "jobs.daangn.com"
+  ],
   "request_budget_per_day": 300,
   "min_interval_seconds": 6,
   "default_interval_minutes": 360,
@@ -18,19 +20,19 @@
     "query_mode": "per_keyword",
     "joiner": " ",
     "first_page": 1,
-    "max_pages": 2
+    "max_pages": 1
   },
   "regions": {
-    "status": "unverified",
+    "status": "not_applicable",
     "items": []
   },
   "list": {
-    "detail_link_pattern": null,
-    "post_id_pattern": null,
+    "detail_link_pattern": "^https://jobs\\.daangn\\.com/job-posts/(?:[^/?#]+-)?[a-zA-Z0-9]{12}$",
+    "post_id_pattern": "(?:/|-)([a-zA-Z0-9]{12})$",
     "empty_markers": []
   },
   "detail": {
-    "strategy": null,
+    "strategy": "daangn_public_html",
     "closed_markers": [],
     "open_markers": [],
     "block_markers": [],
@@ -39,14 +41,49 @@
     "contact_channel_label": "당근알바 원문에서 직접 (지원·채팅)"
   },
   "capabilities": {
-    "nationwide_search": {"support": "unverified", "note": "전국 단일 검색 지원 여부 미확인"},
-    "region_search": {"support": "unverified", "note": "지역 기준 검색이 관찰됐다는 사전 기록만 있음 (재확인 필요)"},
-    "remote_filter": {"support": "unverified", "note": "재택 전용 필터 존재 여부 미확인"},
-    "sort": {"support": "unverified"},
-    "pagination": {"support": "unverified"},
-    "incremental": {"support": "unverified"},
-    "detail": {"support": "unverified", "note": "상세 페이지의 마감 표시가 관찰됐다는 사전 기록만 있음"},
-    "revalidate": {"support": "unverified"},
-    "structured_data": {"support": "unverified", "note": "JobPosting JSON-LD 제공 여부 미확인"}
+    "nationwide_search": {
+      "support": "supported",
+      "note": "지역 제한 없는 공개 공고 사이트맵 제목에서 활성 검색어·동의어로 후보 선별. 약한 후보는 제한 순환 확인. 사이트 전체 공고 포함 여부는 미확인"
+    },
+    "region_search": {
+      "support": "unsupported",
+      "note": "전국 공개 목록을 사용하며 특정 지역으로 제한하지 않음"
+    },
+    "remote_filter": {
+      "support": "unsupported",
+      "note": "재택 전용 필터 미연동. 상세 본문 근거로 판단"
+    },
+    "sort": {
+      "support": "supported",
+      "note": "핵심 후보는 사이트맵 수정 시각 최신순. 약한 후보는 미방문·오래된 확인 순으로 제한 순환. 게시일과는 구별"
+    },
+    "pagination": {
+      "support": "supported",
+      "note": "사이트맵 인덱스에 공개된 모든 공고 목록 파일 순회. 숨은 API 없음"
+    },
+    "incremental": {
+      "support": "supported",
+      "note": "전국 공개 목록 재조회 후 기존 공고 ID 중복 제거·상세 캐시. 약한 후보는 예산 안에서 일부씩 상세 확인"
+    },
+    "detail": {
+      "support": "supported",
+      "note": "공개 표시 본문과 HTML 내 공고 데이터 교차 확인"
+    },
+    "revalidate": {
+      "support": "supported",
+      "note": "공개 상세의 closed 상태 재확인. 404는 삭제로 단정하지 않음"
+    },
+    "structured_data": {
+      "support": "supported",
+      "note": "공개 HTML에 포함된 JSON 데이터. JobPosting JSON-LD는 제공되지 않음"
+    }
+  },
+  "discovery": {
+    "strategy": "public_sitemap",
+    "index_url": "https://jobs.daangn.com/sitemap.xml",
+    "max_sitemaps": 20,
+    "exploration_max_requests": 50,
+    "exploration_reserve_requests": 30,
+    "title_pattern": "홈\\s*페이지|웹\\s*(?:사이트|개발|제작|서비스|앱)|소프트웨어|프로그램|매크로|엑셀|VBA|자동화|크롤링|랜딩\\s*페이지|개발자|앱\\s*(?:개발|제작)|파이썬|python|워드프레스|카페24|쇼핑몰.*(?:제작|개발|구축|수정)|홈피|웹\\s*페이지|어플\\s*(?:개발|제작)|RPA|시스템\\s*(?:개발|구축)|크롤러|풀스택"
   }
 }

@@ -10,19 +10,17 @@ from __future__ import annotations
 import logging
 import os
 import threading
-from datetime import timedelta
 
 from sqlalchemy import or_, select
 
 from ..context import AppContext
+from ..db import MaintenanceBusy
 from ..models import Lead, Run, Snapshot, Source, SourcePolicy, SourceRecord
 from . import events, runs
 from .executors import execute
+from .schedule import RECHECK_EVERY, next_due
 
 log = logging.getLogger("worklead.worker")
-
-RECHECK_EVERY = {"recheck_recent": timedelta(hours=6), "recheck_stale": timedelta(hours=24)}
-
 
 class Worker(threading.Thread):
     def __init__(self, app: AppContext, name: str, kinds: tuple[str, ...]):
@@ -36,6 +34,10 @@ class Worker(threading.Thread):
         self._halt.set()
 
     def run_once(self) -> bool:
+        with self.app.db.gate.operation():
+            return self._run_once()
+
+    def _run_once(self) -> bool:
         run = runs.claim_next(self.app.db, self.owner, self.kinds, self.app.config.lease_seconds)
         if run is None:
             return False
@@ -50,6 +52,8 @@ class Worker(threading.Thread):
             try:
                 if not self.run_once():
                     self._halt.wait(self.app.config.worker_poll_seconds)
+            except MaintenanceBusy:
+                self._halt.wait(self.app.config.worker_poll_seconds)
             except Exception:  # noqa: BLE001
                 log.exception("worker loop error")
                 self._halt.wait(5)
@@ -64,14 +68,19 @@ def schedule_due(app: AppContext) -> list[str]:
             policy = s.get(SourcePolicy, source.id)
             if policy is None or policy.status not in ("allowed", "restricted") or source.stopped_reason:
                 continue
-            last = s.scalar(select(Run).where(Run.source_id == source.id, Run.kind == "discovery").order_by(Run.created_at.desc()).limit(1))
-            if last is not None and last.retry_after and last.retry_after > now:
-                continue  # 429 Retry-After 존중
-            interval = timedelta(minutes=source.interval_minutes or 360)
-            plans = [("discovery", interval)] + list(RECHECK_EVERY.items())
-            for kind, every in plans:
-                bucket = int(now.timestamp() // every.total_seconds())
+            for kind in ("discovery", *RECHECK_EVERY):
+                due = next_due(s, source, kind, now)
+                if due is None or due > now:
+                    continue
+                seconds = (source.interval_minutes or 360) * 60 if kind == "discovery" else RECHECK_EVERY[kind].total_seconds()
+                bucket = int(now.timestamp() // seconds)
                 key = f"sched:{source.id}:{kind}:{bucket}"
+                if kind == "discovery":
+                    last = s.scalar(select(Run).where(Run.source_id == source.id, Run.kind == kind)
+                                    .order_by(Run.created_at.desc()).limit(1))
+                    if (last and last.state == "partial" and not last.error_code
+                            and (last.result or {}).get("continuation_pending")):
+                        key = f"continue:{source.id}:{last.id}"
                 try:
                     run, new = runs.enqueue(s, kind, source_id=source.id, trigger="schedule", idempotency_key=key)
                 except runs.RunConflict:
@@ -86,6 +95,7 @@ def schedule_due(app: AppContext) -> list[str]:
 def housekeeping(app: AppContext) -> None:
     """원문 보존 기간이 지난 본문 삭제, 이벤트 정리."""
     now = app.clock()
+    changed = False
     with app.db.session() as s:
         for snap in s.scalars(select(Snapshot).where(Snapshot.retained_until < now, Snapshot.body_text.is_not(None)).limit(500)):
             snap.body_text = None
@@ -98,7 +108,14 @@ def housekeeping(app: AppContext) -> None:
         )
         for rec in s.scalars(q):
             rec.body_text = None
+            lead = s.get(Lead, rec.lead_id)
+            if lead is not None and lead.primary_record_id == rec.id:
+                lead.search_text = rec.title.lower()
+                events.emit(s, "lead.updated", {"lead_id": lead.id, "changes": ["body_retention"]}, dedupe_key=f"lead.retention:{rec.id}:{rec.raw_retained_until.isoformat()}")
+                changed = True
         events.trim(s)
+    if changed:
+        app.hub.notify()
 
 
 class Scheduler(threading.Thread):
@@ -113,9 +130,13 @@ class Scheduler(threading.Thread):
     def run(self) -> None:
         while not self._halt.is_set():
             try:
-                runs.recover_expired(self.app.db)
-                schedule_due(self.app)
-                housekeeping(self.app)
+                with self.app.db.gate.operation():
+                    runs.recover_expired(self.app.db)
+                    schedule_due(self.app)
+                    housekeeping(self.app)
+            except MaintenanceBusy:
+                self._halt.wait(self.app.config.worker_poll_seconds)
+                continue
             except Exception:  # noqa: BLE001
                 log.exception("scheduler error")
             self._halt.wait(self.app.config.scheduler_interval_seconds)

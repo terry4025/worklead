@@ -1,0 +1,42 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "amount": {
+      "anyOf": [
+        {
+          "pattern": "^-?\\d+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "정확한 최소 통화 단위 10진 정수 문자열. 미기록 금액이 있으면 null. 기록이 없거나 실제 합계가 0이면 '0'",
+      "title": "Amount"
+    },
+    "known_amount": {
+      "description": "금액이 기록된 행만 합산한 정확한 10진 정수 문자열. 미기록분은 추정하지 않음",
+      "pattern": "^-?\\d+$",
+      "title": "Known Amount",
+      "type": "string"
+    },
+    "records": {
+      "minimum": 0,
+      "title": "Records",
+      "type": "integer"
+    },
+    "missing_amounts": {
+      "minimum": 0,
+      "title": "Missing Amounts",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "amount",
+    "known_amount",
+    "records",
+    "missing_amounts"
+  ],
+  "title": "MoneyTotal",
+  "type": "object"
+}

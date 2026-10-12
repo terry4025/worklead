@@ -32,6 +32,7 @@ const COUNTS_ZERO = {
   updated: 0,
   duplicates: 0,
   excluded: 0,
+  skipped: 0,
   parseFailures: 0,
   fetchFailures: 0,
   policyStops: 0,

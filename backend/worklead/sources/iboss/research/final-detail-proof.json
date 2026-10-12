@@ -1,0 +1,32 @@
+[
+  {
+    "url": "https://www.i-boss.co.kr/ab-1958-88584",
+    "checked_at": "2026-09-30T14:27:16.207498+00:00",
+    "status": 200,
+    "sha256": "b68b4a811176b01addbd36c4b5a57c93a8d31ec63bedffdba875aee3b4c622be",
+    "source_status": "open",
+    "pay_min": 100000,
+    "pay_max": 3000000,
+    "pay_unit": "project",
+    "published_at": "2026-09-22T02:43:00+00:00",
+    "deadline_at": "2026-09-29T15:00:00+00:00",
+    "body_chars": 611,
+    "contact_prompt_in_body": false,
+    "sanitized_dom_fixture": "detail-observed.html"
+  },
+  {
+    "url": "https://www.i-boss.co.kr/ab-1958-88144",
+    "checked_at": "2026-09-30T14:27:23.158100+00:00",
+    "status": 200,
+    "sha256": "5427f6830380df02746ceaf76aaba9f3e619ec86673c865af36971ad4144be82",
+    "source_status": "closed",
+    "pay_min": 2000000,
+    "pay_max": 10000000,
+    "pay_unit": "project",
+    "published_at": "2026-08-26T07:34:00+00:00",
+    "deadline_at": "2026-09-14T15:00:00+00:00",
+    "body_chars": 286,
+    "contact_prompt_in_body": false,
+    "sanitized_dom_fixture": "closed-observed.html"
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "state": {
+      "enum": [
+        "accepted",
+        "failed",
+        "unknown"
+      ],
+      "title": "State",
+      "type": "string"
+    },
+    "claim_token": {
+      "pattern": "^[a-f0-9]{32}$",
+      "title": "Claim Token",
+      "type": "string"
+    }
+  },
+  "required": [
+    "state",
+    "claim_token"
+  ],
+  "title": "NativeNotificationResultIn",
+  "type": "object"
+}

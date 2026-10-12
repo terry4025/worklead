@@ -1,0 +1,73 @@
+[
+  {
+    "url": "https://www.i-boss.co.kr/robots.txt",
+    "status": 200,
+    "bytes": 2903,
+    "sha256": "614b3ad26c228dbbe2eb9765c5566c6e9fac4cc6af9c0190e9288d6114c5ccb7",
+    "checked_at": "2026-09-30T14:24:48.022506+00:00"
+  },
+  {
+    "url": "https://www.i-boss.co.kr/ab-1958-88584",
+    "status": 200,
+    "bytes": 81540,
+    "sha256": "6cc629fd0e5c5946f5ce925befa57dec1740217dc3313dae1f396aa9d0f56344",
+    "checked_at": "2026-09-30T14:24:55.479944+00:00",
+    "parse": "ok",
+    "body_chars": 611,
+    "pay_min": 100000,
+    "pay_max": 3000000,
+    "pay_unit": "project",
+    "source_status": null,
+    "published_at": "2026-09-22T02:43:00+00:00",
+    "deadline_raw": "마감\n\n2026.09.30오늘 마감",
+    "contact_prompt_in_body": false
+  },
+  {
+    "url": "https://www.i-boss.co.kr/ab-1958-88144",
+    "status": 200,
+    "bytes": 81061,
+    "sha256": "223b131441a7d4dea01ac3c91fc653853816163621be5d8d9953feb7803a1b93",
+    "checked_at": "2026-09-30T14:25:00.691688+00:00",
+    "parse": "ok",
+    "body_chars": 286,
+    "pay_min": 2000000,
+    "pay_max": 10000000,
+    "pay_unit": "project",
+    "source_status": null,
+    "published_at": "2026-08-26T07:34:00+00:00",
+    "deadline_raw": "마감\n\n2026.09.15마감",
+    "contact_prompt_in_body": false,
+    "closed_button_nodes": [
+      {
+        "tag": "div",
+        "class": "dline",
+        "id": null
+      },
+      {
+        "tag": "span",
+        "class": null,
+        "id": null
+      }
+    ]
+  },
+  {
+    "url": "https://www.i-boss.co.kr/ab-1957?sort=now",
+    "status": 200,
+    "bytes": 107676,
+    "sha256": "e5d50d6344f7415fd0c01c9c56ed9209f9d809788428ed6d31ce72c5dfa0bec8",
+    "checked_at": "2026-09-30T14:25:06.488744+00:00",
+    "parse": "ok",
+    "refs": 20,
+    "next_cursor": "2"
+  },
+  {
+    "url": "https://www.i-boss.co.kr/ab-1957?sort=now&PB_1415256624=6",
+    "status": 200,
+    "bytes": 95348,
+    "sha256": "9e045c562c749716b0b72b796af168ec8c3c7d65c6c8d24ade3f3b6f95ee2e3e",
+    "checked_at": "2026-09-30T14:25:13.078038+00:00",
+    "parse": "ok",
+    "refs": 7,
+    "next_cursor": null
+  }
+]

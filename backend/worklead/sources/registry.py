@@ -9,12 +9,12 @@ from sqlalchemy.orm import Session
 
 from ..db import utcnow
 from ..models import Source, SourcePolicy
-from . import daangn
+from . import daangn, iboss
 from .manual import ManualAdapter
 
 
 def default_adapters() -> dict[str, object]:
-    adapters: list[object] = [daangn.create(), ManualAdapter()]
+    adapters: list[object] = [daangn.create(), iboss.create(), ManualAdapter()]
     return {a.source_id: a for a in adapters}  # type: ignore[attr-defined]
 
 

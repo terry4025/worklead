@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 import json
 import logging
 import logging.handlers
@@ -35,36 +36,88 @@ from .storage import migrate
 log = logging.getLogger("worklead")
 
 
+def local_loop_factory() -> asyncio.AbstractEventLoop:
+    # The local API uses sockets and thread workers, with no asyncio subprocesses.
+    # CPython 3.11's Windows Proactor socket close can fail before releasing the
+    # socket/server attachment when a WebView cancels an SSE connection (10022).
+    return asyncio.SelectorEventLoop() if sys.platform == "win32" else asyncio.new_event_loop()
+
+
 class _Mask(logging.Filter):
     PATTERNS = [
         (re.compile(r"(?i)bearer\s+[A-Za-z0-9._~+/=-]+"), "Bearer [masked]"),
         (re.compile(r"(?i)(token|api[_-]?key|authorization)(\"?\s*[:=]\s*\"?)[^\s\",]+"), r"\1\2[masked]"),
         (re.compile(r"01[016789][-\s]?\d{3,4}[-\s]?\d{4}"), "[phone]"),
         (re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+"), "[email]"),
+        (re.compile(r"(?<!\d)0(?:2|[3-6][1-5])[-\s]\d{3,4}[-\s]\d{4}(?!\d)"), "[phone]"),
+        (re.compile(r"(?<!\d)\d{6}[-\s]?[1-4]\d{6}(?!\d)"), "[identity]"),
     ]
 
     def __init__(self, secrets_: list[str]):
         super().__init__()
         self.secrets = [s for s in secrets_ if s]
 
-    def filter(self, record: logging.LogRecord) -> bool:
-        msg = record.getMessage()
+    def redact(self, msg: str) -> str:
         for sec in self.secrets:
             msg = msg.replace(sec, "[masked]")
         for pat, repl in self.PATTERNS:
             msg = pat.sub(repl, msg)
-        record.msg, record.args = msg, ()
+        return msg
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        record.msg, record.args = self.redact(record.getMessage()), ()
         return True
+
+
+class _PrivateFormatter(logging.Formatter):
+    """Exception messages, source lines and absolute paths can contain user data."""
+    def __init__(self, redactor: _Mask, format_: str | None = None):
+        super().__init__(format_)
+        self.redactor = redactor
+
+    def formatException(self, exc_info) -> str:
+        import builtins
+        _, exception, trace = exc_info
+        name = type(exception).__name__
+        known = isinstance(getattr(builtins, name, None), type) and issubclass(getattr(builtins, name), BaseException)
+        if not known and name not in {'OperationalError', 'IntegrityError', 'InvalidRequestError', 'TimeoutException', 'ConnectError', 'AIFailure', 'ParseError'}:
+            name = 'Exception'
+        lines = ['Traceback (messages, source text and absolute paths omitted):']
+        package = Path(__file__).resolve().parent
+        while trace:
+            file = Path(trace.tb_frame.f_code.co_filename)
+            try:
+                relative = file.resolve().relative_to(package).as_posix()
+            except (ValueError, OSError):
+                relative = '<library>'
+            lines.append(f'  {relative}:{trace.tb_lineno}')
+            trace = trace.tb_next
+        lines.append('exception_type=' + name)
+        return '\n'.join(lines)
+
+    def formatStack(self, stack_info: str) -> str:
+        return 'Stack source text and absolute paths omitted'
+
+    def format(self, record: logging.LogRecord) -> str:
+        # Another handler may have cached a raw traceback. Recompute it here.
+        cached = record.exc_text
+        record.exc_text = None
+        try:
+            return self.redactor.redact(super().format(record))
+        finally:
+            record.exc_text = cached
 
 
 def setup_logging(cfg: RuntimeConfig, token: str) -> None:
     cfg.log_dir.mkdir(parents=True, exist_ok=True)
     handler = logging.handlers.RotatingFileHandler(cfg.log_dir / "backend.log", maxBytes=5 * 1024 * 1024, backupCount=5, encoding="utf-8")
-    handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s %(threadName)s %(message)s"))
-    handler.addFilter(_Mask([token]))
+    redactor = _Mask([token])
+    handler.setFormatter(_PrivateFormatter(redactor, "%(asctime)s %(levelname)s %(name)s %(threadName)s %(message)s"))
+    handler.addFilter(redactor)
     err = logging.StreamHandler(sys.stderr)
     err.setLevel(logging.WARNING)
-    err.addFilter(_Mask([token]))
+    err.setFormatter(_PrivateFormatter(redactor))
+    err.addFilter(redactor)
     root = logging.getLogger()
     root.handlers[:] = [handler, err]
     root.setLevel(logging.INFO)
@@ -139,11 +192,26 @@ def serve(argv: list[str] | None = None) -> int:
     ap.add_argument("--dev", action="store_true", help="개발 Origin 허용, 토큰은 WORKLEAD_DEV_TOKEN 환경변수 사용")
     ap.add_argument("--demo", action="store_true", help="별도 데모 DB 에 합성 데이터로 실행 (bootstrap.mode=demo)")
     ap.add_argument("--sidecar", action="store_true", help="stdin 이 닫히면 종료")
+    ap.add_argument("--remove-ai-credential", action="store_true", help="명시 확인 후 현재 데이터 폴더의 OS AI 키만 삭제하고 종료")
+    ap.add_argument("--confirm-key-delete", action="store_true", help="OS AI 키 삭제를 명시 확인")
     args = ap.parse_args(argv)
 
     cfg = RuntimeConfig(dev=args.dev, demo=args.demo, port=args.port)
     if args.data_dir:
         cfg.data_dir = args.data_dir
+    if args.remove_ai_credential or args.confirm_key_delete:
+        if not (args.remove_ai_credential and args.confirm_key_delete) or args.dev or args.demo or args.sidecar:
+            _emit_line({"event": "error", "code": "credential_confirmation_required"})
+            return 64
+        # Dedicated uninstall action: no DB, log, provider call or key read.
+        from .services.credentials import CredentialError, WindowsCredentialStore
+        try:
+            WindowsCredentialStore().delete_key(cfg.data_dir.resolve(), "openai")
+        except CredentialError:
+            _emit_line({"event": "error", "code": "credential_delete_failed"})
+            return 18
+        _emit_line({"event": "credential_removed"})
+        return 0
     token = os.environ.get("WORKLEAD_DEV_TOKEN") if args.dev else None
     token = token or secrets.token_urlsafe(32)
     setup_logging(cfg, token)
@@ -174,7 +242,8 @@ def serve(argv: list[str] | None = None) -> int:
         workers = Workers(ctx)
         workers.start()
         app = create_app(ctx, workers_running=lambda: all(t.is_alive() for t in workers.threads))
-        server = uvicorn.Server(uvicorn.Config(app, log_config=None, access_log=False, lifespan="off", timeout_graceful_shutdown=5))
+        server = uvicorn.Server(uvicorn.Config(app, log_config=None, access_log=False, lifespan="off", timeout_graceful_shutdown=5,
+                                             loop="worklead.server:local_loop_factory" if sys.platform == "win32" else "auto"))
         if args.sidecar:
             def _watch_stdin() -> None:
                 try:

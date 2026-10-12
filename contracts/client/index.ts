@@ -13,6 +13,8 @@ export type LeadDetail = Schemas['LeadDetail'];
 export type LeadPage = Schemas['LeadPage'];
 export type LeadPatch = Schemas['LeadPatch'];
 export type FeedbackIn = Schemas['FeedbackIn'];
+export type RelationUpdateIn = Schemas['RelationUpdateIn'];
+export type RelationUpdateOut = Schemas['RelationUpdateOut'];
 export type OutcomeIn = Schemas['OutcomeIn'];
 export type SourceOut = Schemas['SourceOut'];
 export type SourcePatch = Schemas['SourcePatch'];
@@ -21,11 +23,21 @@ export type RunCreate = Schemas['RunCreate'];
 export type JobAccepted = Schemas['JobAccepted'];
 export type SettingsOut = Schemas['SettingsOut'];
 export type SettingsPatch = Schemas['SettingsPatch'];
+export type AIStatus = Schemas['AIStatus'];
+export type AICredentialIn = Schemas['AICredentialIn'];
+export type AICredentialAction = Schemas['AICredentialAction'];
 export type BootstrapOut = Schemas['BootstrapOut'];
 export type HealthOut = Schemas['HealthOut'];
 export type MetricsOut = Schemas['MetricsOut'];
 export type ImportIn = Schemas['ImportIn'];
 export type ExportIn = Schemas['ExportIn'];
+export type BackupOut = Schemas['BackupOut'];
+export type BackupInspection = Schemas['BackupInspection'];
+export type RestoreOut = Schemas['RestoreOut'];
+export type NativeNotificationList = Schemas['NativeNotificationList'];
+export type NativeNotificationClaimOut = Schemas['NativeNotificationClaimOut'];
+export type NativeNotificationResultIn = Schemas['NativeNotificationResultIn'];
+export type NativeNotificationResultOut = Schemas['NativeNotificationResultOut'];
 export type QueueId = BootstrapOut['queues'][number]['id'];
 
 export interface LeadQuery {
@@ -113,11 +125,10 @@ function toSearch(query?: Query): string {
 export type ConnectionSource = Connection | (() => Promise<Connection>);
 
 export function createClient(source: ConnectionSource, fetchImpl: typeof fetch = (...a) => fetch(...a)) {
-  let cached: Connection | null = typeof source === 'function' ? null : source;
   async function conn(): Promise<Connection> {
-    if (cached) return cached;
-    cached = await (source as () => Promise<Connection>)();
-    return cached;
+    // The native host owns the current session. A sidecar restart rotates both
+    // its port and token, including while an event stream is reconnecting.
+    return typeof source === 'function' ? source() : source;
   }
 
   async function request<T>(method: string, path: string, opts: { query?: Query; body?: unknown; signal?: AbortSignal } = {}): Promise<T> {
@@ -141,7 +152,7 @@ export function createClient(source: ConnectionSource, fetchImpl: typeof fetch =
         message: '로컬 서비스에 연결할 수 없습니다',
         retryable: true,
         kind: 'connection',
-        details: String(err),
+        details: path.startsWith('/v1/ai/credentials') ? null : String(err),
       });
     }
     if (res.ok) return (await res.json()) as T;
@@ -166,12 +177,15 @@ export function createClient(source: ConnectionSource, fetchImpl: typeof fetch =
 
   return {
     connection: conn,
+    aiStatus: () => request<AIStatus>('GET', '/v1/ai/status'),
+    saveAiCredential: (body: AICredentialIn) => request<AIStatus>('POST', '/v1/ai/credentials', { body }),
+    deleteAiCredential: (body: AICredentialAction) => request<AIStatus>('POST', '/v1/ai/credentials/delete', { body }),
     health: () => request<HealthOut>('GET', '/v1/health'),
     bootstrap: () => request<BootstrapOut>('GET', '/v1/bootstrap'),
     listSources: () => request<Schemas['SourceList']>('GET', '/v1/sources'),
     patchSource: (id: string, body: SourcePatch) => request<SourceOut>('PATCH', `/v1/sources/${enc(id)}`, { body }),
     createRun: (body: RunCreate) => request<JobAccepted>('POST', '/v1/runs', { body }),
-    listRuns: (query: { source_id?: string; kind?: string[]; limit?: number; cursor?: string } = {}) =>
+    listRuns: (query: { source_id?: string; kind?: string[]; state?: string[]; limit?: number; cursor?: string } = {}) =>
       request<Schemas['RunPage']>('GET', '/v1/runs', { query }),
     getRun: (id: string) => request<RunOut>('GET', `/v1/runs/${enc(id)}`),
     runAction: (id: string, action: 'pause' | 'resume' | 'cancel') => request<RunOut>('POST', `/v1/runs/${enc(id)}/actions`, { body: { action } }),
@@ -183,12 +197,20 @@ export function createClient(source: ConnectionSource, fetchImpl: typeof fetch =
     recheckLead: (id: string) => request<JobAccepted>('POST', `/v1/leads/${enc(id)}/recheck`),
     reanalyzeLead: (id: string) => request<JobAccepted>('POST', `/v1/leads/${enc(id)}/reanalyze`),
     feedback: (id: string, body: FeedbackIn) => request<LeadDetail>('POST', `/v1/leads/${enc(id)}/feedback`, { body }),
+    relation: (id: string, relationId: string, body: RelationUpdateIn) => request<RelationUpdateOut>('POST', `/v1/leads/${enc(id)}/relations/${enc(relationId)}`, { body }),
     addOutcome: (id: string, body: OutcomeIn) => request<LeadDetail>('POST', `/v1/leads/${enc(id)}/outcomes`, { body }),
     draft: (id: string) => request<LeadDetail>('POST', `/v1/leads/${enc(id)}/draft`),
     getSettings: () => request<SettingsOut>('GET', '/v1/settings'),
     patchSettings: (body: SettingsPatch) => request<SettingsOut>('PATCH', '/v1/settings', { body }),
     createImport: (body: ImportIn) => request<JobAccepted>('POST', '/v1/imports', { body }),
     createExport: (body: ExportIn) => request<JobAccepted>('POST', '/v1/exports', { body }),
+    listBackups: () => request<Schemas['BackupList']>('GET', '/v1/backups'),
+    createBackup: () => request<BackupOut>('POST', '/v1/backups'),
+    inspectBackup: (id: string) => request<BackupInspection>('GET', `/v1/backups/${enc(id)}`),
+    restoreBackup: (id: string, body: Schemas['RestoreIn']) => request<RestoreOut>('POST', `/v1/backups/${enc(id)}/restore`, { body }),
+    listNativeNotifications: (query: { limit?: number; created_after?: string } = {}) => request<NativeNotificationList>('GET', '/v1/native-notifications', { query }),
+    claimNativeNotification: (id: string) => request<NativeNotificationClaimOut>('POST', `/v1/native-notifications/${enc(id)}/claim`),
+    nativeNotificationResult: (id: string, body: NativeNotificationResultIn) => request<NativeNotificationResultOut>('POST', `/v1/native-notifications/${enc(id)}/result`, { body }),
     metrics: () => request<MetricsOut>('GET', '/v1/metrics'),
     streamEvents: (opts: StreamOptions) => streamEvents(conn, fetchImpl, opts),
   };

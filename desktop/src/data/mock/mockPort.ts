@@ -3,6 +3,10 @@
  * 대기열·필터 규칙은 백엔드(services/leads.py)와 같은 정의를 따른다.
  */
 import type {
+  AiStatus,
+  BackupInfo,
+  BackupInspection,
+  BackupList,
   Bootstrap,
   JobAccepted,
   LeadDetail,
@@ -11,6 +15,7 @@ import type {
   Page,
   QueueId,
   RunInfo,
+  RestoreResult,
   SalesSummary,
   SettingsView,
   SourceInfo,
@@ -20,6 +25,7 @@ import type {
 import { intentClass, recruitClass, remoteClass } from '../../domain/present';
 import { inQueue } from '../../domain/queues';
 import { toSummary } from '../../domain/summary';
+import { groupOutcomes, legacyMoneyAmount, salesPeriod } from '../../domain/sales';
 import { PortError, type WorkleadPort } from '../port';
 import { DEMO_CATEGORIES, buildImportedLead, buildReserveLead } from './fixtures';
 import { buildScenario, type ScenarioId } from './scenarios';
@@ -90,6 +96,8 @@ function sortKey(l: LeadSummary, f: LeadFilter): number {
 
 export interface MockOptions {
   scenario: ScenarioId;
+  /** 관계 동작 등 별도 데모·테스트용 초기 리드. 운영 데이터는 전달하지 않는다. */
+  initialLeads?: LeadDetail[];
   /** 응답 지연(ms). 테스트에서는 0 */
   latency?: [number, number];
   now?: () => number;
@@ -108,7 +116,8 @@ const DEFAULT_SETTINGS: SettingsView = {
   },
   recheck: { ttlHours: 24 },
   notifications: { newRecommended: true, meaningfulChange: true, sourceIssue: true, quietHours: { enabled: true, start: '22:00', end: '08:00' } },
-  ai: { enabled: false, externalTransferConsent: false, engineLabel: null, monthlyCostCap: null, dailyCostCap: null, keyConfigured: false, providerAvailable: false },
+  ai: { enabled: false, externalTransferConsent: false, engineLabel: null, monthlyCostCap: null, dailyCostCap: null, keyConfigured: false, providerAvailable: false,
+    provider: 'openai', model: 'gpt-4.1-mini-2025-04-14', usdToKrwRate: null, maxOutputTokens: 1024, pricingConfirmed: false, revision: 0, databaseGeneration: 0 },
   retention: { rawDays: 30 },
   queryGroups: {
     version: 1,
@@ -142,7 +151,7 @@ export class MockPort implements WorkleadPort {
     this.latency = opts.latency ?? [120, 320];
     this.now = opts.now ?? (() => Date.now());
     const data = buildScenario(opts.scenario, this.now());
-    this.leads = data.leads;
+    this.leads = structuredClone(opts.initialLeads ?? data.leads);
     this.sources = data.sources;
     this.runs = data.runs;
   }
@@ -275,6 +284,38 @@ export class MockPort implements WorkleadPort {
     });
   }
 
+  updateRelation(id: string, relationId: string, input: Parameters<WorkleadPort['updateRelation']>[2]): ReturnType<WorkleadPort['updateRelation']> {
+    return this.delay(() => {
+      const lead = this.find(id);
+      const relation = lead.related.find((r) => r.id === relationId);
+      const other = relation?.leadId ? this.find(relation.leadId) : null;
+      const reverse = other?.related.find((r) => r.id === relationId && r.leadId === id);
+      if (!relation || !other || !reverse || other.id === id) {
+        throw new PortError({ kind: 'api', code: 'relation_not_found', message: '관계 후보를 찾을 수 없습니다' });
+      }
+      if (!Number.isInteger(input.expectedRevision) || input.expectedRevision < 0 || !Number.isInteger(input.expectedGeneration) || input.expectedGeneration < 0 || !['confirm', 'dismiss'].includes(input.action)) {
+        throw new PortError({ kind: 'invalid_input', code: 'validation_error', message: '관계 변경 요청을 확인하세요' });
+      }
+      if (input.expectedGeneration !== relation.databaseGeneration) {
+        throw new PortError({ kind: 'api', code: 'relation_changed', message: '데이터가 복원되었습니다. 현재 관계를 다시 불러오세요' });
+      }
+      const confirmed = input.action === 'confirm';
+      if (relation.confirmed === confirmed && relation.dismissed === !confirmed) {
+        return { lead: this.withDerived(lead), relatedLead: this.withDerived(other) };
+      }
+      if (input.expectedRevision !== relation.revision) {
+        throw new PortError({ kind: 'api', code: 'relation_changed', message: '관계 상태가 변경되었습니다. 현재 관계를 다시 불러오세요' });
+      }
+      const revision = relation.revision + 1;
+      for (const row of [relation, reverse]) Object.assign(row, { confirmed, dismissed: !confirmed, revision });
+      for (const row of [lead, other]) {
+        this.activity(row, confirmed ? '관련 글 관계 확인' : '관련 글 연결 해제');
+        this.emit({ type: 'lead.updated', leadId: row.id });
+      }
+      return { lead: this.withDerived(lead), relatedLead: this.withDerived(other) };
+    });
+  }
+
   addOutcome(id: string, input: Parameters<WorkleadPort['addOutcome']>[1]): Promise<LeadDetail> {
     return this.delay(() => {
       if (input.amount !== null && input.amount < 0) throw new PortError({ kind: 'invalid_input', code: 'validation_error', message: '금액은 0 이상이어야 합니다' });
@@ -391,8 +432,10 @@ export class MockPort implements WorkleadPort {
     });
   }
 
-  listRuns(req: { sourceId?: string; limit: number }): Promise<RunInfo[]> {
-    return this.delay(() => this.runs.filter((r) => !req.sourceId || r.sourceId === req.sourceId).slice(0, req.limit));
+  listRuns(req: Parameters<WorkleadPort['listRuns']>[0]): Promise<RunInfo[]> {
+    return this.delay(() => this.runs.filter((r) => (!req.sourceId || r.sourceId === req.sourceId)
+      && (!req.kinds?.length || req.kinds.includes(r.kind))
+      && (!req.states?.length || req.states.includes(r.state))).slice(0, req.limit));
   }
 
   getRun(id: string): Promise<RunInfo> {
@@ -424,7 +467,7 @@ export class MockPort implements WorkleadPort {
         startedAt: null,
         finishedAt: null,
         progress: { done: 0, total, label: null },
-        counts: { requests: 0, detailsFetched: 0, created: 0, updated: 0, duplicates: 0, excluded: 0, parseFailures: 0, fetchFailures: 0, policyStops: 0, aiFailures: 0 },
+        counts: { requests: 0, detailsFetched: 0, created: 0, updated: 0, duplicates: 0, excluded: 0, skipped: 0, parseFailures: 0, fetchFailures: 0, policyStops: 0, aiFailures: 0 },
         error: null,
         note: null,
         scanCycle: (src.coverage?.scanCycle ?? 0) + 1,
@@ -504,7 +547,7 @@ export class MockPort implements WorkleadPort {
         startedAt: new Date(this.now()).toISOString(),
         finishedAt: null,
         progress: { done: 0, total: 1, label: null },
-        counts: { requests: 0, detailsFetched: 0, created: 0, updated: 0, duplicates: 0, excluded: 0, parseFailures: 0, fetchFailures: 0, policyStops: 0, aiFailures: 0 },
+        counts: { requests: 0, detailsFetched: 0, created: 0, updated: 0, duplicates: 0, excluded: 0, skipped: 0, parseFailures: 0, fetchFailures: 0, policyStops: 0, aiFailures: 0 },
         error: null,
         note: null,
         scanCycle: null,
@@ -537,16 +580,51 @@ export class MockPort implements WorkleadPort {
     });
   }
 
+  private unsupportedBackup<T>(): Promise<T> {
+    return Promise.reject(new PortError({ kind: 'not_implemented', code: 'demo_backup_unsupported', message: '데모에서는 실제 파일 백업·복원을 지원하지 않습니다.' }));
+  }
+
+  listBackups(): Promise<BackupList> { return this.unsupportedBackup(); }
+  createBackup(): Promise<BackupInfo> { return this.unsupportedBackup(); }
+  inspectBackup(_id: string): Promise<BackupInspection> { return this.unsupportedBackup(); }
+  restoreBackup(_id: string, _input: Parameters<WorkleadPort['restoreBackup']>[1]): Promise<RestoreResult> { return this.unsupportedBackup(); }
+
   // ── 설정·지표 ─────────────────────────────────────────────────────
   getSettings(): Promise<SettingsView> {
     return this.delay(() => this.settings);
   }
 
+  getAiStatus(): Promise<AiStatus> {
+    return this.delay(() => ({ provider: this.settings.ai.provider, model: this.settings.ai.model,
+      keySupported: false, keyConfigured: false, errorCode: 'demo_credential_unsupported', providerAvailable: false,
+      enabled: this.settings.ai.enabled, ready: false, blockedReason: 'demo_credential_unsupported',
+      settingsRevision: this.settings.ai.revision, databaseGeneration: this.settings.ai.databaseGeneration,
+      pricingCheckedAt: '2026-09-30', price: { inputUsdPerMillion: 0.4, cachedInputUsdPerMillion: 0.1, outputUsdPerMillion: 1.6,
+        sourceUrl: 'https://platform.openai.com/docs/models/gpt-4.1-mini', version: 'openai-standard-2026-09-30' },
+      ledger: { day: { period: new Date(this.now()).toISOString().slice(0, 10), estimatedKrw: 0, reservedKrw: 0, uncertainKrw: 0, attempts: 0 },
+        month: { period: new Date(this.now()).toISOString().slice(0, 7), estimatedKrw: 0, reservedKrw: 0, uncertainKrw: 0, attempts: 0 } } }));
+  }
+
+  saveAiCredential(_input: Parameters<WorkleadPort['saveAiCredential']>[0]): Promise<AiStatus> {
+    return Promise.reject(new PortError({ kind: 'not_implemented', code: 'demo_credential_unsupported', message: '데모에서는 실제 API 키를 저장하지 않습니다.' }));
+  }
+
+  deleteAiCredential(_input: Parameters<WorkleadPort['deleteAiCredential']>[0]): Promise<AiStatus> {
+    return Promise.reject(new PortError({ kind: 'not_implemented', code: 'demo_credential_unsupported', message: '데모에서는 실제 API 키를 삭제하지 않습니다.' }));
+  }
+
   updateSettings(patch: Parameters<WorkleadPort['updateSettings']>[0]): Promise<SettingsView> {
     return this.delay(() => {
-      const nextAi = { ...this.settings.ai, ...(patch.ai ?? {}) };
+      const { expectedRevision, expectedGeneration, ...aiFields } = patch.ai ?? {};
+      if (patch.ai && (expectedRevision !== this.settings.ai.revision || expectedGeneration !== this.settings.ai.databaseGeneration))
+        throw new PortError({ kind: 'api', code: 'ai_settings_changed', message: 'AI 설정이 변경됐습니다. 현재 상태를 다시 불러오세요.' });
+      const nextAi = { ...this.settings.ai, ...aiFields };
+      if (nextAi.usdToKrwRate !== this.settings.ai.usdToKrwRate && !Object.hasOwn(aiFields, 'pricingConfirmed')) nextAi.pricingConfirmed = false;
       if (nextAi.enabled && !nextAi.externalTransferConsent)
         throw new PortError({ kind: 'invalid_input', code: 'consent_required', message: '외부 AI 전송 고지에 동의해야 AI 분석을 켤 수 있습니다' });
+      if (nextAi.enabled && !nextAi.keyConfigured)
+        throw new PortError({ kind: 'invalid_input', code: 'not_configured', message: 'API 키를 저장해야 AI 분석을 켤 수 있습니다.' });
+      if (patch.ai) nextAi.revision += 1;
       this.settings = {
         ...this.settings,
         ...(patch.profile ? { profile: patch.profile } : {}),
@@ -562,20 +640,28 @@ export class MockPort implements WorkleadPort {
 
   getSalesSummary(): Promise<SalesSummary> {
     return this.delay(() => {
-      const outs = this.leads.flatMap((l) => l.outcomes);
+      const period = salesPeriod(new Date(this.now()));
+      const outs = this.leads.flatMap((l) => l.outcomes).filter((o) => o.occurredOn >= period.start && o.occurredOn <= period.end);
       const contract = outs.filter((o) => o.kind === 'contract_confirmed');
+      const byCurrency = groupOutcomes(outs);
+      const krw = byCurrency.find((group) => group.currency === 'KRW');
       const count = (s: string) => this.leads.filter((l) => l.salesStage === s).length;
       return {
         periodDays: 30,
+        periodStart: period.start,
+        periodEnd: period.end,
+        timeZone: 'Asia/Seoul',
+        stageScope: 'current_all',
+        byCurrency,
         reviewed: this.leads.filter((l) => l.userMark !== null || l.salesStage !== 'new').length,
         contacted: count('contacted'),
         negotiating: count('negotiating'),
         won: count('won'),
         contractsConfirmed: contract.length,
-        contractAmount: contract.some((o) => o.amount === null) ? null : contract.reduce((a, o) => a + (o.amount ?? 0), 0),
-        collected: outs.filter((o) => o.kind === 'payment_received').reduce((a, o) => a + (o.amount ?? 0), 0),
-        refunded: outs.filter((o) => o.kind === 'refund').reduce((a, o) => a + (o.amount ?? 0), 0),
-        directCost: outs.filter((o) => o.kind === 'direct_cost').reduce((a, o) => a + (o.amount ?? 0), 0),
+        contractAmount: krw ? legacyMoneyAmount(krw.contract) : '0',
+        collected: krw ? legacyMoneyAmount(krw.collected) : '0',
+        refunded: krw ? legacyMoneyAmount(krw.refunded) : '0',
+        directCost: krw ? legacyMoneyAmount(krw.directCost) : '0',
       };
     });
   }

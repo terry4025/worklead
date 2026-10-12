@@ -1,0 +1,94 @@
+{
+  "$defs": {
+    "BackupOut": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "file_name": {
+          "title": "File Name",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "size_bytes": {
+          "minimum": 0,
+          "title": "Size Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "file_name",
+        "created_at",
+        "size_bytes"
+      ],
+      "title": "BackupOut",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "backup": {
+      "$ref": "#/$defs/BackupOut"
+    },
+    "sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Sha256",
+      "type": "string"
+    },
+    "revision": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Revision"
+    },
+    "can_restore": {
+      "title": "Can Restore",
+      "type": "boolean"
+    },
+    "problem": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Problem"
+    },
+    "lead_count": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Lead Count"
+    }
+  },
+  "required": [
+    "backup",
+    "sha256",
+    "revision",
+    "can_restore",
+    "problem",
+    "lead_count"
+  ],
+  "title": "BackupInspection",
+  "type": "object"
+}

@@ -1,12 +1,17 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
-import type { SettingsView } from '../../domain/model';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { AiStatus, RestoreResult, SettingsView } from '../../domain/model';
 import { usePort } from '../../app/PortContext';
 import { applyDisplayPrefs, type FontScale, type ThemePref } from '../../app/prefs';
 import { qk, useBootstrap, useSettings } from '../../app/queries';
 import { Button } from '../../ui/Button';
 import { Dialog } from '../../ui/Dialog';
 import { ErrorState, errorMessage } from '../../ui/States';
+import { BackupPanel } from './BackupPanel';
+import { DesktopSettingsPanel } from './DesktopSettingsPanel';
+import { AI_EDITABLE, AI_STATUS_KEY, AiSettingsPanel, aiSettingsChanged, aiStatusMatches, invalidAiSettings } from './AiSettingsPanel';
+import { formatCount } from '../../domain/format';
+import { getDatabaseEpoch, resetDatabaseQueries } from '../../app/databaseCache';
 
 function numOrNull(v: string): number | null {
   const t = v.replace(/[,\s원]/g, '');
@@ -38,24 +43,62 @@ export function SettingsDialog({
   const [kwText, setKwText] = useState<Record<string, string>>({});
   const [err, setErr] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const lastSaved = useRef<{ data: SettingsView; epoch: number } | null>(null);
+  const wasOpen = useRef(false);
+  const [backupBusy, setBackupBusy] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiStatus, setAiStatus] = useState<AiStatus | null>(null);
+  const [restoreResult, setRestoreResult] = useState<{ result: RestoreResult; refreshFailed: boolean } | null>(null);
+  const restored = useCallback((result: RestoreResult, refreshFailed: boolean) => {
+    lastSaved.current = null;
+    setRestoreResult({ result, refreshFailed });
+    setErr(null);
+    setSaved(false);
+  }, []);
+  const refreshRestored = useMutation({
+    mutationFn: () => resetDatabaseQueries(qc),
+    onSuccess: () => setRestoreResult((prev) => prev ? { ...prev, refreshFailed: false } : null),
+  });
 
   useEffect(() => {
-    if (open && q.data) {
+    const opening = open && !wasOpen.current;
+    wasOpen.current = open;
+    if (!open) {
+      lastSaved.current = null;
+      setSaved(false);
+      return;
+    }
+    if (open && !q.data) {
+      lastSaved.current = null;
+      setDraft(null);
+      setKwText({});
+      setSaved(false);
+    } else if (open && q.data) {
       setDraft(structuredClone(q.data));
       setKwText(Object.fromEntries(q.data.queryGroups.groups.map((g) => [g.id, g.keywords.join(', ')])));
       setErr(null);
-      setSaved(false);
+      // Keep the success state when our own saved response reaches the form.
+      // Reopening or a restored/external settings value starts a fresh form.
+      if (opening || lastSaved.current?.data !== q.data || lastSaved.current?.epoch !== getDatabaseEpoch(qc)) {
+        lastSaved.current = null;
+        setSaved(false);
+      }
     }
-  }, [open, q.data]);
+  }, [open, q.data, q.dataUpdatedAt, qc]);
 
   const save = useMutation({
+    retry: false,
+    onMutate: () => getDatabaseEpoch(qc),
     mutationFn: (d: SettingsView) =>
       port.updateSettings({
         profile: d.profile,
         recheck: d.recheck,
         notifications: d.notifications,
         retention: d.retention,
-        ai: { enabled: d.ai.enabled, externalTransferConsent: d.ai.externalTransferConsent, monthlyCostCap: d.ai.monthlyCostCap, dailyCostCap: d.ai.dailyCostCap },
+        ...(q.data && aiSettingsChanged(d.ai, q.data.ai) ? { ai: {
+          ...Object.fromEntries(AI_EDITABLE.map((key) => [key, d.ai[key]])),
+          expectedRevision: d.ai.revision, expectedGeneration: d.ai.databaseGeneration,
+        } } : {}),
         queryGroups: d.queryGroups.groups.map((g) => ({
           ...g,
           keywords: (kwText[g.id] ?? '')
@@ -64,13 +107,16 @@ export function SettingsDialog({
             .filter(Boolean),
         })),
       }),
-    onSuccess: (s) => {
-      qc.setQueryData(qk.settings, s);
+    onSuccess: (s, _variables, epoch) => {
+      if (epoch !== getDatabaseEpoch(qc)) return;
+      const data = qc.setQueryData<SettingsView>(qk.settings, s);
+      lastSaved.current = data ? { data, epoch } : null;
       void qc.invalidateQueries({ queryKey: qk.bootstrap });
+      void qc.invalidateQueries({ queryKey: AI_STATUS_KEY });
       setSaved(true);
       setErr(null);
     },
-    onError: (e) => setErr(errorMessage(e)),
+    onError: (e, _variables, epoch) => { if (epoch === getDatabaseEpoch(qc)) { setErr(errorMessage(e)); void qc.invalidateQueries({ queryKey: AI_STATUS_KEY }); } },
   });
 
   const d = draft;
@@ -83,6 +129,8 @@ export function SettingsDialog({
       return next;
     });
   const invalidMoney = d ? [d.profile.minContract, d.profile.targetHourly].some((v) => Number.isNaN(v)) : false;
+  const aiChanged = !!(d && q.data && aiSettingsChanged(d.ai, q.data.ai));
+  const aiInvalid = !!(d && aiChanged && (invalidAiSettings(d.ai) || !aiStatusMatches(d.ai, aiStatus)));
 
   return (
     <Dialog
@@ -97,13 +145,15 @@ export function SettingsDialog({
             <Button variant="ghost" onClick={onClose}>
               닫기
             </Button>
-            <Button variant="primary" busy={save.isPending} disabled={invalidMoney} onClick={() => save.mutate(d)}>
+            <Button variant="primary" busy={save.isPending} disabled={invalidMoney || aiInvalid || backupBusy || aiBusy} onClick={() => save.mutate(d)}>
               저장
             </Button>
           </>
         ) : null
       }
     >
+      {restoreResult ? <p className="field-hint" role="status">복원했습니다. 리드 {formatCount(restoreResult.result.leadCount)}건 · 복원 전 안전 백업: {restoreResult.result.safetyBackup.fileName}. 자동 수집과 AI 분석은 꺼졌습니다. 수집 화면에서 자동 수집을 직접 다시 켜고, AI 설정에서 전송·요금 확인 후 AI를 다시 켜세요.</p> : null}
+      {restoreResult?.refreshFailed ? <><p className="field-error" role="alert">복원은 완료했지만 화면 데이터를 다시 불러오지 못했습니다.</p><Button size="sm" busy={refreshRestored.isPending} onClick={() => refreshRestored.mutate()}>화면 데이터 다시 불러오기</Button></> : null}
       {q.isError ? <ErrorState error={q.error} onRetry={() => void q.refetch()} /> : null}
       {!d ? (
         q.isPending ? <p className="muted-text">불러오는 중…</p> : null
@@ -161,10 +211,7 @@ export function SettingsDialog({
               <span className="field-label">제외 업무 (쉼표로 구분)</span>
               <input value={d.profile.excludedWork} placeholder="예: 쇼핑몰, 게임" onChange={(e) => set((x) => void (x.profile.excludedWork = e.target.value))} />
             </label>
-            <label className="toggle">
-              <input type="checkbox" checked={d.profile.allowShortTermEmployment} onChange={(e) => set((x) => void (x.profile.allowShortTermEmployment = e.target.checked))} />
-              <span>개발 관련 재택 단기 고용도 확인 필요 후보로 남기기 (외주와 섞지 않음)</span>
-            </label>
+            <p className="muted">리드 대상: 건당·프로젝트 지급이 확인되는 프리랜서 제작 의뢰. 시급·일급·주급·월급과 인력 채용, 지급 방식 미확인 글은 제외합니다.</p>
           </fieldset>
 
           <fieldset>
@@ -179,7 +226,7 @@ export function SettingsDialog({
                 ))}
               </select>
             </label>
-            <p className="field-hint">검색어 묶음 (버전 {d.queryGroups.version}) — 켤수록 전국 한 바퀴가 길어집니다.</p>
+            <p className="field-hint">검색어 묶음 (버전 {d.queryGroups.version}) — 검색어를 사용하는 소스에만 적용됩니다. 아이보스 공개 목록 수집은 검색어로 제목을 제한하지 않습니다.</p>
             {d.queryGroups.groups.map((g, i) => (
               <div key={g.id} className="qgroup">
                 <label className="toggle">
@@ -216,25 +263,10 @@ export function SettingsDialog({
             </div>
           </fieldset>
 
-          <fieldset>
-            <legend>AI 분석 (선택)</legend>
-            <p className="field-hint">규칙 분석은 AI 없이 항상 동작합니다. AI 를 켜면 개인정보를 가린 공고 본문이 외부 제공자로 전송됩니다. API 키는 Windows 자격 증명 저장소에 보관하며 화면·로그·내보내기에 표시하지 않습니다.</p>
-            <label className="toggle">
-              <input type="checkbox" checked={d.ai.externalTransferConsent} onChange={(e) => set((x) => {
-                x.ai.externalTransferConsent = e.target.checked;
-                if (!e.target.checked) x.ai.enabled = false;
-              })} />
-              <span>외부 전송 고지를 확인했습니다</span>
-            </label>
-            <label className="toggle">
-              <input type="checkbox" checked={d.ai.enabled} disabled={!d.ai.externalTransferConsent} onChange={(e) => set((x) => void (x.ai.enabled = e.target.checked))} />
-              <span>AI 보조 분석 사용 {d.ai.providerAvailable ? '' : '— 제공자 미설정 (현재 버전은 규칙 분석만 실행)'}</span>
-            </label>
-            <label className="field field-inline">
-              <span className="field-label">월 비용 상한 (원)</span>
-              <input inputMode="numeric" value={d.ai.monthlyCostCap ?? ''} onChange={(e) => set((x) => void (x.ai.monthlyCostCap = numOrNull(e.target.value)))} />
-            </label>
-          </fieldset>
+          <DesktopSettingsPanel />
+
+          <AiSettingsPanel ai={d.ai} onChange={(update) => set((value) => update(value.ai))} onStatusChange={setAiStatus} onBusyChange={setAiBusy} disabled={save.isPending || backupBusy || refreshRestored.isPending} />
+          {d && aiChanged && invalidAiSettings(d.ai) ? <p className="field-error" role="alert">AI 상한은 0–100,000,000원, 달러 환산은 1–100,000원, 응답 토큰은 256–4,096의 정수로 입력하세요.</p> : null}
 
           <fieldset>
             <legend>데이터 보존</legend>
@@ -250,6 +282,8 @@ export function SettingsDialog({
             </label>
             <p className="field-hint">진행 중·관심 리드의 원문과 내 메모·영업 기록은 따로 보존됩니다.</p>
           </fieldset>
+
+          <BackupPanel onRestored={restored} onBusyChange={setBackupBusy} disabled={save.isPending || refreshRestored.isPending || aiBusy} />
 
           <fieldset>
             <legend>화면 (이 PC 에만 저장)</legend>

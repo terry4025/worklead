@@ -8,12 +8,13 @@ import type { LeadDetail, RunInfo, StreamStatus, WorkleadEvent } from '../domain
 import { useToast } from '../ui/Toasts';
 import { usePort } from './PortContext';
 import { applyDetail, qk } from './queries';
+import { getDatabaseEpoch, resetDatabaseQueries } from './databaseCache';
 
 export interface LiveState {
   stream: StreamStatus;
   newLeads: number;
   listStale: boolean;
-  acknowledge: () => void;
+  acknowledge: () => Promise<boolean>;
 }
 
 export function useLiveEvents(onOpenLead: (id: string) => void): LiveState {
@@ -23,33 +24,48 @@ export function useLiveEvents(onOpenLead: (id: string) => void): LiveState {
   const [stream, setStream] = useState<StreamStatus>('connecting');
   const [newLeads, setNewLeads] = useState(0);
   const [listStale, setListStale] = useState(false);
+  const listRevision = useRef(0);
+  const refreshSerial = useRef(0);
   const openRef = useRef(onOpenLead);
   openRef.current = onOpenLead;
 
   useEffect(() => {
+    let disconnected = false;
+    let disposed = false;
+    const refreshAfterGap = () => {
+      void qc.invalidateQueries({ queryKey: qk.sources });
+      void qc.invalidateQueries({ queryKey: qk.runs });
+      void qc.invalidateQueries({ queryKey: ['counts'] });
+      void qc.invalidateQueries({ queryKey: ['lead'] });
+      listRevision.current += 1;
+      setListStale(true);
+    };
     const refreshLead = (leadId: string) => {
       if (!qc.getQueryData(qk.lead(leadId)) && !qc.getQueryState(qk.lead(leadId))) return;
+      const epoch = getDatabaseEpoch(qc);
       port
         .getLead(leadId)
-        .then((d: LeadDetail) => applyDetail(qc, d))
+        .then((d: LeadDetail) => { if (!disposed && getDatabaseEpoch(qc) === epoch) applyDetail(qc, d); })
         .catch(() => undefined);
     };
     const handle = (e: WorkleadEvent) => {
       switch (e.type) {
         case 'run.progress':
-          qc.setQueryData<RunInfo[]>(qk.runs, (runs) => runs?.map((r) => (r.id === e.runId ? { ...r, state: 'running', progress: e.progress } : r)));
-          if (!qc.getQueryData<RunInfo[]>(qk.runs)?.some((r) => r.id === e.runId)) void qc.invalidateQueries({ queryKey: qk.runs });
+          qc.setQueriesData<RunInfo[]>({ queryKey: qk.runs }, (runs) => runs?.map((r) => (r.id === e.runId ? { ...r, state: 'running', progress: e.progress } : r)));
+          if (!qc.getQueryData<RunInfo[]>([...qk.runs, 'status'])?.some((r) => r.id === e.runId)) void qc.invalidateQueries({ queryKey: qk.runs });
           break;
         case 'run.state_changed':
           void qc.invalidateQueries({ queryKey: qk.runs });
           void qc.invalidateQueries({ queryKey: qk.sources });
           if (['succeeded', 'partial', 'failed'].includes(e.state)) {
             void qc.invalidateQueries({ queryKey: ['counts'] });
+            listRevision.current += 1;
             setListStale(true);
           }
           break;
         case 'lead.created':
-          setNewLeads((n) => n + 1);
+          listRevision.current += 1;
+          if (e.recommendation !== 'excluded') setNewLeads((n) => n + 1);
           void qc.invalidateQueries({ queryKey: ['counts'] });
           break;
         case 'lead.updated':
@@ -71,22 +87,50 @@ export function useLiveEvents(onOpenLead: (id: string) => void): LiveState {
           );
           break;
         case 'stream.reset':
-          void qc.invalidateQueries();
+          listRevision.current += 1;
+          refreshSerial.current += 1;
+          setNewLeads(0);
+          setListStale(true);
+          {
+            const revision = listRevision.current;
+            void resetDatabaseQueries(qc).then(() => {
+              if (!disposed && listRevision.current === revision) setListStale(false);
+            }).catch(() => { if (!disposed) setListStale(true); });
+          }
           break;
       }
     };
-    return port.subscribe(handle, setStream);
+    const unsubscribe = port.subscribe(handle, (status) => {
+      if (status === 'retrying' || status === 'closed') disconnected = true;
+      if (status === 'open' && disconnected) {
+        refreshAfterGap();
+        disconnected = false;
+      }
+      setStream(status);
+    });
+    return () => { disposed = true; unsubscribe(); };
   }, [port, qc, toast]);
 
   return {
     stream,
     newLeads,
     listStale,
-    acknowledge: () => {
-      setNewLeads(0);
-      setListStale(false);
-      void qc.invalidateQueries({ queryKey: qk.leadsAll });
+    acknowledge: async () => {
+      const revision = listRevision.current;
+      const serial = ++refreshSerial.current;
+      try {
+        await qc.refetchQueries({ queryKey: qk.leadsAll, type: 'active' }, { throwOnError: true });
+      } catch {
+        if (refreshSerial.current === serial) setListStale(true);
+        return false;
+      }
+      if (refreshSerial.current !== serial) return false;
+      if (listRevision.current === revision) {
+        setNewLeads(0);
+        setListStale(false);
+      }
       void qc.invalidateQueries({ queryKey: ['counts'] });
+      return true;
     },
   };
 }

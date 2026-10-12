@@ -1,0 +1,56 @@
+{
+  "$defs": {
+    "NativeNotificationItem": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "new_lead",
+            "lead_changed",
+            "source_issue"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "created_at"
+      ],
+      "title": "NativeNotificationItem",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/$defs/NativeNotificationItem"
+      },
+      "title": "Items",
+      "type": "array"
+    },
+    "backlog_count": {
+      "description": "현재 시각·설정·created_after 조건에서 미시도인 알림 수",
+      "minimum": 0,
+      "title": "Backlog Count",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "items",
+    "backlog_count"
+  ],
+  "title": "NativeNotificationList",
+  "type": "object"
+}

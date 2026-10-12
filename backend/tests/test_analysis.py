@@ -59,7 +59,7 @@ def test_remote_full_time_is_not_outsourcing() -> None:
 
 
 def test_no_remote_mention_is_unknown() -> None:
-    a = run("예약 페이지 만들어주세요", "네일샵 예약 페이지를 만들고 싶어요. 날짜랑 시간 선택하면 예약되면 됩니다.")
+    a = run("예약 페이지 만들어주세요", "네일샵 예약 페이지를 만들고 싶어요. 날짜랑 시간 선택하면 예약되면 됩니다. 예산 100만원.")
     assert a.judgements["work_mode"].value == "unknown"
     assert a.recommendation == "needs_review"
     remote = next(f for f in a.factors if f.key == "remote_fit")
@@ -92,12 +92,115 @@ def test_excel_office_job_is_not_vba_request() -> None:
     assert a.judgements["demand_intent"].value == "employee_hiring"
 
 
+def test_mobile_app_request_is_not_excluded_as_unrelated() -> None:
+    a = run("앱 개발해주실 분 구합니다", "간단한 앱 개발해주실 분 구합니다. 예산 협의.")
+    assert "software" in a.categories
+    assert a.recommendation == "needs_review"
+
+
+@pytest.mark.parametrize("title", ["자동화물 운송기사 구합니다", "자동화설비 기구조립 모집", "자동화 레일셋업 팀원 모집"])
+def test_physical_jobs_are_not_software_automation(title) -> None:
+    a = run(title, "현장 업무를 하실 분 구합니다.")
+    assert "automation" not in a.categories
+    assert a.recommendation == "excluded"
+
+
+def test_factory_software_development_remains_relevant() -> None:
+    a = run("자동화 설비 설치", "설비 제어 프로그램 개발을 의뢰합니다. Python API 연동이 필요합니다. 건당 100만원.")
+    assert "automation" in a.categories
+    assert a.recommendation != "excluded"
+
+
+@pytest.mark.parametrize(("title", "body"), [
+    ("반도체 자동화 기구 유지보수", "반도체 자동화 장비 기구 유지보수\n1년이상 계약직 구함 영어 초급이상"),
+    ("반도체장비/자동화장비 조립 경력인원 모집", "자동화 장비 간단한 조립업무\n수습 후 급여인상합니다"),
+    ("자동화장비 배선작업 보조모집합니다", "센서케이블 정리, 배선작업 보조, 하네스케이블 제작"),
+    ("김치 공장 생산직 모집/ 자동화 생산라인", "자동화 설비에서 내려오는 김치 양념 작업. 주 5일 근무"),
+    ("자동차부품자동화라인생산/자재/품질", "자동화라인 생산/자재/품질. 시급 10,700원"),
+])
+def test_physical_automation_jobs_are_excluded(title: str, body: str) -> None:
+    a = run(title, body)
+    assert "automation" not in a.categories
+    assert a.recommendation == "excluded"
+
+
+def test_shop_operations_hiring_is_not_a_page_delivery_request() -> None:
+    a = run(
+        "쇼핑몰관리(상세페이지 제작 및 업로드)자를 모십니다",
+        "쇼핑몰 관리를 하실 분을 구합니다. 제품 촬영과 상세페이지 제작과 업로드에 경험이 있으신 분을 모십니다.",
+    )
+    assert a.judgements["demand_intent"].value == "employee_hiring"
+    assert a.recommendation == "excluded"
+    assert any("운영 인력" in r.text for r in a.reasons)
+
+
+def test_physical_shop_goods_are_not_shop_development() -> None:
+    a = run("쇼핑몰 물품 제작 및 포장", "쇼핑몰 물품을 기계로 제작하고 포장, 진열할 분 구합니다. 시급 12000원")
+    assert "shop" not in a.categories
+    assert a.recommendation == "excluded"
+
+
+def test_real_shop_build_request_is_preserved() -> None:
+    a = run("쇼핑몰 제작 의뢰", "신규 쇼핑몰을 구축해 주세요. 제품 상세페이지도 제작해 주세요. 건당 100만원.")
+    assert "shop" in a.categories
+    assert a.judgements["demand_intent"].value == "buyer_project"
+    assert a.recommendation != "excluded"
+
+
+@pytest.mark.parametrize(("title", "body"), [
+    ("웹사이트 개발 과외 구해요", "웹사이트 제작을 도와주실 과외 선생님을 구합니다. 수업은 카페에서 진행합니다."),
+    ("엑셀 고급 기능 배울 선생님", "매크로 VBA를 배우고 싶어요. 프로그램 개발 경험이 있는 선생님을 구합니다."),
+    ("AI 업무 자동화 교육해주실 분", "업무 자동화를 함께 만들어가며 교육해주실 분을 찾습니다."),
+    ("홈페이지 제작", "홈페이지 제작을 하고 싶은데 가르쳐 주실분"),
+])
+def test_teaching_is_not_counted_as_development_delivery(title, body) -> None:
+    a = run(title, body)
+    assert a.recommendation == "excluded"
+    assert any("교육·과외" in r.text for r in a.reasons)
+    assert a.judgements["demand_intent"].evidence
+
+
+def test_delivery_with_handover_training_is_kept() -> None:
+    a = run("홈페이지 제작 의뢰 및 직원 교육", "홈페이지 제작 의뢰합니다. 납품 후 직원에게 사용법 교육을 해주세요. 재택 가능. 건당 100만원.")
+    assert a.recommendation != "excluded"
+
+
+def test_data_entry_and_research_are_not_delivery_leads() -> None:
+    a = run("엑셀입력 스캔 포장", "카드 스캔, 엑셀 입력 및 포장 업무입니다.")
+    assert a.recommendation == "excluded"
+    assert any("단순 데이터" in r.text for r in a.reasons)
+    a = run("쇼핑몰 자동화 연구 업무보조 개발자", "자동화 프로그램에 필요한 연구자료입니다. SNS API 연동 방법 서치")
+    assert a.recommendation == "excluded"
+    assert any("조사·보조" in r.text for r in a.reasons)
+
+
+def test_home_work_and_nationwide_wording_with_particles() -> None:
+    a = run("홈페이지 제작", "홈페이지 제작.등을 도와 주세요\n근무는 자택\n지역은 상관 없어요\n건당 100만원")
+    assert a.judgements["work_mode"].value == "fully_remote"
+    assert a.judgements["applicant_scope"].value == "nationwide"
+    assert a.judgements["demand_intent"].value == "buyer_project"
+    assert a.recommendation != "excluded"
+
+
+def test_explicit_office_work_is_not_remote() -> None:
+    a = run("카페24 오픈 도움", "쇼핑몰 수정 작업입니다. 사무실로 오셔서\n근무 가능하신 분만 지원해주세요.")
+    assert a.judgements['work_mode'].value == 'onsite'
+    assert a.recommendation == 'excluded'
+
+
+@pytest.mark.parametrize('title', ['어플 제작 의뢰', '홈피 제작 의뢰', 'RPA 개발 의뢰', '크롤러 개발 의뢰'])
+def test_development_aliases_are_relevant(title) -> None:
+    a = run(title, '작업 범위와 예산 협의합니다.')
+    assert a.dev_relevant and a.recommendation != 'excluded'
+
+
 # ── 사례 7: 보수 보존 ────────────────────────────────────────────────
 @pytest.mark.parametrize(
     ("body", "unit", "lo", "hi", "negotiable"),
     [
         ("시급 12,000원, 하루 4시간", "hour", 12_000, 12_000, False),
         ("월급 230만원, 4대보험", "month", 2_300_000, 2_300_000, False),
+        ("월 30만원 고정", "month", 300_000, 300_000, False),
         ("건당 30만원", "project", 300_000, 300_000, False),
         ("예산: 50~80만원 (범위 확인 후 조정 가능)", "project", 500_000, 800_000, True),
         ("금액은 작업 범위 보고 협의하고 싶습니다.", "negotiable", None, None, True),
@@ -113,8 +216,8 @@ def test_pay_preserved(body: str, unit: str, lo: int | None, hi: int | None, neg
         assert p.min is None, "모르는 금액은 0 이 아니라 null"
 
 
-def test_no_budget_is_not_zero_and_not_excluded() -> None:
-    a = run("홈페이지 만들어주실 분", "홈페이지 만들어주실 분 구합니다. 전 과정 비대면 진행. 지역 무관.")
+def test_project_payment_without_amount_is_not_zero_and_not_excluded() -> None:
+    a = run("홈페이지 만들어주실 분", "홈페이지 만들어주실 분 구합니다. 전 과정 비대면 진행. 지역 무관.\n건당 지급, 금액 협의.")
     assert a.pay.min is None and a.pay.max is None
     assert a.recommendation == "recommended"
     assert any("예산" in r.text for r in a.reasons)

@@ -27,16 +27,21 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from ..config import API_VERSION, APP_VERSION, CONTRACT_VERSION
 from ..context import AppContext
-from ..db import utcnow
+from ..db import MaintenanceBusy, utcnow
 from ..engine import runs as runq
 from ..engine.events import emit
 from ..engine.pipeline import apply_analysis, generate_draft
 from ..models import EventOutbox, Lead, LeadActivity, Outcome, Run, Source, SourcePolicy, SourceRecord, UserFeedback, new_id
 from ..services import leads as lead_svc
+from ..services import relations as relation_svc
+from ..services import backups as backup_svc
 from ..services import metrics as metrics_svc
+from ..services import native_notifications as notification_svc
 from ..services import settings as settings_svc
 from ..services import sources as source_svc
+from ..services.credentials import CredentialError, CredentialStatus
 from ..analysis.service import CATEGORY_LABEL as CATEGORIES
+from ..analysis.openai_provider import PRICE_VERSION
 from . import schemas as S
 
 log = logging.getLogger("worklead.api")
@@ -64,12 +69,15 @@ ERRORS = {
     404: {"model": S.ErrorResponse},
     409: {"model": S.ErrorResponse},
     422: {"model": S.ErrorResponse},
+    500: {"model": S.ErrorResponse},
+    503: {"model": S.ErrorResponse},
 }
 
 
 def _session(request: Request):  # type: ignore[no-untyped-def]
     ctx: AppContext = request.app.state.ctx
     with ctx.db.session() as s:
+        s.info["database_generation"] = request.app.state.relation_generation_base + ctx.db.gate.generation
         yield s
 
 
@@ -122,7 +130,21 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
         openapi_url="/v1/openapi.json" if ctx.config.dev else None,
     )
     app.state.ctx = ctx
+    # A relation decision from an earlier sidecar must also fail after restart.
+    # Leave ample counter space while keeping the exposed integer JS-safe.
+    app.state.relation_generation_base = (secrets.randbits(40) + 1) << 12
     origins = ctx.config.origins()
+
+    # Middleware is wrapped in reverse registration order: host/origin guard →
+    # CORS → authentication. Auth errors must remain readable by the desktop UI.
+    @app.middleware("http")
+    async def authenticate(request: Request, call_next):  # type: ignore[no-untyped-def]
+        if request.method != "OPTIONS" and request.url.path.startswith("/v1") and request.url.path != "/v1/openapi.json":
+            auth = request.headers.get("authorization") or ""
+            token = auth[7:] if auth.lower().startswith("bearer ") else ""
+            if not ctx.token or not hmac.compare_digest(token.encode(), ctx.token.encode()):
+                return _error(request, 401, "unauthorized", "인증 토큰이 없거나 올바르지 않습니다")
+        return await call_next(request)
 
     app.add_middleware(
         CORSMiddleware,
@@ -131,6 +153,7 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
         allow_headers=["Authorization", "Content-Type", "Last-Event-ID", "Idempotency-Key"],
         expose_headers=["X-Request-Id"],
         allow_credentials=False,
+        allow_private_network=True,  # Only the exact origins validated below can reach preflight.
         max_age=600,
     )
 
@@ -144,11 +167,6 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
         origin = request.headers.get("origin")
         if origin and origin not in origins:
             return _error(request, 403, "origin_not_allowed", "허용되지 않은 Origin 입니다")
-        if request.method != "OPTIONS" and request.url.path.startswith("/v1") and request.url.path != "/v1/openapi.json":
-            auth = request.headers.get("authorization") or ""
-            token = auth[7:] if auth.lower().startswith("bearer ") else ""
-            if not ctx.token or not hmac.compare_digest(token.encode(), ctx.token.encode()):
-                return _error(request, 401, "unauthorized", "인증 토큰이 없거나 올바르지 않습니다")
         response = await call_next(request)
         response.headers["X-Request-Id"] = request.state.request_id
         response.headers["X-Content-Type-Options"] = "nosniff"
@@ -161,6 +179,10 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
 
     @app.exception_handler(RequestValidationError)
     async def _validation(request: Request, exc: RequestValidationError):  # type: ignore[no-untyped-def]
+        if request.url.path.startswith("/v1/ai/credentials"):
+            # Unknown JSON property names can themselves contain a secret.
+            # No input, location, validator text or submitted key is reflected.
+            return _error(request, 422, "validation_error", "키 요청 형식이 올바르지 않습니다")
         details = [{"loc": list(e.get("loc", [])), "msg": e.get("msg"), "type": e.get("type")} for e in exc.errors()]
         return _error(request, 422, "validation_error", "요청 형식이 올바르지 않습니다", details)
 
@@ -176,6 +198,27 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
     @app.exception_handler(runq.RunConflict)
     async def _conflict(request: Request, exc: runq.RunConflict):  # type: ignore[no-untyped-def]
         return _error(request, 409, exc.code, exc.message, {"run_id": exc.run_id} if exc.run_id else None)
+
+    @app.exception_handler(MaintenanceBusy)
+    async def _maintenance(request: Request, exc: MaintenanceBusy):  # type: ignore[no-untyped-def]
+        return _error(request, 503, "maintenance_busy", str(exc), retryable=True)
+
+    @app.exception_handler(CredentialError)
+    async def _credential_error(request: Request, exc: CredentialError):  # type: ignore[no-untyped-def]
+        return _error(request, 422 if exc.code == "credential_invalid_key" else 503,
+                      exc.code, "Windows 자격 증명 저장소에서 키 작업을 완료하지 못했습니다. 상태를 다시 확인하세요")
+
+    @app.exception_handler(settings_svc.AISettingsChanged)
+    async def _ai_changed(request: Request, exc: settings_svc.AISettingsChanged):  # type: ignore[no-untyped-def]
+        return _error(request, 409, "ai_settings_changed", "AI 설정이 변경되었습니다. 상태를 다시 불러오세요")
+
+    @app.exception_handler(backup_svc.BackupError)
+    async def _backup_error(request: Request, exc: backup_svc.BackupError):  # type: ignore[no-untyped-def]
+        return _error(request, exc.status, exc.code, exc.message, retryable=exc.retryable)
+
+    @app.exception_handler(notification_svc.NotificationError)
+    async def _notification_error(request: Request, exc: notification_svc.NotificationError):  # type: ignore[no-untyped-def]
+        return _error(request, exc.status, exc.code, exc.message)
 
     @app.exception_handler(Exception)
     async def _unexpected(request: Request, exc: Exception):  # type: ignore[no-untyped-def]
@@ -248,6 +291,7 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
         if body.interval_minutes is not None:
             source.interval_minutes = body.interval_minutes
         if body.auto_collect_enabled is not None:
+            was_enabled = source.auto_collect_enabled
             if body.auto_collect_enabled:
                 if source.kind != "site":
                     raise ApiError(409, "not_applicable", "수동 입력은 자동 수집이 없습니다")
@@ -259,6 +303,16 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
                 if source.stopped_reason:
                     raise ApiError(409, "source_stopped", "정지된 소스입니다. 원인을 확인한 뒤 정지를 해제하세요.")
             source.auto_collect_enabled = body.auto_collect_enabled
+            if body.auto_collect_enabled and not was_enabled:
+                # An explicit enable starts one scan; later scans use the
+                # persisted interval. Existing work is never duplicated.
+                try:
+                    runq.enqueue(s, "discovery", source_id=source_id, trigger="schedule", idempotency_key=f"enable:{source_id}:{now.isoformat()}")
+                except runq.RunConflict:
+                    pass
+            elif not body.auto_collect_enabled:
+                for pending in s.scalars(select(Run).where(Run.source_id == source_id, Run.trigger == "schedule", Run.state == "queued")):
+                    runq.request_action(s, pending, "cancel")
         emit(s, "source.health_changed", {"source_id": source_id, "health": source.health_status})
         s.flush()
         ctx.hub.notify()
@@ -290,6 +344,7 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
         s: Sess,
         source_id: str | None = None,
         kind: Annotated[list[S.RunKind] | None, Query()] = None,
+        state: Annotated[list[S.RunState] | None, Query()] = None,
         limit: Annotated[int, Query(ge=1, le=100)] = 20,
         cursor: str | None = None,
     ) -> S.RunPage:
@@ -298,6 +353,8 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
             q = q.where(Run.source_id == source_id)
         if kind:
             q = q.where(Run.kind.in_(kind))
+        if state:
+            q = q.where(Run.state.in_(state))
         if cursor:
             q = q.where(Run.id < cursor)
         rows = s.scalars(q.order_by(Run.id.desc()).limit(limit + 1)).all()
@@ -404,10 +461,26 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
         src = s.get(Source, lead.source_id)
         if rec is not None:
             apply_analysis(s, lead, rec, now=now, provider=ctx.provider, source_kind=src.kind if src else "site")
+            if getattr(ctx.provider, "requires_deferred", False):
+                runq.enqueue(s, "reanalyze_lead", lead_id=lead.id, input={"retry_ai": False}, trigger="feedback")
         emit(s, "lead.updated", {"lead_id": lead.id, "changes": ["feedback"]})
         s.flush()
         ctx.hub.notify()
         return lead_svc.detail(s, lead)
+
+    @app.post("/v1/leads/{lead_id}/relations/{relation_id}", response_model=S.RelationUpdateOut, tags=["leads"], responses=ERRORS)
+    def relation(lead_id: str, relation_id: str, body: S.RelationUpdateIn, s: Sess) -> S.RelationUpdateOut:
+        lead = get_lead(s, lead_id)
+        if body.expected_generation != s.info["database_generation"]:
+            raise ApiError(409, "relation_changed", "연결 정보가 갱신되었습니다. 관련 글을 다시 불러온 뒤 확인하세요")
+        try:
+            other = relation_svc.update_decision(s, lead, relation_id, body.action, body.expected_revision)
+        except relation_svc.RelationMissing:
+            raise ApiError(404, "not_found", "이 리드의 관련 글 연결을 찾을 수 없습니다") from None
+        except relation_svc.RelationConflict:
+            raise ApiError(409, "relation_changed", "관련 글 연결 상태가 변경되었습니다. 다시 불러온 뒤 확인하세요") from None
+        ctx.hub.notify()
+        return S.RelationUpdateOut(lead=lead_svc.detail(s, lead), related_lead=lead_svc.detail(s, other))
 
     @app.post("/v1/leads/{lead_id}/outcomes", response_model=S.LeadDetail, tags=["leads"], responses=ERRORS)
     def add_outcome(lead_id: str, body: S.OutcomeIn, s: Sess) -> S.LeadDetail:
@@ -427,7 +500,8 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
             )
         )
         label = {"contract_confirmed": "계약 확인", "payment_received": "수금", "refund": "환불", "direct_cost": "직접 비용"}[body.kind]
-        s.add(LeadActivity(id=new_id("act"), lead_id=lead.id, at=now, kind="outcome", text=f"{label} 기록" + (f" {body.amount:,}원" if body.amount is not None else "")))
+        amount_text = (f"{body.amount:,}원" if body.currency == "KRW" else f"{body.currency} {body.amount:,} (최소 통화 단위)") if body.amount is not None else None
+        s.add(LeadActivity(id=new_id("act"), lead_id=lead.id, at=now, kind="outcome", text=f"{label} 기록" + (f" {amount_text}" if amount_text is not None else "")))
         emit(s, "lead.updated", {"lead_id": lead.id, "changes": ["outcomes"]})
         s.flush()
         ctx.hub.notify()
@@ -448,15 +522,25 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
         return lead_svc.detail(s, lead)
 
     # ── 설정 ────────────────────────────────────────────────────────
+    def credential_status() -> CredentialStatus:
+        if ctx.config.demo:
+            return CredentialStatus(False, None, "demo_credential_unsupported")
+        return ctx.credential_store.status(ctx.config.data_dir, "openai")
+
     def settings_out(s: Any) -> S.SettingsOut:
         prof = settings_svc.get_profile_row(s)
         data = {**settings_svc.DEFAULT_PROFILE, **(prof.data or {})}
         ai = settings_svc.get_setting(s, "ai")
+        ai["pricing_confirmed"] = bool(ai.get("pricing_confirmed") and ai.get("price_version") == PRICE_VERSION)
+        key = credential_status()
         return S.SettingsOut(
             profile=S.ProfileSettings(**data),
             recheck=settings_svc.get_setting(s, "recheck"),
             notifications=S.NotificationSettings(**settings_svc.get_setting(s, "notifications")),
-            ai=S.AISettings(**ai, key_configured=False, provider_available=ctx.provider.available()),
+            ai=S.AISettings(**ai, key_configured=key.configured,
+                            provider_available=bool(key.supported and key.configured),
+                            revision=settings_svc.get_setting(s, "ai_revision"),
+                            database_generation=s.info["database_generation"]),
             retention=settings_svc.get_setting(s, "retention"),
             query_groups=S.QueryGroups(**settings_svc.get_setting(s, "query_groups")),
         )
@@ -467,6 +551,13 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
 
     @app.patch("/v1/settings", response_model=S.SettingsOut, tags=["settings"], responses=ERRORS)
     def patch_settings(body: S.SettingsPatch, s: Sess) -> S.SettingsOut:
+        with ctx.ai_control_lock:
+            result = _patch_settings(body, s)
+            # All validation and related writes succeed as one transaction.
+            s.commit()
+            return result
+
+    def _patch_settings(body: S.SettingsPatch, s: Any) -> S.SettingsOut:
         rerun = False
         if body.profile is not None:
             rerun = settings_svc.update_profile(s, body.profile.model_dump()) or rerun
@@ -479,11 +570,32 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
         if body.notifications is not None:
             settings_svc.put_setting(s, "notifications", body.notifications.model_dump())
         if body.ai is not None:
-            current = settings_svc.get_setting(s, "ai")
-            nxt = {**current, **body.ai}
-            if nxt.get("enabled") and not nxt.get("external_transfer_consent"):
-                raise ApiError(422, "consent_required", "외부 AI 전송 고지에 동의해야 AI 분석을 켤 수 있습니다")
-            settings_svc.put_setting(s, "ai", nxt)
+            with ctx.ai_control_lock:
+                current = settings_svc.get_setting(s, "ai")
+                patch = body.ai.model_dump(exclude_unset=True)
+                expected_revision = patch.pop("expected_revision", None)
+                expected_generation = patch.pop("expected_generation", None)
+                nxt = {**current, **patch}
+                if nxt.get("enabled") and not nxt.get("external_transfer_consent"):
+                    raise ApiError(422, "consent_required", "외부 AI 전송 고지에 동의해야 AI 분석을 켤 수 있습니다")
+                if expected_generation is not None and expected_generation != s.info["database_generation"]:
+                    raise settings_svc.AISettingsChanged()
+                revision = settings_svc.get_setting(s, "ai_revision")
+                if getattr(ctx.provider, "requires_deferred", False) and (current.get("enabled") or nxt.get("enabled")):
+                    if expected_revision is None or expected_generation is None:
+                        raise ApiError(409, "ai_settings_changed", "최신 AI 상태를 불러온 뒤 설정을 저장하세요")
+                if (nxt.get("model"), nxt.get("usd_to_krw_rate")) != (current.get("model"), current.get("usd_to_krw_rate")) and patch.get("pricing_confirmed") is not True:
+                    nxt["pricing_confirmed"] = False
+                if patch.get("pricing_confirmed") is True:
+                    nxt["price_version"] = PRICE_VERSION
+                elif not nxt.get("pricing_confirmed"):
+                    nxt["price_version"] = None
+                if patch:
+                    settings_svc.advance_ai_revision(s, revision if expected_revision is None else expected_revision)
+                    settings_svc.put_setting(s, "ai", nxt)
+                    if not nxt.get("enabled") or not nxt.get("external_transfer_consent"):
+                        for lead_id in settings_svc.stop_pending_ai(s):
+                            emit(s, "lead.updated", {"lead_id": lead_id, "changes": ["analysis"]})
         if body.retention is not None:
             days = int(body.retention.get("raw_days", 30))
             if not 1 <= days <= 365:
@@ -497,6 +609,73 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
         s.flush()
         ctx.hub.notify()
         return settings_out(s)
+
+    def ai_status_out(s: Any) -> S.AIStatus:
+        config = settings_svc.get_setting(s, "ai")
+        key = credential_status()
+        error_code = key.error_code
+        try:
+            status = ctx.ai_coordinator.status()
+        except Exception:
+            # Never expose an OS path, SQL diagnostic or provider exception.
+            status = ctx.ai_coordinator.catalog_status()
+            status["ledger"] = None
+            error_code = "ai_ledger_unavailable"
+        reason = error_code
+        if reason is None:
+            if not config.get("enabled"):
+                reason = "disabled"
+            elif not config.get("external_transfer_consent"):
+                reason = "consent_required"
+            elif key.configured is not True:
+                reason = "not_configured"
+            elif not config.get("pricing_confirmed") or config.get("price_version") != PRICE_VERSION or config.get("usd_to_krw_rate") is None:
+                reason = "pricing_required"
+            elif config.get("daily_cost_cap") is None or config.get("monthly_cost_cap") is None:
+                reason = "budget_required"
+            elif status.get("ledger"):
+                for period, cap in (("day", config["daily_cost_cap"]), ("month", config["monthly_cost_cap"])):
+                    ledger = status["ledger"][period]
+                    if sum(ledger[k] for k in ("estimated_krw", "reserved_krw", "uncertain_krw")) >= cap:
+                        reason = "budget_exhausted"
+                        break
+        return S.AIStatus(**status, key_supported=key.supported, key_configured=key.configured,
+                          error_code=error_code, enabled=config["enabled"], ready=reason is None,
+                          blocked_reason=reason, settings_revision=settings_svc.get_setting(s, "ai_revision"),
+                          database_generation=s.info["database_generation"])
+
+    @app.get("/v1/ai/status", response_model=S.AIStatus, tags=["settings"], responses=ERRORS)
+    def ai_status(s: Sess) -> S.AIStatus:
+        return ai_status_out(s)
+
+    def ai_credential_action(body: S.AICredentialAction, s: Any, key: str | None) -> S.AIStatus:
+        with ctx.ai_control_lock:
+            if ctx.config.demo:
+                raise ApiError(409, "demo_credential_unsupported", "데모에서는 실제 AI 키를 저장하거나 삭제하지 않습니다")
+            if body.expected_generation != s.info["database_generation"]:
+                raise settings_svc.AISettingsChanged()
+            settings_svc.advance_ai_revision(s, body.expected_revision)
+            config = settings_svc.get_setting(s, "ai")
+            settings_svc.put_setting(s, "ai", {**config, "enabled": False})
+            for lead_id in settings_svc.stop_pending_ai(s):
+                emit(s, "lead.updated", {"lead_id": lead_id, "changes": ["analysis"]})
+            # OS and SQLite are separate stores. Commit disabled first so an OS
+            # failure or process exit cannot silently leave paid analysis on.
+            s.commit()
+            ctx.hub.notify()
+            if key is None:
+                ctx.credential_store.delete_key(ctx.config.data_dir, "openai")
+            else:
+                ctx.credential_store.set_key(ctx.config.data_dir, "openai", key)
+            return ai_status_out(s)
+
+    @app.post("/v1/ai/credentials", response_model=S.AIStatus, tags=["settings"], responses=ERRORS)
+    def save_ai_credential(body: S.AICredentialIn, s: Sess) -> S.AIStatus:
+        return ai_credential_action(body, s, body.key.get_secret_value())
+
+    @app.post("/v1/ai/credentials/delete", response_model=S.AIStatus, tags=["settings"], responses=ERRORS)
+    def delete_ai_credential(body: S.AICredentialAction, s: Sess) -> S.AIStatus:
+        return ai_credential_action(body, s, None)
 
     # ── 가져오기·내보내기 ─────────────────────────────────────────────
     @app.post("/v1/imports", status_code=202, response_model=S.JobAccepted, tags=["imports"], responses=ERRORS)
@@ -517,6 +696,38 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
         ctx.hub.notify()
         return S.JobAccepted(job_id=run.id, run_id=None)
 
+    # ── 백업·복원 ──────────────────────────────────────────────────
+    @app.get("/v1/backups", response_model=S.BackupList, tags=["backups"], responses=ERRORS)
+    def list_backups() -> S.BackupList:
+        return backup_svc.list_backups(ctx)
+
+    @app.post("/v1/backups", response_model=S.BackupOut, status_code=201, tags=["backups"], responses=ERRORS)
+    def create_backup() -> S.BackupOut:
+        return backup_svc.create_backup(ctx)
+
+    @app.get("/v1/backups/{backup_id}", response_model=S.BackupInspection, tags=["backups"], responses=ERRORS)
+    def inspect_backup(backup_id: str) -> S.BackupInspection:
+        return backup_svc.inspect_backup(ctx, backup_id)
+
+    @app.post("/v1/backups/{backup_id}/restore", response_model=S.RestoreOut, tags=["backups"], responses=ERRORS)
+    def restore_backup(backup_id: str, body: S.RestoreIn) -> S.RestoreOut:
+        return backup_svc.restore_backup(ctx, backup_id, body.sha256)
+
+    # ── 네이티브 알림 ────────────────────────────────────────────────
+    @app.get("/v1/native-notifications", response_model=S.NativeNotificationList, tags=["notifications"], responses=ERRORS)
+    def list_native_notifications(limit: int = Query(default=20, ge=1, le=100), created_after: datetime | None = None) -> S.NativeNotificationList:
+        if created_after is not None and created_after.tzinfo is None:
+            raise ApiError(422, "invalid_time", "created_after는 UTC 오프셋이 있는 ISO 시각이어야 합니다")
+        return notification_svc.list_pending(ctx, limit=limit, created_after=created_after)
+
+    @app.post("/v1/native-notifications/{notification_id}/claim", response_model=S.NativeNotificationClaimOut, tags=["notifications"], responses=ERRORS)
+    def claim_native_notification(notification_id: str) -> S.NativeNotificationClaimOut:
+        return notification_svc.claim(ctx, notification_id)
+
+    @app.post("/v1/native-notifications/{notification_id}/result", response_model=S.NativeNotificationResultOut, tags=["notifications"], responses=ERRORS)
+    def native_notification_result(notification_id: str, body: S.NativeNotificationResultIn) -> S.NativeNotificationResultOut:
+        return notification_svc.record_result(ctx, notification_id, claim_token=body.claim_token, state=body.state)
+
     # ── 지표 ────────────────────────────────────────────────────────
     @app.get("/v1/metrics", response_model=S.MetricsOut, tags=["system"], responses=ERRORS)
     def get_metrics(s: Sess) -> S.MetricsOut:
@@ -534,12 +745,20 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
 
         async def gen() -> AsyncIterator[bytes]:
             nonlocal start
-            with ctx.db.session() as s:
-                trimmed = int(settings_svc.get_setting(s, "events_trimmed_through"))
-                head = s.scalar(select(func.max(EventOutbox.seq))) or 0
+            generation = ctx.db.gate.generation
+            while True:
+                try:
+                    with ctx.db.session() as s:
+                        trimmed = int(settings_svc.get_setting(s, "events_trimmed_through"))
+                        head = s.scalar(select(func.max(EventOutbox.seq))) or 0
+                    break
+                except MaintenanceBusy:
+                    if await request.is_disconnected():
+                        return
+                    await asyncio.sleep(0.1)
             if start is None:
                 start = head
-            elif start < trimmed:
+            elif start < trimmed or start > head:
                 # 보존 범위를 벗어난 이어받기 → 전체 재조회 요청
                 yield _sse({"type": "stream.reset", "seq": head, "id": f"reset-{head}", "at": utcnow().isoformat()}, head)
                 start = head
@@ -549,10 +768,24 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
             while True:
                 if await request.is_disconnected():
                     break
-                with ctx.db.session() as s:
-                    rows = s.scalars(select(EventOutbox).where(EventOutbox.seq > start).order_by(EventOutbox.seq).limit(200)).all()
-                    batch = [(r.seq, r.id, r.type, r.payload, r.created_at, r.suppressed_reason) for r in rows]
+                try:
+                    with ctx.db.session() as s:
+                        if generation != ctx.db.gate.generation:
+                            generation = ctx.db.gate.generation
+                            start = s.scalar(select(func.max(EventOutbox.seq))) or 0
+                            reset = True
+                        else:
+                            reset = False
+                        rows = s.scalars(select(EventOutbox).where(EventOutbox.seq > start).order_by(EventOutbox.seq).limit(200)).all()
+                        batch = [(r.seq, r.id, r.type, r.payload, r.created_at, r.suppressed_reason) for r in rows]
+                except MaintenanceBusy:
+                    await asyncio.sleep(0.1)
+                    continue
+                if reset:
+                    yield _sse({"type": "stream.reset", "seq": start, "id": f"restore-{generation}", "at": utcnow().isoformat()}, start)
                 for seq, eid, typ, payload, at, suppressed in batch:
+                    if generation != ctx.db.gate.generation:
+                        break
                     data = {"id": eid, "seq": seq, "type": typ, "at": at.isoformat(), **payload}
                     if typ == "notification.created":
                         data["suppressed_reason"] = suppressed

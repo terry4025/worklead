@@ -47,13 +47,83 @@
           "title": "Daily Cost Cap"
         },
         "key_configured": {
-          "description": "API 키 저장 여부 (값은 절대 반환하지 않음)",
-          "title": "Key Configured",
-          "type": "boolean"
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "API 키 저장 여부. 저장소 상태를 확인하지 못하면 null. 값은 반환하지 않음",
+          "title": "Key Configured"
         },
         "provider_available": {
           "title": "Provider Available",
           "type": "boolean"
+        },
+        "provider": {
+          "const": "openai",
+          "default": "openai",
+          "title": "Provider",
+          "type": "string"
+        },
+        "model": {
+          "const": "gpt-4.1-mini-2025-04-14",
+          "default": "gpt-4.1-mini-2025-04-14",
+          "title": "Model",
+          "type": "string"
+        },
+        "usd_to_krw_rate": {
+          "anyOf": [
+            {
+              "maximum": 100000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Usd To Krw Rate"
+        },
+        "max_output_tokens": {
+          "default": 1024,
+          "maximum": 4096,
+          "minimum": 256,
+          "title": "Max Output Tokens",
+          "type": "integer"
+        },
+        "pricing_confirmed": {
+          "default": false,
+          "title": "Pricing Confirmed",
+          "type": "boolean"
+        },
+        "price_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "확인한 서버 요금표 버전; 읽기 전용",
+          "title": "Price Version"
+        },
+        "revision": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "database_generation": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Database Generation",
+          "type": "integer"
         }
       },
       "required": [

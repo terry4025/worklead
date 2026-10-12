@@ -10,9 +10,9 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Any
 
-from sqlalchemy import and_, or_, select, update
+from sqlalchemy import and_, exists, or_, select, update
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 
 from ..db import Database, utcnow
 from ..models import Run, new_id
@@ -30,6 +30,7 @@ EMPTY_COUNTS = {
     "updated": 0,
     "duplicates": 0,
     "excluded": 0,
+    "skipped": 0,
     "parse_failures": 0,
     "fetch_failures": 0,
     "policy_stops": 0,
@@ -97,9 +98,11 @@ def enqueue(
 def claim_next(db: Database, owner: str, kinds: tuple[str, ...], lease_s: int) -> Run | None:
     now = utcnow()
     with db.session() as s:
+        cooldown = aliased(Run)
         candidate = s.scalar(
             select(Run.id)
             .where(Run.state == "queued", Run.kind.in_(kinds), or_(Run.retry_after.is_(None), Run.retry_after <= now))
+            .where(~exists(select(cooldown.id).where(cooldown.source_id == Run.source_id, cooldown.retry_after > now)))
             .order_by(Run.created_at)
             .limit(1)
         )

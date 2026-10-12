@@ -127,6 +127,8 @@ class CollectionTask(Base):
     attempts: Mapped[int] = mapped_column(Integer, default=0)
     result_count: Mapped[int] = mapped_column(Integer, default=0)
     last_error: Mapped[str | None] = mapped_column(Text)
+    #: Stable page references and the next unprocessed index, retained across runs.
+    checkpoint: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, onupdate=utcnow)
 
@@ -159,6 +161,22 @@ class HostBudget(Base):
     used: Mapped[int] = mapped_column(Integer, default=0)
     limit: Mapped[int] = mapped_column(Integer)
     last_request_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+
+
+class DetailFetchState(Base):
+    """공고 본문 없이 상세 조회 결과와 다음 자동 재조회 시각만 보존한다."""
+
+    __tablename__ = "detail_fetch_states"
+
+    source_id: Mapped[str] = mapped_column(ForeignKey("sources.id", ondelete="CASCADE"), primary_key=True)
+    ref_key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    url: Mapped[str] = mapped_column(Text)
+    title_hint: Mapped[str | None] = mapped_column(Text)
+    source_updated_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    outcome: Mapped[str] = mapped_column(String(64))
+    attempted_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    retry_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    failures: Mapped[int] = mapped_column(Integer, default=0)
 
 
 class RobotsCache(Base):
@@ -342,6 +360,8 @@ class DuplicateLink(Base):
     relation: Mapped[str] = mapped_column(String(16))  # duplicate | repost | similar
     basis: Mapped[str | None] = mapped_column(Text)
     confirmed: Mapped[bool] = mapped_column(Boolean, default=False)
+    dismissed: Mapped[bool] = mapped_column(Boolean, default=False)
+    revision: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
 
     __table_args__ = (UniqueConstraint("lead_id", "source_record_id"),)
@@ -469,6 +489,7 @@ class EventOutbox(Base):
     """DB 변경과 같은 트랜잭션에 기록하는 이벤트·알림. seq 가 이어받기 순서값이다."""
 
     __tablename__ = "event_outbox"
+    __table_args__ = (Index("ix_events_native_pending", "type", "notify", "notified_at", "created_at", "seq"),)
 
     seq: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     id: Mapped[str] = mapped_column(String(40), unique=True)

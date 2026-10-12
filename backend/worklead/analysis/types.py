@@ -105,7 +105,7 @@ class Profile:
     target_hourly: int | None = None
     weekly_hours: int | None = None
     onsite: Literal["no", "first_meeting", "yes"] = "no"
-    allow_short_term_employment: bool = True
+    allow_short_term_employment: bool = False  # Legacy API field; project-only eligibility takes precedence.
     version: int = 1
 
 
@@ -125,6 +125,7 @@ class PostInput:
     pay_hint: PayInfo | None = None
     deadline_hint: DateInfo | None = None
     source_kind: str = "site"
+    collection_allowed: bool | None = None
 
 
 @dataclass

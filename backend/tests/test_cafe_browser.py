@@ -31,6 +31,11 @@ def test_edge_persistent_profile_local_site_and_redirect_guard(tmp_path):
             html, code = browser.goto('https://cafe.daangn.com/synthetic')
             assert code == 200 and detect_session(html)[0] == 'logged_in'
             assert cafe_home(html, 'https://cafe.daangn.com/synthetic')['joined'] is True
+            # A synthetic paragraph editor keeps the observed ProseMirror p
+            # structure; this does not claim the real site's editor was saved.
+            browser.page.set_content('<div class="ProseMirror" contenteditable="true"><p><br></p></div><script>document.execCommand("defaultParagraphSeparator",false,"p");document.querySelector(".ProseMirror").addEventListener("input",()=>{if(!document.querySelector(".ProseMirror > p"))document.execCommand("formatBlock",false,"p")})</script>')
+            assert browser.fill_editor('첫째\n\n\n둘째') in ('paragraph', 'filler')
+            assert [line if line != '\u3164' else '' for line in browser.page.locator('div.ProseMirror > p').all_text_contents()] == ['첫째', '', '', '둘째']
             if iteration == 0:
                 browser.context.add_cookies([{'name':'synthetic_session', 'value':'fixture', 'domain':'cafe.daangn.com', 'path':'/', 'expires':2000000000}])
             else:

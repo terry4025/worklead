@@ -141,7 +141,7 @@ def reserve_navigation(s: Session, now: datetime) -> float:
 
 
 def enqueue_job(s: Session, kind: str, now: datetime, input: dict | None = None) -> CafeJob:
-    if kind not in {"check", "login", "discover", "inspect", "collect"}:
+    if kind not in {"check", "login", "discover", "inspect", "collect", "post", "comments"}:
         raise CafeError(422, "invalid_cafe_action", "지원하지 않는 카페 작업입니다")
     if not consent_accepted(s):
         raise CafeError(409, "cafe_consent_required", "카페 기능 위험 안내를 먼저 확인하세요")
@@ -181,6 +181,10 @@ def finish_job(s: Session, job_id: str, state: str, now: datetime, *, error_code
 
 
 def recover_interrupted_jobs(s: Session, now: datetime) -> None:
+    from ..models import CafePostAttempt
+    for attempt in s.scalars(select(CafePostAttempt).where(CafePostAttempt.status == 'pending')):
+        attempt.status, attempt.error_code = 'failed', 'cafe_submission_uncertain'
+        attempt.error_message = '중단된 게시 결과를 직접 대조하세요. 자동 재시도하지 않습니다'
     for row in s.scalars(select(CafeJob).where(CafeJob.state.in_(("queued", "running")))):
         finish_job(s, row.id, "failed", now, error_code="cafe_interrupted", error_message="앱 종료 또는 복원으로 중단되었습니다. 자동 재시도하지 않습니다")
 

@@ -168,10 +168,12 @@ def main() -> None:
             try:
                 with client_for(ctx) as c:
                     write_openapi(c.app)
-                    for name in ("CafeSnapshot", "CafeSettings", "CafeSettingsPatch", "CafeConsentIn", "CafeConsentOut", "CafeEntry", "CafeBoardOut", "CafeJob", "CafeList", "CafeJobList"):
+                    for name in ("CafeSnapshot", "CafeSettings", "CafeSettingsPatch", "CafeConsentIn", "CafeConsentOut", "CafeEntry", "CafeBoardOut", "CafeJob", "CafeList", "CafeJobList", "CafeTemplate", "CafeTemplatePatch", "CafeAttempt", "CafeAttemptList"):
                         dump(OUT / "schemas" / f"{name}.schema.json", getattr(S, name).model_json_schema())
                     dump(OUT / "fixtures/cafe-status.json", c.get("/v1/cafe/status").json())
                     dump(OUT / "fixtures/cafes.json", c.get("/v1/cafe/cafes").json())
+                    dump(OUT / "fixtures/cafe-template.json", c.get('/v1/cafe/template').json())
+                    dump(OUT / "fixtures/cafe-attempts.json", c.get('/v1/cafe/attempts').json())
             finally:
                 ctx.db.dispose()
         print("cafe contracts written; legacy fixtures preserved")

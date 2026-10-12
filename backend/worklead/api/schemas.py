@@ -46,6 +46,34 @@ class Model(BaseModel):
 CafeState = Literal["candidate", "needs_join", "eligible", "approved", "excluded"]
 
 
+class CafeTemplate(Model):
+    version: int = Field(ge=1)
+    title: str
+    body: str
+
+
+class CafeTemplatePatch(Model):
+    title: str = Field(min_length=1, max_length=200)
+    body: str = Field(min_length=1, max_length=20000)
+
+
+class CafeAttempt(Model):
+    id: str
+    cafe_id: str
+    board_id: str
+    template_version: int
+    status: Literal['pending', 'posted', 'already_exists', 'posted_mismatch', 'failed', 'removed', 'skipped_rule']
+    post_url: str | None
+    error_code: str | None
+    error_message: str | None
+    created_at: datetime
+    verified_at: datetime | None
+
+
+class CafeAttemptList(Model):
+    items: list[CafeAttempt]
+
+
 class CafeSettings(Model):
     auto_post: bool = False
     auto_approve: bool = False
@@ -111,7 +139,7 @@ class CafeCapabilities(Model):
 
 class CafeJob(Model):
     id: str
-    kind: Literal["check", "login", "discover", "inspect", "collect"]
+    kind: Literal["check", "login", "discover", "inspect", "collect", "post", "comments"]
     state: Literal["queued", "running", "succeeded", "failed", "cancelled"]
     created_at: datetime
     started_at: datetime | None

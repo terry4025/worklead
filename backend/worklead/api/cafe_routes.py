@@ -43,6 +43,25 @@ def router(session_dependency):
     def jobs(s=Depends(session_dependency)):
         return svc.list_jobs(s)
 
+    @routes.get('/template', response_model=S.CafeTemplate)
+    def template(s=Depends(session_dependency)):
+        from ..cafe import posting
+        return posting.template(s)
+
+    @routes.patch('/template', response_model=S.CafeTemplate)
+    def template_patch(body: S.CafeTemplatePatch, s=Depends(session_dependency)):
+        from ..cafe import posting
+        return posting.update_template(s, body)
+
+    @routes.get('/attempts', response_model=S.CafeAttemptList)
+    def attempts(s=Depends(session_dependency)):
+        from ..cafe import posting
+        return posting.list_attempts(s)
+
+    @routes.post('/cafes/{id_}/post', response_model=S.CafeJob, status_code=202)
+    def post(id_: str, request: Request, s=Depends(session_dependency)):
+        return svc.job_out(svc.enqueue_job(s, 'post', request.app.state.ctx.clock(), {'cafe_id': id_}))
+
     @routes.post("/actions/{kind}", response_model=S.CafeJob, status_code=202)
     def action(kind: str, request: Request, s=Depends(session_dependency)):
         return svc.job_out(svc.enqueue_job(s, kind, request.app.state.ctx.clock()))

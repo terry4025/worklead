@@ -14,6 +14,8 @@ FIX = Path(__file__).resolve().parents[2] / "contracts" / "fixtures"
 CASES = [
     ("cafe-status.json", S.CafeSnapshot),
     ("cafes.json", S.CafeList),
+    ("cafe-template.json", S.CafeTemplate),
+    ("cafe-attempts.json", S.CafeAttemptList),
     ("bootstrap.json", S.BootstrapOut),
     ("health.json", S.HealthOut),
     ("settings.json", S.SettingsOut),

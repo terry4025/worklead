@@ -101,6 +101,50 @@ class EdgeBrowser:
     def recent_posts(self, board, since):
         raise CafePageError('cafe_collection_unverified', '내 글 제외와 작성 시각의 지원 경로가 필요합니다')
 
+    def owned_posts(self, cafe_url, navigate):
+        raise CafePageError('cafe_ownership_unverified', '웹의 내 글 전체 대조 경로가 미확보되어 게시를 차단했습니다')
+
+    def prepare_editor(self, cafe_url, board_name, template, navigate):
+        navigate(cafe_url)
+        link = self.page.locator('a').filter(has_text='글쓰기')
+        urls = [link.nth(i).get_attribute('href') for i in range(link.count())]
+        from urllib.parse import urljoin
+        editor_url = next((urljoin(cafe_url + '/', url) for url in urls if url and url.endswith('/posts/new')), None)
+        if not editor_url: raise CafePageError('cafe_editor_unavailable', '실제 글쓰기 링크를 찾지 못했습니다')
+        navigate(editor_url)
+        if self.page.get_by_role('button', name=board_name, exact=True).count() != 1:
+            raise CafePageError('cafe_board_unverified', '선택된 게시판을 확인하지 못했습니다. 추측한 메뉴로 바꾸지 않습니다')
+        self.page.get_by_placeholder('제목을 입력해주세요.', exact=True).fill(template.title)
+        self.fill_editor(template.body)
+
+    def fill_editor(self, body):
+        editor = self.page.locator('div.ProseMirror[contenteditable="true"]')
+        if editor.count() != 1: raise CafePageError('cafe_editor_unrecognized', '확인한 편집기 구조와 다릅니다')
+        target = body.replace('\r\n', '\n').split('\n')
+        for filler in (False, True):
+            editor.click()
+            self.page.keyboard.press('Control+A')
+            self.page.keyboard.press('Backspace')
+            for index, line in enumerate(target):
+                if index: self.page.keyboard.press('Enter')
+                if line or filler: self.page.keyboard.insert_text(line or '\u3164')
+            actual = editor.locator(':scope > p').all_text_contents()
+            if [line if line != '\u3164' else '' for line in actual] == target:
+                return 'filler' if filler else 'paragraph'
+        raise CafePageError('cafe_linebreak_mismatch', '저장 전 편집기의 줄바꿈이 다릅니다. 게시하지 않습니다')
+
+    def submit_post(self):
+        self.page.get_by_role('button', name='글쓰기', exact=True).last.click()
+        self.page.wait_for_url(lambda url: '/posts/' in url and not url.endswith('/new'), timeout=25000)
+        return self.page.url
+
+    def read_post(self):
+        title = self.page.locator('h1')
+        body = self.page.locator('div.article-body')
+        if title.count() != 1 or body.count() != 1:
+            raise CafePageError('cafe_post_unrecognized', '게시된 제목·본문 구조를 확인하지 못했습니다')
+        return {'title': title.inner_text(), 'body': '\n'.join(body.locator('p').all_text_contents())}
+
     def close(self):
         try:
             if self.context:

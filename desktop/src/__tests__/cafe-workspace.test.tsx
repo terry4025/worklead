@@ -26,6 +26,18 @@ it('requires recorded consent before browser actions, then discovers synthetic c
   expect(action).toHaveBeenCalledWith('discover');
   expect((screen.getByRole('checkbox', { name: '자동 게시' }) as HTMLInputElement).disabled).toBe(true);
   expect((screen.getByRole('button', { name: '게시 대상 승인' }) as HTMLButtonElement).disabled).toBe(true);
+  expect((screen.getByRole('button', { name: '지금 게시' }) as HTMLButtonElement).disabled).toBe(true);
+});
+it('saves a versioned template with consecutive blank lines and displays preview', async () => {
+  const port = new MockPort({ scenario: 'normal', latency: [0, 0] });
+  await port.cafe.consent('cafe-risk-2026-10-12-v1');
+  show(port);
+  fireEvent.click(await screen.findByText('카페 설정'));
+  fireEvent.change(await screen.findByLabelText('제목'), { target: { value: '합성 템플릿' } });
+  fireEvent.change(screen.getByLabelText('본문'), { target: { value: '첫 문단\n\n\n끝 문단' } });
+  fireEvent.click(screen.getByText('템플릿 저장'));
+  await screen.findByText('게시 템플릿 · 버전 2');
+  expect((await port.cafe.template()).body).toBe('첫 문단\n\n\n끝 문단');
 });
 it('shows error and retry without enabling unsafe actions', async () => {
   const port = new MockPort({ scenario: 'normal', latency: [0, 0] });

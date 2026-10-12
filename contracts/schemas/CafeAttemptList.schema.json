@@ -1,0 +1,117 @@
+{
+  "$defs": {
+    "CafeAttempt": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "cafe_id": {
+          "title": "Cafe Id",
+          "type": "string"
+        },
+        "board_id": {
+          "title": "Board Id",
+          "type": "string"
+        },
+        "template_version": {
+          "title": "Template Version",
+          "type": "integer"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "posted",
+            "already_exists",
+            "posted_mismatch",
+            "failed",
+            "removed",
+            "skipped_rule"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "post_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Post Url"
+        },
+        "error_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Error Code"
+        },
+        "error_message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Error Message"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "verified_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Verified At"
+        }
+      },
+      "required": [
+        "id",
+        "cafe_id",
+        "board_id",
+        "template_version",
+        "status",
+        "post_url",
+        "error_code",
+        "error_message",
+        "created_at",
+        "verified_at"
+      ],
+      "title": "CafeAttempt",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/$defs/CafeAttempt"
+      },
+      "title": "Items",
+      "type": "array"
+    }
+  },
+  "required": [
+    "items"
+  ],
+  "title": "CafeAttemptList",
+  "type": "object"
+}

@@ -30,6 +30,16 @@ class CafeRuntime:
             self.thread.join(timeout=35)
 
     def _navigate(self, url, *, allow_recovery=False):
+        self._reserve(allow_recovery=allow_recovery)
+        html, status = self.browser.goto(url)
+        state, reason = detect_session(html, status=status)
+        with self.ctx.db.session() as s:
+            svc.set_session(s, state, self.ctx.clock(), reason)
+        if state != "logged_in":
+            raise CafePageError("cafe_" + state, "로그인 또는 인증 확인이 필요합니다")
+        return html
+
+    def _reserve(self, *, allow_recovery=False):
         while not self.stopped.is_set():
             with self.ctx.db.session() as s:
                 # Explicit login is the sole recovery path from needs_user.
@@ -42,13 +52,6 @@ class CafeRuntime:
                 raise CafePageError("cafe_cancelled", "앱 종료로 중단했습니다")
         if self.stopped.is_set():
             raise CafePageError("cafe_cancelled", "앱 종료로 중단했습니다")
-        html, status = self.browser.goto(url)
-        state, reason = detect_session(html, status=status)
-        with self.ctx.db.session() as s:
-            svc.set_session(s, state, self.ctx.clock(), reason)
-        if state != "logged_in":
-            raise CafePageError("cafe_" + state, "로그인 또는 인증 확인이 필요합니다")
-        return html
 
     def execute(self, job):
         if job.kind == 'collect':
@@ -68,6 +71,9 @@ class CafeRuntime:
         self._navigate(CAFE_ORIGIN + "/")
         if job.kind == "check":
             return {}
+        if job.kind == 'post':
+            from .posting import publish
+            return publish(self.ctx, self.browser, job.input.get('cafe_id'), self._navigate, self._reserve)
         if job.kind == "collect":
             from .collection import collect
             return collect(self.ctx, self.browser.recent_posts)

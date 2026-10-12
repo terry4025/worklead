@@ -18,6 +18,11 @@
 .cafe-evidence { white-space:pre-wrap; }
 .cafe-empty { color:var(--text-3); padding:36px 0; }
 .cafe-error { color:var(--bad); }
+.cafe-template { margin-top:36px; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:32px; }
+.cafe-template form { display:grid; align-content:start; gap:12px; }
+.cafe-template-preview p { white-space:pre-wrap; overflow-wrap:anywhere; max-width:70ch; }
+.cafe-template textarea { resize:vertical; width:100%; }
+@media (max-width:900px) { .cafe-template { grid-template-columns:minmax(0,1fr); } }
 .cafe-settings { display:grid; gap:16px; max-width:650px; }
 .cafe-settings label { display:grid; gap:6px; }
 .cafe-settings .cafe-checkbox { display:flex; align-items:center; }

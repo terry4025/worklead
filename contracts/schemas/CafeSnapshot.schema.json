@@ -60,7 +60,9 @@
             "login",
             "discover",
             "inspect",
-            "collect"
+            "collect",
+            "post",
+            "comments"
           ],
           "title": "Kind",
           "type": "string"

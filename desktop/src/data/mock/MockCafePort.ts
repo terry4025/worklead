@@ -1,7 +1,16 @@
 import type { CafeEntry, CafeJob, CafePort, CafeSnapshot } from '../../domain/cafe';
+import defaultTemplate from '../../../../contracts/fixtures/cafe-template.json';
 
 /** Synthetic demonstration, no browser or external site requests. */
 export class MockCafePort implements CafePort {
+  private value = structuredClone(defaultTemplate);
+  async template() { return structuredClone(this.value); }
+  async updateTemplate(body: Parameters<CafePort['updateTemplate']>[0]) {
+    if (this.value.title !== body.title || this.value.body !== body.body) this.value = { ...body, version: this.value.version + 1 };
+    return structuredClone(this.value);
+  }
+  async attempts() { return []; }
+  async post(): ReturnType<CafePort['post']> { throw new Error('내 글 전체 대조 경로가 없어 게시를 차단했습니다'); }
   private snapshot: CafeSnapshot = {
     consent: null, consent_version: 'cafe-risk-2026-10-12-v1',
     consent_text: '당근 이용약관은 자동화 도구 사용에 사전 서면 동의를 요구하며, 반복 홍보글은 계정 제재 사유가 될 수 있습니다. 확인은 당근의 허가를 대신하지 않습니다. 인증·차단 화면에서는 멈춥니다.',

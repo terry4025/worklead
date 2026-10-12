@@ -4,6 +4,10 @@ export type CafeSnapshot = Schemas['CafeSnapshot'];
 export type CafeEntry = Schemas['CafeEntry'];
 export type CafeJob = Schemas['CafeJob'];
 export interface CafePort {
+  template(): Promise<Schemas['CafeTemplate']>;
+  updateTemplate(body: Schemas['CafeTemplatePatch']): Promise<Schemas['CafeTemplate']>;
+  attempts(): Promise<Schemas['CafeAttempt'][]>;
+  post(id: string): Promise<CafeJob>;
   status(): Promise<CafeSnapshot>;
   consent(version: string): Promise<unknown>;
   settings(patch: Schemas['CafeSettingsPatch']): Promise<Schemas['CafeSettings']>;

@@ -98,6 +98,9 @@ class EdgeBrowser:
                 return True
         return False
 
+    def recent_posts(self, board, since):
+        raise CafePageError('cafe_collection_unverified', '내 글 제외와 작성 시각의 지원 경로가 필요합니다')
+
     def close(self):
         try:
             if self.context:

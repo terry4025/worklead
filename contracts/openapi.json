@@ -5603,6 +5603,11 @@
       },
       "CafeCapabilities": {
         "properties": {
+          "collection": {
+            "type": "boolean",
+            "title": "Collection",
+            "default": false
+          },
           "own_posts": {
             "type": "boolean",
             "title": "Own Posts",
@@ -5829,7 +5834,8 @@
               "check",
               "login",
               "discover",
-              "inspect"
+              "inspect",
+              "collect"
             ],
             "title": "Kind"
           },

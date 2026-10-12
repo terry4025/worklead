@@ -7,7 +7,7 @@ export class MockCafePort implements CafePort {
     consent_text: '당근 이용약관은 자동화 도구 사용에 사전 서면 동의를 요구하며, 반복 홍보글은 계정 제재 사유가 될 수 있습니다. 확인은 당근의 허가를 대신하지 않습니다. 인증·차단 화면에서는 멈춥니다.',
     session: { state: 'logged_out', checked_at: null, reason: null },
     usage: { day: '2026-10-12', page_count: 0, daily_page_limit: 300, post_count: 0, daily_post_limit: 5 },
-    capabilities: { own_posts: false, full_comments: false, posting: false },
+    capabilities: { collection: false, own_posts: false, full_comments: false, posting: false },
     settings: { auto_post: false, auto_approve: false, min_navigation_seconds: 8, daily_page_limit: 300, daily_post_limit: 5, min_post_minutes: 30, collect_interval_minutes: 180, comment_interval_minutes: 30, comment_monitor_days: 60, keywords: ['알바', '외주', '프리랜서', '개발', 'IT', '재택'] },
     active_job: null,
   };
@@ -43,6 +43,7 @@ export class MockCafePort implements CafePort {
   async board(): ReturnType<CafePort['board']> { throw new Error('합성 시나리오에서 승인 가능한 게시판이 없습니다'); }
   async jobs() { return structuredClone(this.history); }
   async action(kind: CafeJob['kind']) {
+    if (kind === 'collect') throw new Error('내 글 제외·작성 시각의 지원 경로가 필요합니다');
     if (!this.snapshot.consent) throw new Error('위험 안내를 먼저 확인하세요');
     this.snapshot.session = { state: 'logged_in', checked_at: new Date().toISOString(), reason: null };
     this.snapshot.usage.page_count += kind === 'discover' ? 4 : 1;

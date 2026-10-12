@@ -15,6 +15,7 @@
     "daily_post_limit": 5
   },
   "capabilities": {
+    "collection": false,
     "own_posts": false,
     "full_comments": false,
     "posting": false

@@ -103,6 +103,7 @@ class CafeUsage(Model):
 
 
 class CafeCapabilities(Model):
+    collection: bool = False
     own_posts: bool = False
     full_comments: bool = False
     posting: bool = False
@@ -110,7 +111,7 @@ class CafeCapabilities(Model):
 
 class CafeJob(Model):
     id: str
-    kind: Literal["check", "login", "discover", "inspect"]
+    kind: Literal["check", "login", "discover", "inspect", "collect"]
     state: Literal["queued", "running", "succeeded", "failed", "cancelled"]
     created_at: datetime
     started_at: datetime | None

@@ -3,6 +3,11 @@
     "CafeCapabilities": {
       "additionalProperties": false,
       "properties": {
+        "collection": {
+          "default": false,
+          "title": "Collection",
+          "type": "boolean"
+        },
         "own_posts": {
           "default": false,
           "title": "Own Posts",
@@ -54,7 +59,8 @@
             "check",
             "login",
             "discover",
-            "inspect"
+            "inspect",
+            "collect"
           ],
           "title": "Kind",
           "type": "string"

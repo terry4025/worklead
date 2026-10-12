@@ -1009,6 +1009,11 @@ export interface components {
         /** CafeCapabilities */
         CafeCapabilities: {
             /**
+             * Collection
+             * @default false
+             */
+            collection: boolean;
+            /**
              * Own Posts
              * @default false
              */
@@ -1086,7 +1091,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "check" | "login" | "discover" | "inspect";
+            kind: "check" | "login" | "discover" | "inspect" | "collect";
             /**
              * State
              * @enum {string}

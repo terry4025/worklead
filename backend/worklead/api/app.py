@@ -337,6 +337,8 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
         if policy is None or policy.status not in ("allowed", "restricted"):
             raise ApiError(409, "policy_not_allowed", f"자동 수집 권한이 확인되지 않았습니다 ({policy.status if policy else 'permission_pending'})")
         research = source_svc.research_state(ctx.adapters.get(source.id))
+        if source.id == 'daangn_cafe':
+            raise ApiError(409, 'cafe_collection_unverified', '내 글 제외·작성 시각의 지원 경로를 확보하기 전에는 카페 수집을 실행하지 않습니다')
         if body.kind == "discovery" and not research.ready:
             raise ApiError(409, "research_incomplete", "사이트 조사가 끝나지 않아 탐색할 수 없습니다", {"missing": research.missing})
         if source.stopped_reason:

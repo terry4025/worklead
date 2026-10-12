@@ -35,6 +35,8 @@ export function CafeWorkspace() {
         <label><input type="checkbox" checked={data.settings.auto_post} disabled={!data.capabilities.posting || busy} onChange={(e) => run(() => port.settings({ auto_post: e.target.checked }))} /> 자동 게시</label>
       </section>
       {!data.capabilities.own_posts || !data.capabilities.full_comments ? <p className="cafe-limitation" role="status">내 글 대조·전체 댓글 조회 경로를 확보하지 못했습니다. 게시와 댓글 자동 확인은 중지되어 있습니다.</p> : null}
+      <p className="field-hint">카페 글은 기존 리드 목록의 ‘당근 카페’ 소스로 연결됩니다. 내 글 제외·작성 시각을 확인하기 전 수집은 보류됩니다.</p>
+      <Button disabled={busy || !data.capabilities.collection} onClick={() => run(() => port.action('collect'))}>카페 글 수집</Button>
       {data.active_job ? <p role="status">{data.active_job.kind === 'login' ? '열린 Edge에서 직접 로그인해 주세요.' : '카페 작업 진행 중'} · 페이지 이동 간격 {data.settings.min_navigation_seconds}초</p> : null}
       <nav className="cafe-tabs" aria-label="카페 보기">{([['cafes', '카페 목록'], ['jobs', '실행 기록'], ['settings', '카페 설정']] as const).map(([id, label]) => <Button key={id} pressed={tab === id} onClick={() => setTab(id)}>{label}</Button>)}</nav>
       {tab === 'cafes' ? <>

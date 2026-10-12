@@ -10,7 +10,8 @@
         "check",
         "login",
         "discover",
-        "inspect"
+        "inspect",
+        "collect"
       ],
       "title": "Kind",
       "type": "string"

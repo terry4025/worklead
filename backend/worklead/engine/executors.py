@@ -1100,6 +1100,13 @@ EXECUTORS = {
 def execute(app: AppContext, run: Run, owner: str) -> None:
     fn = EXECUTORS.get(run.kind)
     try:
+        cafe_source = run.source_id == 'daangn_cafe'
+        if run.lead_id and run.kind == 'recheck_lead':
+            with app.db.session() as s:
+                lead = s.get(Lead, run.lead_id)
+                cafe_source = cafe_source or bool(lead and lead.source_id == 'daangn_cafe')
+        if cafe_source and run.kind in (*runs.COLLECTION_KINDS, 'recheck_lead'):
+            raise Halt('failed', 'cafe_collection_unverified', '카페 세션·내 글 제외·작성 시각 지원 경로 미확보. 익명 HTTP 수집으로 우회하지 않습니다')
         if fn is None:
             raise Halt("failed", "unknown_kind", f"알 수 없는 작업 종류: {run.kind}")
         fn(app, run, owner)

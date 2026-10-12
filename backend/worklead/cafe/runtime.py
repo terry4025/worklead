@@ -51,6 +51,8 @@ class CafeRuntime:
         return html
 
     def execute(self, job):
+        if job.kind == 'collect':
+            raise CafePageError('cafe_collection_unverified', '내 글 제외·작성 시각 지원 경로 미확보로 수집을 중단했습니다')
         self.browser = self.browser or self.browser_factory(self.ctx.config.data_dir / "cafe-browser")
         self.browser.open(headed=job.kind == "login")
         if job.kind == "login":
@@ -66,6 +68,9 @@ class CafeRuntime:
         self._navigate(CAFE_ORIGIN + "/")
         if job.kind == "check":
             return {}
+        if job.kind == "collect":
+            from .collection import collect
+            return collect(self.ctx, self.browser.recent_posts)
         with self.ctx.db.session() as s:
             settings = svc.get_settings(s)
             manual = [{"url": row.url} for row in s.scalars(select(Cafe).where(Cafe.status != "excluded"))]

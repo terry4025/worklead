@@ -11,10 +11,11 @@ from ..db import utcnow
 from ..models import Source, SourcePolicy
 from . import daangn, iboss
 from .manual import ManualAdapter
+from .cafe import CafeSource
 
 
 def default_adapters() -> dict[str, object]:
-    adapters: list[object] = [daangn.create(), iboss.create(), ManualAdapter()]
+    adapters: list[object] = [daangn.create(), iboss.create(), ManualAdapter(), CafeSource()]
     return {a.source_id: a for a in adapters}  # type: ignore[attr-defined]
 
 

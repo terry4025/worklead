@@ -20,6 +20,8 @@ from ..sources.regions import SIDO
 
 
 def research_state(adapter: Any) -> S.Research:
+    if getattr(adapter, 'browser_collection', False):
+        return S.Research(ready=False, missing=['내 글 제외 지원 경로', '최근 30일·증분 작성 시각 경로'])
     profile = getattr(adapter, "profile", None)
     if profile is None:
         return S.Research(ready=True, missing=[])
@@ -29,6 +31,8 @@ def research_state(adapter: Any) -> S.Research:
 
 def coverage(s: Session, db: Any, source: Source, adapter: Any) -> S.Coverage | None:
     if source.kind != "site":
+        return None
+    if getattr(adapter, 'browser_collection', False):
         return None
     last = s.scalar(select(Run).where(Run.source_id == source.id, Run.kind == "discovery", Run.scan_cycle.is_not(None)).order_by(Run.created_at.desc()).limit(1))
     plan: dict[str, Any] = (last.checkpoint or {}).get("plan", {}) if last else {}

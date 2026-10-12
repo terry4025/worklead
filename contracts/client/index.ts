@@ -176,6 +176,15 @@ export function createClient(source: ConnectionSource, fetchImpl: typeof fetch =
   const enc = encodeURIComponent;
 
   return {
+    cafeStatus: () => request<Schemas['CafeSnapshot']>('GET', '/v1/cafe/status'),
+    cafeConsent: (version: string) => request<Schemas['CafeConsentOut']>('POST', '/v1/cafe/consent', { body: { version } }),
+    cafeSettings: (body: Schemas['CafeSettingsPatch']) => request<Schemas['CafeSettings']>('PATCH', '/v1/cafe/settings', { body }),
+    cafeList: () => request<Schemas['CafeList']>('GET', '/v1/cafe/cafes'),
+    cafeAdd: (url: string) => request<Schemas['CafeEntry']>('POST', '/v1/cafe/cafes', { body: { url } }),
+    cafeState: (id: string, status: Schemas['CafeEntry']['status']) => request<Schemas['CafeEntry']>('PATCH', `/v1/cafe/cafes/${enc(id)}`, { body: { status } }),
+    cafeBoard: (id: string, approved: boolean) => request<Schemas['CafeBoardOut']>('PATCH', `/v1/cafe/boards/${enc(id)}`, { body: { approved } }),
+    cafeJobs: () => request<Schemas['CafeJobList']>('GET', '/v1/cafe/jobs'),
+    cafeAction: (kind: Schemas['CafeJob']['kind']) => request<Schemas['CafeJob']>('POST', `/v1/cafe/actions/${enc(kind)}`),
     connection: conn,
     aiStatus: () => request<AIStatus>('GET', '/v1/ai/status'),
     saveAiCredential: (body: AICredentialIn) => request<AIStatus>('POST', '/v1/ai/credentials', { body }),

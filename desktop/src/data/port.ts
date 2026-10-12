@@ -39,6 +39,7 @@ import type {
  */
 export interface WorkleadPort {
   readonly mode: 'demo' | 'live';
+  readonly cafe: import('../domain/cafe').CafePort;
 
   bootstrap(): Promise<Bootstrap>;
 

@@ -1,0 +1,62 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "cafe_id": {
+      "title": "Cafe Id",
+      "type": "string"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "url": {
+      "title": "Url",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "job_seek",
+        "job_offer",
+        "free",
+        "other"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "post_allowed": {
+      "title": "Post Allowed",
+      "type": "boolean"
+    },
+    "approved": {
+      "title": "Approved",
+      "type": "boolean"
+    },
+    "evidence": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Evidence"
+    }
+  },
+  "required": [
+    "id",
+    "cafe_id",
+    "name",
+    "url",
+    "kind",
+    "post_allowed",
+    "approved",
+    "evidence"
+  ],
+  "title": "CafeBoardOut",
+  "type": "object"
+}

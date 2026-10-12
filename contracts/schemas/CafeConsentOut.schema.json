@@ -1,0 +1,20 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "title": "Version",
+      "type": "string"
+    },
+    "accepted_at": {
+      "format": "date-time",
+      "title": "Accepted At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "version",
+    "accepted_at"
+  ],
+  "title": "CafeConsentOut",
+  "type": "object"
+}

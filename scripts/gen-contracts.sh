@@ -4,7 +4,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT/backend"
-uv run python scripts/export_contracts.py
+uv run python scripts/export_contracts.py "$@"
 cd "$ROOT/desktop"
 npx --yes openapi-typescript@7.13.0 ../contracts/openapi.json -o ../contracts/client/schema.d.ts
 cd "$ROOT/backend"

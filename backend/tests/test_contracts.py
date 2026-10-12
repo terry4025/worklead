@@ -12,6 +12,8 @@ from worklead.api import schemas as S
 FIX = Path(__file__).resolve().parents[2] / "contracts" / "fixtures"
 
 CASES = [
+    ("cafe-status.json", S.CafeSnapshot),
+    ("cafes.json", S.CafeList),
     ("bootstrap.json", S.BootstrapOut),
     ("health.json", S.HealthOut),
     ("settings.json", S.SettingsOut),

@@ -1,0 +1,74 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "auto_post": {
+      "default": false,
+      "title": "Auto Post",
+      "type": "boolean"
+    },
+    "auto_approve": {
+      "default": false,
+      "title": "Auto Approve",
+      "type": "boolean"
+    },
+    "min_navigation_seconds": {
+      "default": 8,
+      "maximum": 3600,
+      "minimum": 8,
+      "title": "Min Navigation Seconds",
+      "type": "integer"
+    },
+    "daily_page_limit": {
+      "default": 300,
+      "maximum": 10000,
+      "minimum": 1,
+      "title": "Daily Page Limit",
+      "type": "integer"
+    },
+    "daily_post_limit": {
+      "default": 5,
+      "maximum": 50,
+      "minimum": 1,
+      "title": "Daily Post Limit",
+      "type": "integer"
+    },
+    "min_post_minutes": {
+      "default": 30,
+      "maximum": 10080,
+      "minimum": 30,
+      "title": "Min Post Minutes",
+      "type": "integer"
+    },
+    "collect_interval_minutes": {
+      "default": 180,
+      "maximum": 10080,
+      "minimum": 30,
+      "title": "Collect Interval Minutes",
+      "type": "integer"
+    },
+    "comment_interval_minutes": {
+      "default": 30,
+      "maximum": 10080,
+      "minimum": 30,
+      "title": "Comment Interval Minutes",
+      "type": "integer"
+    },
+    "comment_monitor_days": {
+      "default": 60,
+      "maximum": 365,
+      "minimum": 1,
+      "title": "Comment Monitor Days",
+      "type": "integer"
+    },
+    "keywords": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 50,
+      "title": "Keywords",
+      "type": "array"
+    }
+  },
+  "title": "CafeSettings",
+  "type": "object"
+}

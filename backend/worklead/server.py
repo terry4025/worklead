@@ -241,6 +241,8 @@ def serve(argv: list[str] | None = None) -> int:
         port = sock.getsockname()[1]
         workers = Workers(ctx)
         workers.start()
+        if cfg.run_worker and not cfg.demo:
+            ctx.cafe_runtime.start()
         app = create_app(ctx, workers_running=lambda: all(t.is_alive() for t in workers.threads))
         server = uvicorn.Server(uvicorn.Config(app, log_config=None, access_log=False, lifespan="off", timeout_graceful_shutdown=5,
                                              loop="worklead.server:local_loop_factory" if sys.platform == "win32" else "auto"))
@@ -275,6 +277,8 @@ def serve(argv: list[str] | None = None) -> int:
             server.run(sockets=[sock])
         finally:
             workers.stop()
+            if ctx._cafe_runtime is not None:
+                ctx.cafe_runtime.stop()
             ctx.db.dispose()
         return 0
     finally:

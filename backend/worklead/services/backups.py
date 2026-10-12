@@ -12,7 +12,7 @@ from sqlalchemy import select, update
 from ..api import schemas as S
 from ..context import AppContext
 from ..db import Database
-from ..models import HostBudget, Lead, Run, Source
+from ..models import CafeSession, HostBudget, Lead, Run, Source
 from ..storage import BackupChanged, RestoreRecoveryFailed, backup_database, file_digest, restore_database, validate_database
 from .settings import get_profile_row, get_setting, put_setting, stop_pending_ai
 from ..sources.registry import sync_sources
@@ -88,7 +88,7 @@ def inspect_backup(app: AppContext, backup_id: str) -> S.BackupInspection:
     return S.BackupInspection(backup=_summary(path), sha256=digest, revision=revision, can_restore=problem is None, problem=problem, lead_count=count)
 
 
-def _prepare(app: AppContext, path: Path, current_budgets: list[dict] | None = None) -> None:
+def _prepare(app: AppContext, path: Path, current_budgets: list[dict] | None = None, current_cafe: dict | None = None) -> None:
     db = Database(path)
     try:
         with db.session() as s:
@@ -99,6 +99,20 @@ def _prepare(app: AppContext, path: Path, current_budgets: list[dict] | None = N
             ai = get_setting(s, "ai")
             put_setting(s, "ai", {**ai, "enabled": False, "external_transfer_consent": False, "pricing_confirmed": False, "price_version": None})
             stop_pending_ai(s)
+            from . import cafe as cafe_svc
+            cafe_svc.update_settings(s, {**cafe_svc.get_settings(s), "auto_post": False})
+            cafe_svc.recover_interrupted_jobs(s, app.clock())
+            row = cafe_svc.session_row(s)
+            row.state, row.checked_at, row.reason = "logged_out", None, "restore_session_recheck"
+            if current_cafe:
+                if row.usage_day != current_cafe["usage_day"]:
+                    row.usage_day, row.page_count, row.post_count = current_cafe["usage_day"], 0, 0
+                row.page_count = max(row.page_count, current_cafe["page_count"])
+                row.post_count = max(row.post_count, current_cafe["post_count"])
+                for key in ("last_navigation_at", "last_post_at"):
+                    old, value = getattr(row, key), current_cafe[key]
+                    if value and (old is None or value > old):
+                        setattr(row, key, value)
             # A data restore must not undo requests already sent to external sites today.
             for current in current_budgets or []:
                 row = s.get(HostBudget, (current["host"], current["window"]))
@@ -134,13 +148,15 @@ def restore_backup(app: AppContext, backup_id: str, sha256: str) -> S.RestoreOut
     with app.db.gate.exclusive():
         path = _candidate(app, backup_id)
         with app.db.session() as s:
+            cafe_row = s.get(CafeSession, 1)
+            current_cafe = {k: getattr(cafe_row, k) for k in ("usage_day", "page_count", "post_count", "last_navigation_at", "last_post_at")} if cafe_row else None
             current_budgets = [{"host": row.host, "window": row.window, "used": row.used, "limit": row.limit,
                                 "last_request_at": row.last_request_at}
                                for row in s.scalars(select(HostBudget).where(HostBudget.window == datetime.now(UTC).strftime("%Y-%m-%d")))]
         app.db.dispose()
         try:
             safety = restore_database(path, app.config.db_path, app.config.backup_dir,
-                                      expected_sha256=sha256, prepare=lambda staged: _prepare(app, staged, current_budgets))
+                                      expected_sha256=sha256, prepare=lambda staged: _prepare(app, staged, current_budgets, current_cafe))
         except BackupChanged as exc:
             raise BackupError(409, "backup_changed", str(exc)) from exc
         except ValueError as exc:

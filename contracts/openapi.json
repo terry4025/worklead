@@ -6,6 +6,355 @@
     "version": "2026-09-30.1"
   },
   "paths": {
+    "/v1/cafe/status": {
+      "get": {
+        "tags": [
+          "cafe"
+        ],
+        "summary": "Status",
+        "operationId": "status_v1_cafe_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CafeSnapshot"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cafe/consent": {
+      "post": {
+        "tags": [
+          "cafe"
+        ],
+        "summary": "Consent",
+        "operationId": "consent_v1_cafe_consent_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CafeConsentIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CafeConsentOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cafe/settings": {
+      "get": {
+        "tags": [
+          "cafe"
+        ],
+        "summary": "Settings",
+        "operationId": "settings_v1_cafe_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CafeSettings"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "cafe"
+        ],
+        "summary": "Update Settings",
+        "operationId": "update_settings_v1_cafe_settings_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CafeSettingsPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CafeSettings"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cafe/cafes": {
+      "get": {
+        "tags": [
+          "cafe"
+        ],
+        "summary": "Cafes",
+        "operationId": "cafes_v1_cafe_cafes_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CafeList"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "cafe"
+        ],
+        "summary": "Add",
+        "operationId": "add_v1_cafe_cafes_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CafeUrlIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CafeEntry"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cafe/cafes/{id_}": {
+      "patch": {
+        "tags": [
+          "cafe"
+        ],
+        "summary": "Update",
+        "operationId": "update_v1_cafe_cafes__id___patch",
+        "parameters": [
+          {
+            "name": "id_",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id "
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CafeStatePatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CafeEntry"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cafe/boards/{id_}": {
+      "patch": {
+        "tags": [
+          "cafe"
+        ],
+        "summary": "Board",
+        "operationId": "board_v1_cafe_boards__id___patch",
+        "parameters": [
+          {
+            "name": "id_",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id "
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CafeBoardPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CafeBoardOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cafe/jobs": {
+      "get": {
+        "tags": [
+          "cafe"
+        ],
+        "summary": "Jobs",
+        "operationId": "jobs_v1_cafe_jobs_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CafeJobList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cafe/actions/{kind}": {
+      "post": {
+        "tags": [
+          "cafe"
+        ],
+        "summary": "Action",
+        "operationId": "action_v1_cafe_actions__kind__post",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kind"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CafeJob"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/health": {
       "get": {
         "tags": [
@@ -5176,6 +5525,812 @@
         ],
         "title": "Budget"
       },
+      "CafeBoardOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "cafe_id": {
+            "type": "string",
+            "title": "Cafe Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "job_seek",
+              "job_offer",
+              "free",
+              "other"
+            ],
+            "title": "Kind"
+          },
+          "post_allowed": {
+            "type": "boolean",
+            "title": "Post Allowed"
+          },
+          "approved": {
+            "type": "boolean",
+            "title": "Approved"
+          },
+          "evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "cafe_id",
+          "name",
+          "url",
+          "kind",
+          "post_allowed",
+          "approved",
+          "evidence"
+        ],
+        "title": "CafeBoardOut"
+      },
+      "CafeBoardPatch": {
+        "properties": {
+          "approved": {
+            "type": "boolean",
+            "title": "Approved"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "approved"
+        ],
+        "title": "CafeBoardPatch"
+      },
+      "CafeCapabilities": {
+        "properties": {
+          "own_posts": {
+            "type": "boolean",
+            "title": "Own Posts",
+            "default": false
+          },
+          "full_comments": {
+            "type": "boolean",
+            "title": "Full Comments",
+            "default": false
+          },
+          "posting": {
+            "type": "boolean",
+            "title": "Posting",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "CafeCapabilities"
+      },
+      "CafeConsentIn": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "title": "CafeConsentIn"
+      },
+      "CafeConsentOut": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "accepted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Accepted At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "version",
+          "accepted_at"
+        ],
+        "title": "CafeConsentOut"
+      },
+      "CafeEntry": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "member_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Member Count"
+          },
+          "post_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Post Count"
+          },
+          "joined": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Joined"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "candidate",
+              "needs_join",
+              "eligible",
+              "approved",
+              "excluded"
+            ],
+            "title": "Status"
+          },
+          "status_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Reason"
+          },
+          "rule_evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Evidence"
+          },
+          "first_seen_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "First Seen At"
+          },
+          "last_checked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Checked At"
+          },
+          "approved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved At"
+          },
+          "boards": {
+            "items": {
+              "$ref": "#/components/schemas/CafeBoardOut"
+            },
+            "type": "array",
+            "title": "Boards"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "url",
+          "name",
+          "region",
+          "category",
+          "member_count",
+          "post_count",
+          "joined",
+          "status",
+          "status_reason",
+          "rule_evidence",
+          "first_seen_at",
+          "last_checked_at",
+          "approved_at",
+          "boards"
+        ],
+        "title": "CafeEntry"
+      },
+      "CafeJob": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "check",
+              "login",
+              "discover",
+              "inspect"
+            ],
+            "title": "Kind"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed",
+              "cancelled"
+            ],
+            "title": "State"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "result": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Result"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "state",
+          "created_at",
+          "started_at",
+          "finished_at",
+          "error_code",
+          "error_message",
+          "result"
+        ],
+        "title": "CafeJob"
+      },
+      "CafeJobList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CafeJob"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "CafeJobList"
+      },
+      "CafeList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CafeEntry"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "CafeList"
+      },
+      "CafeSessionOut": {
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "logged_out",
+              "logged_in",
+              "needs_user"
+            ],
+            "title": "State"
+          },
+          "checked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checked At"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "state",
+          "checked_at",
+          "reason"
+        ],
+        "title": "CafeSessionOut"
+      },
+      "CafeSettings": {
+        "properties": {
+          "auto_post": {
+            "type": "boolean",
+            "title": "Auto Post",
+            "default": false
+          },
+          "auto_approve": {
+            "type": "boolean",
+            "title": "Auto Approve",
+            "default": false
+          },
+          "min_navigation_seconds": {
+            "type": "integer",
+            "maximum": 3600.0,
+            "minimum": 8.0,
+            "title": "Min Navigation Seconds",
+            "default": 8
+          },
+          "daily_page_limit": {
+            "type": "integer",
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Daily Page Limit",
+            "default": 300
+          },
+          "daily_post_limit": {
+            "type": "integer",
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Daily Post Limit",
+            "default": 5
+          },
+          "min_post_minutes": {
+            "type": "integer",
+            "maximum": 10080.0,
+            "minimum": 30.0,
+            "title": "Min Post Minutes",
+            "default": 30
+          },
+          "collect_interval_minutes": {
+            "type": "integer",
+            "maximum": 10080.0,
+            "minimum": 30.0,
+            "title": "Collect Interval Minutes",
+            "default": 180
+          },
+          "comment_interval_minutes": {
+            "type": "integer",
+            "maximum": 10080.0,
+            "minimum": 30.0,
+            "title": "Comment Interval Minutes",
+            "default": 30
+          },
+          "comment_monitor_days": {
+            "type": "integer",
+            "maximum": 365.0,
+            "minimum": 1.0,
+            "title": "Comment Monitor Days",
+            "default": 60
+          },
+          "keywords": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Keywords"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "CafeSettings"
+      },
+      "CafeSettingsPatch": {
+        "properties": {
+          "auto_post": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Auto Post"
+          },
+          "auto_approve": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Auto Approve"
+          },
+          "min_navigation_seconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 3600.0,
+                "minimum": 8.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Navigation Seconds"
+          },
+          "daily_page_limit": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Daily Page Limit"
+          },
+          "daily_post_limit": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 50.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Daily Post Limit"
+          },
+          "min_post_minutes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10080.0,
+                "minimum": 30.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Post Minutes"
+          },
+          "collect_interval_minutes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10080.0,
+                "minimum": 30.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Collect Interval Minutes"
+          },
+          "comment_interval_minutes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10080.0,
+                "minimum": 30.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment Interval Minutes"
+          },
+          "comment_monitor_days": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 365.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment Monitor Days"
+          },
+          "keywords": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 50
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Keywords"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "CafeSettingsPatch"
+      },
+      "CafeSnapshot": {
+        "properties": {
+          "consent": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CafeConsentOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "consent_text": {
+            "type": "string",
+            "title": "Consent Text"
+          },
+          "consent_version": {
+            "type": "string",
+            "title": "Consent Version"
+          },
+          "session": {
+            "$ref": "#/components/schemas/CafeSessionOut"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/CafeUsage"
+          },
+          "capabilities": {
+            "$ref": "#/components/schemas/CafeCapabilities"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/CafeSettings"
+          },
+          "active_job": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CafeJob"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "consent",
+          "consent_text",
+          "consent_version",
+          "session",
+          "usage",
+          "capabilities",
+          "settings",
+          "active_job"
+        ],
+        "title": "CafeSnapshot"
+      },
+      "CafeStatePatch": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "candidate",
+              "needs_join",
+              "eligible",
+              "approved",
+              "excluded"
+            ],
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "CafeStatePatch"
+      },
+      "CafeUrlIn": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Url"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "title": "CafeUrlIn"
+      },
+      "CafeUsage": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "title": "Day"
+          },
+          "page_count": {
+            "type": "integer",
+            "title": "Page Count"
+          },
+          "daily_page_limit": {
+            "type": "integer",
+            "title": "Daily Page Limit"
+          },
+          "post_count": {
+            "type": "integer",
+            "title": "Post Count"
+          },
+          "daily_post_limit": {
+            "type": "integer",
+            "title": "Daily Post Limit"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "day",
+          "page_count",
+          "daily_page_limit",
+          "post_count",
+          "daily_post_limit"
+        ],
+        "title": "CafeUsage"
+      },
       "Capability": {
         "properties": {
           "key": {
@@ -5959,6 +7114,19 @@
           "raw"
         ],
         "title": "FuzzyDate"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
       },
       "Health": {
         "properties": {
@@ -9316,6 +10484,46 @@
         ],
         "title": "Span"
       },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
       "WorkModeAssessed": {
         "properties": {
           "value": {
@@ -9375,8 +10583,7 @@
     "securitySchemes": {
       "bearer": {
         "type": "http",
-        "scheme": "bearer",
-        "description": "실행마다 바뀌는 토큰 (Tauri 브리지로 전달)"
+        "scheme": "bearer"
       }
     }
   },
@@ -9385,8 +10592,7 @@
       "url": "http://127.0.0.1:{port}",
       "variables": {
         "port": {
-          "default": "0",
-          "description": "실행마다 바뀌는 임의 포트"
+          "default": "0"
         }
       }
     }

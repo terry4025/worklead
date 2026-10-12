@@ -1,0 +1,145 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "auto_post": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Auto Post"
+    },
+    "auto_approve": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Auto Approve"
+    },
+    "min_navigation_seconds": {
+      "anyOf": [
+        {
+          "maximum": 3600,
+          "minimum": 8,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Min Navigation Seconds"
+    },
+    "daily_page_limit": {
+      "anyOf": [
+        {
+          "maximum": 10000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Daily Page Limit"
+    },
+    "daily_post_limit": {
+      "anyOf": [
+        {
+          "maximum": 50,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Daily Post Limit"
+    },
+    "min_post_minutes": {
+      "anyOf": [
+        {
+          "maximum": 10080,
+          "minimum": 30,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Min Post Minutes"
+    },
+    "collect_interval_minutes": {
+      "anyOf": [
+        {
+          "maximum": 10080,
+          "minimum": 30,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Collect Interval Minutes"
+    },
+    "comment_interval_minutes": {
+      "anyOf": [
+        {
+          "maximum": 10080,
+          "minimum": 30,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Comment Interval Minutes"
+    },
+    "comment_monitor_days": {
+      "anyOf": [
+        {
+          "maximum": 365,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Comment Monitor Days"
+    },
+    "keywords": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 50,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Keywords"
+    }
+  },
+  "title": "CafeSettingsPatch",
+  "type": "object"
+}

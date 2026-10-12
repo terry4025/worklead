@@ -130,6 +130,13 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
         openapi_url="/v1/openapi.json" if ctx.config.dev else None,
     )
     app.state.ctx = ctx
+    from .cafe_routes import router as cafe_router
+    from ..services.cafe import CafeError
+    app.include_router(cafe_router(_session))
+
+    @app.exception_handler(CafeError)
+    async def cafe_error(request: Request, exc: CafeError):
+        return _error(request, exc.status, exc.code, exc.message)
     # A relation decision from an earlier sidecar must also fail after restart.
     # Leave ample counter space while keeping the exposed integer JS-safe.
     app.state.relation_generation_base = (secrets.randbits(40) + 1) << 12

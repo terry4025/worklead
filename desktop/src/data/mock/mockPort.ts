@@ -29,6 +29,7 @@ import { groupOutcomes, legacyMoneyAmount, salesPeriod } from '../../domain/sale
 import { PortError, type WorkleadPort } from '../port';
 import { DEMO_CATEGORIES, buildImportedLead, buildReserveLead } from './fixtures';
 import { buildScenario, type ScenarioId } from './scenarios';
+import { MockCafePort } from './MockCafePort';
 
 const QUEUES: Bootstrap['queues'] = [
   { id: 'recommended', label: '추천', description: '자동 판정 추천 · 내가 제외하지 않음 · 진행 전' },
@@ -131,6 +132,7 @@ const DEFAULT_SETTINGS: SettingsView = {
 };
 
 export class MockPort implements WorkleadPort {
+  readonly cafe = new MockCafePort();
   readonly mode = 'demo' as const;
   private leads: LeadDetail[];
   private sources: SourceInfo[];

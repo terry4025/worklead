@@ -41,6 +41,14 @@ def dump(path: Path, data: object) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=False) + "\n", encoding="utf-8")
 
 
+def write_openapi(app):
+    spec = app.openapi()
+    spec["servers"] = [{"url": "http://127.0.0.1:{port}", "variables": {"port": {"default": "0"}}}]
+    spec.setdefault("components", {})["securitySchemes"] = {"bearer": {"type": "http", "scheme": "bearer"}}
+    spec["security"] = [{"bearer": []}]
+    dump(OUT / "openapi.json", spec)
+
+
 def drain(ctx, kinds) -> None:  # type: ignore[no-untyped-def]
     w = Worker(ctx, "export", kinds)
     while w.run_once():
@@ -154,6 +162,20 @@ def ai_only(*, schemas_only: bool = False) -> None:
 
 
 def main() -> None:
+    if "--cafe-only" in sys.argv:
+        with tempfile.TemporaryDirectory(prefix="worklead-cafe-contracts-") as tmpdir:
+            ctx = make_ctx(Path(tmpdir), dev=True)
+            try:
+                with client_for(ctx) as c:
+                    write_openapi(c.app)
+                    for name in ("CafeSnapshot", "CafeSettings", "CafeSettingsPatch", "CafeConsentIn", "CafeConsentOut", "CafeEntry", "CafeBoardOut", "CafeJob", "CafeList", "CafeJobList"):
+                        dump(OUT / "schemas" / f"{name}.schema.json", getattr(S, name).model_json_schema())
+                    dump(OUT / "fixtures/cafe-status.json", c.get("/v1/cafe/status").json())
+                    dump(OUT / "fixtures/cafes.json", c.get("/v1/cafe/cafes").json())
+            finally:
+                ctx.db.dispose()
+        print("cafe contracts written; legacy fixtures preserved")
+        return
     if "--ai-only" in sys.argv or "--ai-schema-only" in sys.argv:
         ai_only(schemas_only="--ai-schema-only" in sys.argv)
         return
@@ -176,7 +198,7 @@ def main() -> None:
         dump(OUT / "openapi.json", spec)
 
         # ── JSON Schema ────────────────────────────────────────────
-        shutil.rmtree(OUT / "schemas", ignore_errors=True)
+        # Incremental feature fixtures (backup, sales, AI) must survive a full export.
         for name in ("LeadSummary", "LeadDetail", "LeadPage", "QueueCounts", "SourceOut", "RunOut", "SettingsOut", "BootstrapOut", "MetricsOut", "ErrorResponse", "JobAccepted", "HealthOut", "BackupOut", "BackupList", "BackupInspection", "RestoreIn", "RestoreOut"):
             dump(OUT / "schemas" / f"{name}.schema.json", getattr(S, name).model_json_schema())
         for name in NATIVE_SCHEMAS:
@@ -219,7 +241,7 @@ def main() -> None:
 
         # ── fixtures: 데모 ─────────────────────────────────────────
         fdir = OUT / "fixtures"
-        shutil.rmtree(fdir, ignore_errors=True)
+        fdir.mkdir(parents=True, exist_ok=True)
         dump(fdir / "bootstrap.json", c.get("/v1/bootstrap").json())
         dump(fdir / "health.json", c.get("/v1/health").json())
         dump(fdir / "settings.json", c.get("/v1/settings").json())

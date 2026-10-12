@@ -43,6 +43,143 @@ class Model(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+CafeState = Literal["candidate", "needs_join", "eligible", "approved", "excluded"]
+
+
+class CafeSettings(Model):
+    auto_post: bool = False
+    auto_approve: bool = False
+    min_navigation_seconds: int = Field(default=8, ge=8, le=3600)
+    daily_page_limit: int = Field(default=300, ge=1, le=10000)
+    daily_post_limit: int = Field(default=5, ge=1, le=50)
+    min_post_minutes: int = Field(default=30, ge=30, le=10080)
+    collect_interval_minutes: int = Field(default=180, ge=30, le=10080)
+    comment_interval_minutes: int = Field(default=30, ge=30, le=10080)
+    comment_monitor_days: int = Field(default=60, ge=1, le=365)
+    keywords: list[str] = Field(default_factory=lambda: ["알바", "구인구직", "아르바이트", "외주", "프리랜서", "개발", "IT", "부업", "재택"], max_length=50)
+
+    @field_validator("keywords")
+    @classmethod
+    def valid_keywords(cls, values: list[str]) -> list[str]:
+        if any(not value.strip() or len(value) > 100 for value in values):
+            raise ValueError("검색어는 1~100자여야 합니다")
+        return list(dict.fromkeys(value.strip() for value in values))
+
+
+class CafeSettingsPatch(Model):
+    auto_post: bool | None = None
+    auto_approve: bool | None = None
+    min_navigation_seconds: int | None = Field(default=None, ge=8, le=3600)
+    daily_page_limit: int | None = Field(default=None, ge=1, le=10000)
+    daily_post_limit: int | None = Field(default=None, ge=1, le=50)
+    min_post_minutes: int | None = Field(default=None, ge=30, le=10080)
+    collect_interval_minutes: int | None = Field(default=None, ge=30, le=10080)
+    comment_interval_minutes: int | None = Field(default=None, ge=30, le=10080)
+    comment_monitor_days: int | None = Field(default=None, ge=1, le=365)
+    keywords: list[str] | None = Field(default=None, max_length=50)
+
+
+class CafeConsentIn(Model):
+    version: str
+
+
+class CafeConsentOut(Model):
+    version: str
+    accepted_at: datetime
+
+
+class CafeSessionOut(Model):
+    state: Literal["logged_out", "logged_in", "needs_user"]
+    checked_at: datetime | None
+    reason: str | None
+
+
+class CafeUsage(Model):
+    day: str
+    page_count: int
+    daily_page_limit: int
+    post_count: int
+    daily_post_limit: int
+
+
+class CafeCapabilities(Model):
+    own_posts: bool = False
+    full_comments: bool = False
+    posting: bool = False
+
+
+class CafeJob(Model):
+    id: str
+    kind: Literal["check", "login", "discover", "inspect"]
+    state: Literal["queued", "running", "succeeded", "failed", "cancelled"]
+    created_at: datetime
+    started_at: datetime | None
+    finished_at: datetime | None
+    error_code: str | None
+    error_message: str | None
+    result: dict[str, Any]
+
+
+class CafeSnapshot(Model):
+    consent: CafeConsentOut | None
+    consent_text: str
+    consent_version: str
+    session: CafeSessionOut
+    usage: CafeUsage
+    capabilities: CafeCapabilities
+    settings: CafeSettings
+    active_job: CafeJob | None
+
+
+class CafeBoardOut(Model):
+    id: str
+    cafe_id: str
+    name: str
+    url: str
+    kind: Literal["job_seek", "job_offer", "free", "other"]
+    post_allowed: bool
+    approved: bool
+    evidence: str | None
+
+
+class CafeEntry(Model):
+    id: str
+    url: str
+    name: str
+    region: str | None
+    category: str | None
+    member_count: int | None
+    post_count: int | None
+    joined: bool | None
+    status: CafeState
+    status_reason: str | None
+    rule_evidence: str | None
+    first_seen_at: datetime
+    last_checked_at: datetime | None
+    approved_at: datetime | None
+    boards: list[CafeBoardOut]
+
+
+class CafeList(Model):
+    items: list[CafeEntry]
+
+
+class CafeJobList(Model):
+    items: list[CafeJob]
+
+
+class CafeUrlIn(Model):
+    url: str = Field(min_length=1, max_length=2000)
+
+
+class CafeStatePatch(Model):
+    status: CafeState
+
+
+class CafeBoardPatch(Model):
+    approved: bool
+
+
 # ── 오류 ─────────────────────────────────────────────────────────────
 class ErrorBody(Model):
     code: str

@@ -4,6 +4,144 @@
  */
 
 export interface paths {
+    "/v1/cafe/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status */
+        get: operations["status_v1_cafe_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cafe/consent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Consent */
+        post: operations["consent_v1_cafe_consent_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cafe/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Settings */
+        get: operations["settings_v1_cafe_settings_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Settings */
+        patch: operations["update_settings_v1_cafe_settings_patch"];
+        trace?: never;
+    };
+    "/v1/cafe/cafes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Cafes */
+        get: operations["cafes_v1_cafe_cafes_get"];
+        put?: never;
+        /** Add */
+        post: operations["add_v1_cafe_cafes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cafe/cafes/{id_}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update */
+        patch: operations["update_v1_cafe_cafes__id___patch"];
+        trace?: never;
+    };
+    "/v1/cafe/boards/{id_}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Board */
+        patch: operations["board_v1_cafe_boards__id___patch"];
+        trace?: never;
+    };
+    "/v1/cafe/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Jobs */
+        get: operations["jobs_v1_cafe_jobs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cafe/actions/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Action */
+        post: operations["action_v1_cafe_actions__kind__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/health": {
         parameters: {
             query?: never;
@@ -841,6 +979,271 @@ export interface components {
             /** Unit Label */
             unit_label: string;
         };
+        /** CafeBoardOut */
+        CafeBoardOut: {
+            /** Id */
+            id: string;
+            /** Cafe Id */
+            cafe_id: string;
+            /** Name */
+            name: string;
+            /** Url */
+            url: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "job_seek" | "job_offer" | "free" | "other";
+            /** Post Allowed */
+            post_allowed: boolean;
+            /** Approved */
+            approved: boolean;
+            /** Evidence */
+            evidence: string | null;
+        };
+        /** CafeBoardPatch */
+        CafeBoardPatch: {
+            /** Approved */
+            approved: boolean;
+        };
+        /** CafeCapabilities */
+        CafeCapabilities: {
+            /**
+             * Own Posts
+             * @default false
+             */
+            own_posts: boolean;
+            /**
+             * Full Comments
+             * @default false
+             */
+            full_comments: boolean;
+            /**
+             * Posting
+             * @default false
+             */
+            posting: boolean;
+        };
+        /** CafeConsentIn */
+        CafeConsentIn: {
+            /** Version */
+            version: string;
+        };
+        /** CafeConsentOut */
+        CafeConsentOut: {
+            /** Version */
+            version: string;
+            /**
+             * Accepted At
+             * Format: date-time
+             */
+            accepted_at: string;
+        };
+        /** CafeEntry */
+        CafeEntry: {
+            /** Id */
+            id: string;
+            /** Url */
+            url: string;
+            /** Name */
+            name: string;
+            /** Region */
+            region: string | null;
+            /** Category */
+            category: string | null;
+            /** Member Count */
+            member_count: number | null;
+            /** Post Count */
+            post_count: number | null;
+            /** Joined */
+            joined: boolean | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "candidate" | "needs_join" | "eligible" | "approved" | "excluded";
+            /** Status Reason */
+            status_reason: string | null;
+            /** Rule Evidence */
+            rule_evidence: string | null;
+            /**
+             * First Seen At
+             * Format: date-time
+             */
+            first_seen_at: string;
+            /** Last Checked At */
+            last_checked_at: string | null;
+            /** Approved At */
+            approved_at: string | null;
+            /** Boards */
+            boards: components["schemas"]["CafeBoardOut"][];
+        };
+        /** CafeJob */
+        CafeJob: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "check" | "login" | "discover" | "inspect";
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "queued" | "running" | "succeeded" | "failed" | "cancelled";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Started At */
+            started_at: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /** Error Code */
+            error_code: string | null;
+            /** Error Message */
+            error_message: string | null;
+            /** Result */
+            result: {
+                [key: string]: unknown;
+            };
+        };
+        /** CafeJobList */
+        CafeJobList: {
+            /** Items */
+            items: components["schemas"]["CafeJob"][];
+        };
+        /** CafeList */
+        CafeList: {
+            /** Items */
+            items: components["schemas"]["CafeEntry"][];
+        };
+        /** CafeSessionOut */
+        CafeSessionOut: {
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "logged_out" | "logged_in" | "needs_user";
+            /** Checked At */
+            checked_at: string | null;
+            /** Reason */
+            reason: string | null;
+        };
+        /** CafeSettings */
+        CafeSettings: {
+            /**
+             * Auto Post
+             * @default false
+             */
+            auto_post: boolean;
+            /**
+             * Auto Approve
+             * @default false
+             */
+            auto_approve: boolean;
+            /**
+             * Min Navigation Seconds
+             * @default 8
+             */
+            min_navigation_seconds: number;
+            /**
+             * Daily Page Limit
+             * @default 300
+             */
+            daily_page_limit: number;
+            /**
+             * Daily Post Limit
+             * @default 5
+             */
+            daily_post_limit: number;
+            /**
+             * Min Post Minutes
+             * @default 30
+             */
+            min_post_minutes: number;
+            /**
+             * Collect Interval Minutes
+             * @default 180
+             */
+            collect_interval_minutes: number;
+            /**
+             * Comment Interval Minutes
+             * @default 30
+             */
+            comment_interval_minutes: number;
+            /**
+             * Comment Monitor Days
+             * @default 60
+             */
+            comment_monitor_days: number;
+            /** Keywords */
+            keywords?: string[];
+        };
+        /** CafeSettingsPatch */
+        CafeSettingsPatch: {
+            /** Auto Post */
+            auto_post?: boolean | null;
+            /** Auto Approve */
+            auto_approve?: boolean | null;
+            /** Min Navigation Seconds */
+            min_navigation_seconds?: number | null;
+            /** Daily Page Limit */
+            daily_page_limit?: number | null;
+            /** Daily Post Limit */
+            daily_post_limit?: number | null;
+            /** Min Post Minutes */
+            min_post_minutes?: number | null;
+            /** Collect Interval Minutes */
+            collect_interval_minutes?: number | null;
+            /** Comment Interval Minutes */
+            comment_interval_minutes?: number | null;
+            /** Comment Monitor Days */
+            comment_monitor_days?: number | null;
+            /** Keywords */
+            keywords?: string[] | null;
+        };
+        /** CafeSnapshot */
+        CafeSnapshot: {
+            consent: components["schemas"]["CafeConsentOut"] | null;
+            /** Consent Text */
+            consent_text: string;
+            /** Consent Version */
+            consent_version: string;
+            session: components["schemas"]["CafeSessionOut"];
+            usage: components["schemas"]["CafeUsage"];
+            capabilities: components["schemas"]["CafeCapabilities"];
+            settings: components["schemas"]["CafeSettings"];
+            active_job: components["schemas"]["CafeJob"] | null;
+        };
+        /** CafeStatePatch */
+        CafeStatePatch: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "candidate" | "needs_join" | "eligible" | "approved" | "excluded";
+        };
+        /** CafeUrlIn */
+        CafeUrlIn: {
+            /** Url */
+            url: string;
+        };
+        /** CafeUsage */
+        CafeUsage: {
+            /** Day */
+            day: string;
+            /** Page Count */
+            page_count: number;
+            /** Daily Page Limit */
+            daily_page_limit: number;
+            /** Post Count */
+            post_count: number;
+            /** Daily Post Limit */
+            daily_post_limit: number;
+        };
         /** Capability */
         Capability: {
             /** Key */
@@ -1088,6 +1491,11 @@ export interface components {
             precision: "exact" | "day" | "approximate" | "unknown";
             /** Raw */
             raw: string | null;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
         };
         /** Health */
         Health: {
@@ -2141,6 +2549,19 @@ export interface components {
             /** End */
             end: number;
         };
+        /** ValidationError */
+        ValidationError: {
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
+        };
         /** WorkModeAssessed */
         WorkModeAssessed: {
             /**
@@ -2165,6 +2586,286 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    status_v1_cafe_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CafeSnapshot"];
+                };
+            };
+        };
+    };
+    consent_v1_cafe_consent_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CafeConsentIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CafeConsentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    settings_v1_cafe_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CafeSettings"];
+                };
+            };
+        };
+    };
+    update_settings_v1_cafe_settings_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CafeSettingsPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CafeSettings"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cafes_v1_cafe_cafes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CafeList"];
+                };
+            };
+        };
+    };
+    add_v1_cafe_cafes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CafeUrlIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CafeEntry"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_v1_cafe_cafes__id___patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id_: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CafeStatePatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CafeEntry"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    board_v1_cafe_boards__id___patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id_: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CafeBoardPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CafeBoardOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    jobs_v1_cafe_jobs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CafeJobList"];
+                };
+            };
+        };
+    };
+    action_v1_cafe_actions__kind__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CafeJob"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     health_v1_health_get: {
         parameters: {
             query?: never;

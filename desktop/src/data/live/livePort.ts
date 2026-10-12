@@ -46,6 +46,17 @@ function mapBackup(b: { id: string; file_name: string; created_at: string; size_
 
 export class LivePort implements WorkleadPort {
   readonly mode = 'live' as const;
+  readonly cafe: WorkleadPort['cafe'] = {
+    status: () => wrap(this.client.cafeStatus()),
+    consent: (version) => wrap(this.client.cafeConsent(version)),
+    settings: (patch) => wrap(this.client.cafeSettings(patch)),
+    list: async () => (await wrap(this.client.cafeList())).items,
+    add: (url) => wrap(this.client.cafeAdd(url)),
+    state: (id, status) => wrap(this.client.cafeState(id, status)),
+    board: (id, approved) => wrap(this.client.cafeBoard(id, approved)),
+    jobs: async () => (await wrap(this.client.cafeJobs())).items,
+    action: (kind) => wrap(this.client.cafeAction(kind)),
+  };
   private client: WorkleadClient;
 
   constructor(connection: ConnectionSource, fetchImpl?: typeof fetch) {

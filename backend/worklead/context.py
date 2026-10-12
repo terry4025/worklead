@@ -34,6 +34,7 @@ class AppContext:
     ai_transport: httpx.BaseTransport | None = field(default=None, repr=False)
     ai_control_lock: threading.RLock = field(default_factory=threading.RLock, repr=False)
     _ai_coordinator: object | None = field(default=None, init=False, repr=False)
+    _cafe_runtime: object | None = field(default=None, init=False, repr=False)
 
     def __post_init__(self) -> None:
         if isinstance(self.provider, NullProvider):
@@ -62,3 +63,10 @@ class AppContext:
             transport=self.transport,
             **kwargs,
         )
+
+    @property
+    def cafe_runtime(self):
+        from .cafe.runtime import CafeRuntime
+        if self._cafe_runtime is None:
+            self._cafe_runtime = CafeRuntime(self)
+        return self._cafe_runtime

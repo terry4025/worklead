@@ -1,0 +1,352 @@
+{
+  "$defs": {
+    "CafeCapabilities": {
+      "additionalProperties": false,
+      "properties": {
+        "own_posts": {
+          "default": false,
+          "title": "Own Posts",
+          "type": "boolean"
+        },
+        "full_comments": {
+          "default": false,
+          "title": "Full Comments",
+          "type": "boolean"
+        },
+        "posting": {
+          "default": false,
+          "title": "Posting",
+          "type": "boolean"
+        }
+      },
+      "title": "CafeCapabilities",
+      "type": "object"
+    },
+    "CafeConsentOut": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "title": "Version",
+          "type": "string"
+        },
+        "accepted_at": {
+          "format": "date-time",
+          "title": "Accepted At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "version",
+        "accepted_at"
+      ],
+      "title": "CafeConsentOut",
+      "type": "object"
+    },
+    "CafeJob": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "check",
+            "login",
+            "discover",
+            "inspect"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "queued",
+            "running",
+            "succeeded",
+            "failed",
+            "cancelled"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "started_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Started At"
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Finished At"
+        },
+        "error_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Error Code"
+        },
+        "error_message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Error Message"
+        },
+        "result": {
+          "additionalProperties": true,
+          "title": "Result",
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "state",
+        "created_at",
+        "started_at",
+        "finished_at",
+        "error_code",
+        "error_message",
+        "result"
+      ],
+      "title": "CafeJob",
+      "type": "object"
+    },
+    "CafeSessionOut": {
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "enum": [
+            "logged_out",
+            "logged_in",
+            "needs_user"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "checked_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Checked At"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "state",
+        "checked_at",
+        "reason"
+      ],
+      "title": "CafeSessionOut",
+      "type": "object"
+    },
+    "CafeSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "auto_post": {
+          "default": false,
+          "title": "Auto Post",
+          "type": "boolean"
+        },
+        "auto_approve": {
+          "default": false,
+          "title": "Auto Approve",
+          "type": "boolean"
+        },
+        "min_navigation_seconds": {
+          "default": 8,
+          "maximum": 3600,
+          "minimum": 8,
+          "title": "Min Navigation Seconds",
+          "type": "integer"
+        },
+        "daily_page_limit": {
+          "default": 300,
+          "maximum": 10000,
+          "minimum": 1,
+          "title": "Daily Page Limit",
+          "type": "integer"
+        },
+        "daily_post_limit": {
+          "default": 5,
+          "maximum": 50,
+          "minimum": 1,
+          "title": "Daily Post Limit",
+          "type": "integer"
+        },
+        "min_post_minutes": {
+          "default": 30,
+          "maximum": 10080,
+          "minimum": 30,
+          "title": "Min Post Minutes",
+          "type": "integer"
+        },
+        "collect_interval_minutes": {
+          "default": 180,
+          "maximum": 10080,
+          "minimum": 30,
+          "title": "Collect Interval Minutes",
+          "type": "integer"
+        },
+        "comment_interval_minutes": {
+          "default": 30,
+          "maximum": 10080,
+          "minimum": 30,
+          "title": "Comment Interval Minutes",
+          "type": "integer"
+        },
+        "comment_monitor_days": {
+          "default": 60,
+          "maximum": 365,
+          "minimum": 1,
+          "title": "Comment Monitor Days",
+          "type": "integer"
+        },
+        "keywords": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 50,
+          "title": "Keywords",
+          "type": "array"
+        }
+      },
+      "title": "CafeSettings",
+      "type": "object"
+    },
+    "CafeUsage": {
+      "additionalProperties": false,
+      "properties": {
+        "day": {
+          "title": "Day",
+          "type": "string"
+        },
+        "page_count": {
+          "title": "Page Count",
+          "type": "integer"
+        },
+        "daily_page_limit": {
+          "title": "Daily Page Limit",
+          "type": "integer"
+        },
+        "post_count": {
+          "title": "Post Count",
+          "type": "integer"
+        },
+        "daily_post_limit": {
+          "title": "Daily Post Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "day",
+        "page_count",
+        "daily_page_limit",
+        "post_count",
+        "daily_post_limit"
+      ],
+      "title": "CafeUsage",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "consent": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CafeConsentOut"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "consent_text": {
+      "title": "Consent Text",
+      "type": "string"
+    },
+    "consent_version": {
+      "title": "Consent Version",
+      "type": "string"
+    },
+    "session": {
+      "$ref": "#/$defs/CafeSessionOut"
+    },
+    "usage": {
+      "$ref": "#/$defs/CafeUsage"
+    },
+    "capabilities": {
+      "$ref": "#/$defs/CafeCapabilities"
+    },
+    "settings": {
+      "$ref": "#/$defs/CafeSettings"
+    },
+    "active_job": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CafeJob"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "consent",
+    "consent_text",
+    "consent_version",
+    "session",
+    "usage",
+    "capabilities",
+    "settings",
+    "active_job"
+  ],
+  "title": "CafeSnapshot",
+  "type": "object"
+}

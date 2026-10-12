@@ -1,4 +1,4 @@
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { LeadFilter } from '../domain/model';
@@ -6,6 +6,7 @@ import { formatMoneyMinor, todayKst } from '../domain/format';
 import { emptyCollectionMessage } from '../domain/collection';
 import { VIEWS, type ViewId } from '../domain/queues';
 import { CollectionPanel } from '../features/collection/CollectionPanel';
+import { CafeWorkspace } from '../features/cafe/CafeWorkspace';
 import { LeadDetailPane, type DetailHandle } from '../features/detail/LeadDetailPane';
 import { CurrencyTotals } from '../features/detail/Records';
 import { IssueStrip, deriveIssues } from '../features/header/IssueStrip';
@@ -40,7 +41,9 @@ function useNow(ms = 60_000): Date {
 const EMPTY_SNAPSHOT: ListSnapshot = { ids: [], byId: new Map(), loading: true, error: null, hasMore: new Map() };
 
 export function Workspace() {
-  const { mode, scenario, setScenario } = usePortCtx();
+  const [workspace, setWorkspace] = useState<'leads' | 'cafe'>('leads');
+  const { port, mode, scenario, setScenario } = usePortCtx();
+  const cafeStatus = useQuery({ queryKey: ['cafe', 'status'], queryFn: () => port.cafe.status(), refetchInterval: 5000 });
   const qc = useQueryClient();
   const now = useNow();
   const [view, setView] = usePref<ViewId>('view', 'review');
@@ -146,9 +149,10 @@ export function Workspace() {
       if (e.key === 'F5' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r')) {
         e.preventDefault(); // 앱 전체 새로고침 대신 데이터만 다시 불러온다
         refreshAll();
+        void qc.invalidateQueries({ queryKey: ['cafe'] });
         return;
       }
-      if (anyDialog || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (workspace === 'cafe' || anyDialog || e.altKey || e.ctrlKey || e.metaKey) return;
       if (isTyping(e.target)) return;
       const k = e.key;
       const handled = (fn: () => void) => {
@@ -198,7 +202,7 @@ export function Workspace() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [anyDialog, move, openLead, overlayOpen, refreshAll, selectedId, changeView, snapshot.ids, wide]);
+  }, [workspace, qc, anyDialog, move, openLead, overlayOpen, refreshAll, selectedId, changeView, snapshot.ids, wide]);
 
   const onDismissed = useCallback(
     (id: string) => {
@@ -222,6 +226,7 @@ export function Workspace() {
   });
 
   const totalAll = counts.data?.all ?? null;
+  if (cafeStatus.data?.consent && cafeStatus.data.session.state !== 'logged_in') issues.push({ key: 'cafe-session', tone: 'warn', text: cafeStatus.data.session.state === 'needs_user' ? '당근 카페 작업 정지 · 브라우저에서 인증·차단 화면을 직접 확인하세요' : '당근 카페 로그인 필요', action: { label: '카페 보기', run: () => setWorkspace('cafe') } });
   const emptyNode = (() => {
     const sites = (sources.data ?? []).filter((s) => s.kind === 'site');
     if (totalAll === 0 && isDefaultFilter(filter)) {
@@ -263,7 +268,7 @@ export function Workspace() {
 
   return (
     <div className="app" data-mode={mode}>
-      <a href="#lead-list" className="skip-link">
+      <a href={workspace === 'cafe' ? '#cafe-workspace' : '#lead-list'} className="skip-link">
         목록으로 건너뛰기
       </a>
       <TopBar
@@ -279,6 +284,8 @@ export function Workspace() {
         now={now}
       />
       <IssueStrip issues={issues} />
+      <nav className="workspace-switch" aria-label="작업 공간"><Button pressed={workspace === 'leads'} onClick={() => setWorkspace('leads')}>리드</Button><Button pressed={workspace === 'cafe'} onClick={() => setWorkspace('cafe')}>카페</Button></nav>
+      {workspace === 'cafe' ? <CafeWorkspace /> : <>
 
       <div className="toolbar">
         <QueueTabs view={view} onChange={changeView} counts={counts.data} />
@@ -383,6 +390,7 @@ export function Workspace() {
           />
         ) : null}
       </main>
+      </>}
 
       <CollectionPanel
         open={collectionOpen}

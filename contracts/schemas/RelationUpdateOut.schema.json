@@ -1,5 +1,52 @@
 {
   "$defs": {
+    "AIInterpretation": {
+      "additionalProperties": false,
+      "properties": {
+        "suggested_intent": {
+          "enum": [
+            "buyer_project",
+            "buyer_ongoing",
+            "employee_hiring",
+            "seller_service",
+            "job_seeker",
+            "information",
+            "unknown"
+          ],
+          "title": "Suggested Intent",
+          "type": "string"
+        },
+        "evidence_quotes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Quotes",
+          "type": "array"
+        },
+        "uncertain": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Uncertain",
+          "type": "array"
+        },
+        "questions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Questions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "suggested_intent",
+        "evidence_quotes",
+        "uncertain",
+        "questions"
+      ],
+      "title": "AIInterpretation",
+      "type": "object"
+    },
     "Activity": {
       "additionalProperties": false,
       "properties": {
@@ -172,6 +219,17 @@
               "type": "null"
             }
           ]
+        },
+        "ai_interpretation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AIInterpretation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [

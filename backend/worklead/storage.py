@@ -87,6 +87,8 @@ def validate_database(db_path: Path) -> tuple[str, int]:
     with closing(_read_connection(db_path)) as conn:
         tables = {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         for name, table in Base.metadata.tables.items():
+            if name.startswith("cafe") and rev != "0006_daangn_cafe":
+                continue
             if rev == "0001" and name == "detail_fetch_states":
                 continue
             if name not in tables:

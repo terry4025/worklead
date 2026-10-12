@@ -24,6 +24,100 @@ class Base(DeclarativeBase):
     pass
 
 
+class Cafe(Base):
+    __tablename__ = "cafe"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    url: Mapped[str] = mapped_column(Text, unique=True)
+    name: Mapped[str] = mapped_column(Text, default="")
+    region: Mapped[str | None] = mapped_column(Text)
+    category: Mapped[str | None] = mapped_column(Text)
+    member_count: Mapped[int | None] = mapped_column(Integer)
+    post_count: Mapped[int | None] = mapped_column(Integer)
+    joined: Mapped[bool | None] = mapped_column(Boolean)
+    status: Mapped[str] = mapped_column(String(24), default="candidate")
+    status_reason: Mapped[str | None] = mapped_column(Text)
+    rule_evidence: Mapped[str | None] = mapped_column(Text)
+    first_seen_at: Mapped[datetime] = mapped_column(UTCDateTime, default=lambda: utcnow())
+    last_checked_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    approved_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+
+
+class CafeBoard(Base):
+    __tablename__ = "cafe_board"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    cafe_id: Mapped[str] = mapped_column(ForeignKey("cafe.id", ondelete="CASCADE"))
+    name: Mapped[str] = mapped_column(Text)
+    url: Mapped[str] = mapped_column(Text, unique=True)
+    kind: Mapped[str] = mapped_column(String(24), default="other")
+    post_allowed: Mapped[bool] = mapped_column(Boolean, default=False)
+    approved: Mapped[bool] = mapped_column(Boolean, default=False)
+    evidence: Mapped[str | None] = mapped_column(Text)
+
+
+class CafePostAttempt(Base):
+    __tablename__ = "cafe_post_attempt"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    cafe_id: Mapped[str] = mapped_column(ForeignKey("cafe.id"))
+    board_id: Mapped[str] = mapped_column(ForeignKey("cafe_board.id"))
+    template_version: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(String(24), default="pending")
+    post_url: Mapped[str | None] = mapped_column(Text)
+    error_code: Mapped[str | None] = mapped_column(String(64))
+    error_message: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=lambda: utcnow())
+    verified_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+
+
+class CafeComment(Base):
+    __tablename__ = "cafe_comment"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    attempt_id: Mapped[str] = mapped_column(ForeignKey("cafe_post_attempt.id"))
+    external_id: Mapped[str] = mapped_column(String(200))
+    author_nickname: Mapped[str] = mapped_column(Text)
+    body: Mapped[str] = mapped_column(Text)
+    written_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    written_raw: Mapped[str | None] = mapped_column(Text)
+    is_reply: Mapped[bool] = mapped_column(Boolean, default=False)
+    classification: Mapped[str] = mapped_column(String(16), default="other")
+    read_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    memo: Mapped[str] = mapped_column(Text, default="")
+    lead_id: Mapped[str | None] = mapped_column(ForeignKey("leads.id", ondelete="SET NULL"))
+    __table_args__ = (UniqueConstraint("attempt_id", "external_id"),)
+
+
+class CafeSession(Base):
+    __tablename__ = "cafe_session"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
+    state: Mapped[str] = mapped_column(String(16), default="logged_out")
+    checked_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    reason: Mapped[str | None] = mapped_column(String(200))
+    usage_day: Mapped[str] = mapped_column(String(10), default="")
+    page_count: Mapped[int] = mapped_column(Integer, default=0)
+    post_count: Mapped[int] = mapped_column(Integer, default=0)
+    last_navigation_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    last_post_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+
+
+class CafeConsent(Base):
+    __tablename__ = "cafe_consent"
+    version: Mapped[str] = mapped_column(String(40), primary_key=True)
+    accepted_at: Mapped[datetime] = mapped_column(UTCDateTime)
+
+
+class CafeJob(Base):
+    __tablename__ = "cafe_job"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(24))
+    state: Mapped[str] = mapped_column(String(16), default="queued")
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    started_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    finished_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    error_code: Mapped[str | None] = mapped_column(String(64))
+    error_message: Mapped[str | None] = mapped_column(Text)
+    input: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    result: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+
+
 def new_id(prefix: str) -> str:
     """시간순 정렬 가능한 ID (prefix_타임스탬프ms16진수+난수)."""
     return f"{prefix}_{int(time.time() * 1000):012x}{os.urandom(5).hex()}"

@@ -242,8 +242,9 @@ def test_backup_has_no_key_restore_preserves_costs_and_resets_transmission_conse
 
 
 def test_disabled_analysis_is_no_longer_permanently_pending(client, ctx, store):
-    from tests.test_source_fields import sample
+    from tests.test_source_fields import NOW, sample
     from worklead.engine.pipeline import ingest
+    ctx.clock = lambda: NOW
     assert client.post("/v1/ai/credentials", json={"key": SECRET, **expected(client)}).status_code == 200
     assert client.patch("/v1/settings", json={"ai": {"enabled": True, "external_transfer_consent": True, **expected(client)}}).status_code == 200
     with ctx.db.session() as s:

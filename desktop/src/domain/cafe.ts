@@ -1,0 +1,16 @@
+import type { Schemas } from '@contracts/index';
+
+export type CafeSnapshot = Schemas['CafeSnapshot'];
+export type CafeEntry = Schemas['CafeEntry'];
+export type CafeJob = Schemas['CafeJob'];
+export interface CafePort {
+  status(): Promise<CafeSnapshot>;
+  consent(version: string): Promise<unknown>;
+  settings(patch: Schemas['CafeSettingsPatch']): Promise<Schemas['CafeSettings']>;
+  list(): Promise<CafeEntry[]>;
+  add(url: string): Promise<CafeEntry>;
+  state(id: string, status: CafeEntry['status']): Promise<CafeEntry>;
+  board(id: string, approved: boolean): Promise<Schemas['CafeBoardOut']>;
+  jobs(): Promise<CafeJob[]>;
+  action(kind: CafeJob['kind']): Promise<CafeJob>;
+}

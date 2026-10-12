@@ -1,0 +1,241 @@
+{
+  "$defs": {
+    "CafeBoardOut": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "cafe_id": {
+          "title": "Cafe Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "job_seek",
+            "job_offer",
+            "free",
+            "other"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "post_allowed": {
+          "title": "Post Allowed",
+          "type": "boolean"
+        },
+        "approved": {
+          "title": "Approved",
+          "type": "boolean"
+        },
+        "evidence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Evidence"
+        }
+      },
+      "required": [
+        "id",
+        "cafe_id",
+        "name",
+        "url",
+        "kind",
+        "post_allowed",
+        "approved",
+        "evidence"
+      ],
+      "title": "CafeBoardOut",
+      "type": "object"
+    },
+    "CafeEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "region": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Region"
+        },
+        "category": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Category"
+        },
+        "member_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Member Count"
+        },
+        "post_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Post Count"
+        },
+        "joined": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Joined"
+        },
+        "status": {
+          "enum": [
+            "candidate",
+            "needs_join",
+            "eligible",
+            "approved",
+            "excluded"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "status_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Status Reason"
+        },
+        "rule_evidence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Rule Evidence"
+        },
+        "first_seen_at": {
+          "format": "date-time",
+          "title": "First Seen At",
+          "type": "string"
+        },
+        "last_checked_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last Checked At"
+        },
+        "approved_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Approved At"
+        },
+        "boards": {
+          "items": {
+            "$ref": "#/$defs/CafeBoardOut"
+          },
+          "title": "Boards",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "url",
+        "name",
+        "region",
+        "category",
+        "member_count",
+        "post_count",
+        "joined",
+        "status",
+        "status_reason",
+        "rule_evidence",
+        "first_seen_at",
+        "last_checked_at",
+        "approved_at",
+        "boards"
+      ],
+      "title": "CafeEntry",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/$defs/CafeEntry"
+      },
+      "title": "Items",
+      "type": "array"
+    }
+  },
+  "required": [
+    "items"
+  ],
+  "title": "CafeList",
+  "type": "object"
+}

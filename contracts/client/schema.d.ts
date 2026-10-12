@@ -228,6 +228,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/cafe/attempts/{id_}/repost": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Repost */
+        post: operations["repost_v1_cafe_attempts__id___repost_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/cafe/cafes/{id_}/post": {
         parameters: {
             query?: never;
@@ -1329,6 +1346,14 @@ export interface components {
         CafeList: {
             /** Items */
             items: components["schemas"]["CafeEntry"][];
+        };
+        /** CafeRepostIn */
+        CafeRepostIn: {
+            /**
+             * Confirm
+             * @constant
+             */
+            confirm: true;
         };
         /** CafeSessionOut */
         CafeSessionOut: {
@@ -3247,6 +3272,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CafeAttemptList"];
+                };
+            };
+        };
+    };
+    repost_v1_cafe_attempts__id___repost_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id_: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CafeRepostIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CafeJob"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

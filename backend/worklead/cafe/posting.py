@@ -47,7 +47,10 @@ def publish(app, browser, cafe_id, navigate, reserve, *, repost=False):
         if cafe is None or cafe.status != 'approved' or not cafe.joined or board is None or not board.post_allowed:
             raise svc.CafeError(409, 'cafe_rule_unverified', '가입·카페 승인·게시판 허용 근거가 필요합니다')
         previous = list(s.scalars(select(CafePostAttempt).where(CafePostAttempt.cafe_id == cafe_id).order_by(CafePostAttempt.created_at.desc())))
-        saved = next((r for r in previous if r.status in ('posted', 'already_exists', 'posted_mismatch')), None)
+        removed_urls = {r.post_url for r in previous if r.status == 'removed' and r.post_url}
+        if repost and not removed_urls:
+            raise svc.CafeError(409, 'cafe_repost_unverified', '삭제·숨김이 확인된 글만 직접 재게시할 수 있습니다')
+        saved = next((r for r in previous if r.status in ('posted', 'already_exists', 'posted_mismatch') and not (repost and r.post_url in removed_urls)), None)
         if saved:
             return {'status': 'already_exists', 'post_url': saved.post_url}
         if any(r.status == 'removed' for r in previous) and not repost:

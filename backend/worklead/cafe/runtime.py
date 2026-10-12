@@ -75,7 +75,7 @@ class CafeRuntime:
             return {}
         if job.kind == 'post':
             from .posting import publish
-            return publish(self.ctx, self.browser, job.input.get('cafe_id'), self._navigate, self._reserve)
+            return publish(self.ctx, self.browser, job.input.get('cafe_id'), self._navigate, self._reserve, repost=job.input.get('repost') is True)
         if job.kind == "collect":
             from .collection import collect
             return collect(self.ctx, self.browser.recent_posts)

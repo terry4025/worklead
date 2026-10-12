@@ -81,6 +81,14 @@ def router(session_dependency):
         from ..cafe import posting
         return posting.list_attempts(s)
 
+    @routes.post('/attempts/{id_}/repost', response_model=S.CafeJob, status_code=202)
+    def repost(id_: str, body: S.CafeRepostIn, request: Request, s=Depends(session_dependency)):
+        from ..models import CafePostAttempt
+        row = s.get(CafePostAttempt, id_)
+        if row is None or row.status != 'removed' or not row.post_url:
+            raise svc.CafeError(409, 'cafe_repost_unverified', '삭제·숨김이 확인된 게시 기록만 직접 재게시할 수 있습니다')
+        return svc.job_out(svc.enqueue_job(s, 'post', request.app.state.ctx.clock(), {'cafe_id': row.cafe_id, 'repost': True}))
+
     @routes.post('/cafes/{id_}/post', response_model=S.CafeJob, status_code=202)
     def post(id_: str, request: Request, s=Depends(session_dependency)):
         return svc.job_out(svc.enqueue_job(s, 'post', request.app.state.ctx.clock(), {'cafe_id': id_}))

@@ -551,6 +551,58 @@
         }
       }
     },
+    "/v1/cafe/attempts/{id_}/repost": {
+      "post": {
+        "tags": [
+          "cafe"
+        ],
+        "summary": "Repost",
+        "operationId": "repost_v1_cafe_attempts__id___repost_post",
+        "parameters": [
+          {
+            "name": "id_",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id "
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CafeRepostIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CafeJob"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/cafe/cafes/{id_}/post": {
       "post": {
         "tags": [
@@ -6528,6 +6580,21 @@
           "items"
         ],
         "title": "CafeList"
+      },
+      "CafeRepostIn": {
+        "properties": {
+          "confirm": {
+            "type": "boolean",
+            "const": true,
+            "title": "Confirm"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "confirm"
+        ],
+        "title": "CafeRepostIn"
       },
       "CafeSessionOut": {
         "properties": {

@@ -185,6 +185,7 @@ export function createClient(source: ConnectionSource, fetchImpl: typeof fetch =
     cafeTemplateUpdate: (body: Schemas['CafeTemplatePatch']) => request<Schemas['CafeTemplate']>('PATCH', '/v1/cafe/template', { body }),
     cafeAttempts: () => request<Schemas['CafeAttemptList']>('GET', '/v1/cafe/attempts'),
     cafePost: (id: string) => request<Schemas['CafeJob']>('POST', `/v1/cafe/cafes/${enc(id)}/post`),
+    cafeRepost: (id: string) => request<Schemas['CafeJob']>('POST', `/v1/cafe/attempts/${enc(id)}/repost`, { body: { confirm: true } }),
     cafeConsent: (version: string) => request<Schemas['CafeConsentOut']>('POST', '/v1/cafe/consent', { body: { version } }),
     cafeSettings: (body: Schemas['CafeSettingsPatch']) => request<Schemas['CafeSettings']>('PATCH', '/v1/cafe/settings', { body }),
     cafeList: () => request<Schemas['CafeList']>('GET', '/v1/cafe/cafes'),

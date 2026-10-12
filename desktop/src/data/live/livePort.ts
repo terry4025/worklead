@@ -55,6 +55,7 @@ export class LivePort implements WorkleadPort {
     updateTemplate: (body) => wrap(this.client.cafeTemplateUpdate(body)),
     attempts: async () => (await wrap(this.client.cafeAttempts())).items,
     post: (id) => wrap(this.client.cafePost(id)),
+    repost: (id) => wrap(this.client.cafeRepost(id)),
     status: () => wrap(this.client.cafeStatus()),
     consent: (version) => wrap(this.client.cafeConsent(version)),
     settings: (patch) => wrap(this.client.cafeSettings(patch)),

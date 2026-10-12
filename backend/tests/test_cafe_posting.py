@@ -93,3 +93,19 @@ def test_template_api_versions_preserve_newlines(client):
     assert response.json()['body'] == new['body']
     assert client.patch('/v1/cafe/template', json=new).json()['version'] == 2
     assert lines('a\n\u3164\nb') == lines('a\n\nb')
+
+
+def test_only_explicit_removed_repost_is_allowed(ctx, client):
+    id_ = ready(ctx)
+    publish(ctx, Browser(), id_, lambda _: None, lambda: None)
+    with ctx.db.session() as s:
+        row = s.scalar(select(CafePostAttempt))
+        attempt_id = row.id
+        row.status = 'removed'
+    endpoint = '/v1/cafe/attempts/' + attempt_id + '/repost'
+    assert client.post(endpoint, json={'confirm': False}).status_code == 422
+    assert client.post(endpoint, json={'confirm': True}).status_code == 202
+    ctx.clock = lambda: NOW + timedelta(minutes=31)
+    browser = Browser()
+    assert publish(ctx, browser, id_, lambda _: None, lambda: None, repost=True)['status'] == 'posted'
+    assert browser.sent == 1

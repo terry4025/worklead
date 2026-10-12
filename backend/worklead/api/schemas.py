@@ -104,6 +104,16 @@ class CafeCommentDraft(Model):
     text: str
 
 
+class CafeRepostIn(Model):
+    confirm: Literal[True]
+
+    @field_validator('confirm', mode='before')
+    @classmethod
+    def explicit_confirmation(cls, value):
+        if value is not True: raise ValueError('삭제·숨김 글의 명시적 재게시 확인이 필요합니다')
+        return value
+
+
 class CafeSettings(Model):
     auto_post: bool = False
     auto_approve: bool = False

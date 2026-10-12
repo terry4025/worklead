@@ -46,3 +46,21 @@ it('shows error and retry without enabling unsafe actions', async () => {
   expect((await screen.findByRole('alert')).textContent).toContain('연결 끊김');
   expect((screen.getByRole('button', { name: '다시 불러오기' }) as HTMLButtonElement).disabled).toBe(false);
 });
+it('shows unread inquiries and preserves memo, read state and editable draft', async () => {
+  const port = show(new MockPort({ scenario: 'cafe_inquiries', latency: [0, 0] }));
+  fireEvent.click(await screen.findByText('문의 (1)'));
+  await screen.findByText('작업 문의 · 안 읽음');
+  fireEvent.change(screen.getByLabelText('문의 메모'), { target: { value: '견적 후속 메모' } });
+  fireEvent.click(screen.getByText('메모 저장'));
+  await screen.findByText('답글 초안');
+  fireEvent.click(screen.getByText('답글 초안'));
+  await screen.findByLabelText('답글 초안 · 직접 수정 후 원문에서 답글을 작성하세요');
+  expect((await port.cafe.comments()).items[0]?.lead_id).toBeNull();
+  fireEvent.click(screen.getByText('읽음 처리'));
+  await screen.findByText('작업 문의 · 읽음');
+  const data = await port.cafe.comments();
+  expect(data.unread_count).toBe(0);
+  expect(data.items[0]?.memo).toBe('견적 후속 메모');
+  const id = await port.cafe.commentLead(data.items[0]!.id);
+  expect((await port.getLead(id)).sourceId).toBe('manual');
+});

@@ -74,6 +74,36 @@ class CafeAttemptList(Model):
     items: list[CafeAttempt]
 
 
+class CafeCommentOut(Model):
+    id: str
+    attempt_id: str
+    cafe_name: str
+    post_url: str
+    author_nickname: str
+    body: str
+    written_at: datetime | None
+    written_raw: str | None
+    is_reply: bool
+    classification: Literal['request', 'question', 'other']
+    read_at: datetime | None
+    memo: str
+    lead_id: str | None
+
+
+class CafeCommentList(Model):
+    items: list[CafeCommentOut]
+    unread_count: int = Field(ge=0)
+
+
+class CafeCommentPatch(Model):
+    read: bool | None = None
+    memo: str | None = Field(default=None, max_length=4000)
+
+
+class CafeCommentDraft(Model):
+    text: str
+
+
 class CafeSettings(Model):
     auto_post: bool = False
     auto_approve: bool = False
@@ -83,7 +113,7 @@ class CafeSettings(Model):
     min_post_minutes: int = Field(default=30, ge=30, le=10080)
     collect_interval_minutes: int = Field(default=180, ge=30, le=10080)
     comment_interval_minutes: int = Field(default=30, ge=30, le=10080)
-    comment_monitor_days: int = Field(default=60, ge=1, le=365)
+    comment_monitor_days: int = Field(default=60, ge=1, le=60)
     keywords: list[str] = Field(default_factory=lambda: ["알바", "구인구직", "아르바이트", "외주", "프리랜서", "개발", "IT", "부업", "재택"], max_length=50)
 
     @field_validator("keywords")
@@ -103,7 +133,7 @@ class CafeSettingsPatch(Model):
     min_post_minutes: int | None = Field(default=None, ge=30, le=10080)
     collect_interval_minutes: int | None = Field(default=None, ge=30, le=10080)
     comment_interval_minutes: int | None = Field(default=None, ge=30, le=10080)
-    comment_monitor_days: int | None = Field(default=None, ge=1, le=365)
+    comment_monitor_days: int | None = Field(default=None, ge=1, le=60)
     keywords: list[str] | None = Field(default=None, max_length=50)
 
 
@@ -904,7 +934,7 @@ class RestoreOut(Model):
 
 
 # Native delivery never contains source titles, bodies, or contact details.
-NativeNotificationKind = Literal["new_lead", "lead_changed", "source_issue"]
+NativeNotificationKind = Literal["new_lead", "lead_changed", "source_issue", "cafe_request"]
 NativeNotificationState = Literal["pending", "attempted", "accepted", "failed", "unknown", "suppressed"]
 
 

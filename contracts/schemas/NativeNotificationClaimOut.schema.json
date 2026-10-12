@@ -11,7 +11,8 @@
           "enum": [
             "new_lead",
             "lead_changed",
-            "source_issue"
+            "source_issue",
+            "cafe_request"
           ],
           "type": "string"
         },

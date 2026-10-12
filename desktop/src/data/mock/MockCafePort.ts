@@ -1,8 +1,33 @@
 import type { CafeEntry, CafeJob, CafePort, CafeSnapshot } from '../../domain/cafe';
 import defaultTemplate from '../../../../contracts/fixtures/cafe-template.json';
+import type { Schemas } from '@contracts/index';
 
 /** Synthetic demonstration, no browser or external site requests. */
 export class MockCafePort implements CafePort {
+  private inquiries: Schemas['CafeCommentOut'][] = [];
+  constructor(scenario?: string, private createLead?: (body: string, url: string) => Promise<string>) {
+    if (scenario === 'cafe_inquiries' || scenario === 'cafe_challenge') {
+      this.snapshot.consent = { version: this.snapshot.consent_version, accepted_at: new Date().toISOString() };
+      this.snapshot.session = { state: scenario === 'cafe_challenge' ? 'needs_user' : 'logged_in', checked_at: new Date().toISOString(), reason: scenario === 'cafe_challenge' ? 'authentication_challenge' : null };
+    }
+    if (scenario === 'cafe_inquiries') this.inquiries = [{ id:'synthetic-comment-1', attempt_id:'synthetic-attempt-1', cafe_name:'개발 프리랜서 (합성)', post_url:'https://cafe.daangn.com/synthetic/posts/synthetic-post', author_nickname:'합성 의뢰인', body:'가게 홈페이지 제작 견적을 받을 수 있을까요? 온라인으로 진행하려고 합니다.', written_at:new Date().toISOString(), written_raw:null, is_reply:false, classification:'request', read_at:null, memo:'', lead_id:null }];
+  }
+  async comments() { return { items: structuredClone(this.inquiries).sort((a,b) => Number(Boolean(a.read_at)) - Number(Boolean(b.read_at))), unread_count: this.inquiries.filter((c) => !c.read_at).length }; }
+  private inquiry(id: string) { const row = this.inquiries.find((r) => r.id === id); if (!row) throw new Error('합성 문의를 찾을 수 없습니다'); return row; }
+  async updateComment(id: string, body: Parameters<CafePort['updateComment']>[1]) {
+    const row = this.inquiry(id);
+    if (body.read !== undefined && body.read !== null) row.read_at = body.read ? new Date().toISOString() : null;
+    if (body.memo !== undefined && body.memo !== null) row.memo = body.memo;
+    return structuredClone(row);
+  }
+  async commentLead(id: string) {
+    const row = this.inquiry(id);
+    if (row.lead_id) return row.lead_id;
+    if (!this.createLead) throw new Error('데모 리드 포트가 연결되지 않았습니다');
+    row.lead_id = await this.createLead(row.body, row.post_url);
+    return row.lead_id;
+  }
+  async commentDraft(id: string) { this.inquiry(id); return '문의 남겨주셔서 감사합니다.\n원하시는 기능과 일정·예산을 알려주시면 범위를 확인하겠습니다.\n\n합성 답글 초안입니다. 발송하지 않습니다.'; }
   private value = structuredClone(defaultTemplate);
   async template() { return structuredClone(this.value); }
   async updateTemplate(body: Parameters<CafePort['updateTemplate']>[0]) {
@@ -52,8 +77,10 @@ export class MockCafePort implements CafePort {
   async board(): ReturnType<CafePort['board']> { throw new Error('합성 시나리오에서 승인 가능한 게시판이 없습니다'); }
   async jobs() { return structuredClone(this.history); }
   async action(kind: CafeJob['kind']) {
+    if (kind === 'post' || kind === 'comments') throw new Error('실제 게시·전체 댓글의 지원 경로가 확보되지 않았습니다');
     if (kind === 'collect') throw new Error('내 글 제외·작성 시각의 지원 경로가 필요합니다');
     if (!this.snapshot.consent) throw new Error('위험 안내를 먼저 확인하세요');
+    if (this.snapshot.session.state === 'needs_user' && kind !== 'login') throw new Error('인증 화면을 직접 확인하세요. 카페 작업이 정지되어 있습니다');
     this.snapshot.session = { state: 'logged_in', checked_at: new Date().toISOString(), reason: null };
     this.snapshot.usage.page_count += kind === 'discover' ? 4 : 1;
     if (kind === 'discover' && !this.entries.length) {

@@ -55,7 +55,7 @@
     },
     "comment_monitor_days": {
       "default": 60,
-      "maximum": 365,
+      "maximum": 60,
       "minimum": 1,
       "title": "Comment Monitor Days",
       "type": "integer"

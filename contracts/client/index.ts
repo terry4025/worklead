@@ -177,6 +177,10 @@ export function createClient(source: ConnectionSource, fetchImpl: typeof fetch =
 
   return {
     cafeStatus: () => request<Schemas['CafeSnapshot']>('GET', '/v1/cafe/status'),
+    cafeComments: () => request<Schemas['CafeCommentList']>('GET', '/v1/cafe/comments'),
+    cafeCommentUpdate: (id: string, body: Schemas['CafeCommentPatch']) => request<Schemas['CafeCommentOut']>('PATCH', `/v1/cafe/comments/${enc(id)}`, { body }),
+    cafeCommentLead: (id: string) => request<LeadDetail>('POST', `/v1/cafe/comments/${enc(id)}/lead`),
+    cafeCommentDraft: (id: string) => request<Schemas['CafeCommentDraft']>('POST', `/v1/cafe/comments/${enc(id)}/draft`),
     cafeTemplate: () => request<Schemas['CafeTemplate']>('GET', '/v1/cafe/template'),
     cafeTemplateUpdate: (body: Schemas['CafeTemplatePatch']) => request<Schemas['CafeTemplate']>('PATCH', '/v1/cafe/template', { body }),
     cafeAttempts: () => request<Schemas['CafeAttemptList']>('GET', '/v1/cafe/attempts'),

@@ -1,0 +1,134 @@
+{
+  "$defs": {
+    "CafeCommentOut": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "attempt_id": {
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "cafe_name": {
+          "title": "Cafe Name",
+          "type": "string"
+        },
+        "post_url": {
+          "title": "Post Url",
+          "type": "string"
+        },
+        "author_nickname": {
+          "title": "Author Nickname",
+          "type": "string"
+        },
+        "body": {
+          "title": "Body",
+          "type": "string"
+        },
+        "written_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Written At"
+        },
+        "written_raw": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Written Raw"
+        },
+        "is_reply": {
+          "title": "Is Reply",
+          "type": "boolean"
+        },
+        "classification": {
+          "enum": [
+            "request",
+            "question",
+            "other"
+          ],
+          "title": "Classification",
+          "type": "string"
+        },
+        "read_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Read At"
+        },
+        "memo": {
+          "title": "Memo",
+          "type": "string"
+        },
+        "lead_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Lead Id"
+        }
+      },
+      "required": [
+        "id",
+        "attempt_id",
+        "cafe_name",
+        "post_url",
+        "author_nickname",
+        "body",
+        "written_at",
+        "written_raw",
+        "is_reply",
+        "classification",
+        "read_at",
+        "memo",
+        "lead_id"
+      ],
+      "title": "CafeCommentOut",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/$defs/CafeCommentOut"
+      },
+      "title": "Items",
+      "type": "array"
+    },
+    "unread_count": {
+      "minimum": 0,
+      "title": "Unread Count",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "items",
+    "unread_count"
+  ],
+  "title": "CafeCommentList",
+  "type": "object"
+}

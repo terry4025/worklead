@@ -174,6 +174,9 @@ def main() -> None:
                     dump(OUT / "fixtures/cafes.json", c.get("/v1/cafe/cafes").json())
                     dump(OUT / "fixtures/cafe-template.json", c.get('/v1/cafe/template').json())
                     dump(OUT / "fixtures/cafe-attempts.json", c.get('/v1/cafe/attempts').json())
+                    for name in ('CafeCommentOut', 'CafeCommentList', 'CafeCommentPatch', 'CafeCommentDraft', *NATIVE_SCHEMAS):
+                        dump(OUT / 'schemas' / f'{name}.schema.json', getattr(S, name).model_json_schema())
+                    dump(OUT / 'fixtures/cafe-comments.json', c.get('/v1/cafe/comments').json())
             finally:
                 ctx.db.dispose()
         print("cafe contracts written; legacy fixtures preserved")

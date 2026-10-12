@@ -104,6 +104,9 @@ class EdgeBrowser:
     def owned_posts(self, cafe_url, navigate):
         raise CafePageError('cafe_ownership_unverified', '웹의 내 글 전체 대조 경로가 미확보되어 게시를 차단했습니다')
 
+    def full_comments(self, url):
+        raise CafePageError('cafe_comments_incomplete', '웹 댓글 전체보기는 앱 전용 안내를 표시했습니다. 전체 조회를 완료하지 않습니다')
+
     def prepare_editor(self, cafe_url, board_name, template, navigate):
         navigate(cafe_url)
         link = self.page.locator('a').filter(has_text='글쓰기')

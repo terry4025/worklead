@@ -564,7 +564,7 @@ def analyze(
     )
 
 
-def inquiry_draft(title: str, analysis: RuleAnalysis) -> str:
+def inquiry_draft(title: str, analysis: RuleAnalysis, *, reply: bool = False) -> str:
     """수정 가능한 문의 초안. 경력·포트폴리오·가격을 만들어내지 않고 사용자가 채울 자리를 남긴다."""
     lines = [
         "안녕하세요, 올려주신 글 보고 연락드립니다.",
@@ -573,6 +573,8 @@ def inquiry_draft(title: str, analysis: RuleAnalysis) -> str:
         "[간단한 소개와 비슷한 작업 경험 — 직접 작성]",
         "",
     ]
+    if reply:
+        lines = ['문의 남겨주셔서 감사합니다.', '원하시는 작업의 목적과 기능, 희망 일정·예산을 알려주시면 범위를 확인하겠습니다.', '']
     if analysis.questions:
         lines.append("진행 전에 몇 가지 확인하고 싶습니다.")
         for i, q in enumerate(analysis.questions, 1):

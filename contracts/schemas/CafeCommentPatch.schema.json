@@ -1,0 +1,32 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "read": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Read"
+    },
+    "memo": {
+      "anyOf": [
+        {
+          "maxLength": 4000,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Memo"
+    }
+  },
+  "title": "CafeCommentPatch",
+  "type": "object"
+}

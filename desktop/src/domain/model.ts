@@ -618,7 +618,7 @@ export type WorkleadEvent =
   | (EventBase & { type: 'analysis.completed'; leadId: string; status: AnalysisStatus })
   | (EventBase & {
       type: 'notification.created';
-      kind: 'new_lead' | 'lead_changed' | 'source_issue';
+      kind: 'new_lead' | 'lead_changed' | 'source_issue' | 'cafe_request';
       title: string;
       leadId: string | null;
       sourceId: string | null;

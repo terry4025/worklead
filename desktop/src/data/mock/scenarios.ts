@@ -5,9 +5,11 @@
 import type { LeadDetail, RunInfo, SourceInfo } from '../../domain/model';
 import { buildDemoLeads } from './fixtures';
 
-export type ScenarioId = 'normal' | 'partial' | 'blocked' | 'ai_failure' | 'empty' | 'first_run' | 'offline';
+export type ScenarioId = 'normal' | 'partial' | 'blocked' | 'ai_failure' | 'empty' | 'first_run' | 'offline' | 'cafe_inquiries' | 'cafe_challenge';
 
 export const SCENARIOS: { id: ScenarioId; label: string; note: string }[] = [
+  { id: 'cafe_inquiries', label: '카페 문의', note: '합성 댓글 · 읽음·메모·리드 전환 데모' },
+  { id: 'cafe_challenge', label: '카페 인증 정지', note: '인증 화면 감지로 카페 작업이 멈춘 합성 상태' },
   { id: 'normal', label: '정상', note: '최근 수집 완료 (데모 가정: 권한 확인됨)' },
   { id: 'partial', label: '부분 수집', note: '요청 제한(429)으로 일부 지역만 확인' },
   { id: 'blocked', label: '접근 차단', note: '403 응답으로 소스 정지' },

@@ -236,6 +236,7 @@ async fn consume(
 fn notification_body(kind: &str) -> Option<&'static str> {
     match kind {
         "new_lead" => Some("새 추천 리드가 있습니다. Worklead에서 확인하세요."),
+        "cafe_request" => Some("새 카페 문의가 있습니다. Worklead에서 확인하세요."),
         "lead_changed" => {
             Some("관심·진행 중 리드의 조건이 변경되었습니다. Worklead에서 확인하세요.")
         }
@@ -335,7 +336,7 @@ mod tests {
     #[test]
     fn only_known_kinds_have_fixed_private_os_payloads() {
         assert!(notification_body("arbitrary title or contact").is_none());
-        for kind in ["new_lead", "lead_changed", "source_issue"] {
+        for kind in ["new_lead", "lead_changed", "source_issue", "cafe_request"] {
             assert!(notification_body(kind).unwrap().contains("Worklead"));
         }
     }

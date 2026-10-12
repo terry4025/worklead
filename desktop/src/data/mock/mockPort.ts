@@ -149,6 +149,11 @@ export class MockPort implements WorkleadPort {
   private now: () => number;
 
   constructor(opts: MockOptions) {
+    this.cafe = new MockCafePort(opts.scenario, async (body, url) => {
+      const id = `cafe-demo-import-${++this.importSeq}`;
+      this.leads.unshift(buildImportedLead(this.now(), id, body, url));
+      return id;
+    });
     this.scenario = opts.scenario;
     this.latency = opts.latency ?? [120, 320];
     this.now = opts.now ?? (() => Date.now());

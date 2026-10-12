@@ -16,6 +16,7 @@ CASES = [
     ("cafes.json", S.CafeList),
     ("cafe-template.json", S.CafeTemplate),
     ("cafe-attempts.json", S.CafeAttemptList),
+    ("cafe-comments.json", S.CafeCommentList),
     ("bootstrap.json", S.BootstrapOut),
     ("health.json", S.HealthOut),
     ("settings.json", S.SettingsOut),

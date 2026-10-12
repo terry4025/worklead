@@ -1892,6 +1892,8 @@ input[aria-invalid='true'] {
 
 /* 좁은 창 */
 @media (max-width: 760px) {
+  .topbar { flex-wrap: wrap; }
+  .topbar .brand { flex: 1 1 100%; }
   .brand-name,
   .tb-btn span,
   .stream span {

@@ -89,7 +89,7 @@ def notify(
 ) -> EventOutbox | None:
     """알림 이벤트. 설정에서 끈 종류는 기록하지 않고, 조용한 시간에는 억제 사유를 남긴다."""
     cfg = get_setting(s, "notifications")
-    toggle = {"new_lead": "new_recommended", "lead_changed": "meaningful_change", "source_issue": "source_issue"}[kind]
+    toggle = {"new_lead": "new_recommended", "lead_changed": "meaningful_change", "source_issue": "source_issue", "cafe_request": "new_recommended"}[kind]
     if not cfg.get(toggle, True):
         return None
     suppressed = "quiet_hours" if _in_quiet_hours(cfg.get("quiet_hours", {}), now or utcnow()) else None

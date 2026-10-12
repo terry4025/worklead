@@ -18,6 +18,11 @@
 .cafe-evidence { white-space:pre-wrap; }
 .cafe-empty { color:var(--text-3); padding:36px 0; }
 .cafe-error { color:var(--bad); }
+.cafe-schedule { margin-top:32px; }
+.cafe-inquiry { padding:24px 0; border-bottom:1px solid var(--line); }
+.cafe-inquiry-body { white-space:pre-wrap; overflow-wrap:anywhere; max-width:75ch; }
+.cafe-inquiry-memo, .cafe-draft { display:grid; gap:8px; max-width:700px; margin-top:16px; }
+.cafe-inquiry-memo .btn { justify-self:start; }
 .cafe-template { margin-top:36px; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:32px; }
 .cafe-template form { display:grid; align-content:start; gap:12px; }
 .cafe-template-preview p { white-space:pre-wrap; overflow-wrap:anywhere; max-width:70ch; }

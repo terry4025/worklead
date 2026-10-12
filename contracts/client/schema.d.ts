@@ -143,6 +143,74 @@ export interface paths {
         patch: operations["template_patch_v1_cafe_template_patch"];
         trace?: never;
     };
+    "/v1/cafe/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Comments List */
+        get: operations["comments_list_v1_cafe_comments_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cafe/comments/{id_}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Comments Update */
+        patch: operations["comments_update_v1_cafe_comments__id___patch"];
+        trace?: never;
+    };
+    "/v1/cafe/comments/{id_}/lead": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Comments Lead */
+        post: operations["comments_lead_v1_cafe_comments__id___lead_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cafe/comments/{id_}/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Comments Draft */
+        post: operations["comments_draft_v1_cafe_comments__id___draft_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/cafe/attempts": {
         parameters: {
             query?: never;
@@ -1115,6 +1183,57 @@ export interface components {
              */
             posting: boolean;
         };
+        /** CafeCommentDraft */
+        CafeCommentDraft: {
+            /** Text */
+            text: string;
+        };
+        /** CafeCommentList */
+        CafeCommentList: {
+            /** Items */
+            items: components["schemas"]["CafeCommentOut"][];
+            /** Unread Count */
+            unread_count: number;
+        };
+        /** CafeCommentOut */
+        CafeCommentOut: {
+            /** Id */
+            id: string;
+            /** Attempt Id */
+            attempt_id: string;
+            /** Cafe Name */
+            cafe_name: string;
+            /** Post Url */
+            post_url: string;
+            /** Author Nickname */
+            author_nickname: string;
+            /** Body */
+            body: string;
+            /** Written At */
+            written_at: string | null;
+            /** Written Raw */
+            written_raw: string | null;
+            /** Is Reply */
+            is_reply: boolean;
+            /**
+             * Classification
+             * @enum {string}
+             */
+            classification: "request" | "question" | "other";
+            /** Read At */
+            read_at: string | null;
+            /** Memo */
+            memo: string;
+            /** Lead Id */
+            lead_id: string | null;
+        };
+        /** CafeCommentPatch */
+        CafeCommentPatch: {
+            /** Read */
+            read?: boolean | null;
+            /** Memo */
+            memo?: string | null;
+        };
         /** CafeConsentIn */
         CafeConsentIn: {
             /** Version */
@@ -1914,7 +2033,7 @@ export interface components {
             /** Allowed */
             allowed: boolean;
             /** Kind */
-            kind: ("new_lead" | "lead_changed" | "source_issue") | null;
+            kind: ("new_lead" | "lead_changed" | "source_issue" | "cafe_request") | null;
             /**
              * State
              * @enum {string}
@@ -1933,7 +2052,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "new_lead" | "lead_changed" | "source_issue";
+            kind: "new_lead" | "lead_changed" | "source_issue" | "cafe_request";
             /**
              * Created At
              * Format: date-time
@@ -1965,7 +2084,7 @@ export interface components {
             /** Id */
             id: string;
             /** Kind */
-            kind: ("new_lead" | "lead_changed" | "source_issue") | null;
+            kind: ("new_lead" | "lead_changed" | "source_issue" | "cafe_request") | null;
             /**
              * State
              * @enum {string}
@@ -2982,6 +3101,123 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CafeTemplate"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    comments_list_v1_cafe_comments_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CafeCommentList"];
+                };
+            };
+        };
+    };
+    comments_update_v1_cafe_comments__id___patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id_: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CafeCommentPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CafeCommentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    comments_lead_v1_cafe_comments__id___lead_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id_: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeadDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    comments_draft_v1_cafe_comments__id___draft_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id_: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CafeCommentDraft"];
                 };
             };
             /** @description Validation Error */

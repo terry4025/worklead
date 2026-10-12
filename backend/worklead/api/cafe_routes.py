@@ -48,6 +48,29 @@ def router(session_dependency):
         from ..cafe import posting
         return posting.template(s)
 
+    @routes.get('/comments', response_model=S.CafeCommentList)
+    def comments_list(s=Depends(session_dependency)):
+        from ..cafe import comments
+        return comments.listing(s)
+
+    @routes.patch('/comments/{id_}', response_model=S.CafeCommentOut)
+    def comments_update(id_: str, body: S.CafeCommentPatch, request: Request, s=Depends(session_dependency)):
+        from ..cafe import comments
+        return comments.update(s, id_, body, request.app.state.ctx.clock())
+
+    @routes.post('/comments/{id_}/lead', response_model=S.LeadDetail)
+    def comments_lead(id_: str, request: Request, s=Depends(session_dependency)):
+        from ..cafe import comments
+        from ..services.leads import detail
+        ctx = request.app.state.ctx
+        return detail(s, comments.make_lead(s, id_, ctx.clock(), ctx.provider))
+
+    @routes.post('/comments/{id_}/draft', response_model=S.CafeCommentDraft)
+    def comments_draft(id_: str, request: Request, s=Depends(session_dependency)):
+        from ..cafe import comments
+        ctx = request.app.state.ctx
+        return comments.draft(s, id_, ctx.clock(), ctx.provider)
+
     @routes.patch('/template', response_model=S.CafeTemplate)
     def template_patch(body: S.CafeTemplatePatch, s=Depends(session_dependency)):
         from ..cafe import posting

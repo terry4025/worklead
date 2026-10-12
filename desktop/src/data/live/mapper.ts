@@ -413,7 +413,7 @@ export function mapEvent(e: C.ApiEvent): WorkleadEvent | null {
       return {
         ...base,
         type: e.type,
-        kind: e.kind as 'new_lead' | 'lead_changed' | 'source_issue',
+        kind: e.kind as 'new_lead' | 'lead_changed' | 'source_issue' | 'cafe_request',
         title: str('title') ?? '',
         leadId: str('lead_id'),
         sourceId: str('source_id'),

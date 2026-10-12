@@ -373,6 +373,163 @@
         }
       }
     },
+    "/v1/cafe/comments": {
+      "get": {
+        "tags": [
+          "cafe"
+        ],
+        "summary": "Comments List",
+        "operationId": "comments_list_v1_cafe_comments_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CafeCommentList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cafe/comments/{id_}": {
+      "patch": {
+        "tags": [
+          "cafe"
+        ],
+        "summary": "Comments Update",
+        "operationId": "comments_update_v1_cafe_comments__id___patch",
+        "parameters": [
+          {
+            "name": "id_",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id "
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CafeCommentPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CafeCommentOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cafe/comments/{id_}/lead": {
+      "post": {
+        "tags": [
+          "cafe"
+        ],
+        "summary": "Comments Lead",
+        "operationId": "comments_lead_v1_cafe_comments__id___lead_post",
+        "parameters": [
+          {
+            "name": "id_",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id "
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cafe/comments/{id_}/draft": {
+      "post": {
+        "tags": [
+          "cafe"
+        ],
+        "summary": "Comments Draft",
+        "operationId": "comments_draft_v1_cafe_comments__id___draft_post",
+        "parameters": [
+          {
+            "name": "id_",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id "
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CafeCommentDraft"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/cafe/attempts": {
       "get": {
         "tags": [
@@ -5866,6 +6023,182 @@
         "type": "object",
         "title": "CafeCapabilities"
       },
+      "CafeCommentDraft": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "CafeCommentDraft"
+      },
+      "CafeCommentList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CafeCommentOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "unread_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Unread Count"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "unread_count"
+        ],
+        "title": "CafeCommentList"
+      },
+      "CafeCommentOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "attempt_id": {
+            "type": "string",
+            "title": "Attempt Id"
+          },
+          "cafe_name": {
+            "type": "string",
+            "title": "Cafe Name"
+          },
+          "post_url": {
+            "type": "string",
+            "title": "Post Url"
+          },
+          "author_nickname": {
+            "type": "string",
+            "title": "Author Nickname"
+          },
+          "body": {
+            "type": "string",
+            "title": "Body"
+          },
+          "written_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Written At"
+          },
+          "written_raw": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Written Raw"
+          },
+          "is_reply": {
+            "type": "boolean",
+            "title": "Is Reply"
+          },
+          "classification": {
+            "type": "string",
+            "enum": [
+              "request",
+              "question",
+              "other"
+            ],
+            "title": "Classification"
+          },
+          "read_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Read At"
+          },
+          "memo": {
+            "type": "string",
+            "title": "Memo"
+          },
+          "lead_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "attempt_id",
+          "cafe_name",
+          "post_url",
+          "author_nickname",
+          "body",
+          "written_at",
+          "written_raw",
+          "is_reply",
+          "classification",
+          "read_at",
+          "memo",
+          "lead_id"
+        ],
+        "title": "CafeCommentOut"
+      },
+      "CafeCommentPatch": {
+        "properties": {
+          "read": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Read"
+          },
+          "memo": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Memo"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "CafeCommentPatch"
+      },
       "CafeConsentIn": {
         "properties": {
           "version": {
@@ -6296,7 +6629,7 @@
           },
           "comment_monitor_days": {
             "type": "integer",
-            "maximum": 365.0,
+            "maximum": 60.0,
             "minimum": 1.0,
             "title": "Comment Monitor Days",
             "default": 60
@@ -6420,7 +6753,7 @@
             "anyOf": [
               {
                 "type": "integer",
-                "maximum": 365.0,
+                "maximum": 60.0,
                 "minimum": 1.0
               },
               {
@@ -8465,7 +8798,8 @@
                 "enum": [
                   "new_lead",
                   "lead_changed",
-                  "source_issue"
+                  "source_issue",
+                  "cafe_request"
                 ]
               },
               {
@@ -8531,7 +8865,8 @@
             "enum": [
               "new_lead",
               "lead_changed",
-              "source_issue"
+              "source_issue",
+              "cafe_request"
             ],
             "title": "Kind"
           },
@@ -8612,7 +8947,8 @@
                 "enum": [
                   "new_lead",
                   "lead_changed",
-                  "source_issue"
+                  "source_issue",
+                  "cafe_request"
                 ]
               },
               {

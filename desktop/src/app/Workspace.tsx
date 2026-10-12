@@ -285,7 +285,7 @@ export function Workspace() {
       />
       <IssueStrip issues={issues} />
       <nav className="workspace-switch" aria-label="작업 공간"><Button pressed={workspace === 'leads'} onClick={() => setWorkspace('leads')}>리드</Button><Button pressed={workspace === 'cafe'} onClick={() => setWorkspace('cafe')}>카페</Button></nav>
-      {workspace === 'cafe' ? <CafeWorkspace /> : <>
+      {workspace === 'cafe' ? <CafeWorkspace onOpenLead={(id) => { setWorkspace('leads'); changeView('all'); void qc.invalidateQueries({ queryKey: qk.leadsAll }); void qc.invalidateQueries({ queryKey: ['counts'] }); openLead(id); }} /> : <>
 
       <div className="toolbar">
         <QueueTabs view={view} onChange={changeView} counts={counts.data} />

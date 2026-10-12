@@ -40,9 +40,9 @@ def upgrade():
         sa.Column("id", sa.String(40), primary_key=True), sa.Column("kind", sa.String(24), nullable=False), sa.Column("state", sa.String(16), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False), sa.Column("started_at", sa.DateTime()), sa.Column("finished_at", sa.DateTime()),
         sa.Column("error_code", sa.String(64)), sa.Column("error_message", sa.Text()), sa.Column("input", sa.JSON(), nullable=False), sa.Column("result", sa.JSON(), nullable=False))
-    op.execute("INSERT INTO sources(id,name,kind,adapter_version,scope_note,auto_collect_enabled,interval_minutes,health_status,created_at,updated_at) VALUES ('daangn_cafe','당근 카페','site','cafe-1','전용 Edge 세션을 사용하는 카페 수집',0,180,'unknown',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)")
+    op.execute("INSERT OR IGNORE INTO sources(id,name,kind,adapter_version,scope_note,auto_collect_enabled,interval_minutes,health_status,created_at,updated_at) VALUES ('daangn_cafe','당근 카페','site','cafe-1','전용 Edge 세션을 사용하는 카페 수집',0,180,'unknown',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)")
     op.execute("CREATE UNIQUE INDEX cafe_job_single_active ON cafe_job ((1)) WHERE state IN ('queued','running')")
-    op.execute("INSERT INTO source_policies(source_id,status,reviewed_by,robots_status) VALUES ('daangn_cafe','permission_pending','system','unchecked')")
+    op.execute("INSERT OR IGNORE INTO source_policies(source_id,status,reviewed_by,robots_status) VALUES ('daangn_cafe','permission_pending','system','unchecked')")
 
 
 def downgrade():

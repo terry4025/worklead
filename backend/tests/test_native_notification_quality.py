@@ -305,7 +305,7 @@ def test_index_migration_preserves_existing_outbox_and_creates_pre_migration_bac
         command.downgrade(alembic_config(app.config.db_path), "0002_detail_fetch_states")
         assert current_revision(app.config.db_path) == "0002_detail_fetch_states"
         migrate(app.config.db_path, app.config.backup_dir)
-    assert current_revision(app.config.db_path) == "0005_page_checkpoints"
+    assert current_revision(app.config.db_path) == "0006_daangn_cafe"
     with app.db.engine.connect() as connection:
         indexes = connection.exec_driver_sql("PRAGMA index_list(event_outbox)").all()
     assert any(part[1] == "ix_events_native_pending" for part in indexes)

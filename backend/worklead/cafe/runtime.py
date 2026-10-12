@@ -56,6 +56,8 @@ class CafeRuntime:
     def execute(self, job):
         if job.kind == 'collect':
             raise CafePageError('cafe_collection_unverified', '내 글 제외·작성 시각 지원 경로 미확보로 수집을 중단했습니다')
+        if job.kind == 'comments':
+            raise CafePageError('cafe_comments_incomplete', '전체 댓글 조회 지원 경로 미확보로 감시를 완료하지 않습니다')
         self.browser = self.browser or self.browser_factory(self.ctx.config.data_dir / "cafe-browser")
         self.browser.open(headed=job.kind == "login")
         if job.kind == "login":

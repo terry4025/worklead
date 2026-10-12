@@ -20,7 +20,7 @@ from ..models import EventOutbox
 from .settings import get_setting
 
 MAX_AGE = timedelta(hours=24)
-TOGGLES = {"new_lead": "new_recommended", "lead_changed": "meaningful_change", "source_issue": "source_issue"}
+TOGGLES = {"new_lead": "new_recommended", "lead_changed": "meaningful_change", "source_issue": "source_issue", "cafe_request": "new_recommended"}
 TERMINAL = {"accepted", "failed", "unknown", "suppressed"}
 
 

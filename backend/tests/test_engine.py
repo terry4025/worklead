@@ -84,7 +84,7 @@ def test_nationwide_rotation_dedup_and_paths(tmp_path: Path) -> None:
     # 최근 상세를 확인한 공고는 다시 요청하지 않는다 (목록만)
     assert not any(r.startswith("/jobs/") for r in behavior.requests[-10:])
 
-    cov = c.get("/v1/sources").json()["items"][0]["coverage"]
+    cov = next(row for row in c.get("/v1/sources").json()["items"] if row['id'] == 'fixture-site')["coverage"]
     assert cov["target_label"] == "전국"
     assert cov["market_coverage"] == "unknown"
     assert cov["planned"] == 5 and cov["completed"] == 5
@@ -97,7 +97,7 @@ def test_partial_coverage_is_reported(tmp_path: Path) -> None:
     run = run_discovery(ctx)
     assert run.state == "succeeded"
     assert run.note and "부분 탐색" in run.note
-    cov = client_for(ctx).get("/v1/sources").json()["items"][0]["coverage"]
+    cov = next(row for row in client_for(ctx).get("/v1/sources").json()["items"] if row['id'] == 'fixture-site')["coverage"]
     assert cov["region_list_status"] == "unverified"
     assert any("17개 시·도 중 3곳" in n for n in cov["notes"])
 
@@ -145,7 +145,7 @@ def test_changed_plan_does_not_adopt_old_pending_units(tmp_path: Path, monkeypat
     with ctx.db.session() as s:
         tasks = list(s.scalars(select(CollectionTask).where(CollectionTask.run_id == second.id)))
         assert tasks and all(t.query_group == 'changed' for t in tasks)
-    cov = client_for(ctx).get('/v1/sources').json()['items'][0]['coverage']
+    cov = next(row for row in client_for(ctx).get('/v1/sources').json()['items'] if row['id'] == 'fixture-site')['coverage']
     assert cov['planned'] == cov['completed'] == 1
     ctx.db.dispose()
 

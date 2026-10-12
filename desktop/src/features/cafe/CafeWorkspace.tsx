@@ -35,11 +35,11 @@ export function CafeWorkspace({ onOpenLead }: { onOpenLead?: (id: string) => voi
   if (!data) return <main tabIndex={-1} id="cafe-workspace" className="cafe-workspace"><p role="alert">카페 상태 조회 실패: {snapshot.error?.message}</p><Button onClick={() => void snapshot.refetch()}>다시 불러오기</Button></main>;
   return <main tabIndex={-1} id="cafe-workspace" className="cafe-workspace">
     <div className="cafe-heading"><h1>카페</h1><span className="num">오늘 페이지 {data.usage.page_count}/{data.usage.daily_page_limit} · 게시 {data.usage.post_count}/{data.usage.daily_post_limit}</span></div>
-    {!data.consent ? <section className="cafe-consent" aria-label="카페 기능 위험 안내"><h2>시작 전에 확인해 주세요</h2><p>{data.consent_text}</p><Button variant="primary" busy={command.isPending} onClick={() => run(() => port.consent(data.consent_version))}>위험 안내 확인</Button></section> : <>
+    {!data.consent ? <section className="cafe-consent" aria-label="카페 기능 위험 안내"><h2>시작 전에 확인해 주세요</h2><p>{data.consent_text}</p><Button variant="primary" busy={command.isPending} onClick={() => run(async () => { await port.consent(data.consent_version); await port.action('check'); })}>위험 안내 확인</Button></section> : <>
       <section className="cafe-session" aria-label="카페 로그인 상태">
-        <span><StatusGlyph tone={data.session.state === 'logged_in' ? 'good' : 'warn'} /> {data.session.state === 'logged_in' ? '로그인 확인됨' : data.session.state === 'needs_user' ? '사용자 확인 필요 · 카페 작업 정지' : '로그인 필요'}</span>
+        <span><StatusGlyph tone={data.session.state === 'logged_in' ? 'good' : 'warn'} /> {!data.session.checked_at ? '세션 확인 전' : data.session.state === 'logged_in' ? '로그인 확인됨' : data.session.state === 'needs_user' ? '사용자 확인 필요 · 카페 작업 정지' : '로그인 필요'}</span>
         <Button disabled={busy} onClick={() => run(() => port.action('check'))}>세션 확인</Button>
-        {data.session.state !== 'logged_in' ? <Button variant="primary" disabled={busy} onClick={() => run(() => port.action('login'))}>브라우저 열어 로그인</Button> : null}
+        {data.session.checked_at && data.session.state !== 'logged_in' ? <Button variant="primary" disabled={busy} onClick={() => run(() => port.action('login'))}>브라우저 열어 로그인</Button> : null}
         <label><input type="checkbox" checked={data.settings.auto_post} disabled={!data.capabilities.posting || busy} onChange={(e) => run(() => port.settings({ auto_post: e.target.checked }))} /> 자동 게시</label>
       </section>
       {!data.capabilities.own_posts || !data.capabilities.full_comments ? <p className="cafe-limitation" role="status">내 글 대조·전체 댓글 조회 경로를 확보하지 못했습니다. 게시와 댓글 자동 확인은 중지되어 있습니다.</p> : null}

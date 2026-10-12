@@ -1,8 +1,21 @@
 ﻿# Windows 설치 파일(.exe, NSIS) 빌드. 개발 PC 에서만 실행 (최종 사용자는 Python·Node 불필요).
 # 요구: uv, Node.js 22+, Rust (MSVC), WebView2 (설치 프로그램이 부트스트랩)
 # 사용: powershell -ExecutionPolicy Bypass -File scripts\build-windows.ps1
+param([string]$NodeExecutable)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
+
+if ($NodeExecutable) {
+    if (-not (Test-Path -LiteralPath $NodeExecutable -PathType Leaf)) { throw 'Selected Node executable not found' }
+    $npmCli = Join-Path (Split-Path -Parent (Get-Command npm.cmd).Source) 'node_modules\npm\bin\npm-cli.js'
+    if (-not (Test-Path -LiteralPath $npmCli -PathType Leaf)) { throw 'npm CLI not found next to npm.cmd' }
+    $env:PATH = "$(Split-Path -Parent $NodeExecutable);$env:PATH"
+}
+
+function Invoke-Npm([string[]]$NpmArguments) {
+    if ($NodeExecutable) { & $NodeExecutable $npmCli @NpmArguments }
+    else { & npm.cmd @NpmArguments }
+}
 
 function Invoke-NativeStep([string]$Step, [scriptblock]$Action) {
     & $Action
@@ -30,11 +43,11 @@ Copy-Item "$root\backend\build\dist\worklead-backend.exe" "$bin\worklead-backend
 Write-Host '[3/4] 화면 테스트'
 Push-Location "$root\desktop"
 try {
-    Invoke-NativeStep 'UI dependencies' { npm.cmd ci }
-    Invoke-NativeStep 'TypeScript' { npm.cmd run typecheck }
-    Invoke-NativeStep 'UI tests' { npm.cmd test }
+    Invoke-NativeStep 'UI dependencies' { Invoke-Npm -NpmArguments @('ci') }
+    Invoke-NativeStep 'TypeScript' { Invoke-Npm -NpmArguments @('run', 'typecheck') }
+    Invoke-NativeStep 'UI tests' { Invoke-Npm -NpmArguments @('test') }
 
     Write-Host '[4/4] Tauri 번들 (NSIS)'
-    Invoke-NativeStep 'Tauri bundle' { npm.cmd run tauri build }
+    Invoke-NativeStep 'Tauri bundle' { Invoke-Npm -NpmArguments @('run', 'tauri', 'build') }
 } finally { Pop-Location }
 Write-Host "완료: desktop\src-tauri\target\release\bundle\nsis\"

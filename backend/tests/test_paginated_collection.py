@@ -100,7 +100,7 @@ def test_pending_deep_page_stays_in_same_cycle_and_coverage_is_incomplete(tmp_pa
     ctx, clock, _ = paged_context(tmp_path, monkeypatch, pages, limit=3)
     first = run_discovery(ctx)
     assert first.state == "partial"
-    coverage = client_for(ctx).get("/v1/sources").json()["items"][0]["coverage"]
+    coverage = next(row for row in client_for(ctx).get("/v1/sources").json()["items"] if row['id'] == 'fixture-site')["coverage"]
     assert coverage["completed"] == 0 and coverage["pending"] == 1
     clock[0] += timedelta(minutes=2)
     second = run_discovery(ctx)
@@ -108,7 +108,7 @@ def test_pending_deep_page_stays_in_same_cycle_and_coverage_is_incomplete(tmp_pa
     clock[0] += timedelta(minutes=2)
     third = run_discovery(ctx)
     assert third.state == "succeeded" and third.scan_cycle == first.scan_cycle
-    coverage = client_for(ctx).get("/v1/sources").json()["items"][0]["coverage"]
+    coverage = next(row for row in client_for(ctx).get("/v1/sources").json()["items"] if row['id'] == 'fixture-site')["coverage"]
     assert coverage["completed"] == 1 and coverage["pending"] == 0
     ctx.db.dispose()
 

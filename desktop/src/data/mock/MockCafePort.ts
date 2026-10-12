@@ -82,7 +82,7 @@ export class MockCafePort implements CafePort {
     if (kind === 'collect') throw new Error('내 글 제외·작성 시각의 지원 경로가 필요합니다');
     if (!this.snapshot.consent) throw new Error('위험 안내를 먼저 확인하세요');
     if (this.snapshot.session.state === 'needs_user' && kind !== 'login') throw new Error('인증 화면을 직접 확인하세요. 카페 작업이 정지되어 있습니다');
-    this.snapshot.session = { state: 'logged_in', checked_at: new Date().toISOString(), reason: null };
+    this.snapshot.session = { state: kind === 'login' ? 'logged_in' : this.snapshot.session.state, checked_at: new Date().toISOString(), reason: null };
     this.snapshot.usage.page_count += kind === 'discover' ? 4 : 1;
     if (kind === 'discover' && !this.entries.length) {
       await this.add('https://cafe.daangn.com/synthetic-freelance');

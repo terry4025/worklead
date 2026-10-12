@@ -60,6 +60,7 @@ class CafeRuntime:
             raise CafePageError('cafe_comments_incomplete', '전체 댓글 조회 지원 경로 미확보로 감시를 완료하지 않습니다')
         self.browser = self.browser or self.browser_factory(self.ctx.config.data_dir / "cafe-browser")
         self.browser.open(headed=job.kind == "login")
+        self.browser.robots = None  # Recheck public robots rules for every job.
         if job.kind == "login":
             try:
                 self._navigate(CAFE_ORIGIN + "/", allow_recovery=True)
@@ -132,6 +133,8 @@ class CafeRuntime:
                                 svc.finish_job(s, job.id, "succeeded", self.ctx.clock(), result=result)
                         except (CafePageError, svc.CafeError) as exc:
                             with self.ctx.db.session() as s:
+                                if exc.code in ('cafe_redirect_blocked', 'cafe_authentication_challenge', 'cafe_login_incomplete'):
+                                    svc.set_session(s, 'needs_user', self.ctx.clock(), exc.code)
                                 svc.finish_job(s, job.id, "failed", self.ctx.clock(), error_code=exc.code, error_message=exc.message if hasattr(exc, "message") else str(exc))
                         except Exception:
                             # Browser exceptions can contain URLs or personal text.

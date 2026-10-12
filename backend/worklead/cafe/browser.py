@@ -48,7 +48,9 @@ class EdgeBrowser:
         if request.is_navigation_request() and request.frame.parent_frame is None:
             p = urlsplit(request.url)
             try:
-                allowed = request.url == "about:blank" or bool(self.headed and p.scheme == "https" and p.netloc == "accounts.daangn.com" and p.path == "/sign-in")
+                # Permit natural steps within the observed official login origin
+                # only while the user explicitly requested a visible login window.
+                allowed = request.url == "about:blank" or bool(self.headed and p.scheme == "https" and p.netloc == "accounts.daangn.com")
                 if not allowed:
                     safe_cafe_url(request.url)
                 route.continue_()
@@ -94,6 +96,11 @@ class EdgeBrowser:
                 return False
             if self.blocked_navigation:
                 raise CafePageError("cafe_redirect_blocked", "로그인에서 허용되지 않은 이동을 중단했습니다")
+            if urlsplit(self.page.url).netloc == 'accounts.daangn.com':
+                from .parsing import detect_session
+                state, reason = detect_session(self.page.content())
+                if state == 'needs_user' and reason == 'authentication_challenge':
+                    raise CafePageError('cafe_authentication_challenge', '인증·약관·차단 화면을 직접 확인하세요')
             if urlsplit(self.page.url).netloc == "cafe.daangn.com" and self.page.get_by_role("button", name="사용자 메뉴").count():
                 return True
         return False

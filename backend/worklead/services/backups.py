@@ -105,10 +105,11 @@ def _prepare(app: AppContext, path: Path, current_budgets: list[dict] | None = N
             row = cafe_svc.session_row(s)
             row.state, row.checked_at, row.reason = "logged_out", None, "restore_session_recheck"
             if current_cafe:
-                if row.usage_day != current_cafe["usage_day"]:
-                    row.usage_day, row.page_count, row.post_count = current_cafe["usage_day"], 0, 0
-                row.page_count = max(row.page_count, current_cafe["page_count"])
-                row.post_count = max(row.post_count, current_cafe["post_count"])
+                if current_cafe['usage_day'] == cafe_svc.day_key(app.clock()):
+                    if row.usage_day != current_cafe["usage_day"]:
+                        row.usage_day, row.page_count, row.post_count = current_cafe["usage_day"], 0, 0
+                    row.page_count = max(row.page_count, current_cafe["page_count"])
+                    row.post_count = max(row.post_count, current_cafe["post_count"])
                 for key in ("last_navigation_at", "last_post_at"):
                     old, value = getattr(row, key), current_cafe[key]
                     if value and (old is None or value > old):

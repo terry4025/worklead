@@ -126,3 +126,20 @@ def test_restore_keeps_cafe_budget_and_cancels_jobs(client, ctx):
         assert svc.session_row(s).page_count == 2
         assert svc.session_row(s).state == 'logged_out'
         assert svc.get_settings(s)['auto_post'] is False
+
+
+def test_restore_retains_backup_today_budget_when_current_day_is_stale(client, ctx):
+    ctx.clock = lambda: NOW
+    consent(client)
+    with ctx.db.session() as s:
+        svc.reserve_navigation(s, NOW)
+        svc.session_row(s).post_count = 2
+    backup = client.post('/v1/backups').json()['id']
+    with ctx.db.session() as s:
+        row = svc.session_row(s)
+        row.usage_day, row.page_count, row.post_count = svc.day_key(NOW - timedelta(days=1)), 0, 0
+    check = client.get('/v1/backups/' + backup).json()
+    assert client.post('/v1/backups/' + backup + '/restore', json={'sha256': check['sha256'], 'confirm': True}).status_code == 200
+    with ctx.db.session() as s:
+        row = svc.session_row(s)
+        assert row.usage_day == svc.day_key(NOW) and row.page_count == 1 and row.post_count == 2

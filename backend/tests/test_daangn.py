@@ -169,7 +169,7 @@ def test_adapter_through_collection_worker_and_dedup(tmp_path):
     assert leads[0]["recommendation"] == "recommended"
     assert run["counts"]["created"] == 0 and run["counts"]["duplicates"] == 1
     assert run["result"]["discovery"]["listed_urls"] == 2
-    source = c.get('/v1/sources').json()['items'][0]
+    source = next(row for row in c.get('/v1/sources').json()['items'] if row['id'] == 'daangn-alba')
     assert source['coverage']['unit_label'] == '공개 공고 목록'
     assert source['coverage']['next_up'] == '전국 공개 공고 목록 · 웹사이트·프로그램·자동화 관련 공고'
     ctx.db.dispose()

@@ -192,9 +192,35 @@ def serve(argv: list[str] | None = None) -> int:
     ap.add_argument("--dev", action="store_true", help="개발 Origin 허용, 토큰은 WORKLEAD_DEV_TOKEN 환경변수 사용")
     ap.add_argument("--demo", action="store_true", help="별도 데모 DB 에 합성 데이터로 실행 (bootstrap.mode=demo)")
     ap.add_argument("--sidecar", action="store_true", help="stdin 이 닫히면 종료")
+    ap.add_argument("--cafe-browser-self-check", action="store_true", help="별도 프로필로 시스템 Edge·패키지 자산만 확인 (외부 페이지·운영 DB 미사용)")
     ap.add_argument("--remove-ai-credential", action="store_true", help="명시 확인 후 현재 데이터 폴더의 OS AI 키만 삭제하고 종료")
     ap.add_argument("--confirm-key-delete", action="store_true", help="OS AI 키 삭제를 명시 확인")
     args = ap.parse_args(argv)
+
+    if args.cafe_browser_self_check:
+        if args.data_dir is None or args.sidecar or args.demo or args.dev or args.remove_ai_credential or args.confirm_key_delete:
+            _emit_line({'event':'cafe_browser_probe', 'status':'error', 'code':'isolated_data_dir_required'})
+            return 64
+        from .cafe.browser import EdgeBrowser
+        profile = args.data_dir.resolve() / 'browser-selfcheck' / secrets.token_hex(8)
+        probe = EdgeBrowser(profile)
+        try:
+            probe.open()
+            probe.page.set_content('<h1>synthetic browser self-check</h1>')
+            assert probe.page.locator('h1').inner_text() == 'synthetic browser self-check'
+            probe.context.add_cookies([{'name':'synthetic_probe', 'value':'fixture', 'domain':'cafe.daangn.com', 'path':'/', 'expires':2000000000}])
+            probe.close()
+            probe.open()
+            persisted = any(c['name'] == 'synthetic_probe' for c in probe.context.cookies())
+            import json as probe_json
+            value = probe_json.loads((Path(__file__).parent / 'cafe/default_template.json').read_text(encoding='utf-8'))
+            _emit_line({'event':'cafe_browser_probe', 'status':'ok' if persisted else 'error', 'engine':'system_msedge', 'persisted':persisted, 'template_version':value['version']})
+            return 0 if persisted else 18
+        except Exception:
+            _emit_line({'event':'cafe_browser_probe', 'status':'error', 'code':'cafe_browser_unavailable'})
+            return 18
+        finally:
+            probe.close()
 
     cfg = RuntimeConfig(dev=args.dev, demo=args.demo, port=args.port)
     if args.data_dir:

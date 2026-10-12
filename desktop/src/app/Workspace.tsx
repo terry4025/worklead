@@ -226,7 +226,7 @@ export function Workspace() {
   });
 
   const totalAll = counts.data?.all ?? null;
-  if (cafeStatus.data?.consent && cafeStatus.data.session.state !== 'logged_in') issues.push({ key: 'cafe-session', tone: 'warn', text: cafeStatus.data.session.state === 'needs_user' ? '당근 카페 작업 정지 · 브라우저에서 인증·차단 화면을 직접 확인하세요' : '당근 카페 로그인 필요', action: { label: '카페 보기', run: () => setWorkspace('cafe') } });
+  if (cafeStatus.data?.consent && cafeStatus.data.session.state !== 'logged_in') issues.push({ key: 'cafe-session', tone: 'warn', text: !cafeStatus.data.session.checked_at ? '당근 카페 세션 확인 전 · 먼저 세션을 확인하세요' : cafeStatus.data.session.state === 'needs_user' ? '당근 카페 작업 정지 · 브라우저에서 인증·차단 화면을 직접 확인하세요' : '당근 카페 로그인 필요', action: { label: '카페 보기', run: () => setWorkspace('cafe') } });
   const emptyNode = (() => {
     const sites = (sources.data ?? []).filter((s) => s.kind === 'site');
     if (totalAll === 0 && isDefaultFilter(filter)) {

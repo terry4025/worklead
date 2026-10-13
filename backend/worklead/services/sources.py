@@ -21,7 +21,7 @@ from ..sources.regions import SIDO
 
 def research_state(adapter: Any) -> S.Research:
     if getattr(adapter, 'browser_collection', False):
-        return S.Research(ready=False, missing=['내 글 제외 지원 경로', '최근 30일·증분 작성 시각 경로'])
+        return S.Research(ready=True, missing=[])
     profile = getattr(adapter, "profile", None)
     if profile is None:
         return S.Research(ready=True, missing=[])

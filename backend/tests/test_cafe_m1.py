@@ -33,7 +33,10 @@ def test_consent_auth_and_budget(client, ctx):
             svc.reserve_navigation(s, NOW + timedelta(seconds=16))
         assert svc.reserve_navigation(s, NOW + timedelta(days=1)) == 0
         assert svc.session_row(s).page_count == 1
+    assert client.get('/v1/cafe/settings').json()['auto_post'] is False
     assert client.patch('/v1/cafe/settings', json={'auto_post': True}).status_code == 409
+    with ctx.db.session() as s: svc.set_session(s, 'logged_in', NOW)
+    assert client.patch('/v1/cafe/settings', json={'auto_post': True}).status_code == 200
     assert client.patch('/v1/cafe/settings', json={'min_navigation_seconds': 1}).status_code == 422
 
 
@@ -113,6 +116,7 @@ def test_migration_preserves_0005_and_backup(tmp_path):
 
 
 def test_restore_keeps_cafe_budget_and_cancels_jobs(client, ctx):
+    ctx.clock = lambda: NOW
     consent(client)
     with ctx.db.session() as s:
         svc.reserve_navigation(s, NOW)

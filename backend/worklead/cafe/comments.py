@@ -1,4 +1,4 @@
-"""Local inquiry queue. A partial web page is never a successful comment poll."""
+"""Visible web inquiries with an explicit per-post coverage warning."""
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 import hashlib
@@ -28,6 +28,7 @@ class CommentPage:
     comments: list[Comment]
     complete: bool
     confirmed_removed: bool = False
+    reported_count: int | None = None
 
 
 def classify(body):
@@ -40,9 +41,9 @@ def classify(body):
 def save_page(app, attempt_id, page):
     now = app.clock()
     if not page.complete and not page.confirmed_removed:
-        raise svc.CafeError(409, 'cafe_comments_incomplete', '전체 댓글을 읽지 못했습니다. 완료로 처리하지 않습니다')
-    if not page.confirmed_removed and any(c.is_own is None or not c.external_id and c.written_at is None for c in page.comments):
-        raise svc.CafeError(409, 'cafe_comment_identity_unverified', '내 댓글 제외·안정적인 중복 키를 확인하지 못했습니다')
+        raise svc.CafeError(409, 'cafe_comments_incomplete', '화면 댓글·펼칠 수 있는 답글 읽기를 완료하지 못했습니다')
+    if not page.confirmed_removed and any(not c.external_id and c.written_at is None for c in page.comments):
+        raise svc.CafeError(409, 'cafe_comment_identity_unverified', '안정적인 댓글 중복 키를 확인하지 못했습니다')
     if any(len(c.body) > 20000 or len(c.author) > 200 or c.external_id and len(c.external_id) > 200 or c.written_at and c.written_at.tzinfo is None for c in page.comments):
         raise svc.CafeError(422, 'cafe_comment_invalid', '댓글 길이·시각 형식이 올바르지 않습니다')
     created = 0
@@ -50,7 +51,7 @@ def save_page(app, attempt_id, page):
         if not svc.consent_accepted(s) or svc.session_row(s).state != 'logged_in':
             raise svc.CafeError(409, 'cafe_session_required', '댓글 읽기를 저장하려면 로그인 확인이 필요합니다')
         attempt = s.get(CafePostAttempt, attempt_id)
-        if attempt is None or attempt.status != 'posted' or not attempt.post_url:
+        if attempt is None or attempt.status not in ('posted', 'posted_mismatch') or not attempt.post_url:
             raise svc.CafeError(409, 'cafe_not_posted', '확인된 내 게시글만 댓글을 읽습니다')
         settings = svc.get_settings(s)
         if attempt.created_at < now - timedelta(days=settings['comment_monitor_days']):
@@ -79,6 +80,14 @@ def save_page(app, attempt_id, page):
         checks[attempt_id] = now.isoformat()
         if cfg: cfg.value = checks
         else: s.add(AppSetting(key='cafe_comment_checks', value=checks))
+        cfg = s.get(AppSetting, 'cafe_comment_coverage')
+        coverage = dict(cfg.value if cfg else {})
+        read_count = len({c.external_id or (c.written_at.isoformat(), c.body) for c in page.comments})
+        coverage[attempt_id] = {'reported_count': page.reported_count, 'read_count': read_count,
+            'needs_app_check': page.reported_count is None or page.reported_count > read_count,
+            'checked_at': now.isoformat()}
+        if cfg: cfg.value = coverage
+        else: s.add(AppSetting(key='cafe_comment_coverage', value=coverage))
         emit(s, 'cafe.comments_changed', {'created': created})
     app.hub.notify()
     return {'created': created, 'complete': True}
@@ -88,7 +97,7 @@ def monitor(app, reader):
     now = app.clock()
     with app.db.session() as s:
         cfg = svc.get_settings(s)
-        attempts = list(s.scalars(select(CafePostAttempt).where(CafePostAttempt.status == 'posted', CafePostAttempt.created_at >= now - timedelta(days=cfg['comment_monitor_days']))))
+        attempts = list(s.scalars(select(CafePostAttempt).where(CafePostAttempt.status.in_(('posted', 'posted_mismatch')), CafePostAttempt.created_at >= now - timedelta(days=cfg['comment_monitor_days']))))
         checks = s.get(AppSetting, 'cafe_comment_checks')
         previous = dict(checks.value if checks else {})
     created = checked = 0
@@ -108,7 +117,14 @@ def comment_out(s, row):
 
 
 def listing(s):
-    return S.CafeCommentList(items=[comment_out(s, row) for row in s.scalars(select(CafeComment).order_by(CafeComment.read_at.is_not(None), CafeComment.written_at.desc(), CafeComment.id.desc()).limit(500))], unread_count=s.scalar(select(func.count()).select_from(CafeComment).where(CafeComment.read_at.is_(None))) or 0)
+    cfg = s.get(AppSetting, 'cafe_comment_coverage')
+    coverage = []
+    for attempt_id, value in (cfg.value if cfg else {}).items():
+        attempt = s.get(CafePostAttempt, attempt_id)
+        if attempt is None or attempt.status not in ('posted', 'posted_mismatch') or not attempt.post_url: continue
+        cafe = s.get(Cafe, attempt.cafe_id)
+        if cafe: coverage.append(S.CafeCommentCoverage(attempt_id=attempt_id, post_url=attempt.post_url, cafe_name=cafe.name, **value))
+    return S.CafeCommentList(items=[comment_out(s, row) for row in s.scalars(select(CafeComment).order_by(CafeComment.read_at.is_not(None), CafeComment.written_at.desc(), CafeComment.id.desc()).limit(500))], unread_count=s.scalar(select(func.count()).select_from(CafeComment).where(CafeComment.read_at.is_(None))) or 0, coverage=coverage)
 
 
 def get(s, id_):

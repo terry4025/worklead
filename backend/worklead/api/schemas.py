@@ -90,9 +90,20 @@ class CafeCommentOut(Model):
     lead_id: str | None
 
 
+class CafeCommentCoverage(Model):
+    attempt_id: str
+    post_url: str
+    cafe_name: str
+    reported_count: int | None = Field(default=None, ge=0)
+    read_count: int = Field(ge=0)
+    needs_app_check: bool
+    checked_at: datetime
+
+
 class CafeCommentList(Model):
     items: list[CafeCommentOut]
     unread_count: int = Field(ge=0)
+    coverage: list[CafeCommentCoverage] = Field(default_factory=list)
 
 
 class CafeCommentPatch(Model):
@@ -171,10 +182,12 @@ class CafeUsage(Model):
 
 
 class CafeCapabilities(Model):
-    collection: bool = False
+    collection: bool = True
     own_posts: bool = False
     full_comments: bool = False
-    posting: bool = False
+    posting: bool = True
+    title_duplicates: bool = True
+    visible_comments: bool = True
 
 
 class CafeJob(Model):

@@ -106,13 +106,97 @@ class EdgeBrowser:
         return False
 
     def recent_posts(self, board, since):
-        raise CafePageError('cafe_collection_unverified', '내 글 제외와 작성 시각의 지원 경로가 필요합니다')
+        from datetime import timedelta
+        from .collection import CafePage, CafePost
+        from .parsing import relative_date, post_relative_time
+        from ..sources.base import ParsedPost
+        if not getattr(self, 'navigate', None):
+            raise CafePageError('cafe_browser_queue_required', '직렬 브라우저 큐에서만 수집합니다')
+        cards = self.board_posts(board, self.navigate)
+        observed_at = since + timedelta(days=30)
+        result = []
+        # Always rescan the visible 30-day window. Relative day labels cannot
+        # support an exact incremental timestamp cursor.
+        for card in cards:
+            stamp = relative_date(card['written_raw'], observed_at)
+            if stamp.at and stamp.at < since: continue
+            html = self.navigate(card['url'])
+            actual = self.read_post()
+            if stamp.at is None: stamp = relative_date(post_relative_time(html), observed_at)
+            result.append(CafePost(ParsedPost(actual['title'], actual['body'], card['url'], card['url'],
+                urlsplit(card['url']).path.rsplit('/', 1)[-1], published=stamp), None))
+        return CafePage(result, True)
 
-    def owned_posts(self, cafe_url, navigate):
-        raise CafePageError('cafe_ownership_unverified', '웹의 내 글 전체 대조 경로가 미확보되어 게시를 차단했습니다')
+    def board_posts(self, board, navigate):
+        from .parsing import board_posts, board_listing_ready
+        navigate(board.url)
+        cards = {}
+        previous, stable = None, 0
+        for _ in range(40):
+            html = self.page.content()
+            for value in board_posts(html, board.url): cards[value['url']] = value
+            state = (len(cards), self.page.evaluate('document.documentElement.scrollHeight'))
+            stable = stable + 1 if state == previous else 0
+            if stable >= 3:
+                if not board_listing_ready(html, board.url):
+                    raise CafePageError('cafe_listing_unrecognized', '게시판 목록이 준비됐는지 확인하지 못했습니다. 게시하지 않습니다')
+                return list(cards.values())
+            previous = state
+            self.page.evaluate('window.scrollTo(0,document.documentElement.scrollHeight)')
+            self.page.wait_for_timeout(700)
+        raise CafePageError('cafe_listing_unstable', '게시판 목록이 계속 바뀌어 안전한 대조를 마치지 못했습니다')
 
-    def full_comments(self, url):
-        raise CafePageError('cafe_comments_incomplete', '웹 댓글 전체보기는 앱 전용 안내를 표시했습니다. 전체 조회를 완료하지 않습니다')
+    def duplicate_posts(self, board, navigate):
+        from .parsing import board_posts, board_listing_ready
+        # Also inspect the cafe's rendered home feed. Finding the same title
+        # in another board must not cause a new post in the selected board.
+        home_url = board.url.split('/boards/', 1)[0]
+        html = navigate(home_url)
+        if not board_listing_ready(html, home_url):
+            raise CafePageError('cafe_listing_unrecognized', '카페 글 목록 구조를 확인하지 못했습니다. 게시하지 않습니다')
+        home = board_posts(html, home_url)
+        approved_board = self.board_posts(board, navigate)
+        return list({value['url']: value for value in home + approved_board}.values())
+
+    def visible_comments(self, url):
+        import re
+        from .comments import Comment, CommentPage
+        from .parsing import relative_date
+        self.navigate(url)
+        # Only the observed expandable reply control; never click the app-only
+        # 전체보기 link, reply composer, or an unrelated 더보기 control.
+        for _ in range(40):
+            buttons = self.page.get_by_role('button', name=re.compile(r'^이전 답글 \d+개 더보기$'))
+            if not buttons.count(): break
+            before = self.page.locator('[data-comment-id]').count()
+            buttons.first.click()
+            self.page.wait_for_timeout(700)
+            if self.page.locator('[data-comment-id]').count() <= before:
+                raise CafePageError('cafe_reply_unexpanded', '답글 펼치기가 완료되지 않았습니다')
+        else: raise CafePageError('cafe_reply_limit', '답글 펼치기 안전 한도에 도달했습니다')
+        rows = self.page.locator('[data-comment-id]').evaluate_all('''nodes => nodes.map(n => {
+            const body = n.querySelector('p.article-body');
+            const author = n.querySelector('span.t4-bold');
+            const header = author?.parentElement?.parentElement;
+            return {id:n.getAttribute('data-comment-id'),body:body?.innerText ?? null,
+                author:author?.innerText ?? '',time:Array.from(header?.querySelectorAll('span') ?? []).map(x=>x.innerText),
+                own:Array.from(header?.querySelectorAll('span') ?? []).some(x=>x.innerText.trim()==='글쓴이'),
+                reply:Array.from((function*(v){while(v){yield v;v=v.parentElement;}})(n)).some(v=>v.classList.contains('pl-[44px]'))};
+        })''')
+        comments = []
+        for value in rows:
+            if value['body'] is None: raise CafePageError('cafe_comment_unrecognized', '댓글 본문 구조를 확인하지 못했습니다')
+            raw = next((v for v in value['time'] if relative_date(v, self.clock()).at is not None), None)
+            stamp = relative_date(raw, self.clock())
+            comments.append(Comment(value['author'], value['body'], stamp.at, value['own'], value['id'], raw, value['reply']))
+        headings = self.page.locator('h3').all_text_contents()
+        counts = [int(m.group(1).replace(',', '')) for text in headings if (m := re.fullmatch(r'\s*댓글\s*([\d,]+)\s*', text))]
+        if not counts:
+            # Observed comment-bubble icon identifies the count, unlike the
+            # neighboring numeric like button. A changed icon yields unknown.
+            bubbles = self.page.locator('button').filter(has=self.page.locator('svg path[d^="M6.8501 8.5"]'))
+            counts = [int(text.replace(',', '')) for text in bubbles.locator('span.t4-regular').all_text_contents() if re.fullmatch(r'[\d,]+', text.strip())]
+        return CommentPage(comments, True, reported_count=counts[0] if counts else None)
 
     def prepare_editor(self, cafe_url, board_name, template, navigate):
         navigate(cafe_url)
@@ -122,8 +206,26 @@ class EdgeBrowser:
         editor_url = next((urljoin(cafe_url + '/', url) for url in urls if url and url.endswith('/posts/new')), None)
         if not editor_url: raise CafePageError('cafe_editor_unavailable', '실제 글쓰기 링크를 찾지 못했습니다')
         navigate(editor_url)
-        if self.page.get_by_role('button', name=board_name, exact=True).count() != 1:
-            raise CafePageError('cafe_board_unverified', '선택된 게시판을 확인하지 못했습니다. 추측한 메뉴로 바꾸지 않습니다')
+        # Observed editor control is a button with combobox semantics, followed
+        # by listbox/option rows. Select only the exact approved board name.
+        control = self.page.locator('button[role="combobox"][aria-haspopup="listbox"]')
+        if control.count() != 1:
+            raise CafePageError('cafe_board_unverified', '게시판 선택 구조를 확인하지 못했습니다. 게시하지 않습니다')
+        if control.inner_text().strip() != board_name:
+            control.click()
+            lists = self.page.get_by_role('listbox')
+            if lists.count() != 1:
+                raise CafePageError('cafe_board_unverified', '게시판 목록을 확인하지 못했습니다. 게시하지 않습니다')
+            option = lists.get_by_role('option', name=board_name, exact=True)
+            if option.count() != 1:
+                raise CafePageError('cafe_board_unverified', '승인된 게시판을 하나로 확인하지 못했습니다. 게시하지 않습니다')
+            option.click()
+            from playwright.sync_api import expect
+            try: expect(control).to_have_text(board_name, timeout=3000)
+            except AssertionError:
+                raise CafePageError('cafe_board_unverified', '게시판 선택 결과가 다릅니다. 게시하지 않습니다') from None
+        if control.count() != 1 or control.inner_text().strip() != board_name:
+            raise CafePageError('cafe_board_unverified', '선택된 게시판을 확인하지 못했습니다. 게시하지 않습니다')
         self.page.get_by_placeholder('제목을 입력해주세요.', exact=True).fill(template.title)
         self.fill_editor(template.body)
 
@@ -151,9 +253,15 @@ class EdgeBrowser:
     def read_post(self):
         title = self.page.locator('h1')
         body = self.page.locator('div.article-body')
-        if title.count() != 1 or body.count() != 1:
+        if title.count() != 1 or body.count() < 1:
             raise CafePageError('cafe_post_unrecognized', '게시된 제목·본문 구조를 확인하지 못했습니다')
-        return {'title': title.inner_text(), 'body': '\n'.join(body.locator('p').all_text_contents())}
+        # The observed site has either one paragraph container or sibling
+        # article-body blocks. Reading only p descendants loses the latter.
+        paragraphs = body.evaluate_all('''nodes => nodes.filter(n=>!n.parentElement.closest('div.article-body')).flatMap(n => {
+            const p=Array.from(n.querySelectorAll(':scope > p'));
+            return p.length ? p.map(x=>x.innerText) : [n.innerText];
+        })''')
+        return {'title': title.inner_text(), 'body': '\n'.join(paragraphs)}
 
     def close(self):
         try:

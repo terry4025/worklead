@@ -1,4 +1,4 @@
-"""Durable one-post state machine. Ownership must be proven before typing."""
+"""Durable one-post state machine. Visible board titles prevent duplicates."""
 import json
 from pathlib import Path
 from sqlalchemy import select
@@ -64,15 +64,12 @@ def publish(app, browser, cafe_id, navigate, reserve, *, repost=False):
         attempt_id = attempt.id
     submitted = False
     try:
-        # The production implementation raises here because no own-post route
-        # was observed. Test readers supply complete synthetic account evidence.
-        owned, complete = browser.owned_posts(cafe.url, navigate)
-        if not complete: raise CafePageError('cafe_ownership_unverified', '내 글 전체 대조가 완료되지 않았습니다')
-        existing = next((p for p in owned if p['title'] == value.title or p['body'][:100] == value.body[:100]), None)
+        visible = browser.duplicate_posts(board, navigate)
+        existing = next((p for p in visible if p['title'].strip() == value.title.strip()), None)
         if existing:
             safe_cafe_url(existing['url'])
             if not existing['url'].startswith(cafe.url + '/posts/'):
-                raise CafePageError('cafe_ownership_unverified', '다른 카페의 글은 중복 판정 근거로 사용할 수 없습니다')
+                raise CafePageError('cafe_duplicate_unverified', '다른 카페의 글은 중복 판정 근거로 사용할 수 없습니다')
             result = {'status': 'already_exists', 'post_url': existing['url']}
         else:
             browser.prepare_editor(cafe.url, board.name, value, navigate)

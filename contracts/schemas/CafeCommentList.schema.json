@@ -1,5 +1,59 @@
 {
   "$defs": {
+    "CafeCommentCoverage": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "post_url": {
+          "title": "Post Url",
+          "type": "string"
+        },
+        "cafe_name": {
+          "title": "Cafe Name",
+          "type": "string"
+        },
+        "reported_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reported Count"
+        },
+        "read_count": {
+          "minimum": 0,
+          "title": "Read Count",
+          "type": "integer"
+        },
+        "needs_app_check": {
+          "title": "Needs App Check",
+          "type": "boolean"
+        },
+        "checked_at": {
+          "format": "date-time",
+          "title": "Checked At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "attempt_id",
+        "post_url",
+        "cafe_name",
+        "read_count",
+        "needs_app_check",
+        "checked_at"
+      ],
+      "title": "CafeCommentCoverage",
+      "type": "object"
+    },
     "CafeCommentOut": {
       "additionalProperties": false,
       "properties": {
@@ -123,6 +177,13 @@
       "minimum": 0,
       "title": "Unread Count",
       "type": "integer"
+    },
+    "coverage": {
+      "items": {
+        "$ref": "#/$defs/CafeCommentCoverage"
+      },
+      "title": "Coverage",
+      "type": "array"
     }
   },
   "required": [

@@ -54,13 +54,10 @@ class CafeRuntime:
             raise CafePageError("cafe_cancelled", "앱 종료로 중단했습니다")
 
     def execute(self, job):
-        if job.kind == 'collect':
-            raise CafePageError('cafe_collection_unverified', '내 글 제외·작성 시각 지원 경로 미확보로 수집을 중단했습니다')
-        if job.kind == 'comments':
-            raise CafePageError('cafe_comments_incomplete', '전체 댓글 조회 지원 경로 미확보로 감시를 완료하지 않습니다')
         self.browser = self.browser or self.browser_factory(self.ctx.config.data_dir / "cafe-browser")
         self.browser.open(headed=job.kind == "login")
         self.browser.robots = None  # Recheck public robots rules for every job.
+        self.browser.navigate, self.browser.clock = self._navigate, self.ctx.clock
         if job.kind == "login":
             try:
                 self._navigate(CAFE_ORIGIN + "/", allow_recovery=True)
@@ -80,6 +77,9 @@ class CafeRuntime:
         if job.kind == "collect":
             from .collection import collect
             return collect(self.ctx, self.browser.recent_posts)
+        if job.kind == 'comments':
+            from .comments import monitor
+            return monitor(self.ctx, self.browser.visible_comments)
         with self.ctx.db.session() as s:
             settings = svc.get_settings(s)
             manual = [{"url": row.url} for row in s.scalars(select(Cafe).where(Cafe.status != "excluded"))]
@@ -124,6 +124,7 @@ class CafeRuntime:
                                 self.browser = None
                             generation = self.ctx.db.gate.generation
                         with self.ctx.db.session() as s:
+                            svc.schedule_due(s, self.ctx.clock())
                             job = svc.claim_next_job(s, self.ctx.clock())
                         if job is None:
                             continue

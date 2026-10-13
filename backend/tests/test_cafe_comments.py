@@ -55,13 +55,37 @@ def test_partial_comments_are_not_a_completed_poll(ctx):
     id_ = posted(ctx)
     page = feed()
     page.complete = False
-    with pytest.raises(svc.CafeError, match='전체 댓글'): save_page(ctx, id_, page)
+    with pytest.raises(svc.CafeError, match='화면 댓글'): save_page(ctx, id_, page)
     with ctx.db.session() as s:
         assert s.scalar(select(CafeComment)) is None
         assert s.get(AppSetting, 'cafe_comment_checks') is None
     page.complete = True
-    page.comments[0].is_own = None
+    page.comments[0].external_id, page.comments[0].written_at = None, None
     with pytest.raises(svc.CafeError): save_page(ctx, id_, page)
+
+
+def test_visible_comment_coverage_warning_survives_zero_rows(ctx, client):
+    id_ = posted(ctx)
+    page = feed()
+    page.reported_count = 21
+    assert save_page(ctx, id_, page)['created'] == 2
+    data = client.get('/v1/cafe/comments').json()
+    assert data['coverage'][0]['reported_count'] == 21 and data['coverage'][0]['read_count'] == 3
+    assert data['coverage'][0]['needs_app_check'] is True
+    assert save_page(ctx, id_, CommentPage([], True, reported_count=5))['created'] == 0
+    coverage = client.get('/v1/cafe/comments').json()['coverage'][0]
+    assert coverage['read_count'] == 0 and coverage['needs_app_check'] is True
+    page.reported_count = 3
+    save_page(ctx, id_, page)
+    assert client.get('/v1/cafe/comments').json()['coverage'][0]['needs_app_check'] is False
+
+
+def test_title_duplicate_is_not_monitored_as_own_post(ctx):
+    id_ = ready(ctx)
+    browser = Browser()
+    browser.visible = [{'title':'합성 개발 서비스', 'url':'https://cafe.daangn.com/synthetic/posts/copied'}]
+    assert publish(ctx, browser, id_, lambda _: None, lambda: None)['status'] == 'already_exists'
+    assert monitor(ctx, lambda _: pytest.fail('다른 작성자의 제목 일치 글은 감시하지 않음'))['checked'] == 0
 
 
 def test_interval_expiry_removed_and_quiet_hours(ctx):

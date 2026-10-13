@@ -42,15 +42,15 @@ def test_recent_incremental_own_exclusion_and_cross_source_relation(ctx):
         assert len(list(s.scalars(select(SourceRecord).where(SourceRecord.source_id == 'daangn_cafe')))) == 1
     seen = []
     collect(ctx, lambda board, since: (seen.append(since) or page))
-    assert seen == [NOW]
+    assert seen == [NOW - timedelta(days=30)]
 
 
-@pytest.mark.parametrize('unknown', ['ownership', 'date', 'incomplete'])
+@pytest.mark.parametrize('unknown', ['date', 'incomplete'])
 def test_unverified_reader_does_not_store_or_advance_checkpoint(ctx, unknown):
     prepare(ctx)
     value = post('one')
     if unknown == 'date': value.published = DateInfo()
-    page = CafePage([CafePost(value, None if unknown == 'ownership' else False)], unknown != 'incomplete')
+    page = CafePage([CafePost(value, None)], unknown != 'incomplete')
     with pytest.raises(svc.CafeError): collect(ctx, lambda board, since: page)
     with ctx.db.session() as s:
         assert s.get(AppSetting, 'cafe_collection_checkpoints') is None
@@ -60,4 +60,21 @@ def test_unverified_reader_does_not_store_or_advance_checkpoint(ctx, unknown):
 def test_actual_source_cannot_bypass_browser_gate(client):
     assert client.post('/v1/cafe/consent', json={'version': svc.CONSENT_VERSION}).status_code == 200
     response = client.post('/v1/runs', json={'source_id': 'daangn_cafe', 'kind': 'discovery'})
-    assert response.status_code == 409 and response.json()['error']['code'] == 'cafe_collection_unverified'
+    assert response.status_code == 409 and response.json()['error']['code'] == 'cafe_browser_queue_required'
+
+
+def test_scope_b_template_portfolio_and_relative_date(ctx):
+    from worklead.cafe.posting import template
+    from worklead.cafe.parsing import relative_date
+    prepare(ctx)
+    with ctx.db.session() as s: title = template(s).title
+    values = [post('same-title'), post('portfolio'), post('other'), post('old-relative', 31)]
+    values[0].title = title
+    values[1].body += ' 포트폴리오 https://www.seyj.kr/projects'
+    for value, raw in zip(values, ('3일 전', '1일 전', '3일 전', '31일 전')):
+        value.published = relative_date(raw, NOW)
+    result = collect(ctx, lambda *_: CafePage([CafePost(p, None) for p in values], True))
+    assert result['created'] == 1 and result['skipped_own'] == 2 and result['skipped_old'] == 1
+    with ctx.db.session() as s:
+        record = s.scalar(select(SourceRecord))
+        assert record.source_post_id == 'other' and record.published_precision == 'approximate'

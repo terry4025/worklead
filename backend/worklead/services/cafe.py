@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from pydantic import ValidationError
 
 from ..api import schemas as S
-from ..models import AppSetting, Cafe, CafeBoard, CafeConsent, CafeJob, CafeSession, SourcePolicy, new_id
+from ..models import AppSetting, Cafe, CafeBoard, CafeConsent, CafeJob, CafeSession, CafePostAttempt, Source, SourcePolicy, new_id
 from ..engine.events import emit, notify
 
 CONSENT_VERSION = "cafe-risk-2026-10-12-v1"
@@ -58,8 +58,8 @@ def update_settings(s: Session, changes: dict[str, Any]) -> dict[str, Any]:
         cfg = S.CafeSettings.model_validate({**get_settings(s), **{k: v for k, v in changes.items() if v is not None}}).model_dump()
     except ValidationError:
         raise CafeError(422, "invalid_cafe_settings", "카페 검색어와 한도 설정을 확인하세요") from None
-    if cfg["auto_post"]:
-        raise CafeError(409, "cafe_posting_unsupported", "내 글 대조와 게시 허용 근거를 확보하기 전에는 자동 게시를 켤 수 없습니다")
+    if cfg["auto_post"] and (not consent_accepted(s) or session_row(s).state != 'logged_in'):
+        raise CafeError(409, "cafe_session_required", "자동 게시를 켜려면 위험 안내와 로그인 확인이 필요합니다")
     row = s.get(AppSetting, "cafe")
     if row is None:
         s.add(AppSetting(key="cafe", value=cfg))
@@ -167,6 +167,34 @@ def claim_next_job(s: Session, now: datetime) -> CafeJob | None:
     if row:
         row.state, row.started_at = "running", now
     return row
+
+
+def schedule_due(s: Session, now: datetime) -> CafeJob | None:
+    """One serial queue; explicit opt-ins, durable cadence, no catch-up burst."""
+    if not consent_accepted(s) or session_row(s).state != 'logged_in': return None
+    usage, cfg = session_row(s), get_settings(s)
+    policy = s.get(SourcePolicy, 'daangn_cafe')
+    if not policy or policy.status != 'allowed': return None
+    if s.scalar(select(CafeJob.id).where(CafeJob.state.in_(('queued', 'running'))).limit(1)): return None
+    if usage.usage_day == day_key(now) and usage.page_count >= cfg['daily_page_limit']: return None
+    def due(kind, minutes):
+        last = s.scalar(select(CafeJob).where(CafeJob.kind == kind).order_by(CafeJob.created_at.desc()).limit(1))
+        return last is None or last.created_at + timedelta(minutes=minutes) <= now
+    # Only our successful submissions are monitored, never title-match skips.
+    monitored = s.scalar(select(CafePostAttempt.id).where(CafePostAttempt.status.in_(('posted', 'posted_mismatch')),
+        CafePostAttempt.created_at >= now - timedelta(days=cfg['comment_monitor_days'])).limit(1))
+    if monitored and due('comments', cfg['comment_interval_minutes']):
+        return enqueue_job(s, 'comments', now, {'scheduled': True})
+    if cfg['auto_post'] and due('post', cfg['min_post_minutes']) and (usage.usage_day != day_key(now) or usage.post_count < cfg['daily_post_limit']) and (not usage.last_post_at or usage.last_post_at + timedelta(minutes=cfg['min_post_minutes']) <= now):
+        tried = select(CafePostAttempt.cafe_id)
+        cafe_id = s.scalar(select(Cafe.id).join(CafeBoard, CafeBoard.cafe_id == Cafe.id).where(Cafe.status == 'approved', Cafe.joined.is_(True),
+            CafeBoard.approved.is_(True), CafeBoard.post_allowed.is_(True), Cafe.id.not_in(tried)).order_by(Cafe.approved_at).limit(1))
+        if cafe_id: return enqueue_job(s, 'post', now, {'scheduled': True, 'cafe_id': cafe_id})
+    source = s.get(Source, 'daangn_cafe')
+    if source and source.auto_collect_enabled and not source.stopped_reason and due('collect', cfg['collect_interval_minutes']):
+        board = s.scalar(select(CafeBoard.id).join(Cafe, Cafe.id == CafeBoard.cafe_id).where(Cafe.status.in_(('eligible', 'approved')), CafeBoard.kind.in_(('job_seek', 'job_offer', 'free'))).limit(1))
+        if board: return enqueue_job(s, 'collect', now, {'scheduled': True})
+    return None
 
 
 def finish_job(s: Session, job_id: str, state: str, now: datetime, *, error_code: str | None = None, error_message: str | None = None, result: dict | None = None) -> None:

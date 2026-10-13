@@ -4,7 +4,7 @@
       "additionalProperties": false,
       "properties": {
         "collection": {
-          "default": false,
+          "default": true,
           "title": "Collection",
           "type": "boolean"
         },
@@ -19,8 +19,18 @@
           "type": "boolean"
         },
         "posting": {
-          "default": false,
+          "default": true,
           "title": "Posting",
+          "type": "boolean"
+        },
+        "title_duplicates": {
+          "default": true,
+          "title": "Title Duplicates",
+          "type": "boolean"
+        },
+        "visible_comments": {
+          "default": true,
+          "title": "Visible Comments",
           "type": "boolean"
         }
       },

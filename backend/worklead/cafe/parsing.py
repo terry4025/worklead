@@ -6,6 +6,7 @@ absolute dates, missing comments, search URLs, or region filters.
 from __future__ import annotations
 
 import re
+from datetime import datetime, timedelta
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
 from urllib.parse import unquote, urljoin, urlsplit
@@ -212,3 +213,75 @@ def promotion_rule_sentences(html: str) -> list[str]:
                 if re.search(r"홍보|광고|구직글|외부\s*링크", sentence):
                     result.append(sentence[:1000])
     return result[:20]
+
+
+RELATIVE_TIME = re.compile(r'^(방금(?:\s*전)?|오늘|어제|\d+\s*(?:초|분|시간|일|주|개월|달|년)\s*전)$')
+
+
+def relative_date(raw: str | None, now: datetime):
+    """Displayed relative times are estimates, never promoted to exact dates."""
+    from ..analysis.types import DateInfo
+    raw = (raw or '').strip()
+    if not RELATIVE_TIME.fullmatch(raw):
+        return DateInfo(None, 'unknown', raw or None)
+    compact = re.sub(r'\s+', '', raw)
+    if compact in ('방금', '방금전', '오늘'): delta = timedelta()
+    elif compact == '어제': delta = timedelta(days=1)
+    else:
+        count, unit = re.fullmatch(r'(\d+)(초|분|시간|일|주|개월|달|년)전', compact).groups()
+        seconds = {'초': 1, '분': 60, '시간': 3600, '일': 86400, '주': 604800,
+                   '개월': 30 * 86400, '달': 30 * 86400, '년': 365 * 86400}[unit]
+        delta = timedelta(seconds=int(count) * seconds)
+    return DateInfo(now - delta, 'approximate', raw)
+
+
+def template_match(title: str, body: str, template_title: str) -> bool:
+    """User-approved exclusion heuristic, independent of author ownership."""
+    if title.strip() == template_title.strip(): return True
+    # Exact portfolio host, including www/subdomains; no substring lookalikes.
+    for candidate in re.findall(r'https?://[^\s<>"\']+|(?<![\w.-])(?:www\.)?seyj\.kr(?![\w.-])(?:/[^\s<>"\']*)?', body, re.I):
+        host = urlsplit(candidate if '://' in candidate else 'https://' + candidate).hostname
+        if host and (host.lower() == 'seyj.kr' or host.lower().endswith('.seyj.kr')): return True
+    return False
+
+
+def board_posts(html: str, page_url: str) -> list[dict]:
+    """Only rendered observed post cards; no inferred pagination/API URLs."""
+    prefix = '/' + urlsplit(page_url).path.strip('/').split('/')[0] + '/posts/'
+    result = {}
+    for node in _nodes(html):
+        if node.tag != 'a' or not node.attrs.get('href'): continue
+        try: url = safe_cafe_url(urljoin(page_url, node.attrs['href']))
+        except CafePageError: continue
+        if not urlsplit(url).path.startswith(prefix) or url.endswith('/new'): continue
+        titles = [n for n in node.walk() if n.tag == 'p' and 'line-clamp-2' in n.attrs.get('class', '').split()]
+        # Sanitized/local DOM may retain semantic headings instead of typography.
+        if not titles: titles = [n for n in node.walk() if n.tag in ('h2', 'h3')]
+        if not titles: continue
+        dates = [n.text() for n in node.walk() if n.tag in ('span', 'p', 'time') and RELATIVE_TIME.fullmatch(n.text())]
+        result[url] = {'url': url, 'title': titles[0].text(), 'written_raw': dates[-1] if dates else None}
+    return list(result.values())
+
+
+def board_listing_ready(html: str, page_url: str) -> bool:
+    nodes = _nodes(html)
+    # Hydrated cafe navigation distinguishes a list from a loading skeleton,
+    # unrelated route, or a changed page structure.
+    hydrated = any(n.tag == 'nav' and n.attrs.get('aria-label') == '게시판' for n in nodes)
+    heading = any(n.tag in ('h1', 'h2') and n.text() for n in nodes)
+    if not hydrated or not heading: return False
+    if board_posts(html, page_url): return True
+    # Observed empty-board copy; absence of recognized cards alone is unsafe.
+    return any(n.tag in ('p', 'div') and n.text().rstrip('.') == '작성된 게시글이 없어요' for n in nodes)
+
+
+def post_relative_time(html: str) -> str | None:
+    """Post metadata is before the article body; comment times are excluded."""
+    nodes = _nodes(html)
+    displayed = [n.text() for n in nodes if n.tag == 'span' and 'seed-tag-group-item__label--size_t3' in n.attrs.get('class', '').split() and RELATIVE_TIME.fullmatch(n.text())]
+    if displayed: return displayed[0]
+    start = next((i for i, n in enumerate(nodes) if n.tag == 'h1'), None)
+    if start is None: return None
+    end = next((i for i in range(start + 1, len(nodes)) if 'article-body' in nodes[i].attrs.get('class', '').split()), len(nodes))
+    dates = [n.text() for n in nodes[start:end] if n.tag in ('p', 'span', 'time') and RELATIVE_TIME.fullmatch(n.text())]
+    return dates[0] if dates else None

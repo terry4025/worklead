@@ -1106,7 +1106,7 @@ def execute(app: AppContext, run: Run, owner: str) -> None:
                 lead = s.get(Lead, run.lead_id)
                 cafe_source = cafe_source or bool(lead and lead.source_id == 'daangn_cafe')
         if cafe_source and run.kind in (*runs.COLLECTION_KINDS, 'recheck_lead'):
-            raise Halt('failed', 'cafe_collection_unverified', '카페 세션·내 글 제외·작성 시각 지원 경로 미확보. 익명 HTTP 수집으로 우회하지 않습니다')
+            raise Halt('failed', 'cafe_browser_queue_required', '카페는 전용 Edge 큐에서 실행합니다. 익명 HTTP 수집을 사용하지 않습니다')
         if fn is None:
             raise Halt("failed", "unknown_kind", f"알 수 없는 작업 종류: {run.kind}")
         fn(app, run, owner)

@@ -65,6 +65,8 @@ def schedule_due(app: AppContext) -> list[str]:
     created: list[str] = []
     with app.db.session() as s:
         for source in s.scalars(select(Source).where(Source.kind == "site", Source.auto_collect_enabled.is_(True))):
+            if getattr(app.adapters.get(source.id), 'browser_collection', False):
+                continue  # Dedicated cafe owner schedules its serial browser queue.
             policy = s.get(SourcePolicy, source.id)
             if policy is None or policy.status not in ("allowed", "restricted") or source.stopped_reason:
                 continue

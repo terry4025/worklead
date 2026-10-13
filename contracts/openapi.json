@@ -6053,7 +6053,7 @@
           "collection": {
             "type": "boolean",
             "title": "Collection",
-            "default": false
+            "default": true
           },
           "own_posts": {
             "type": "boolean",
@@ -6068,12 +6068,75 @@
           "posting": {
             "type": "boolean",
             "title": "Posting",
-            "default": false
+            "default": true
+          },
+          "title_duplicates": {
+            "type": "boolean",
+            "title": "Title Duplicates",
+            "default": true
+          },
+          "visible_comments": {
+            "type": "boolean",
+            "title": "Visible Comments",
+            "default": true
           }
         },
         "additionalProperties": false,
         "type": "object",
         "title": "CafeCapabilities"
+      },
+      "CafeCommentCoverage": {
+        "properties": {
+          "attempt_id": {
+            "type": "string",
+            "title": "Attempt Id"
+          },
+          "post_url": {
+            "type": "string",
+            "title": "Post Url"
+          },
+          "cafe_name": {
+            "type": "string",
+            "title": "Cafe Name"
+          },
+          "reported_count": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reported Count"
+          },
+          "read_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Read Count"
+          },
+          "needs_app_check": {
+            "type": "boolean",
+            "title": "Needs App Check"
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Checked At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "attempt_id",
+          "post_url",
+          "cafe_name",
+          "read_count",
+          "needs_app_check",
+          "checked_at"
+        ],
+        "title": "CafeCommentCoverage"
       },
       "CafeCommentDraft": {
         "properties": {
@@ -6102,6 +6165,13 @@
             "type": "integer",
             "minimum": 0.0,
             "title": "Unread Count"
+          },
+          "coverage": {
+            "items": {
+              "$ref": "#/components/schemas/CafeCommentCoverage"
+            },
+            "type": "array",
+            "title": "Coverage"
           }
         },
         "additionalProperties": false,

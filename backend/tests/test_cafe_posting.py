@@ -11,11 +11,10 @@ from worklead.services import cafe as svc
 
 class Browser:
     sent = 0
-    complete = True
-    owned = []
+    visible = []
     mismatch = False
     uncertain = False
-    def owned_posts(self, url, navigate): return self.owned, self.complete
+    def duplicate_posts(self, board, navigate): return self.visible
     def prepare_editor(self, url, board, value, navigate): self.value, self.url = value, url
     def submit_post(self):
         self.sent += 1
@@ -48,16 +47,20 @@ def test_post_linebreak_verify_then_no_second_submission(ctx):
         assert row.verified_at == NOW and row.post_url.endswith('/synthetic-published')
 
 
-def test_existing_owned_title_or_body_and_unknown_ownership(ctx):
+def test_existing_title_skips_without_author_or_body_match(ctx):
     id_ = ready(ctx)
     browser = Browser()
-    browser.complete = False
-    with pytest.raises(CafePageError, match='대조'): publish(ctx, browser, id_, lambda _: None, lambda: None)
-    assert browser.sent == 0
-    browser.complete = True
-    browser.owned = [{'title':'합성 개발 서비스', 'body':'old body', 'url':'https://cafe.daangn.com/synthetic/posts/old'}]
+    browser.visible = [{'title':'합성 개발 서비스', 'body':'old body', 'url':'https://cafe.daangn.com/synthetic/posts/old', 'author':'다른 사람'}]
     assert publish(ctx, browser, id_, lambda _: None, lambda: None)['status'] == 'already_exists'
     assert browser.sent == 0
+
+
+def test_same_body_with_different_title_does_not_skip(ctx):
+    id_ = ready(ctx)
+    browser = Browser()
+    browser.visible = [{'title':'다른 제목', 'body':'첫 문단\n\n둘째 문단\n\n\n끝', 'url':'https://cafe.daangn.com/synthetic/posts/old'}]
+    assert publish(ctx, browser, id_, lambda _: None, lambda: None)['status'] == 'posted'
+    assert browser.sent == 1
 
 
 @pytest.mark.parametrize('mode', ['mismatch', 'uncertain', 'budget', 'interval', 'removed'])

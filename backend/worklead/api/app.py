@@ -314,12 +314,22 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
                 # An explicit enable starts one scan; later scans use the
                 # persisted interval. Existing work is never duplicated.
                 try:
-                    runq.enqueue(s, "discovery", source_id=source_id, trigger="schedule", idempotency_key=f"enable:{source_id}:{now.isoformat()}")
+                    if source_id == 'daangn_cafe':
+                        from ..services import cafe as cafe_svc
+                        cafe_svc.enqueue_job(s, 'collect', now, {'scheduled': True})
+                    else:
+                        runq.enqueue(s, "discovery", source_id=source_id, trigger="schedule", idempotency_key=f"enable:{source_id}:{now.isoformat()}")
                 except runq.RunConflict:
                     pass
             elif not body.auto_collect_enabled:
                 for pending in s.scalars(select(Run).where(Run.source_id == source_id, Run.trigger == "schedule", Run.state == "queued")):
                     runq.request_action(s, pending, "cancel")
+                if source_id == 'daangn_cafe':
+                    from ..models import CafeJob
+                    from ..services import cafe as cafe_svc
+                    for pending in s.scalars(select(CafeJob).where(CafeJob.kind == 'collect', CafeJob.state == 'queued')):
+                        if pending.input.get('scheduled'):
+                            cafe_svc.finish_job(s, pending.id, 'cancelled', now)
         emit(s, "source.health_changed", {"source_id": source_id, "health": source.health_status})
         s.flush()
         ctx.hub.notify()
@@ -338,7 +348,7 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
             raise ApiError(409, "policy_not_allowed", f"자동 수집 권한이 확인되지 않았습니다 ({policy.status if policy else 'permission_pending'})")
         research = source_svc.research_state(ctx.adapters.get(source.id))
         if source.id == 'daangn_cafe':
-            raise ApiError(409, 'cafe_collection_unverified', '내 글 제외·작성 시각의 지원 경로를 확보하기 전에는 카페 수집을 실행하지 않습니다')
+            raise ApiError(409, 'cafe_browser_queue_required', '카페 작업 공간의 수집 기능을 사용하세요. 전용 Edge 큐에서 실행합니다')
         if body.kind == "discovery" and not research.ready:
             raise ApiError(409, "research_incomplete", "사이트 조사가 끝나지 않아 탐색할 수 없습니다", {"missing": research.missing})
         if source.stopped_reason:

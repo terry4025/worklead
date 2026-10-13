@@ -1181,7 +1181,7 @@ export interface components {
         CafeCapabilities: {
             /**
              * Collection
-             * @default false
+             * @default true
              */
             collection: boolean;
             /**
@@ -1196,9 +1196,39 @@ export interface components {
             full_comments: boolean;
             /**
              * Posting
-             * @default false
+             * @default true
              */
             posting: boolean;
+            /**
+             * Title Duplicates
+             * @default true
+             */
+            title_duplicates: boolean;
+            /**
+             * Visible Comments
+             * @default true
+             */
+            visible_comments: boolean;
+        };
+        /** CafeCommentCoverage */
+        CafeCommentCoverage: {
+            /** Attempt Id */
+            attempt_id: string;
+            /** Post Url */
+            post_url: string;
+            /** Cafe Name */
+            cafe_name: string;
+            /** Reported Count */
+            reported_count?: number | null;
+            /** Read Count */
+            read_count: number;
+            /** Needs App Check */
+            needs_app_check: boolean;
+            /**
+             * Checked At
+             * Format: date-time
+             */
+            checked_at: string;
         };
         /** CafeCommentDraft */
         CafeCommentDraft: {
@@ -1211,6 +1241,8 @@ export interface components {
             items: components["schemas"]["CafeCommentOut"][];
             /** Unread Count */
             unread_count: number;
+            /** Coverage */
+            coverage?: components["schemas"]["CafeCommentCoverage"][];
         };
         /** CafeCommentOut */
         CafeCommentOut: {

@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
 import { PortProvider } from '../app/PortContext';
 import { MockPort } from '../data/mock/mockPort';
@@ -38,6 +38,7 @@ it('saves a versioned template with consecutive blank lines and displays preview
   fireEvent.change(screen.getByLabelText('본문'), { target: { value: '첫 문단\n\n\n끝 문단' } });
   fireEvent.click(screen.getByText('템플릿 저장'));
   await screen.findByText('게시 템플릿 · 버전 2');
+  expect(await screen.findByText('게시 템플릿을 저장했습니다.')).toBeTruthy();
   expect((await port.cafe.template()).body).toBe('첫 문단\n\n\n끝 문단');
 });
 it('shows error and retry without enabling unsafe actions', async () => {
@@ -112,4 +113,80 @@ it('refreshes inquiry data when a queued comment job finishes after its action r
   completed = true;
   await act(async () => { qc.setQueryData(['cafe', 'status'], { ...status, active_job: null }); });
   expect(await screen.findByText('늦게 수집된 제작 문의입니다')).toBeTruthy();
+});
+
+it.each([
+  ['list', '카페 목록', '첫 카페를 등록해 보세요'],
+  ['jobs', '실행 기록', '아직 실행한 작업이 없습니다'],
+  ['attempts', '게시 기록', '첫 게시를 준비하세요'],
+  ['comments', '문의', '아직 저장된 문의가 없습니다'],
+] as const)('recovers %s failures without claiming an empty result', async (method, label, empty) => {
+  const port = new MockPort({ scenario: 'cafe_inquiries', latency: [0, 0] });
+  const query = vi.spyOn(port.cafe, method).mockRejectedValueOnce(new Error('임시 조회 오류'));
+  if (method === 'comments') query.mockResolvedValue({ items: [], unread_count: 0, coverage: [] });
+  show(port);
+  fireEvent.click(await screen.findByRole('tab', { name: new RegExp(`^${label}`) }));
+  await screen.findByText(`${label} 조회 실패`);
+  expect(screen.queryByText(empty)).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: `${label} 다시 불러오기` }));
+  await screen.findByText(empty);
+  expect(screen.queryByText(`${label} 조회 실패`)).toBeNull();
+});
+
+it('shows pending history separately from an empty history', async () => {
+  const port = new MockPort({ scenario: 'cafe_inquiries', latency: [0, 0] });
+  let finish!: (value: []) => void;
+  vi.spyOn(port.cafe, 'jobs').mockImplementation(() => new Promise((resolve) => { finish = resolve; }));
+  show(port);
+  fireEvent.click(await screen.findByRole('tab', { name: '실행 기록' }));
+  await screen.findByText('실행 기록 불러오는 중…');
+  expect(screen.queryByText('아직 실행한 작업이 없습니다')).toBeNull();
+  await act(async () => { finish([]); });
+  await screen.findByText('아직 실행한 작업이 없습니다');
+});
+
+it('shows zero counts and same-title results without claiming a new post', async () => {
+  const port = new MockPort({ scenario: 'cafe_inquiries', latency: [0, 0] });
+  const base = { id: 'job-result', state: 'succeeded' as const, created_at: new Date().toISOString(), started_at: null, finished_at: null, error_code: null, error_message: null };
+  vi.spyOn(port.cafe, 'jobs').mockResolvedValue([{ ...base, kind: 'collect', result: { created: 0, updated: 2, unchanged: 4, skipped_own: 1, skipped_old: 3, boards: 1 } }, { ...base, id: 'job-skip', kind: 'post', result: { status: 'already_exists' } }]);
+  show(port);
+  expect(await screen.findByText('새 리드 0건', { exact: false })).toBeTruthy();
+  fireEvent.click(screen.getByRole('button', { name: '실행 기록 보기' }));
+  await screen.findByText('같은 제목 있어 건너뜀');
+  expect(screen.queryByText('게시 확인')).toBeNull();
+});
+
+it('shows the latest failed job in the workspace without opening history', async () => {
+  const port = new MockPort({ scenario: 'cafe_inquiries', latency: [0, 0] });
+  vi.spyOn(port.cafe, 'jobs').mockResolvedValue([{ id: 'failed-inspection', kind: 'inspect', state: 'failed', created_at: new Date().toISOString(), started_at: null, finished_at: null, error_code: 'cafe_page_budget', error_message: '오늘 페이지 한도에 도달했습니다', result: {} }]);
+  show(port);
+  await screen.findByText('최근 작업: 규칙 다시 조사 · 실패');
+  expect(screen.getByText('오늘 페이지 한도에 도달했습니다')).toBeTruthy();
+});
+
+it('allows stopping auto posting and revoking approval while a browser job runs', async () => {
+  const port = new MockPort({ scenario: 'cafe_inquiries', latency: [0, 0] });
+  await port.cafe.settings({ auto_post: true });
+  const status = await port.cafe.status();
+  const originalStatus = port.cafe.status.bind(port.cafe);
+  vi.spyOn(port.cafe, 'status').mockImplementation(async () => ({ ...status, settings: (await originalStatus()).settings, active_job: { id: 'preparing', kind: 'post', state: 'running', created_at: new Date().toISOString(), started_at: null, finished_at: null, error_code: null, error_message: null, result: {} } }));
+  const row = await port.cafe.add('https://cafe.daangn.com/synthetic-approved');
+  row.status = 'approved'; row.joined = true;
+  row.boards = [{ id: 'approved-board', cafe_id: row.id, name: '개발 구직', url: `${row.url}/boards/synthetic`, kind: 'job_seek', post_allowed: true, approved: true, evidence: '허용 근거 (합성)' }];
+  vi.spyOn(port.cafe, 'list').mockResolvedValue([row]);
+  const settings = vi.spyOn(port.cafe, 'settings');
+  const revoke = vi.spyOn(port.cafe, 'state');
+  const board = vi.spyOn(port.cafe, 'board').mockResolvedValue({ ...row.boards[0]!, approved: false });
+  show(port);
+  const auto = await screen.findByRole('checkbox', { name: /자동 게시/ });
+  expect((auto as HTMLInputElement).disabled).toBe(false);
+  fireEvent.click(auto);
+  await waitFor(() => expect(settings).toHaveBeenCalledWith({ auto_post: false }));
+  await screen.findByText('자동 게시를 껐습니다. 이미 제출한 글에는 영향을 주지 않습니다.');
+  fireEvent.click(screen.getByRole('button', { name: '게시판 승인 취소' }));
+  await waitFor(() => expect(board).toHaveBeenCalledWith('approved-board', false));
+  await screen.findByText('게시판 승인을 취소했습니다.');
+  fireEvent.click(screen.getByRole('button', { name: '카페 승인 취소' }));
+  await waitFor(() => expect(revoke).toHaveBeenCalledWith(row.id, 'candidate'));
+  expect((screen.getByRole('button', { name: '지금 게시' }) as HTMLButtonElement).disabled).toBe(true);
 });

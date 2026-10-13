@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
 import { PortProvider } from '../app/PortContext';
 import { MockPort } from '../data/mock/mockPort';
@@ -24,7 +24,8 @@ it('requires recorded consent before browser actions, then discovers synthetic c
   fireEvent.click(screen.getByText('카페 찾기'));
   await screen.findByText('재택 개발 의뢰 (합성)');
   expect(action).toHaveBeenCalledWith('discover');
-  expect((screen.getByRole('checkbox', { name: '자동 게시' }) as HTMLInputElement).disabled).toBe(true);
+  expect((screen.getByRole('checkbox', { name: /자동 게시/ }) as HTMLInputElement).disabled).toBe(false);
+  expect((screen.getByRole('checkbox', { name: /자동 게시/ }) as HTMLInputElement).checked).toBe(false);
   expect((screen.getByRole('button', { name: '게시 대상 승인' }) as HTMLButtonElement).disabled).toBe(true);
   expect((screen.getByRole('button', { name: '지금 게시' }) as HTMLButtonElement).disabled).toBe(true);
 });
@@ -50,6 +51,7 @@ it('shows unread inquiries and preserves memo, read state and editable draft', a
   const port = show(new MockPort({ scenario: 'cafe_inquiries', latency: [0, 0] }));
   fireEvent.click(await screen.findByText('문의 (1)'));
   await screen.findByText('작업 문의 · 안 읽음');
+  expect(screen.getByText('앱에서 전체 확인 필요')).toBeTruthy();
   fireEvent.change(screen.getByLabelText('문의 메모'), { target: { value: '견적 후속 메모' } });
   fireEvent.click(screen.getByText('메모 저장'));
   await screen.findByText('답글 초안');
@@ -63,4 +65,51 @@ it('shows unread inquiries and preserves memo, read state and editable draft', a
   expect(data.items[0]?.memo).toBe('견적 후속 메모');
   const id = await port.cafe.commentLead(data.items[0]!.id);
   expect((await port.getLead(id)).sourceId).toBe('manual');
+});
+it('shows incomplete comment coverage even when the web has zero visible comments', async () => {
+  const port = new MockPort({ scenario: 'cafe_inquiries', latency: [0, 0] });
+  vi.spyOn(port.cafe, 'comments').mockResolvedValue({ items: [], unread_count: 0, coverage: [{ attempt_id: 'zero-visible', post_url: 'https://cafe.daangn.com/synthetic/posts/zero', cafe_name: '합성 카페', reported_count: 4, read_count: 0, needs_app_check: true, checked_at: new Date().toISOString() }] });
+  show(port);
+  fireEvent.click(await screen.findByRole('tab', { name: '문의' }));
+  await screen.findByText('앱에서 전체 확인 필요');
+  expect(screen.getByText(/웹에서 0개 읽음/)).toBeTruthy();
+  expect(screen.getByText('아직 저장된 문의가 없습니다')).toBeTruthy();
+});
+it('moves between tabs with arrow keys without opening a browser or posting', async () => {
+  const port = show(new MockPort({ scenario: 'cafe_inquiries', latency: [0, 0] }));
+  const post = vi.spyOn(port.cafe, 'post');
+  const list = await screen.findByRole('tab', { name: /카페 목록/ });
+  list.focus();
+  fireEvent.keyDown(list, { key: 'ArrowRight' });
+  expect(screen.getByRole('tab', { name: '게시 기록' }).getAttribute('aria-selected')).toBe('true');
+  expect(document.activeElement).toBe(screen.getByRole('tab', { name: '게시 기록' }));
+  expect(post).not.toHaveBeenCalled();
+});
+it('labels a relative comment timestamp as estimated instead of showing its derived date as exact', async () => {
+  const port = new MockPort({ scenario: 'cafe_inquiries', latency: [0, 0] });
+  const data = await port.cafe.comments();
+  data.items[0]!.written_raw = '3일 전';
+  data.items[0]!.written_at = '2026-10-10T09:00:00Z';
+  vi.spyOn(port.cafe, 'comments').mockResolvedValue(data);
+  show(port);
+  fireEvent.click(await screen.findByRole('tab', { name: '문의 (1)' }));
+  expect((await screen.findByText(/3일 전 \(작성 시각 추정\)/)).textContent).toContain('3일 전 (작성 시각 추정)');
+  expect(screen.queryByText(/2026\. 10\. 10\./)).toBeNull();
+});
+it('refreshes inquiry data when a queued comment job finishes after its action response', async () => {
+  const port = new MockPort({ scenario: 'cafe_inquiries', latency: [0, 0] });
+  const finalComments = await port.cafe.comments();
+  finalComments.items[0]!.body = '늦게 수집된 제작 문의입니다';
+  let completed = false;
+  vi.spyOn(port.cafe, 'comments').mockImplementation(async () => completed ? finalComments : { items: [], unread_count: 0, coverage: [] });
+  show(port);
+  fireEvent.click(await screen.findByRole('tab', { name: '문의' }));
+  await screen.findByText('아직 저장된 문의가 없습니다');
+  const qc = clients.at(-1)!;
+  const status = await port.cafe.status();
+  await act(async () => { qc.setQueryData(['cafe', 'status'], { ...status, active_job: { id: 'deferred-comments', kind: 'comments', state: 'running', created_at: new Date().toISOString(), started_at: new Date().toISOString(), finished_at: null, error_code: null, error_message: null, result: null } }); });
+  await screen.findByText(/댓글 확인 진행 중/);
+  completed = true;
+  await act(async () => { qc.setQueryData(['cafe', 'status'], { ...status, active_job: null }); });
+  expect(await screen.findByText('늦게 수집된 제작 문의입니다')).toBeTruthy();
 });

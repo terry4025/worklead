@@ -15,9 +15,9 @@ type Values = Pick<CafeSnapshot['settings'], typeof fields[number][0]>;
 export function ScheduleSettings({ settings, busy, save }: { settings: CafeSnapshot['settings']; busy: boolean; save: (patch: Schemas['CafeSettingsPatch']) => void }) {
   const [values, setValues] = useState<Values>(() => Object.fromEntries(fields.map(([id]) => [id, settings[id]])) as Values);
   return <form className="cafe-settings cafe-schedule" onSubmit={(e) => { e.preventDefault(); save(values); }}>
-    <h2>게시 한도와 확인 주기</h2>
-    <p className="field-hint">지원 경로 확보 전에는 예약을 실행하지 않습니다. 이 값은 이후 사용할 설정으로 저장됩니다.</p>
-    {fields.map(([id, label, min, max]) => <label key={id}>{label}<input type="number" required min={min} max={max} value={values[id]} onChange={(e) => setValues({ ...values, [id]: Number(e.target.value) })} /></label>)}
-    <Button type="submit" variant="primary" disabled={busy}>주기·게시 한도 저장</Button>
+    <h3>게시 한도와 확인 주기</h3>
+    <p className="field-hint">자동 게시는 기본 꺼짐이며, 켜도 승인한 카페와 게시판에만 게시합니다.</p>
+    <div className="cafe-schedule-fields">{fields.map(([id, label, min, max]) => <label key={id}>{label}<input type="number" required min={min} max={max} value={values[id]} onChange={(e) => setValues({ ...values, [id]: Number(e.target.value) })} /></label>)}</div>
+    <Button type="submit" disabled={busy}>주기·게시 한도 저장</Button>
   </form>;
 }

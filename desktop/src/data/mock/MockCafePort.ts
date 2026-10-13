@@ -5,14 +5,18 @@ import type { Schemas } from '@contracts/index';
 /** Synthetic demonstration, no browser or external site requests. */
 export class MockCafePort implements CafePort {
   private inquiries: Schemas['CafeCommentOut'][] = [];
+  private coverage: Schemas['CafeCommentList']['coverage'] = [];
   constructor(scenario?: string, private createLead?: (body: string, url: string) => Promise<string>) {
     if (scenario === 'cafe_inquiries' || scenario === 'cafe_challenge') {
       this.snapshot.consent = { version: this.snapshot.consent_version, accepted_at: new Date().toISOString() };
       this.snapshot.session = { state: scenario === 'cafe_challenge' ? 'needs_user' : 'logged_in', checked_at: new Date().toISOString(), reason: scenario === 'cafe_challenge' ? 'authentication_challenge' : null };
     }
-    if (scenario === 'cafe_inquiries') this.inquiries = [{ id:'synthetic-comment-1', attempt_id:'synthetic-attempt-1', cafe_name:'개발 프리랜서 (합성)', post_url:'https://cafe.daangn.com/synthetic/posts/synthetic-post', author_nickname:'합성 의뢰인', body:'가게 홈페이지 제작 견적을 받을 수 있을까요? 온라인으로 진행하려고 합니다.', written_at:new Date().toISOString(), written_raw:null, is_reply:false, classification:'request', read_at:null, memo:'', lead_id:null }];
+    if (scenario === 'cafe_inquiries') {
+      this.inquiries = [{ id:'synthetic-comment-1', attempt_id:'synthetic-attempt-1', cafe_name:'개발 프리랜서 (합성)', post_url:'https://cafe.daangn.com/synthetic/posts/synthetic-post', author_nickname:'합성 의뢰인', body:'가게 홈페이지 제작 견적을 받을 수 있을까요? 온라인으로 진행하려고 합니다.', written_at:new Date(Date.now() - 3 * 86400000).toISOString(), written_raw:'3일 전', is_reply:false, classification:'request', read_at:null, memo:'', lead_id:null }];
+      this.coverage = [{ attempt_id:'synthetic-attempt-1', cafe_name:'개발 프리랜서 (합성)', post_url:'https://cafe.daangn.com/synthetic/posts/synthetic-post', reported_count:3, read_count:1, needs_app_check:true, checked_at:new Date().toISOString() }];
+    }
   }
-  async comments() { return { items: structuredClone(this.inquiries).sort((a,b) => Number(Boolean(a.read_at)) - Number(Boolean(b.read_at))), unread_count: this.inquiries.filter((c) => !c.read_at).length }; }
+  async comments() { return { items: structuredClone(this.inquiries).sort((a,b) => Number(Boolean(a.read_at)) - Number(Boolean(b.read_at))), unread_count: this.inquiries.filter((c) => !c.read_at).length, coverage:structuredClone(this.coverage) }; }
   private inquiry(id: string) { const row = this.inquiries.find((r) => r.id === id); if (!row) throw new Error('합성 문의를 찾을 수 없습니다'); return row; }
   async updateComment(id: string, body: Parameters<CafePort['updateComment']>[1]) {
     const row = this.inquiry(id);
@@ -35,14 +39,15 @@ export class MockCafePort implements CafePort {
     return structuredClone(this.value);
   }
   async attempts() { return []; }
-  async post(): ReturnType<CafePort['post']> { throw new Error('내 글 전체 대조 경로가 없어 게시를 차단했습니다'); }
-  async repost(): ReturnType<CafePort['repost']> { throw new Error('내 글 전체 대조 경로가 없어 재게시를 차단했습니다'); }
+  async post(id: string): ReturnType<CafePort['post']> { this.assertTarget(id); return this.action('post'); }
+  async repost(): ReturnType<CafePort['repost']> { throw new Error('합성 시나리오에 재게시 가능한 삭제 글이 없습니다'); }
+  private assertTarget(id: string) { const row = this.entries.find((c) => c.id === id); if (!row || row.status !== 'approved' || !row.boards.some((b) => b.approved && b.post_allowed)) throw new Error('카페와 게시판을 먼저 승인하세요'); }
   private snapshot: CafeSnapshot = {
     consent: null, consent_version: 'cafe-risk-2026-10-12-v1',
     consent_text: '당근 이용약관은 자동화 도구 사용에 사전 서면 동의를 요구하며, 반복 홍보글은 계정 제재 사유가 될 수 있습니다. 확인은 당근의 허가를 대신하지 않습니다. 인증·차단 화면에서는 멈춥니다.',
     session: { state: 'logged_out', checked_at: null, reason: null },
     usage: { day: '2026-10-12', page_count: 0, daily_page_limit: 300, post_count: 0, daily_post_limit: 5 },
-    capabilities: { collection: false, own_posts: false, full_comments: false, posting: false },
+    capabilities: { collection: true, own_posts: false, full_comments: false, posting: true, title_duplicates:true, visible_comments:true },
     settings: { auto_post: false, auto_approve: false, min_navigation_seconds: 8, daily_page_limit: 300, daily_post_limit: 5, min_post_minutes: 30, collect_interval_minutes: 180, comment_interval_minutes: 30, comment_monitor_days: 60, keywords: ['알바', '외주', '프리랜서', '개발', 'IT', '재택'] },
     active_job: null,
   };
@@ -54,7 +59,6 @@ export class MockCafePort implements CafePort {
     this.snapshot.consent = { version, accepted_at: new Date().toISOString() };
   }
   async settings(patch: Parameters<CafePort['settings']>[0]) {
-    if (patch.auto_post) throw new Error('내 글 대조가 확보되지 않아 게시할 수 없습니다');
     const values = Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== null));
     Object.assign(this.snapshot.settings, values);
     return structuredClone(this.snapshot.settings);
@@ -78,10 +82,9 @@ export class MockCafePort implements CafePort {
   async board(): ReturnType<CafePort['board']> { throw new Error('합성 시나리오에서 승인 가능한 게시판이 없습니다'); }
   async jobs() { return structuredClone(this.history); }
   async action(kind: CafeJob['kind']) {
-    if (kind === 'post' || kind === 'comments') throw new Error('실제 게시·전체 댓글의 지원 경로가 확보되지 않았습니다');
-    if (kind === 'collect') throw new Error('내 글 제외·작성 시각의 지원 경로가 필요합니다');
     if (!this.snapshot.consent) throw new Error('위험 안내를 먼저 확인하세요');
     if (this.snapshot.session.state === 'needs_user' && kind !== 'login') throw new Error('인증 화면을 직접 확인하세요. 카페 작업이 정지되어 있습니다');
+    if (!['login','check'].includes(kind) && this.snapshot.session.state !== 'logged_in') throw new Error('로그인 상태를 먼저 확인하세요');
     this.snapshot.session = { state: kind === 'login' ? 'logged_in' : this.snapshot.session.state, checked_at: new Date().toISOString(), reason: null };
     this.snapshot.usage.page_count += kind === 'discover' ? 4 : 1;
     if (kind === 'discover' && !this.entries.length) {

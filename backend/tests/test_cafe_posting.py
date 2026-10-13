@@ -1,4 +1,5 @@
 from datetime import timedelta
+from types import SimpleNamespace
 from sqlalchemy import select
 import pytest
 from tests.test_cafe_collection import prepare, NOW
@@ -6,6 +7,7 @@ from worklead.api import schemas as S
 from worklead.models import Cafe, CafeBoard, CafePostAttempt
 from worklead.cafe.posting import template, update_template, publish, lines
 from worklead.cafe.parsing import CafePageError
+from worklead.cafe.runtime import CafeRuntime
 from worklead.services import cafe as svc
 
 
@@ -112,3 +114,86 @@ def test_only_explicit_removed_repost_is_allowed(ctx, client):
     browser = Browser()
     assert publish(ctx, browser, id_, lambda _: None, lambda: None, repost=True)['status'] == 'posted'
     assert browser.sent == 1
+
+
+def test_scheduled_post_disabled_before_start_never_opens_browser(ctx):
+    id_ = ready(ctx)
+    with ctx.db.session() as s:
+        svc.update_settings(s, {'auto_post': True})
+        job = svc.enqueue_job(s, 'post', NOW, {'cafe_id': id_, 'scheduled': True})
+        svc.update_settings(s, {'auto_post': False})
+    runtime = CafeRuntime(ctx, browser_factory=lambda _: pytest.fail('꺼진 예약 게시에서는 브라우저를 열지 않음'))
+    with pytest.raises(svc.CafeError) as failure:
+        runtime.execute(job)
+    assert failure.value.code == 'cafe_auto_post_disabled'
+    assert runtime.browser is None
+    with ctx.db.session() as s:
+        assert s.scalar(select(CafePostAttempt)) is None
+        assert svc.session_row(s).post_count == 0
+
+
+def test_scheduled_publish_disabled_before_preparation_never_submits(ctx):
+    id_ = ready(ctx)
+    browser = Browser()
+    browser.duplicate_posts = lambda *_: pytest.fail('꺼진 예약 게시에서는 목록 조사도 하지 않음')
+    with pytest.raises(svc.CafeError) as failure:
+        publish(ctx, browser, id_, lambda _: None, lambda: None, scheduled=True)
+    assert failure.value.code == 'cafe_auto_post_disabled'
+    assert browser.sent == 0
+    with ctx.db.session() as s:
+        assert s.scalar(select(CafePostAttempt)) is None
+        assert svc.session_row(s).post_count == 0
+
+
+@pytest.mark.parametrize('scheduled', [True, False])
+def test_runtime_rechecks_auto_post_after_editor_preparation_only_for_scheduled_jobs(ctx, scheduled):
+    id_ = ready(ctx)
+    with ctx.db.session() as s:
+        svc.update_settings(s, {'auto_post': True})
+    class PreparingBrowser(Browser):
+        def open(self, **_): pass
+        def prepare_editor(self, *args):
+            super().prepare_editor(*args)
+            with ctx.db.session() as s:
+                svc.update_settings(s, {'auto_post': False})
+    browser = PreparingBrowser()
+    runtime = CafeRuntime(ctx, browser_factory=lambda _: browser)
+    runtime._navigate = lambda _: None
+    runtime._reserve = lambda: None
+    job = SimpleNamespace(kind='post', input={'cafe_id': id_, 'scheduled': scheduled})
+    if scheduled:
+        with pytest.raises(CafePageError) as failure:
+            runtime.execute(job)
+        assert failure.value.code == 'cafe_auto_post_disabled'
+    else:
+        assert runtime.execute(job)['status'] == 'posted'
+    assert browser.sent == (0 if scheduled else 1)
+    with ctx.db.session() as s:
+        assert svc.session_row(s).post_count == (0 if scheduled else 1)
+        attempt = s.scalar(select(CafePostAttempt))
+        assert attempt.status == ('failed' if scheduled else 'posted')
+        if scheduled:
+            assert attempt.post_url is None
+        else:
+            assert attempt.post_url.endswith('/synthetic-published')
+
+
+@pytest.mark.parametrize('revoked', ['cafe', 'board'])
+def test_approval_revoked_after_editor_preparation_never_submits(ctx, revoked):
+    id_ = ready(ctx)
+    class PreparingBrowser(Browser):
+        def prepare_editor(self, *args):
+            super().prepare_editor(*args)
+            with ctx.db.session() as s:
+                if revoked == 'cafe':
+                    svc.update_cafe(s, id_, 'candidate', NOW)
+                else:
+                    svc.approve_board(s, 'test-board', False)
+    browser = PreparingBrowser()
+    with pytest.raises(CafePageError) as failure:
+        publish(ctx, browser, id_, lambda _: None, lambda: None)
+    assert failure.value.code == 'cafe_scope_changed'
+    assert browser.sent == 0
+    with ctx.db.session() as s:
+        assert svc.session_row(s).post_count == 0
+        assert s.scalar(select(CafePostAttempt)).post_url is None

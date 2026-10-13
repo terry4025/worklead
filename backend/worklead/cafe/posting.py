@@ -37,9 +37,11 @@ def lines(body):
     return [line if line != '\u3164' else '' for line in body.replace('\r\n', '\n').split('\n')]
 
 
-def publish(app, browser, cafe_id, navigate, reserve, *, repost=False):
+def publish(app, browser, cafe_id, navigate, reserve, *, repost=False, scheduled=False):
     now = app.clock()
     with app.db.session() as s:
+        if scheduled and not svc.get_settings(s)['auto_post']:
+            raise svc.CafeError(409, 'cafe_auto_post_disabled', '자동 게시가 꺼져 예약 게시를 중단했습니다')
         if not svc.consent_accepted(s) or svc.session_row(s).state != 'logged_in':
             raise svc.CafeError(409, 'cafe_session_required', '위험 안내 확인과 로그인 확인이 필요합니다')
         cafe = s.get(Cafe, cafe_id)
@@ -82,6 +84,8 @@ def publish(app, browser, cafe_id, navigate, reserve, *, repost=False):
                 if current.status != 'approved' or not current_board.approved or not current_board.post_allowed or template(s).version != value.version or svc.session_row(s).state != 'logged_in':
                     raise svc.CafeError(409, 'cafe_scope_changed', '게시 준비 중 승인·템플릿·세션이 변경되었습니다')
                 usage, settings = svc.session_row(s), svc.get_settings(s)
+                if scheduled and not settings['auto_post']:
+                    raise svc.CafeError(409, 'cafe_auto_post_disabled', '자동 게시가 꺼져 예약 게시를 중단했습니다')
                 if usage.usage_day != svc.day_key(app.clock()):
                     usage.usage_day, usage.page_count, usage.post_count = svc.day_key(app.clock()), 0, 0
                 if usage.post_count >= settings['daily_post_limit']:

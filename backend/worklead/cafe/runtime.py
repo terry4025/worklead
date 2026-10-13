@@ -54,6 +54,11 @@ class CafeRuntime:
             raise CafePageError("cafe_cancelled", "앱 종료로 중단했습니다")
 
     def execute(self, job):
+        scheduled_post = job.kind == 'post' and job.input.get('scheduled') is True
+        if scheduled_post:
+            with self.ctx.db.session() as s:
+                if not svc.get_settings(s)['auto_post']:
+                    raise svc.CafeError(409, 'cafe_auto_post_disabled', '자동 게시가 꺼져 예약 게시를 중단했습니다')
         self.browser = self.browser or self.browser_factory(self.ctx.config.data_dir / "cafe-browser")
         self.browser.open(headed=job.kind == "login")
         self.browser.robots = None  # Recheck public robots rules for every job.
@@ -73,7 +78,8 @@ class CafeRuntime:
             return {}
         if job.kind == 'post':
             from .posting import publish
-            return publish(self.ctx, self.browser, job.input.get('cafe_id'), self._navigate, self._reserve, repost=job.input.get('repost') is True)
+            return publish(self.ctx, self.browser, job.input.get('cafe_id'), self._navigate, self._reserve,
+                repost=job.input.get('repost') is True, scheduled=scheduled_post)
         if job.kind == "collect":
             from .collection import collect
             return collect(self.ctx, self.browser.recent_posts)

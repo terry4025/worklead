@@ -142,7 +142,7 @@ class CafeRuntime:
                             with self.ctx.db.session() as s:
                                 if exc.code in ('cafe_redirect_blocked', 'cafe_authentication_challenge', 'cafe_login_incomplete'):
                                     svc.set_session(s, 'needs_user', self.ctx.clock(), exc.code)
-                                svc.finish_job(s, job.id, "failed", self.ctx.clock(), error_code=exc.code, error_message=exc.message if hasattr(exc, "message") else str(exc))
+                                svc.finish_job(s, job.id, "failed", self.ctx.clock(), error_code=exc.code, error_message=exc.message if hasattr(exc, "message") else str(exc), result=getattr(exc, 'partial_result', None))
                         except Exception:
                             # Browser exceptions can contain URLs or personal text.
                             with self.ctx.db.session() as s:

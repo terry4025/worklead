@@ -131,7 +131,7 @@ def reserve_navigation(s: Session, now: datetime) -> float:
         raise CafeError(409, "cafe_needs_user", "인증·차단 화면을 직접 확인하세요")
     if row.usage_day != day_key(now):
         row.usage_day, row.page_count, row.post_count = day_key(now), 0, 0
-    if row.page_count >= cfg["daily_page_limit"]:
+    if cfg["daily_page_limit"] and row.page_count >= cfg["daily_page_limit"]:
         raise CafeError(409, "cafe_daily_budget", "오늘 카페 페이지 이동 한도에 도달했습니다")
     wait = max(0.0, cfg["min_navigation_seconds"] - (now - row.last_navigation_at).total_seconds()) if row.last_navigation_at else 0.0
     if wait == 0:
@@ -186,7 +186,7 @@ def schedule_due(s: Session, now: datetime) -> CafeJob | None:
     policy = s.get(SourcePolicy, 'daangn_cafe')
     if not policy or policy.status != 'allowed': return None
     if s.scalar(select(CafeJob.id).where(CafeJob.state.in_(('queued', 'running'))).limit(1)): return None
-    if usage.usage_day == day_key(now) and usage.page_count >= cfg['daily_page_limit']: return None
+    if cfg['daily_page_limit'] and usage.usage_day == day_key(now) and usage.page_count >= cfg['daily_page_limit']: return None
     def due(kind, minutes):
         last = s.scalar(select(CafeJob).where(CafeJob.kind == kind).order_by(CafeJob.created_at.desc()).limit(1))
         return last is None or last.created_at + timedelta(minutes=minutes) <= now

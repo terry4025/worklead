@@ -6,6 +6,7 @@ from ..models import AppSetting, Cafe, CafeBoard, CafePostAttempt, SourcePolicy
 from ..sources.base import ParsedPost
 from ..engine.pipeline import ingest
 from ..services import cafe as svc
+from .parsing import CafePageError
 
 
 @dataclass
@@ -40,10 +41,16 @@ def collect(app, reader):
         template_title = template(s).title
     if not boards:
         raise svc.CafeError(409, 'cafe_collection_target_required', '가입을 조사한 카페를 수집 전용으로 선택한 뒤 다시 수집하세요')
+    boards.sort(key=lambda board: (checkpoints.get(board.id, ''), board.id))
     counts = {'created': 0, 'updated': 0, 'unchanged': 0, 'skipped_own': 0, 'skipped_old': 0, 'boards': 0}
     for board in boards:
         since = now - timedelta(days=30)
-        page = reader(board, since)
+        try:
+            page = reader(board, since)
+        except (svc.CafeError, CafePageError) as exc:
+            # Keep completed-board evidence when navigation hits a daily cap.
+            exc.partial_result = dict(counts)
+            raise
         if not page.complete:
             raise svc.CafeError(409, 'cafe_listing_incomplete', '전체 목록 범위를 확인하지 못해 마지막 확인 시각을 갱신하지 않습니다')
         for envelope in page.posts:

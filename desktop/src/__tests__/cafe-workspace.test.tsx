@@ -223,3 +223,27 @@ it('allows stopping auto posting and revoking approval while a browser job runs'
   await waitFor(() => expect(revoke).toHaveBeenCalledWith(row.id, 'candidate'));
   expect((screen.getByRole('button', { name: '지금 게시' }) as HTMLButtonElement).disabled).toBe(true);
 });
+
+it('shows saved partial collection counts alongside the failed job and daily cap', async () => {
+  const port = new MockPort({ scenario: 'cafe_inquiries', latency: [0, 0] });
+  vi.spyOn(port.cafe, 'jobs').mockResolvedValue([{id:'partial-collect',kind:'collect',state:'failed',created_at:new Date().toISOString(),started_at:null,finished_at:new Date().toISOString(),error_code:'cafe_daily_budget',error_message:'오늘 카페 페이지 이동 한도에 도달했습니다',result:{boards:1,created:30,updated:0,unchanged:0,skipped_own:1,skipped_old:0}}]);
+  show(port);
+  expect(await screen.findByText(/저장한 부분 결과 · 게시판 1건 · 새 리드 30건/)).toBeTruthy();
+  expect(screen.getByText(/오늘 카페 페이지 이동 한도/)).toBeTruthy();
+  expect(screen.queryByText(/글 수집 · 완료/)).toBeNull();
+});
+
+it('shows an unlimited page allowance and saves zero without changing posting limits', async () => {
+  const port = new MockPort({scenario:'cafe_inquiries',latency:[0,0]});
+  await port.cafe.settings({daily_page_limit:0});
+  const save=vi.spyOn(port.cafe,'settings');
+  show(port);
+  await screen.findByText(/제한 없음/);
+  fireEvent.click(screen.getByRole('tab',{name:'카페 설정'}));
+  const input=await screen.findByLabelText('하루 페이지 이동 한도 (0: 제한 없음)');
+  expect((input as HTMLInputElement).min).toBe('0');
+  fireEvent.change(input,{target:{value:'0'}});
+  fireEvent.click(screen.getByRole('button',{name:'카페 설정 저장'}));
+  await waitFor(()=>expect(save).toHaveBeenCalledWith(expect.objectContaining({daily_page_limit:0,min_navigation_seconds:8})));
+  expect((await port.cafe.status()).settings.daily_post_limit).toBe(5);
+});

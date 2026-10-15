@@ -226,7 +226,7 @@
         "daily_page_limit": {
           "default": 300,
           "maximum": 10000,
-          "minimum": 1,
+          "minimum": 0,
           "title": "Daily Page Limit",
           "type": "integer"
         },

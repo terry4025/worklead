@@ -185,3 +185,26 @@ def test_inspection_revokes_removed_board_but_directory_card_does_not(ctx):
         svc.save_discovery(s, [{'url':'https://cafe.daangn.com/synthetic-removed','boards':[]}], NOW)
         board=s.get(CafeBoard, 'removed-board')
         assert not board.approved and not board.post_allowed and board.kind == 'other'
+
+
+def test_unlimited_page_budget_preserves_usage_spacing_and_scheduling(ctx):
+    from datetime import timedelta
+    from worklead.models import Source, CafeBoard
+    with ctx.db.session() as s:
+        svc.accept_consent(s,svc.CONSENT_VERSION,NOW)
+        svc.set_session(s,'logged_in',NOW)
+        svc.update_settings(s,{'daily_page_limit':0})
+        row=svc.session_row(s);row.usage_day=svc.day_key(NOW);row.page_count=10000;row.last_navigation_at=NOW
+        assert svc.reserve_navigation(s,NOW)==8
+        assert svc.reserve_navigation(s,NOW+timedelta(seconds=8))==0
+        assert row.page_count==10001
+        cfg=svc.get_settings(s)
+        assert cfg['daily_post_limit']==5 and cfg['min_navigation_seconds']==8
+        cafe=svc.add_cafe(s,'https://cafe.daangn.com/unlimited-test',NOW);cafe.status='collect_only';cafe.joined=True
+        s.add(CafeBoard(id='unlimited-board',cafe_id=cafe.id,name='구인구직',url=cafe.url+'/boards/jobs',kind='job_seek',post_allowed=False,approved=False))
+        s.get(Source,'daangn_cafe').auto_collect_enabled=True
+    with ctx.db.session() as s:
+        assert svc.schedule_due(s,NOW+timedelta(seconds=8)).kind=='collect'
+        svc.update_settings(s,{'daily_page_limit':300})
+        with pytest.raises(svc.CafeError) as failure:svc.reserve_navigation(s,NOW+timedelta(seconds=16))
+        assert failure.value.code=='cafe_daily_budget'

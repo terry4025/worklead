@@ -129,7 +129,7 @@ class CafeSettings(Model):
     auto_post: bool = False
     auto_approve: bool = False
     min_navigation_seconds: int = Field(default=8, ge=8, le=3600)
-    daily_page_limit: int = Field(default=300, ge=1, le=10000)
+    daily_page_limit: int = Field(default=300, ge=0, le=10000)
     daily_post_limit: int = Field(default=5, ge=1, le=50)
     min_post_minutes: int = Field(default=30, ge=30, le=10080)
     collect_interval_minutes: int = Field(default=180, ge=30, le=10080)
@@ -149,7 +149,7 @@ class CafeSettingsPatch(Model):
     auto_post: bool | None = None
     auto_approve: bool | None = None
     min_navigation_seconds: int | None = Field(default=None, ge=8, le=3600)
-    daily_page_limit: int | None = Field(default=None, ge=1, le=10000)
+    daily_page_limit: int | None = Field(default=None, ge=0, le=10000)
     daily_post_limit: int | None = Field(default=None, ge=1, le=50)
     min_post_minutes: int | None = Field(default=None, ge=30, le=10080)
     collect_interval_minutes: int | None = Field(default=None, ge=30, le=10080)

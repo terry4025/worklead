@@ -61,6 +61,8 @@ export class MockCafePort implements CafePort {
   async settings(patch: Parameters<CafePort['settings']>[0]) {
     const values = Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== null));
     Object.assign(this.snapshot.settings, values);
+    this.snapshot.usage.daily_page_limit = this.snapshot.settings.daily_page_limit;
+    this.snapshot.usage.daily_post_limit = this.snapshot.settings.daily_post_limit;
     return structuredClone(this.snapshot.settings);
   }
   async list() { return structuredClone(this.entries); }

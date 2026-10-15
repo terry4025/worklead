@@ -120,3 +120,22 @@ def test_collect_only_revocation_during_read_prevents_storage(ctx):
     with ctx.db.session() as s:
         assert s.scalar(select(Lead)) is None
         assert s.get(AppSetting, 'cafe_collection_checkpoints') is None
+
+
+def test_daily_budget_keeps_completed_counts_and_rotates_unfinished_boards_first(ctx):
+    from worklead.models import Cafe
+    prepare(ctx)
+    with ctx.db.session() as s:
+        row=s.scalar(select(Cafe))
+        s.add(CafeBoard(id='z-second-board',cafe_id=row.id,url=row.url+'/boards/second',name='구인구직',kind='job_seek',post_allowed=False,approved=False))
+    order=[]
+    def limited(board,_since):
+        order.append(board.id)
+        if board.id=='z-second-board':raise svc.CafeError(409,'cafe_daily_budget','오늘 한도')
+        return CafePage([CafePost(post('completed-first'),False)],True)
+    with pytest.raises(svc.CafeError) as err:collect(ctx,limited)
+    assert order==['test-board','z-second-board']
+    assert err.value.partial_result['created']==1 and err.value.partial_result['boards']==1
+    order=[]
+    collect(ctx,lambda board,_since:(order.append(board.id)or CafePage([],True)))
+    assert order==['z-second-board','test-board']

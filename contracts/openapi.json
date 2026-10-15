@@ -6427,6 +6427,7 @@
           "status": {
             "type": "string",
             "enum": [
+              "collect_only",
               "candidate",
               "needs_join",
               "eligible",
@@ -6981,6 +6982,7 @@
           "status": {
             "type": "string",
             "enum": [
+              "collect_only",
               "candidate",
               "needs_join",
               "eligible",

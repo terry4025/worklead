@@ -13,7 +13,7 @@ def test_edge_persistent_profile_local_site_and_redirect_guard(tmp_path):
             self.send_response(200)
             self.send_header('Content-Type', 'text/html; charset=utf-8')
             self.end_headers()
-            self.wfile.write('<button aria-label="사용자 메뉴">계정</button><h2>합성 외주 카페</h2><a href="/synthetic/posts/new">글쓰기</a><a href="/synthetic/boards/jobs-test">구인구직</a>'.encode())
+            self.wfile.write('<button aria-label="사용자 메뉴">계정</button><h2>합성 외주 카페</h2><a href="/synthetic/boards/jobs-test">구인구직</a><script>setTimeout(()=>{document.body.insertAdjacentHTML("beforeend",\'<a href="/synthetic/posts/new">글쓰기</a>\')},1600)</script>'.encode())
         def log_message(self, *args):
             pass
     server = ThreadingHTTPServer(('127.0.0.1', 0), Site)

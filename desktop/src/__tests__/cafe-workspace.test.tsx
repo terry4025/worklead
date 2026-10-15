@@ -6,6 +6,39 @@ import { MockPort } from '../data/mock/mockPort';
 import { CafeWorkspace } from '../features/cafe/CafeWorkspace';
 
 const clients: QueryClient[] = [];
+it('enables collection without granting publication and can revoke it during browser work', async () => {
+  const port = new MockPort({ scenario: 'cafe_inquiries', latency: [0, 0] });
+  const row = await port.cafe.add('https://cafe.daangn.com/synthetic-read');
+  row.joined = true;
+  row.boards = [{ id: 'read-board', cafe_id: row.id, url: `${row.url}/boards/jobs`, name: '구인구직', kind: 'job_seek', post_allowed: false, approved: false, evidence: null }];
+  let entry = row;
+  vi.spyOn(port.cafe, 'list').mockImplementation(async () => [structuredClone(entry)]);
+  const state = vi.spyOn(port.cafe, 'state').mockImplementation(async (_id, status) => { entry = { ...entry, status }; return structuredClone(entry); });
+  const post = vi.spyOn(port.cafe, 'post');
+  show(port);
+  fireEvent.click(await screen.findByRole('button', { name: '수집 전용으로 사용' }));
+  await screen.findByText('관련 게시판의 글만 읽습니다. 게시 권한을 부여하지 않습니다.');
+  expect(state).toHaveBeenCalledWith(row.id, 'collect_only');
+  expect((screen.getByRole('button', { name: '게시 대상 승인' }) as HTMLButtonElement).disabled).toBe(true);
+  expect((screen.getByRole('button', { name: '지금 게시' }) as HTMLButtonElement).disabled).toBe(true);
+  const status = await port.cafe.status();
+  await act(async () => { clients.at(-1)!.setQueryData(['cafe', 'status'], { ...status, active_job: { id: 'read-running', kind: 'collect', state: 'running', created_at: new Date().toISOString(), started_at: null, finished_at: null, error_code: null, error_message: null, result: null } }); });
+  fireEvent.click(screen.getByRole('button', { name: '수집 중지' }));
+  await waitFor(() => expect(state).toHaveBeenCalledWith(row.id, 'candidate'));
+  expect(post).not.toHaveBeenCalled();
+});
+
+it('does not offer collection opt-in for an unjoined cafe', async () => {
+  const port = new MockPort({ scenario: 'cafe_inquiries', latency: [0, 0] });
+  const row = await port.cafe.add('https://cafe.daangn.com/synthetic-unjoined');
+  row.joined = false;
+  row.status = 'needs_join';
+  vi.spyOn(port.cafe, 'list').mockResolvedValue([row]);
+  show(port);
+  await screen.findByText('직접 가입 필요', { selector: 'span' });
+  expect(screen.queryByRole('button', { name: '수집 전용으로 사용' })).toBeNull();
+});
+
 afterEach(() => { clients.splice(0).forEach((q) => q.clear()); });
 function show(port = new MockPort({ scenario: 'normal', latency: [0, 0] })) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });

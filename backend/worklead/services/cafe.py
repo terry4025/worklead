@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 from urllib.parse import unquote, urlsplit
 
-from sqlalchemy import select
+from sqlalchemy import select, and_, or_
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from pydantic import ValidationError
@@ -169,6 +169,16 @@ def claim_next_job(s: Session, now: datetime) -> CafeJob | None:
     return row
 
 
+def collection_scope():
+    """Legacy publish-ready scope plus explicit joined read-only opt-in."""
+    return or_(Cafe.status.in_(('eligible', 'approved')),
+               and_(Cafe.status == 'collect_only', Cafe.joined.is_(True)))
+
+
+def can_collect(row: Cafe) -> bool:
+    return row.status in ('eligible', 'approved') or (row.status == 'collect_only' and row.joined is True)
+
+
 def schedule_due(s: Session, now: datetime) -> CafeJob | None:
     """One serial queue; explicit opt-ins, durable cadence, no catch-up burst."""
     if not consent_accepted(s) or session_row(s).state != 'logged_in': return None
@@ -192,7 +202,7 @@ def schedule_due(s: Session, now: datetime) -> CafeJob | None:
         if cafe_id: return enqueue_job(s, 'post', now, {'scheduled': True, 'cafe_id': cafe_id})
     source = s.get(Source, 'daangn_cafe')
     if source and source.auto_collect_enabled and not source.stopped_reason and due('collect', cfg['collect_interval_minutes']):
-        board = s.scalar(select(CafeBoard.id).join(Cafe, Cafe.id == CafeBoard.cafe_id).where(Cafe.status.in_(('eligible', 'approved')), CafeBoard.kind.in_(('job_seek', 'job_offer', 'free'))).limit(1))
+        board = s.scalar(select(CafeBoard.id).join(Cafe, Cafe.id == CafeBoard.cafe_id).where(collection_scope(), CafeBoard.kind.in_(('job_seek', 'job_offer', 'free'))).limit(1))
         if board: return enqueue_job(s, 'collect', now, {'scheduled': True})
     return None
 
@@ -246,8 +256,12 @@ def update_cafe(s: Session, id_: str, status: str, now: datetime) -> S.CafeEntry
     row = s.get(Cafe, id_)
     if row is None:
         raise CafeError(404, "cafe_not_found", "카페를 찾을 수 없습니다")
-    if status not in {"candidate", "excluded", "approved"}:
+    if status not in {"candidate", "excluded", "approved", "collect_only"}:
         raise CafeError(409, "cafe_invalid_transition", "가입 여부와 규칙 판정은 조사 결과로만 변경됩니다")
+    if status == "collect_only":
+        related = s.scalar(select(CafeBoard.id).where(CafeBoard.cafe_id == id_, CafeBoard.kind.in_(('job_seek', 'job_offer', 'free'))).limit(1))
+        if row.joined is not True or row.status == 'excluded' or not related:
+            raise CafeError(409, 'cafe_collection_unverified', '가입과 관련 게시판을 먼저 조사한 뒤 수집 전용으로 선택하세요')
     if status == "approved":
         allowed = s.scalar(select(CafeBoard).where(CafeBoard.cafe_id == id_, CafeBoard.post_allowed.is_(True)).limit(1))
         if row.joined is not True or row.status not in {"eligible", "approved"} or not allowed:
@@ -258,6 +272,8 @@ def update_cafe(s: Session, id_: str, status: str, now: datetime) -> S.CafeEntry
         for board in s.scalars(select(CafeBoard).where(CafeBoard.cafe_id == id_)):
             board.approved = False
     row.status = status
+    if status == 'collect_only': row.status_reason = '사용자가 선택한 수집 전용 카페; 게시 승인 없음'
+    elif status == 'candidate': row.status_reason = '수집·게시 선택 해제; 다시 조사하거나 수집 전용으로 선택하세요'
     return entry_out(s, row)
 
 
@@ -286,7 +302,7 @@ def save_discovery(s: Session, items: list[dict], now: datetime) -> None:
         inspected_status = item.get("status", "candidate")
         if inspected_status == "excluded":
             row.status, row.approved_at = "excluded", None
-        elif row.status not in {"excluded", "approved"}:
+        elif row.status not in {"excluded", "approved", "collect_only"}:
             row.status = inspected_status
         row.status_reason = item.get("status_reason", "게시 허용 근거를 확인해야 합니다")
         for value in item.get("boards", []):
@@ -303,6 +319,14 @@ def save_discovery(s: Session, items: list[dict], now: datetime) -> None:
             board.post_allowed = decision["post_allowed"]
             if not board.post_allowed or row.status != "approved":
                 board.approved = False
+        if 'boards' in item:
+            present = {canonical_cafe_url(b['url'], board=True) for b in item['boards']}
+            for old in s.scalars(select(CafeBoard).where(CafeBoard.cafe_id == row.id)):
+                if old.url not in present:
+                    old.approved, old.post_allowed, old.kind = False, False, 'other'
+                    old.evidence = '최근 조사에서 게시판을 확인하지 못했습니다'
+        if row.status == 'collect_only' and row.joined is not True:
+            row.status = 'needs_join' if row.joined is False else 'candidate'
         if row.status == "approved" and (row.joined is not True or not any(b.post_allowed for b in s.scalars(select(CafeBoard).where(CafeBoard.cafe_id == row.id)))):
             row.status, row.approved_at = "candidate", None
         if row.status == "eligible" and get_settings(s)["auto_approve"]:

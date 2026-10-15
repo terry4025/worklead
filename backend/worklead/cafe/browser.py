@@ -80,6 +80,15 @@ class EdgeBrowser:
         self.blocked_navigation = False
         response = self.page.goto(url, wait_until="domcontentloaded", timeout=25000)
         self.page.wait_for_timeout(700)
+        # The profile controls hydrate after the server-rendered cafe heading.
+        # Wait for an observed membership marker; absence stays unknown.
+        path = urlsplit(url).path.rstrip('/')
+        if path.count('/') == 1 and path:
+            from playwright.sync_api import TimeoutError as PlaywrightTimeout
+            try:
+                self.page.wait_for_function("writePath => Array.from(document.querySelectorAll('a[href]')).some(a => new URL(a.href).pathname === writePath) || Array.from(document.querySelectorAll('button')).some(b => b.textContent.trim() === '카페 가입하기')", arg=path + '/posts/new', timeout=3500)
+            except PlaywrightTimeout:
+                pass
         if self.blocked_navigation:
             raise CafePageError("cafe_redirect_blocked", "허용되지 않은 외부 이동을 중단했습니다")
         return self.page.content(), response.status if response else None

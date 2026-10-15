@@ -147,3 +147,41 @@ def test_restore_retains_backup_today_budget_when_current_day_is_stale(client, c
     with ctx.db.session() as s:
         row = svc.session_row(s)
         assert row.usage_day == svc.day_key(NOW) and row.page_count == 1 and row.post_count == 2
+
+
+def test_scoped_board_permission_does_not_spread():
+    rule = '외주 게시판에서만 구직글 게시 허용'
+    assert classify_board('외주', rule)['post_allowed']
+    assert not classify_board('구인구직', rule)['post_allowed']
+    assert not classify_board('홍보', rule)['post_allowed']
+
+
+def test_collect_only_survives_inspection_without_becoming_post_target(ctx):
+    with ctx.db.session() as s:
+        svc.accept_consent(s, svc.CONSENT_VERSION, NOW)
+        row = svc.add_cafe(s, 'https://cafe.daangn.com/synthetic-read', NOW)
+        data = {'url':row.url, 'joined':True, 'status':'candidate', 'boards':[{'name':'외주', 'url':row.url+'/boards/jobs', 'kind':'job_offer', 'evidence':''}]}
+        svc.save_discovery(s, [data], NOW)
+        svc.update_cafe(s, row.id, 'collect_only', NOW)
+        svc.update_settings(s, {'auto_approve':True})
+        data['status'] = 'eligible'; data['boards'][0]['evidence'] = '구직글 게시 허용'
+        svc.save_discovery(s, [data], NOW)
+        assert row.status == 'collect_only' and row.approved_at is None
+        entry = svc.entry_out(s, row)
+        assert not entry.boards[0].approved
+        svc.save_discovery(s, [{**data, 'joined':False, 'status':'needs_join'}], NOW)
+        assert row.status == 'needs_join'
+
+
+def test_inspection_revokes_removed_board_but_directory_card_does_not(ctx):
+    from worklead.models import CafeBoard
+    with ctx.db.session() as s:
+        row = svc.add_cafe(s, 'https://cafe.daangn.com/synthetic-removed', NOW)
+        row.status, row.joined = 'approved', True
+        s.add(CafeBoard(id='removed-board', cafe_id=row.id, url=row.url+'/boards/jobs', name='외주', kind='job_offer', approved=True, post_allowed=True))
+    with ctx.db.session() as s:
+        svc.save_discovery(s, [{'url':'https://cafe.daangn.com/synthetic-removed'}], NOW)
+        assert s.get(CafeBoard, 'removed-board').approved
+        svc.save_discovery(s, [{'url':'https://cafe.daangn.com/synthetic-removed','boards':[]}], NOW)
+        board=s.get(CafeBoard, 'removed-board')
+        assert not board.approved and not board.post_allowed and board.kind == 'other'

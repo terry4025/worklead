@@ -33,11 +33,13 @@ def collect(app, reader):
             raise svc.CafeError(409, 'policy_not_allowed', '카페 수집 정책을 확인하세요')
         if svc.session_row(s).state != 'logged_in':
             raise svc.CafeError(409, 'cafe_session_required', '로그인 확인이 필요합니다')
-        boards = list(s.scalars(select(CafeBoard).join(Cafe, Cafe.id == CafeBoard.cafe_id).where(Cafe.status.in_(('approved', 'eligible')), CafeBoard.kind.in_(('job_seek', 'job_offer', 'free')))))
+        boards = list(s.scalars(select(CafeBoard).join(Cafe, Cafe.id == CafeBoard.cafe_id).where(svc.collection_scope(), CafeBoard.kind.in_(('job_seek', 'job_offer', 'free')))))
         cfg = s.get(AppSetting, 'cafe_collection_checkpoints')
         checkpoints = dict(cfg.value if cfg else {})
         own_urls = set(s.scalars(select(CafePostAttempt.post_url).where(CafePostAttempt.post_url.is_not(None), CafePostAttempt.status.in_(('posted', 'posted_mismatch', 'removed')))))
         template_title = template(s).title
+    if not boards:
+        raise svc.CafeError(409, 'cafe_collection_target_required', '가입을 조사한 카페를 수집 전용으로 선택한 뒤 다시 수집하세요')
     counts = {'created': 0, 'updated': 0, 'unchanged': 0, 'skipped_own': 0, 'skipped_old': 0, 'boards': 0}
     for board in boards:
         since = now - timedelta(days=30)
@@ -50,7 +52,7 @@ def collect(app, reader):
                 raise svc.CafeError(409, 'cafe_date_unverified', '최근 30일·증분 조회에 필요한 작성 시각이 확인되지 않았습니다')
         with app.db.session() as s:
             current = s.get(Cafe, board.cafe_id)
-            if current is None or current.status not in ('eligible', 'approved') or s.get(SourcePolicy, 'daangn_cafe').status != 'allowed':
+            if current is None or not svc.can_collect(current) or s.get(CafeBoard, board.id).kind not in ('job_seek', 'job_offer', 'free') or s.get(SourcePolicy, 'daangn_cafe').status != 'allowed':
                 raise svc.CafeError(409, 'cafe_scope_changed', '카페 승인·수집 정책이 변경되어 저장을 중단했습니다')
             for envelope in page.posts:
                 post = envelope.post

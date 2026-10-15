@@ -147,6 +147,13 @@ def classify_board(name: str, evidence: str = "") -> dict:
     # inspected rules is necessary, and a prohibition always wins.
     negative = re.search(r"(?:구직글|홍보글|서비스\s*홍보|외주\s*홍보)[^.!?\n]{0,60}(?:금지|불가|허용하지|허용되지|불허)", evidence)
     allowed = not banned and not negative and candidate and bool(re.search(r"(?:구직글|홍보글|서비스 홍보|외주 홍보)\s*(?:을|를|은|는)?\s*(?:게시|등록)?\s*(?:가능|허용)(?:합니다|됩니다|해요|한다|됨)?(?=$|[\s.!?。])", evidence))
+    if allowed and '게시판' in evidence:
+        # A named-board allowance cannot grant permission to every candidate.
+        scoped = re.findall(r'([^.!?\n]+?)게시판(?:에서|에|만|은|는)', evidence)
+        normalize = lambda value: re.sub(r'[^가-힣a-zA-Z0-9]', '', value)
+        scoped_names = [normalize(value.strip(' \"\'“”[]')) for value in scoped]
+        if not scoped_names or normalize(name).removesuffix('게시판') not in scoped_names:
+            allowed = False
     banned = banned or (negative.group(0) if negative else None)
     return {"kind": kind, "post_allowed": allowed, "evidence": banned or evidence[:1000], "candidate": candidate}
 

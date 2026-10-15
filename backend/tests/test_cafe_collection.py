@@ -78,3 +78,45 @@ def test_scope_b_template_portfolio_and_relative_date(ctx):
     with ctx.db.session() as s:
         record = s.scalar(select(SourceRecord))
         assert record.source_post_id == 'other' and record.published_precision == 'approximate'
+
+@pytest.mark.parametrize('joined', [False, None, True])
+def test_explicit_collect_only_opt_in_and_schedule(ctx, joined):
+    from worklead.models import Cafe, Source
+    prepare(ctx)
+    with ctx.db.session() as s:
+        cafe = s.scalar(select(Cafe)); cafe.status, cafe.joined = 'candidate', joined
+        s.get(Source, 'daangn_cafe').auto_collect_enabled = True
+        if joined is not True:
+            with pytest.raises(svc.CafeError): svc.update_cafe(s, cafe.id, 'collect_only', NOW)
+            assert svc.schedule_due(s, NOW) is None
+            return
+        svc.update_cafe(s, cafe.id, 'collect_only', NOW)
+        assert svc.schedule_due(s, NOW).kind == 'collect'
+        assert cafe.approved_at is None and not s.get(CafeBoard, 'test-board').approved
+    result = collect(ctx, lambda *_: CafePage([CafePost(post('read-only'), False)], True))
+    assert result['created'] == 1
+
+
+def test_no_collection_target_is_actionable_not_empty_success(ctx):
+    from worklead.models import Cafe
+    prepare(ctx)
+    with ctx.db.session() as s: s.scalar(select(Cafe)).status = 'candidate'
+    with pytest.raises(svc.CafeError, match='수집 전용') as err:
+        collect(ctx, lambda *_: pytest.fail('must not read'))
+    assert err.value.code == 'cafe_collection_target_required'
+
+
+def test_collect_only_revocation_during_read_prevents_storage(ctx):
+    from worklead.models import Cafe
+    prepare(ctx)
+    with ctx.db.session() as s:
+        row = s.scalar(select(Cafe)); row.joined, row.status = True, 'collect_only'
+        id_ = row.id
+    def reader(*_):
+        with ctx.db.session() as s: svc.update_cafe(s, id_, 'candidate', NOW)
+        return CafePage([CafePost(post('revoked'), False)], True)
+    with pytest.raises(svc.CafeError) as err: collect(ctx, reader)
+    assert err.value.code == 'cafe_scope_changed'
+    with ctx.db.session() as s:
+        assert s.scalar(select(Lead)) is None
+        assert s.get(AppSetting, 'cafe_collection_checkpoints') is None

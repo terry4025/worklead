@@ -1320,7 +1320,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "candidate" | "needs_join" | "eligible" | "approved" | "excluded";
+            status: "collect_only" | "candidate" | "needs_join" | "eligible" | "approved" | "excluded";
             /** Status Reason */
             status_reason: string | null;
             /** Rule Evidence */
@@ -1491,7 +1491,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "candidate" | "needs_join" | "eligible" | "approved" | "excluded";
+            status: "collect_only" | "candidate" | "needs_join" | "eligible" | "approved" | "excluded";
         };
         /** CafeTemplate */
         CafeTemplate: {

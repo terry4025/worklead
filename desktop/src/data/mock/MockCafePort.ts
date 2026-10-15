@@ -76,6 +76,8 @@ export class MockCafePort implements CafePort {
     const row = this.entries.find((r) => r.id === id);
     if (!row) throw new Error('카페를 찾을 수 없습니다');
     if (status === 'approved' && row.status !== 'eligible') throw new Error('가입과 게시 허용 근거를 먼저 확인하세요');
+    if (status === 'collect_only' && (row.joined !== true || row.status === 'excluded' || !row.boards.some((b) => ['job_seek', 'job_offer', 'free'].includes(b.kind)))) throw new Error('가입과 관련 게시판을 먼저 확인하세요');
+    if (status !== 'approved') { row.approved_at = null; row.boards.forEach((b) => { b.approved = false; }); }
     row.status = status;
     return structuredClone(row);
   }

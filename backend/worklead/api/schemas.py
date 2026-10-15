@@ -43,7 +43,7 @@ class Model(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-CafeState = Literal["candidate", "needs_join", "eligible", "approved", "excluded"]
+CafeState = Literal["collect_only", "candidate", "needs_join", "eligible", "approved", "excluded"]
 
 
 class CafeTemplate(Model):

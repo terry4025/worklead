@@ -134,6 +134,7 @@
         },
         "status": {
           "enum": [
+            "collect_only",
             "candidate",
             "needs_join",
             "eligible",

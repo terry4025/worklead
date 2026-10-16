@@ -1038,6 +1038,23 @@ export interface components {
             /** Message */
             message: string;
         };
+        /** AppNotice */
+        AppNotice: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "new_lead" | "new_review_lead";
+            /** Title */
+            title: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
         /** AutoCollect */
         AutoCollect: {
             /** Enabled */
@@ -1106,6 +1123,11 @@ export interface components {
             recheck_ttl_hours: number;
             /** Event Seq */
             event_seq: number;
+            /**
+             * Notices
+             * @description 최근 24시간 생성된 영속 야간 요약. 현재 유효 공고 수가 아닌 당시 요약 기록
+             */
+            notices?: components["schemas"]["AppNotice"][];
         };
         /** Budget */
         Budget: {
@@ -1894,6 +1916,7 @@ export interface components {
              * Format: date-time
              */
             first_seen_at: string;
+            freshness?: components["schemas"]["LeadFreshness"] | null;
             /** @description 구인 마감일 (근무일·납기와 다름) */
             deadline: components["schemas"]["FuzzyDate"];
             /** Posted Region */
@@ -1967,6 +1990,21 @@ export interface components {
             /** Content Hash */
             content_hash: string;
         };
+        /** LeadFreshness */
+        LeadFreshness: {
+            /**
+             * Discovery Delay Seconds
+             * @description 정확한 현재 게시 시각부터 최초 발견까지. 미래·근사 시각은 null; 최초 게시 지연 보장은 아님
+             */
+            discovery_delay_seconds?: number | null;
+            /**
+             * First Listed At
+             * @description 이 설치가 공개 목록에서 처음 관찰한 시각. 기능 도입 전 노출은 추정하지 않음
+             */
+            first_listed_at?: string | null;
+            /** Listing To Detail Seconds */
+            listing_to_detail_seconds?: number | null;
+        };
         /** LeadPage */
         LeadPage: {
             /** Items */
@@ -2031,6 +2069,7 @@ export interface components {
              * Format: date-time
              */
             first_seen_at: string;
+            freshness?: components["schemas"]["LeadFreshness"] | null;
             /** @description 구인 마감일 (근무일·납기와 다름) */
             deadline: components["schemas"]["FuzzyDate"];
             /** Posted Region */
@@ -2065,6 +2104,8 @@ export interface components {
             collection: components["schemas"]["CollectionMetrics"];
             quality: components["schemas"]["QualityMetrics"];
             sales: components["schemas"]["SalesMetrics"];
+            /** Freshness */
+            freshness?: components["schemas"]["SourceFreshnessMetrics"][];
             /** Note */
             note: string;
         };
@@ -2090,7 +2131,7 @@ export interface components {
             /** Allowed */
             allowed: boolean;
             /** Kind */
-            kind: ("new_lead" | "lead_changed" | "source_issue" | "cafe_request") | null;
+            kind: ("new_lead" | "new_review_lead" | "lead_changed" | "source_issue" | "cafe_request") | null;
             /**
              * State
              * @enum {string}
@@ -2109,7 +2150,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "new_lead" | "lead_changed" | "source_issue" | "cafe_request";
+            kind: "new_lead" | "new_review_lead" | "lead_changed" | "source_issue" | "cafe_request";
             /**
              * Created At
              * Format: date-time
@@ -2141,7 +2182,7 @@ export interface components {
             /** Id */
             id: string;
             /** Kind */
-            kind: ("new_lead" | "lead_changed" | "source_issue" | "cafe_request") | null;
+            kind: ("new_lead" | "new_review_lead" | "lead_changed" | "source_issue" | "cafe_request") | null;
             /**
              * State
              * @enum {string}
@@ -2152,6 +2193,11 @@ export interface components {
         NotificationSettings: {
             /** New Recommended */
             new_recommended: boolean;
+            /**
+             * New Review
+             * @default true
+             */
+            new_review: boolean;
             /** Meaningful Change */
             meaningful_change: boolean;
             /** Source Issue */
@@ -2406,7 +2452,7 @@ export interface components {
              * Id
              * @enum {string}
              */
-            id: "recommended" | "needs_review" | "interested" | "active" | "dismissed" | "auto_excluded" | "all";
+            id: "fresh" | "recommended" | "needs_review" | "interested" | "active" | "dismissed" | "auto_excluded" | "all";
             /** Label */
             label: string;
             /** Description */
@@ -2780,10 +2826,62 @@ export interface components {
             /** Query Groups */
             query_groups?: components["schemas"]["QueryGroup"][] | null;
         };
+        /** SourceFreshnessMetrics */
+        SourceFreshnessMetrics: {
+            /** Source Id */
+            source_id: string;
+            /**
+             * Period Days
+             * @default 7
+             */
+            period_days: number;
+            /** Records */
+            records: number;
+            /** Samples */
+            samples: number;
+            /** Unavailable Samples */
+            unavailable_samples: number;
+            /** Median Discovery Seconds */
+            median_discovery_seconds?: number | null;
+            /** P95 Discovery Seconds */
+            p95_discovery_seconds?: number | null;
+            /** Within 15 Minutes */
+            within_15_minutes: number;
+            /** Within 1 Hour */
+            within_1_hour: number;
+            /** Note */
+            note: string;
+        };
         /** SourceList */
         SourceList: {
             /** Items */
             items: components["schemas"]["SourceOut"][];
+        };
+        /** SourceMonitoring */
+        SourceMonitoring: {
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "disabled" | "stopped" | "never" | "running" | "waiting" | "overdue";
+            /** Interval Minutes */
+            interval_minutes: number;
+            /** Last Started At */
+            last_started_at?: string | null;
+            /** Last Finished At */
+            last_finished_at?: string | null;
+            /** Next Due At */
+            next_due_at?: string | null;
+            /**
+             * Overdue Seconds
+             * @default 0
+             */
+            overdue_seconds: number;
+            /**
+             * Previous Gap Seconds
+             * @description 직전 탐색 종료부터 최근 탐색 시작까지 실제 간격. OS·앱 중단 원인은 추정하지 않음
+             */
+            previous_gap_seconds?: number | null;
         };
         /** SourceOut */
         SourceOut: {
@@ -2811,6 +2909,7 @@ export interface components {
             research: components["schemas"]["Research"];
             /** Last Run Id */
             last_run_id: string | null;
+            monitoring?: components["schemas"]["SourceMonitoring"] | null;
         };
         /** SourcePatch */
         SourcePatch: {
@@ -4096,7 +4195,7 @@ export interface operations {
     list_leads_v1_leads_get: {
         parameters: {
             query?: {
-                queue?: "recommended" | "needs_review" | "interested" | "active" | "dismissed" | "auto_excluded" | "all";
+                queue?: "fresh" | "recommended" | "needs_review" | "interested" | "active" | "dismissed" | "auto_excluded" | "all";
                 limit?: number;
                 cursor?: string | null;
                 keyword?: string | null;
@@ -4111,7 +4210,7 @@ export interface operations {
                 sales_stage?: ("new" | "reviewing" | "contacted" | "negotiating" | "won" | "lost" | "on_hold" | "ignored")[] | null;
                 pay_unit?: ("project" | "hour" | "day" | "week" | "month" | "negotiable" | "unknown")[] | null;
                 checked_since?: string | null;
-                sort?: "priority" | "published" | "checked";
+                sort?: ("priority" | "published" | "checked") | null;
             };
             header?: never;
             path?: never;
@@ -4208,7 +4307,7 @@ export interface operations {
                 sales_stage?: ("new" | "reviewing" | "contacted" | "negotiating" | "won" | "lost" | "on_hold" | "ignored")[] | null;
                 pay_unit?: ("project" | "hour" | "day" | "week" | "month" | "negotiable" | "unknown")[] | null;
                 checked_since?: string | null;
-                sort?: "priority" | "published" | "checked";
+                sort?: ("priority" | "published" | "checked") | null;
             };
             header?: never;
             path?: never;

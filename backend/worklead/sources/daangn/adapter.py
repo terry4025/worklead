@@ -23,7 +23,7 @@ from ..profiled import ProfiledSiteAdapter, TaskFailed, canonicalize, check_prof
 # Explicit technical variants, not fuzzy matches or unrestricted expansion.
 # Expansion starts from enabled query terms; an Excel-only query stays scoped.
 _TITLE_ALIASES = (
-    ("홈페이지", "홈피", "웹사이트", "웹페이지", "웹개발", "웹제작", "웹서비스", "사이트", "website", "webpage"),
+    ("홈페이지", "홈피", "웹사이트", "웹페이지", "웹개발", "웹제작", "웹서비스", "사이트", "website", "webpage", "상세페이지", "상품페이지", "소개페이지"),
     ("프로그램", "소프트웨어"),
     ("파이썬", "python"),
     ("엑셀", "excel"),
@@ -47,7 +47,7 @@ _WEAK_CREATION_REQUEST = re.compile(
 # Only promote a named software deliverable with a creation/change request.
 # A site link, an agent vacancy or a technology name alone is not this signal.
 _SOFTWARE_TARGET = (
-    r"(?:웹\s*(?:사이트|페이지)|홈페이지|사이트|(?:AI|인공지능)\s*에이전트|챗\s*봇|"
+    r"(?:웹\s*(?:사이트|페이지)|홈페이지|사이트|(?:상세|상품|소개)\s*페이지|(?:AI|인공지능)\s*에이전트|챗\s*봇|"
     r"(?<![가-힣])봇|\b(?:AI\s*agent|chat\s*bot|chatbot|bot|web\s*site|website|webpage|React|"
     r"HTML(?:\s*[/+·,]?\s*CSS)?|CSS)\b)"
 )
@@ -199,7 +199,7 @@ class DaangnAdapter(ProfiledSiteAdapter):
         specific_keywords = [word for word in keywords if len(word) >= 2 and word not in _GENERIC_QUERY_TERMS]
         title_pattern = re.compile(config["title_pattern"], re.I)
         candidates = {}
-        listed = set()
+        listed = {}
         invalid_urls = 0
         non_software_exploration_filtered = 0
         for sitemap in maps:
@@ -209,11 +209,15 @@ class DaangnAdapter(ProfiledSiteAdapter):
                     invalid_urls += 1
                     continue
                 post_id = self._post_id(url)
-                listed.add(post_id)
                 # Do not match an accidental keyword (e.g. VBA) in the ID.
                 segment = unquote(urlsplit(url).path.rsplit("/", 1)[1])
                 slug = segment.rsplit("-", 1)[0] if segment != post_id else ""
                 title = slug.replace("-", " ")
+                modified, _ = parse_iso(entry.findtext("{*}lastmod"))
+                ref = PostRef(url, post_id, title, modified)
+                if post_id not in listed or (modified.timestamp() if modified else 0) > (
+                        listed[post_id].source_updated_at.timestamp() if listed[post_id].source_updated_at else 0):
+                    listed[post_id] = ref
                 normalized = re.sub(r"\s+", "", title).casefold()
                 query_match = any(word in normalized for word in keywords)
                 core = bool(title_pattern.search(title) or _SOFTWARE_DELIVERY_REQUEST.search(title)) and query_match
@@ -227,8 +231,7 @@ class DaangnAdapter(ProfiledSiteAdapter):
                     non_software_exploration_filtered += 1
                     explore = False
                 if core or explore:
-                    modified, _ = parse_iso(entry.findtext("{*}lastmod"))
-                    candidate = (modified.timestamp() if modified else 0, PostRef(url, post_id, title, modified), core)
+                    candidate = (modified.timestamp() if modified else 0, ref, core)
                     if post_id not in candidates or (candidate[0], core) > (candidates[post_id][0], candidates[post_id][2]):
                         candidates[post_id] = candidate
         if invalid_urls and not listed:
@@ -244,7 +247,7 @@ class DaangnAdapter(ProfiledSiteAdapter):
             "invalid_urls": invalid_urls,
             "filter_basis": "제목의 제작 관련 표현 + 활성 검색어·명시 동의어, 이후 상세 본문 확인",
             "exploration_filter_basis": "활성 구체 검색어·약한 제작 요청 제목을 제한 순환 확인. 전체 본문 검색 아님",
-        }, exploration_refs)
+        }, exploration_refs, list(listed.values()))
 
     def parse(self, ref: PostRef, result: FetchResult, observed_at: datetime) -> ParsedPost:
         if result.outcome != "ok" or urlsplit(result.final_url).hostname not in self.allowed_hosts:

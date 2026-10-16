@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { policyLabel } from '../../domain/labels';
-import type { RunInfo, SourceInfo, StreamStatus } from '../../domain/model';
-import { formatRelative, formatTime } from '../../domain/format';
+import type { Bootstrap, RunInfo, SourceInfo, StreamStatus } from '../../domain/model';
+import { formatDateTime, formatRelative, formatTime } from '../../domain/format';
 import type { Tone } from '../../domain/present';
 import { StatusMark } from '../../ui/StatusMark';
+import { monitoringWarning } from '../../domain/freshness';
 
 export interface Issue {
   key: string;
@@ -20,7 +21,9 @@ export function deriveIssues({
   mode,
   openCollection,
   now,
+  notices,
 }: {
+  notices?: Bootstrap['notices'];
   sources: SourceInfo[];
   runs: RunInfo[];
   stream: StreamStatus;
@@ -29,6 +32,7 @@ export function deriveIssues({
   now: Date;
 }): Issue[] {
   const out: Issue[] = [];
+  for (const notice of notices ?? []) out.push({ key: `notice-${notice.id}`, tone: 'unknown', text: `야간 요약 · ${formatDateTime(notice.createdAt, now)} · ${notice.title}` });
   const detail = { label: '자세히', run: openCollection };
   if (stream === 'retrying' || stream === 'closed') {
     out.push({ key: 'stream', tone: 'warn', text: '실시간 연결을 다시 시도하는 중 — 목록·상태가 최신이 아닐 수 있습니다' });
@@ -38,6 +42,8 @@ export function deriveIssues({
       out.push({ key: `stop-${s.id}`, tone: 'bad', text: `${s.name} 자동 수집 정지 — ${s.health.message ?? s.stoppedReason} 기존 리드의 모집 상태는 바꾸지 않았습니다.`, action: detail });
       continue;
     }
+    const warning = monitoringWarning(s);
+    if (warning) out.push({ key: `schedule-${s.id}`, tone: 'warn', text: warning, action: detail });
     if (s.policy.status !== 'allowed' && s.policy.status !== 'restricted') {
       const research = s.research.ready ? '' : ' · 사이트 조사 미완료';
       out.push({
@@ -79,7 +85,9 @@ export function deriveIssues({
 export function IssueStrip({ issues }: { issues: Issue[] }) {
   const [expanded, setExpanded] = useState(false);
   if (!issues.length) return null;
-  const shown = expanded ? issues : issues.slice(0, 2);
+  const notices = issues.filter((issue) => issue.key.startsWith('notice-'));
+  const other = issues.filter((issue) => !issue.key.startsWith('notice-'));
+  const shown = expanded ? issues : [...other.slice(0, 2), ...notices];
   return (
     <div className="issues" role="region" aria-label="수집·연결 상태 알림">
       {shown.map((i) => (
@@ -92,9 +100,9 @@ export function IssueStrip({ issues }: { issues: Issue[] }) {
           ) : null}
         </div>
       ))}
-      {issues.length > 2 ? (
+      {other.length > 2 ? (
         <button type="button" className="link-btn issues-more" onClick={() => setExpanded((v) => !v)} aria-expanded={expanded}>
-          {expanded ? '접기' : `외 ${issues.length - 2}건`}
+          {expanded ? '접기' : `외 ${other.length - 2}건`}
         </button>
       ) : null}
     </div>

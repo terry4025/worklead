@@ -1,7 +1,7 @@
 import { ArrowLeft, ExternalLink, RefreshCw, Sparkles, Star, XCircle } from 'lucide-react';
 import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { formatDateTime, formatFull, formatFuzzyDate } from '../../domain/format';
+import { formatDateTime } from '../../domain/format';
 import { analysisStatusLabel, recommendationLabel } from '../../domain/labels';
 import type { LeadDetail, SourceInfo } from '../../domain/model';
 import { patchSummary, useLead, useLeadMutation } from '../../app/queries';
@@ -18,6 +18,7 @@ import { DraftBox, FeedbackControls, MemoBox, Outcomes, StageSelect } from './Re
 import { SourceText, type Mark } from './SourceText';
 import { RelatedRecordsPanel } from './RelatedRecordsPanel';
 import { AiInterpretationPanel } from './AiInterpretationPanel';
+import { LeadTiming } from '../leads/LeadTiming';
 
 export interface DetailHandle {
   openOriginal: () => void;
@@ -192,9 +193,8 @@ export const LeadDetailPane = forwardRef<
         <p className="detail-meta">
           <span>{source?.name ?? lead.sourceId}</span>
           {lead.postedRegion ? <span>{lead.postedRegion}</span> : null}
-          <span title={lead.published.at ? formatFull(lead.published.at) : undefined}>게시 {formatFuzzyDate(lead.published, now)}</span>
-          <span title={formatFull(lead.firstSeenAt)}>발견 {formatDateTime(lead.firstSeenAt, now)}</span>
         </p>
+        <LeadTiming lead={lead} now={now} detail />
         <div className="detail-actions" role="toolbar" aria-label="리드 동작">
           <Button size="sm" variant="primary" icon={<ExternalLink size={14} />} shortcut="O" onClick={() => void openOriginal()} disabled={!full}>
             원문 열기
@@ -294,6 +294,19 @@ export const LeadDetailPane = forwardRef<
 
         {full ? (
           <>
+            <section className="d-section" aria-labelledby="sec-draft">
+              <h3 id="sec-draft" className="d-h">
+                지원 준비
+              </h3>
+              <p className="field-hint">요구사항·범위·가능한 일정과 관련 포트폴리오를 초안에 보완하세요. 이미 지원했다면 진행 상태와 활동 기록을 먼저 확인하세요.</p>
+              <DraftBox key={full.id} lead={full} mode={mode} />
+              <div className="draft-actions">
+                <Button size="sm" busy={rechecking || lead.activeJob === 'recheck'} onClick={() => void recheck()}>모집 재확인</Button>
+                <Button size="sm" variant="primary" icon={<ExternalLink size={14} />} disabled={!full.originalUrl} onClick={() => void openOriginal()}>원문에서 지원</Button>
+              </div>
+              <p className="field-hint">원문에서 지원을 마친 뒤 상단 진행 상태를 ‘연락함’으로 기록하세요. 원문을 열거나 초안을 복사해도 지원 완료로 기록하지 않습니다.</p>
+            </section>
+
             <AiInterpretationPanel value={full.analysis.aiInterpretation} />
             <section className="d-section" aria-labelledby="sec-cond">
               <h3 id="sec-cond" className="d-h">
@@ -362,13 +375,6 @@ export const LeadDetailPane = forwardRef<
               </h3>
               <MemoBox key={full.id} lead={full} ref={memoRef} />
               <FeedbackControls lead={full} />
-            </section>
-
-            <section className="d-section" aria-labelledby="sec-draft">
-              <h3 id="sec-draft" className="d-h">
-                문의 초안
-              </h3>
-              <DraftBox key={full.id} lead={full} mode={mode} />
             </section>
 
             <section className="d-section" aria-labelledby="sec-out">

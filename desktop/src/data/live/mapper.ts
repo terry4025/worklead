@@ -44,6 +44,7 @@ export function mapSummary(x: C.LeadSummary): LeadSummary {
     lastCheckedAt: x.last_checked_at,
     published: fuzzy(x.published),
     firstSeenAt: x.first_seen_at,
+    freshness: x.freshness === undefined ? undefined : x.freshness ? { discoveryDelaySeconds: x.freshness.discovery_delay_seconds ?? null, firstListedAt: x.freshness.first_listed_at ?? null, listingToDetailSeconds: x.freshness.listing_to_detail_seconds ?? null } : null,
     deadline: fuzzy(x.deadline),
     postedRegion: x.posted_region,
     foundIn: x.found_in,
@@ -220,6 +221,7 @@ export function mapSource(x: C.SourceOut): SourceInfo {
       : null,
     research: { ready: x.research.ready, missing: x.research.missing },
     lastRunId: x.last_run_id,
+    monitoring: x.monitoring ? { state: x.monitoring.state, lastStartedAt: x.monitoring.last_started_at ?? null, lastFinishedAt: x.monitoring.last_finished_at ?? null, nextDueAt: x.monitoring.next_due_at ?? null, overdueSeconds: x.monitoring.overdue_seconds, intervalMinutes: x.monitoring.interval_minutes, previousGapSeconds: x.monitoring.previous_gap_seconds ?? null } : null,
   };
 }
 
@@ -269,6 +271,7 @@ export function mapSettings(x: C.SettingsOut): SettingsView {
     recheck: { ttlHours: x.recheck.ttl_hours ?? 24 },
     notifications: {
       newRecommended: x.notifications.new_recommended,
+      newReview: x.notifications.new_review ?? true,
       meaningfulChange: x.notifications.meaningful_change,
       sourceIssue: x.notifications.source_issue,
       quietHours: { enabled: x.notifications.quiet_hours.enabled, start: x.notifications.quiet_hours.start, end: x.notifications.quiet_hours.end },
@@ -311,6 +314,7 @@ export function settingsPatchToContract(p: Parameters<import('../port').Worklead
   if (p.notifications)
     out.notifications = {
       new_recommended: p.notifications.newRecommended,
+      new_review: p.notifications.newReview,
       meaningful_change: p.notifications.meaningfulChange,
       source_issue: p.notifications.sourceIssue,
       quiet_hours: p.notifications.quietHours,
@@ -347,6 +351,7 @@ export function mapAiStatus(x: C.AIStatus): AiStatus {
 
 export function mapBootstrap(x: C.BootstrapOut): Bootstrap {
   return {
+    notices: (x.notices ?? []).map((notice) => ({ id: notice.id, kind: notice.kind, title: notice.title, createdAt: notice.created_at })),
     mode: x.mode,
     appVersion: x.app_version,
     contractVersion: x.contract_version,
@@ -361,6 +366,7 @@ export function mapSales(m: C.MetricsOut): SalesSummary {
   const s = m.sales;
   const money = (value: C.Schemas['MoneyTotal']) => ({ amount: value.amount, knownAmount: value.known_amount, records: value.records, missingAmounts: value.missing_amounts });
   return {
+    freshness: (m.freshness ?? []).map((f) => ({ sourceId: f.source_id, periodDays: f.period_days, records: f.records, samples: f.samples, unavailableSamples: f.unavailable_samples, medianDiscoverySeconds: f.median_discovery_seconds ?? null, p95DiscoverySeconds: f.p95_discovery_seconds ?? null, within15Minutes: f.within_15_minutes, within1Hour: f.within_1_hour, note: f.note })),
     periodDays: s.period_days,
     periodStart: s.period_start ?? null,
     periodEnd: s.period_end ?? null,
@@ -413,7 +419,7 @@ export function mapEvent(e: C.ApiEvent): WorkleadEvent | null {
       return {
         ...base,
         type: e.type,
-        kind: e.kind as 'new_lead' | 'lead_changed' | 'source_issue' | 'cafe_request',
+        kind: e.kind as 'new_lead' | 'new_review_lead' | 'lead_changed' | 'source_issue' | 'cafe_request',
         title: str('title') ?? '',
         leadId: str('lead_id'),
         sourceId: str('source_id'),

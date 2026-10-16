@@ -20,6 +20,7 @@ from ..services.settings import get_setting, ttl_hours
 from ..sources.base import DiscoverResult, ParseError, PostNotCollectable, PostRef, SourceNotReady, TaskSpec
 from ..sources.profiled import TaskFailed, canonicalize
 from . import runs
+from .freshness import observe_listings, ordered_candidates, watch_reserve
 from .events import emit, notify
 from .http import PolicyStop, RunHalt
 from .pipeline import apply_analysis, ingest, record_path
@@ -80,6 +81,10 @@ class RunScope:
 
 class _ExplorationDeferred(Exception):
     """Keep optional discovery for another run without failing the core scan."""
+
+
+class _DiscoveryReserved(Exception):
+    """Automatic rechecks leave enough HTTP budget for remaining list watches."""
 
 
 class _Exploration:
@@ -305,6 +310,16 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
     _gate(app, source_id)
     scope = RunScope(app, run, owner)
     now = app.clock()
+    with app.db.session() as s:
+        previous = s.scalar(select(Run).where(Run.source_id == source_id, Run.kind == "discovery",
+                            Run.id != run.id, Run.finished_at.is_not(None))
+                            .order_by(Run.finished_at.desc()).limit(1))
+        current = s.get(Run, run.id)
+        current.result = {**(current.result or {}), "collection_timing": {
+            "started_at": now.isoformat(),
+            "previous_finished_at": previous.finished_at.isoformat() if previous else None,
+            "gap_seconds": max(0, (now - previous.finished_at).total_seconds()) if previous else None,
+        }}
 
     if not run.checkpoint.get("cycle"):
         groups = get_setting_session(app, "query_groups")["groups"]
@@ -395,12 +410,23 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
         s.execute(update(CollectionTask).where(CollectionTask.run_id == run.id, CollectionTask.state == "running").values(state="pending"))
     fetcher = app.fetcher_for(adapter)
     exploration = _Exploration(app, scope, adapter)
+    watch_detail_limit = max(0, int(getattr(adapter, "profile", {}).get("discovery", {}).get("detail_requests_per_watch", 0)))
+    watch = {"active": False, "known": False, "requests": 0, "refresh_requests": 0, "deferred": 0}
     batch_limit = max(0, int(getattr(adapter, "discovery_request_limit", 0)))
     def reserve_request(s, row) -> None:
+        if watch["active"] and (watch["requests"] >= watch_detail_limit
+                or (watch["known"] and watch["refresh_requests"] >= 1)
+                or row.limit - row.used <= watch_reserve(s, app, source_id, adapter)):
+            watch["deferred"] += 1
+            raise _ExplorationDeferred()
         exploration.reserve_request(s, row)
         if batch_limit and scope.counts.get("requests", 0) >= batch_limit:
             raise RunHalt("discovery_batch", "이번 원문 확인을 저장했습니다. 남은 페이지와 원문은 이어서 확인합니다.")
     def on_request() -> None:
+        if watch["active"]:
+            watch["requests"] += 1
+            if watch["known"]:
+                watch["refresh_requests"] += 1
         exploration.record_request()
         scope.bump("requests")
         scope.checkpoint(check_controls=False)
@@ -429,6 +455,7 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
             result_state, last_result, error, found = "done", "ok", None, 0
             try:
                 result, start_index, resumed = _discovery_page(app, adapter, spec, fetcher, task_id)
+                observe_listings(app, source_id, result)
                 found = len(result.refs)
                 last_result = "ok" if found else "empty"
                 if result.metadata:
@@ -444,12 +471,38 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
                         scope.bump("parse_failures")
                 task_label = scope.label
                 scope.detail_progress = {"done": start_index, "total": found}
-                for index in range(start_index, found):
-                    ref = result.refs[index]
+                incremental = bool(watch_detail_limit and result.listed_refs)
+                candidates = (ordered_candidates(app, source_id, result) if incremental else
+                              [("core", ref, False) for ref in result.refs[start_index:]])
+                scope.detail_progress["total"] = len(candidates) + start_index
+                for index, (candidate_kind, ref, known) in enumerate(candidates, start=start_index):
+                    remaining = len(candidates) + start_index - index
+                    # Quota exhaustion is not an HTTP attempt. Do not pace each
+                    # remaining candidate after the watch has spent its allowance.
+                    if incremental and (watch["requests"] >= watch_detail_limit
+                            or (known and watch["refresh_requests"] >= 1)):
+                        watch["deferred"] += remaining
+                        break
                     scope.detail_progress["title"] = ref.title_hint or ""
                     scope.label = f"{task_label} · 상세 {index}/{found} · {(ref.title_hint or '')[:60]}"
                     scope.checkpoint()
-                    _process_ref(app, adapter, fetcher, ref, spec, run.id, scope)
+                    watch["active"], watch["known"] = incremental, known
+                    deferred_before = watch["deferred"]
+                    try:
+                        if candidate_kind == "exploration":
+                            exploration.process(adapter, fetcher, [ref], spec)
+                        else:
+                            _process_ref(app, adapter, fetcher, ref, spec, run.id, scope)
+                    except _ExplorationDeferred:
+                        watch["deferred"] += max(0, remaining - 1)
+                        break  # Saved list metadata is reconsidered by the next watch.
+                    finally:
+                        watch["active"] = False
+                    if incremental and watch["deferred"] > deferred_before:
+                        # Optional exploration catches the same reservation
+                        # rejection internally; end this watch just as promptly.
+                        watch["deferred"] += max(0, remaining - 1)
+                        break
                     if getattr(adapter, "persist_discovery_pages", False):
                         with app.db.session() as s:
                             t = s.get(CollectionTask, task_id)
@@ -460,9 +513,21 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
                                 **info, "posts_considered": info.get("posts_considered", 0) + 1,
                             }}
                     scope.detail_progress["done"] = index + 1
-                scope.label = f"{task_label} · 상세 {found}/{found}"
-                if result.exploration_refs or "exploration_candidates" in result.metadata:
+                scope.label = (f"{task_label} · 이번 감시 후보 확인 {scope.detail_progress['done']}개 · "
+                               f"다음 감시 후보 {watch['deferred']}개" if incremental else
+                               f"{task_label} · 상세 {found}/{found}")
+                if not incremental and (result.exploration_refs or "exploration_candidates" in result.metadata):
                     exploration.process(adapter, fetcher, result.exploration_refs, spec)
+                if incremental:
+                    with app.db.session() as s:
+                        current = s.get(Run, run.id)
+                        current.result = {**(current.result or {}), "discovery": {
+                            **(current.result or {}).get("discovery", {}),
+                            "detail_requests_per_watch": watch_detail_limit,
+                            "watch_detail_requests": watch["requests"],
+                            "watch_refresh_requests": watch["refresh_requests"],
+                            "watch_deferred_details": watch["deferred"],
+                        }}
                 depth_limit = int(plan_info["depth_limit"])
                 if result.next_cursor and (depth_limit == 0 or spec.depth + 1 < depth_limit):
                     nxt = TaskSpec(spec.query_group, spec.region_scope, spec.region_label, spec.query, result.next_cursor, spec.depth + 1)
@@ -780,11 +845,20 @@ def run_recheck(app: AppContext, run: Run, owner: str) -> None:
     adapter: Any = app.adapters[source_id]
     scope.total = len(targets)
     fetcher = app.fetcher_for(adapter)
+    reserved_for_discovery = False
     def on_request() -> None:
         scope.bump("requests")
         scope.checkpoint(check_controls=False)
     fetcher.before_request = scope.checkpoint
     fetcher.on_request = on_request
+    def reserve_recheck(session, budget):
+        if run.kind != "recheck_lead":
+            config = getattr(adapter, "profile", {}).get("discovery", {})
+            recheck_limit = int(config.get("recheck_requests_per_run", 0))
+            if ((recheck_limit and scope.counts.get("requests", 0) >= recheck_limit)
+                    or budget.limit - budget.used <= watch_reserve(session, app, source_id, adapter)):
+                raise _DiscoveryReserved()
+    fetcher.reserve_request = reserve_recheck
     try:
         for rec_id in targets:
             scope.checkpoint()
@@ -808,6 +882,13 @@ def run_recheck(app: AppContext, run: Run, owner: str) -> None:
                 rv = adapter.revalidate(url, fetcher, now)
                 if rv.parsed is not None and ref.source_post_id and rv.parsed.source_post_id != ref.source_post_id:
                     raise ParseError("재확인 응답의 공고 ID가 요청한 공고와 다릅니다")
+            except _DiscoveryReserved:
+                reserved_for_discovery = True
+                with app.db.session() as s:
+                    current = s.get(Run, run.id)
+                    current.result = {**(current.result or {}), "discovery_budget_reserved": True,
+                                      "rechecks_deferred": len(targets) - scope.done}
+                break
             except PolicyStop as exc:
                 lead_id = None
                 with app.db.session() as s:
@@ -889,6 +970,8 @@ def run_recheck(app: AppContext, run: Run, owner: str) -> None:
     if not failed:
         skipped = scope.counts.get("skipped", 0)
         note = f"공개 수집 허용 불가·미확인 공고 {skipped}건은 본문을 저장하지 않았습니다" if skipped else None
+        if reserved_for_discovery:
+            note = "신규 목록 감시 예산을 남기고 기존 공고 자동 재확인을 유예했습니다"
         raise Halt("succeeded", None, note if targets else "재확인할 대상이 없습니다")
     state = "failed" if failed >= len(targets) else "partial"
     raise Halt(state, "recheck_errors", f"재확인 실패 {failed}건 (접근 오류는 마감으로 바꾸지 않음)")

@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from ..api import schemas as S
 from ..engine.http import budget_status
 from ..engine.schedule import next_due
+from ..engine.runs import ACTIVE
 from ..db import utcnow
 from ..models import CollectionTask, CoverageUnit, Run, Source, SourcePolicy
 from ..sources.profiled import check_profile
@@ -129,6 +130,36 @@ def coverage(s: Session, db: Any, source: Source, adapter: Any) -> S.Coverage | 
     )
 
 
+def monitoring(s: Session, source: Source, adapter: Any, *, now=None) -> S.SourceMonitoring | None:
+    if source.kind != "site" or getattr(adapter, "browser_collection", False):
+        return None
+    now = now or utcnow()
+    last = s.scalar(select(Run).where(Run.source_id == source.id, Run.kind == "discovery")
+                    .order_by(Run.created_at.desc()).limit(1))
+    interval = source.interval_minutes or 360
+    due = next_due(s, source, "discovery", now)
+    policy = s.get(SourcePolicy, source.id)
+    overdue = max(0, int((now - due).total_seconds())) if due else 0
+    if not source.auto_collect_enabled:
+        state = "disabled"
+    elif source.stopped_reason or not policy or policy.status not in ("allowed", "restricted") or not research_state(adapter).ready:
+        state = "stopped"
+    elif last is not None and last.state in ACTIVE:
+        state = "running"
+    elif last is None:
+        state = "never"
+    else:
+        state = "overdue" if overdue >= 120 else "waiting"
+    # An overdue schedule is observable; it does not establish OS sleep or app uptime.
+    gap = (last.result or {}).get("collection_timing", {}).get("gap_seconds") if last else None
+    return S.SourceMonitoring(state=state, interval_minutes=interval,
+                              last_started_at=last.started_at if last else None,
+                              last_finished_at=last.finished_at if last else None,
+                              next_due_at=due if state not in ("disabled", "stopped") else None,
+                              overdue_seconds=overdue if state == "overdue" else 0,
+                              previous_gap_seconds=max(0, int(gap)) if isinstance(gap, (int, float)) else None)
+
+
 def serialize(s: Session, db: Any, source: Source, adapter: Any) -> S.SourceOut:
     policy = s.get(SourcePolicy, source.id)
     last = s.scalar(select(Run.id).where(Run.source_id == source.id).order_by(Run.created_at.desc()).limit(1))
@@ -156,6 +187,7 @@ def serialize(s: Session, db: Any, source: Source, adapter: Any) -> S.SourceOut:
         coverage=coverage(s, db, source, adapter),
         research=research_state(adapter),
         last_run_id=last,
+        monitoring=monitoring(s, source, adapter),
     )
 
 

@@ -276,7 +276,7 @@ def test_older_backups_validate_migrate_and_keep_confirmed_relation(ctx, client,
     assert inspected.status_code == 200 and inspected.json()["can_restore"] is True
     restored = client.post(f"/v1/backups/{path.name}/restore", json={"confirm": True, "sha256": inspected.json()["sha256"]})
     assert restored.status_code == 200, restored.text
-    assert storage.current_revision(ctx.config.db_path) == "0006_daangn_cafe"
+    assert storage.current_revision(ctx.config.db_path) == "0007_discovery_listings"
     assert_pair(client, ids, True, False, 0)
     assert detail(client, ids[0])["memo"] == "이전 버전 메모"
 

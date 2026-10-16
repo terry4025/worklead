@@ -17,6 +17,9 @@ describe('계약 fixture → 화면 모델', () => {
     const b = mapBootstrap(read('bootstrap.json'));
     expect(b.queues.map((q) => q.id)).toContain('needs_review');
     expect(b.categories.length).toBeGreaterThan(3);
+    expect(b.notices).toEqual([]);
+    const notice = { id: 'persisted-night-summary', kind: 'new_review_lead', title: '밤사이 새 제작 의뢰 3건 · 조건을 확인하세요', created_at: '2026-10-16T00:00:00Z' };
+    expect(mapBootstrap({ ...read('bootstrap.json'), notices: [notice] }).notices).toEqual([{ id: notice.id, kind: notice.kind, title: notice.title, createdAt: notice.created_at }]);
     const s = mapSettings(read('settings.json'));
     expect(s.recheck.ttlHours).toBeGreaterThan(0);
     expect(s.ai.keyConfigured).toBe(false);

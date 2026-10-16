@@ -11,11 +11,11 @@ import logging
 import os
 import threading
 
-from sqlalchemy import or_, select
+from sqlalchemy import delete, exists, or_, select
 
 from ..context import AppContext
 from ..db import MaintenanceBusy
-from ..models import Lead, Run, Snapshot, Source, SourcePolicy, SourceRecord
+from ..models import DiscoveryListing, Lead, Run, Snapshot, Source, SourcePolicy, SourceRecord
 from . import events, runs
 from .executors import execute
 from .schedule import RECHECK_EVERY, next_due
@@ -99,6 +99,15 @@ def housekeeping(app: AppContext) -> None:
     now = app.clock()
     changed = False
     with app.db.session() as s:
+        # Drop stale, unselected public list metadata after 30 days. Retain
+        # rows linked to stored records so their first observation stays stable.
+        from datetime import timedelta
+        linked = exists(select(SourceRecord.id).where(
+            SourceRecord.source_id == DiscoveryListing.source_id,
+            or_(SourceRecord.source_post_id == DiscoveryListing.source_post_id,
+                SourceRecord.canonical_url == DiscoveryListing.url)))
+        s.execute(delete(DiscoveryListing).where(
+            DiscoveryListing.last_listed_at < now - timedelta(days=30), ~linked))
         for snap in s.scalars(select(Snapshot).where(Snapshot.retained_until < now, Snapshot.body_text.is_not(None)).limit(500)):
             snap.body_text = None
         # 원문 본문은 보존 기간 이후 제거하되, 사용자가 진행 중인 리드는 유지 (메모·영업 기록 판단 근거)
@@ -118,6 +127,9 @@ def housekeeping(app: AppContext) -> None:
         events.trim(s)
     if changed:
         app.hub.notify()
+    # App-only morning summaries do not depend on Windows notification opt-in.
+    from ..services.native_notifications import release_quiet_summary
+    release_quiet_summary(app)
 
 
 class Scheduler(threading.Thread):

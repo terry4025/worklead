@@ -1,5 +1,13 @@
 # 연동 계약 (화면 ↔ 로컬 API)
 
+## 리드 발견 개선 추가 계약 (2026-10-16)
+
+`queue=fresh`는 최근 24시간의 정확한 게시 시각·열린 구매 제작 의뢰·확인 TTL 유효·진행 전 조건이다. 정렬을 생략하면 fresh는 published, 나머지는 priority다. 목록·집계·커서 조건을 일치시킨다. 기존 확인 필요 전체 목록은 유지한다.
+
+추가 필드는 `LeadSummary.freshness`(발견 지연·목록 최초 관찰·목록→상세 지연), `SourceOut.monitoring`(최근 시작/종료·다음 예정·지연·직전 공백), `MetricsOut.freshness`(최근 7일 저장 집단의 지연·분모), `BootstrapOut.notices`(최근 24시간 영속 야간 요약)다. 미확인은 null이며 기존 fixture용 기본값을 제공한다. 요약 건수는 현재 유효 공고 수가 아니다.
+
+`notifications.new_review` 기본 true, 알림 종류 `new_review_lead`를 추가한다. 조용한 시간의 새 알림은 영속 보류하고 앱 내부 요약은 notify=false로 네이티브 중복을 만들지 않는다. claim 정보는 SSE에 포함하지 않는다. 실제 지원·채팅 발송 API는 추가하지 않았다. 소스 주기 최솟값은 30분이다.
+
 - 계약 버전: `2026-09-26.1` (`backend/worklead/config.py: CONTRACT_VERSION`, `/v1/bootstrap.contract_version`)
 - 원본: `backend/worklead/api/schemas.py` (Pydantic) → 생성물: `contracts/openapi.json`, `contracts/schemas/*.schema.json`, `contracts/client/schema.d.ts`
 - 예제: `contracts/fixtures/` — 실제 API·엔진으로 생성 (데모 시드 + 합성 사이트 시나리오 normal/partial/blocked/parse_failure). `backend/tests/test_contracts.py` 가 스키마로, `desktop/src/__tests__/contract-mapper.test.ts` 가 화면 매퍼로 다시 검증한다.

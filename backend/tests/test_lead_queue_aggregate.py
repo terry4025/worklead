@@ -57,6 +57,7 @@ def test_unfiltered_counts_keep_overlapping_interest_and_independent_sales_queue
     response = client.get("/v1/leads/queue-counts")
     assert response.status_code == 200, response.text
     assert response.json()["counts"] == {
+        "fresh": 0,
         "recommended": 2, "needs_review": 5, "interested": 3, "active": 2,
         "dismissed": 2, "auto_excluded": 4, "all": 16,
     }
@@ -102,5 +103,5 @@ def test_counts_execute_one_lead_query_including_korean_filter(aggregate_api):
     finally:
         event.remove(ctx.db.engine, "before_cursor_execute", capture)
     assert len(queries) == 1
-    assert queries[0][0].count("sum(CASE") == 6
+    assert queries[0][0].count("sum(CASE") == 7
     assert "%홈페이지%" in queries[0][1]

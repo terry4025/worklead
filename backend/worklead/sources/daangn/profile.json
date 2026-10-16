@@ -12,7 +12,7 @@
   ],
   "request_budget_per_day": 300,
   "min_interval_seconds": 6,
-  "default_interval_minutes": 360,
+  "default_interval_minutes": 30,
   "search": {
     "status": "unverified",
     "url_template": null,
@@ -55,7 +55,7 @@
     },
     "sort": {
       "support": "supported",
-      "note": "핵심 후보는 사이트맵 수정 시각 최신순. 약한 후보는 미방문·오래된 확인 순으로 제한 순환. 게시일과는 구별"
+      "note": "미확인 핵심 후보 우선, 핵심 3개당 약한 후보 1칸. 기존 조회 후보는 오래된 확인 순. 목록 수정 시각은 게시일과 구별"
     },
     "pagination": {
       "support": "supported",
@@ -63,7 +63,7 @@
     },
     "incremental": {
       "support": "supported",
-      "note": "전국 공개 목록 재조회 후 기존 공고 ID 중복 제거·상세 캐시. 약한 후보는 예산 안에서 일부씩 상세 확인"
+      "note": "공개 목록 최초 관찰 보존, 신규 ID 우선 상세 최대 4회/감시. 남은 감시 예산 보호. 기존 자동 재조회 최대 1회/감시"
     },
     "detail": {
       "support": "supported",
@@ -84,6 +84,8 @@
     "max_sitemaps": 20,
     "exploration_max_requests": 50,
     "exploration_reserve_requests": 30,
-    "title_pattern": "홈\\s*페이지|웹\\s*(?:사이트|개발|제작|서비스|앱)|소프트웨어|프로그램|매크로|엑셀|VBA|자동화|크롤링|랜딩\\s*페이지|개발자|앱\\s*(?:개발|제작)|파이썬|python|워드프레스|카페24|쇼핑몰.*(?:제작|개발|구축|수정)|홈피|웹\\s*페이지|어플\\s*(?:개발|제작)|RPA|시스템\\s*(?:개발|구축)|크롤러|풀스택"
+    "title_pattern": "홈\\s*페이지|웹\\s*(?:사이트|개발|제작|서비스|앱)|소프트웨어|프로그램|매크로|엑셀|VBA|자동화|크롤링|랜딩\\s*페이지|개발자|앱\\s*(?:개발|제작)|파이썬|python|워드프레스|카페24|쇼핑몰.*(?:제작|개발|구축|수정)|홈피|웹\\s*페이지|어플\\s*(?:개발|제작)|RPA|시스템\\s*(?:개발|구축)|크롤러|풀스택",
+    "detail_requests_per_watch": 4,
+    "recheck_requests_per_run": 2
   }
 }

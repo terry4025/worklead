@@ -6,6 +6,7 @@ import type { LeadSummary, QueueId } from '../../domain/model';
 import { intentTone, recruitDisplay, remoteCaveats, remoteClass, remoteDisplay } from '../../domain/present';
 import { inQueue } from '../../domain/queues';
 import { StatusMark } from '../../ui/StatusMark';
+import { LeadTiming } from './LeadTiming';
 
 const REASON_GLYPH = { positive: '✓', caution: '!', negative: '✕' } as const;
 
@@ -37,7 +38,7 @@ export const LeadRow = memo(function LeadRow({
   const caveats = remoteCaveats(lead);
   const recruit = recruitDisplay(lead, now);
   const pay = formatPay(lead.pay);
-  const moved = !inQueue(lead, queue);
+  const moved = !inQueue(lead, queue, now);
   const cats = lead.categories.filter((c) => c !== 'other').map(categoryLabel);
   const catText = cats.length ? cats.slice(0, 2).join(' · ') : '기타';
   const score = lead.priority.total;
@@ -86,6 +87,7 @@ export const LeadRow = memo(function LeadRow({
             ))}
           </div>
         )}
+        <LeadTiming lead={lead} now={now} />
         <div className="row-meta">
           <span className={`meta-intent tone-${intentTone(lead.demandIntent.value)}`}>{intentShortLabel[lead.demandIntent.value]}</span>
           <span>{catText}</span>

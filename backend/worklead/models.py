@@ -257,6 +257,26 @@ class HostBudget(Base):
     last_request_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
 
 
+class DiscoveryListing(Base):
+    """Public list metadata only, including entries rejected by title selection.
+
+    first_listed_at is our first observation, never an inferred publication date.
+    """
+    __tablename__ = "discovery_listings"
+    source_id: Mapped[str] = mapped_column(ForeignKey("sources.id", ondelete="CASCADE"), primary_key=True)
+    ref_key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    source_post_id: Mapped[str | None] = mapped_column(String(200))
+    url: Mapped[str] = mapped_column(Text)
+    title_hint: Mapped[str | None] = mapped_column(Text)
+    title_digest: Mapped[str] = mapped_column(String(64))
+    first_listed_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    last_listed_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    source_updated_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    selection: Mapped[str] = mapped_column(String(16))
+    __table_args__ = (Index("ix_listing_source_post", "source_id", "source_post_id"),
+                      Index("ix_listing_last_seen", "last_listed_at"),)
+
+
 class DetailFetchState(Base):
     """공고 본문 없이 상세 조회 결과와 다음 자동 재조회 시각만 보존한다."""
 

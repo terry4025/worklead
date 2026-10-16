@@ -18,7 +18,7 @@ from worklead.models import EventOutbox
 from worklead.services import native_notifications as native
 from worklead.services.backups import create_backup, inspect_backup, restore_backup
 from worklead.services.settings import put_setting
-from worklead.storage import alembic_config, current_revision, migrate
+from worklead.storage import alembic_config, current_revision, head_revision, migrate
 
 NOW = datetime(2026, 9, 30, 3, tzinfo=UTC)  # noon KST
 SECRET = "원문 개인정보 제목 010-1234-5678 private@example.test"
@@ -115,9 +115,13 @@ def test_claim_rechecks_and_records_suppression_while_get_does_not(app, scenario
     c = client_for(app)
     result = c.post(f"/v1/native-notifications/{id_}/claim")
     assert result.status_code == 200 and result.json()["allowed"] is False
-    assert result.json()["state"] == "suppressed" and result.json()["reason"] == reason
+    expected_state = "pending" if scenario == "delivery_quiet" else "suppressed"
+    assert result.json()["state"] == expected_state and result.json()["reason"] == reason
     saved = row(app, id_)
-    assert saved.payload["native_delivery"]["reason"] == reason
+    if scenario == "delivery_quiet":
+        assert saved.payload["native_delivery"]["deferred_until"] == NOW.replace(hour=23).isoformat()
+    else:
+        assert saved.payload["native_delivery"]["reason"] == reason
     assert saved.suppressed_reason == reason and saved.notified_at is None
 
 
@@ -131,8 +135,16 @@ def test_type_toggle_and_creation_quiet_are_respected(app, kind):
         created = notify(s, kind, SECRET, dedupe_key=f"quiet:{kind}", now=NOW.replace(hour=14))
         id_ = created.id
         assert created.suppressed_reason == "quiet_hours"
-    assert native.list_pending(app)["items"] == []  # no morning replay
-    assert native.claim(app, id_)["reason"] == "quiet_hours"
+    app.clock = lambda: NOW.replace(hour=14)
+    assert native.list_pending(app)["items"] == []
+    assert native.claim(app, id_)["state"] == "pending"
+    app.db.dispose()  # Deferred delivery survives an API/process restart.
+    app.clock = lambda: NOW.replace(hour=23)
+    assert [item["id"] for item in native.list_pending(app)["items"]] == [id_]
+    claimed = native.claim(app, id_)
+    assert claimed["allowed"] and row(app, id_).suppressed_reason is None
+    native.record_result(app, id_, claim_token=claimed["claim_token"], state="accepted")
+    assert native.list_pending(app)["items"] == []
 
 
 @pytest.mark.parametrize("state", ["accepted", "failed", "unknown"])
@@ -305,7 +317,7 @@ def test_index_migration_preserves_existing_outbox_and_creates_pre_migration_bac
         command.downgrade(alembic_config(app.config.db_path), "0002_detail_fetch_states")
         assert current_revision(app.config.db_path) == "0002_detail_fetch_states"
         migrate(app.config.db_path, app.config.backup_dir)
-    assert current_revision(app.config.db_path) == "0006_daangn_cafe"
+    assert current_revision(app.config.db_path) == head_revision()
     with app.db.engine.connect() as connection:
         indexes = connection.exec_driver_sql("PRAGMA index_list(event_outbox)").all()
     assert any(part[1] == "ix_events_native_pending" for part in indexes)

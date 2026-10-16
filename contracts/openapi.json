@@ -1593,6 +1593,7 @@
             "required": false,
             "schema": {
               "enum": [
+                "fresh",
                 "recommended",
                 "needs_review",
                 "interested",
@@ -1890,13 +1891,19 @@
             "in": "query",
             "required": false,
             "schema": {
-              "enum": [
-                "priority",
-                "published",
-                "checked"
+              "anyOf": [
+                {
+                  "enum": [
+                    "priority",
+                    "published",
+                    "checked"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
               ],
-              "type": "string",
-              "default": "priority",
               "title": "Sort"
             }
           }
@@ -2249,13 +2256,19 @@
             "in": "query",
             "required": false,
             "schema": {
-              "enum": [
-                "priority",
-                "published",
-                "checked"
+              "anyOf": [
+                {
+                  "enum": [
+                    "priority",
+                    "published",
+                    "checked"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
               ],
-              "type": "string",
-              "default": "priority",
               "title": "Sort"
             }
           }
@@ -5621,6 +5634,40 @@
         ],
         "title": "AnalysisFailure"
       },
+      "AppNotice": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "new_lead",
+              "new_review_lead"
+            ],
+            "title": "Kind"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "created_at"
+        ],
+        "title": "AppNotice"
+      },
       "AutoCollect": {
         "properties": {
           "enabled": {
@@ -5809,6 +5856,14 @@
           "event_seq": {
             "type": "integer",
             "title": "Event Seq"
+          },
+          "notices": {
+            "items": {
+              "$ref": "#/components/schemas/AppNotice"
+            },
+            "type": "array",
+            "title": "Notices",
+            "description": "최근 24시간 생성된 영속 야간 요약. 현재 유효 공고 수가 아닌 당시 요약 기록"
           }
         },
         "additionalProperties": false,
@@ -8210,6 +8265,16 @@
             "format": "date-time",
             "title": "First Seen At"
           },
+          "freshness": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LeadFreshness"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "deadline": {
             "$ref": "#/components/schemas/FuzzyDate",
             "description": "구인 마감일 (근무일·납기와 다름)"
@@ -8536,6 +8601,51 @@
         ],
         "title": "LeadDetail"
       },
+      "LeadFreshness": {
+        "properties": {
+          "discovery_delay_seconds": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discovery Delay Seconds",
+            "description": "정확한 현재 게시 시각부터 최초 발견까지. 미래·근사 시각은 null; 최초 게시 지연 보장은 아님"
+          },
+          "first_listed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Listed At",
+            "description": "이 설치가 공개 목록에서 처음 관찰한 시각. 기능 도입 전 노출은 추정하지 않음"
+          },
+          "listing_to_detail_seconds": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Listing To Detail Seconds"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "LeadFreshness"
+      },
       "LeadPage": {
         "properties": {
           "items": {
@@ -8732,6 +8842,16 @@
             "format": "date-time",
             "title": "First Seen At"
           },
+          "freshness": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LeadFreshness"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "deadline": {
             "$ref": "#/components/schemas/FuzzyDate",
             "description": "구인 마감일 (근무일·납기와 다름)"
@@ -8867,6 +8987,13 @@
           "sales": {
             "$ref": "#/components/schemas/SalesMetrics"
           },
+          "freshness": {
+            "items": {
+              "$ref": "#/components/schemas/SourceFreshnessMetrics"
+            },
+            "type": "array",
+            "title": "Freshness"
+          },
           "note": {
             "type": "string",
             "title": "Note"
@@ -8936,6 +9063,7 @@
                 "type": "string",
                 "enum": [
                   "new_lead",
+                  "new_review_lead",
                   "lead_changed",
                   "source_issue",
                   "cafe_request"
@@ -9003,6 +9131,7 @@
             "type": "string",
             "enum": [
               "new_lead",
+              "new_review_lead",
               "lead_changed",
               "source_issue",
               "cafe_request"
@@ -9085,6 +9214,7 @@
                 "type": "string",
                 "enum": [
                   "new_lead",
+                  "new_review_lead",
                   "lead_changed",
                   "source_issue",
                   "cafe_request"
@@ -9123,6 +9253,11 @@
           "new_recommended": {
             "type": "boolean",
             "title": "New Recommended"
+          },
+          "new_review": {
+            "type": "boolean",
+            "title": "New Review",
+            "default": true
           },
           "meaningful_change": {
             "type": "boolean",
@@ -9943,6 +10078,7 @@
             },
             "propertyNames": {
               "enum": [
+                "fresh",
                 "recommended",
                 "needs_review",
                 "interested",
@@ -9968,6 +10104,7 @@
           "id": {
             "type": "string",
             "enum": [
+              "fresh",
               "recommended",
               "needs_review",
               "interested",
@@ -11060,6 +11197,77 @@
         "type": "object",
         "title": "SettingsPatch"
       },
+      "SourceFreshnessMetrics": {
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "title": "Source Id"
+          },
+          "period_days": {
+            "type": "integer",
+            "title": "Period Days",
+            "default": 7
+          },
+          "records": {
+            "type": "integer",
+            "title": "Records"
+          },
+          "samples": {
+            "type": "integer",
+            "title": "Samples"
+          },
+          "unavailable_samples": {
+            "type": "integer",
+            "title": "Unavailable Samples"
+          },
+          "median_discovery_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Discovery Seconds"
+          },
+          "p95_discovery_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P95 Discovery Seconds"
+          },
+          "within_15_minutes": {
+            "type": "integer",
+            "title": "Within 15 Minutes"
+          },
+          "within_1_hour": {
+            "type": "integer",
+            "title": "Within 1 Hour"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_id",
+          "records",
+          "samples",
+          "unavailable_samples",
+          "within_15_minutes",
+          "within_1_hour",
+          "note"
+        ],
+        "title": "SourceFreshnessMetrics"
+      },
       "SourceList": {
         "properties": {
           "items": {
@@ -11076,6 +11284,88 @@
           "items"
         ],
         "title": "SourceList"
+      },
+      "SourceMonitoring": {
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "disabled",
+              "stopped",
+              "never",
+              "running",
+              "waiting",
+              "overdue"
+            ],
+            "title": "State"
+          },
+          "interval_minutes": {
+            "type": "integer",
+            "title": "Interval Minutes"
+          },
+          "last_started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Started At"
+          },
+          "last_finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Finished At"
+          },
+          "next_due_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Due At"
+          },
+          "overdue_seconds": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Overdue Seconds",
+            "default": 0
+          },
+          "previous_gap_seconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Gap Seconds",
+            "description": "직전 탐색 종료부터 최근 탐색 시작까지 실제 간격. OS·앱 중단 원인은 추정하지 않음"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "state",
+          "interval_minutes"
+        ],
+        "title": "SourceMonitoring"
       },
       "SourceOut": {
         "properties": {
@@ -11160,6 +11450,16 @@
               }
             ],
             "title": "Last Run Id"
+          },
+          "monitoring": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SourceMonitoring"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -11199,7 +11499,7 @@
               {
                 "type": "integer",
                 "maximum": 10080.0,
-                "minimum": 60.0
+                "minimum": 30.0
               },
               {
                 "type": "null"

@@ -53,6 +53,7 @@ DEFAULTS: dict[str, Any] = {
     "recheck": {"ttl_hours": 24},
     "notifications": {
         "new_recommended": True,
+        "new_review": True,
         "meaningful_change": True,
         "source_issue": True,
         "quiet_hours": {"enabled": True, "start": "22:00", "end": "08:00"},

@@ -13,6 +13,7 @@ import { DraftBox, MemoBox, Outcomes } from '../features/detail/Records';
 import { LeadDetailPane } from '../features/detail/LeadDetailPane';
 import { ToastProvider } from '../ui/Toasts';
 import { formatMoneyMinor } from '../domain/format';
+import * as external from '../platform/external';
 
 const clients: QueryClient[] = [];
 afterEach(() => { cleanup(); clients.splice(0).forEach((qc) => qc.clear()); vi.restoreAllMocks(); });
@@ -36,6 +37,25 @@ function harness(leads: LeadDetail[] = []) {
   const pane = (id: string) => <LeadDetailPane leadId={id} sources={[]} categoryLabel={(c) => c} now={new Date('2026-09-30T00:00:00Z')} overlay={false} onClose={() => undefined} onDismissed={() => undefined} />;
   return { port, qc, wrapper, pane };
 }
+
+it('지원 준비에서 초안 복사·원문 열기는 영업 상태를 자동 변경하지 않는다', async () => {
+  const value = lead();
+  value.originalUrl = 'https://jobs.daangn.com/job-posts/owned-public-123456789abc';
+  const { wrapper, pane, port } = harness([value]);
+  const update = vi.spyOn(port, 'updateLead');
+  const copy = vi.spyOn(external, 'copyText').mockResolvedValue(true);
+  const open = vi.spyOn(external, 'openExternal').mockResolvedValue('opened');
+  render(pane(value.id), { wrapper });
+  const preparation = screen.getByRole('heading', { name: '지원 준비' });
+  const conditions = screen.getByRole('heading', { name: '조건과 근거' });
+  expect(preparation.compareDocumentPosition(conditions) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  fireEvent.click(screen.getByRole('button', { name: /^복사$/ }));
+  await waitFor(() => expect(copy).toHaveBeenCalledWith(value.draft!.text));
+  fireEvent.click(screen.getByRole('button', { name: '원문에서 지원' }));
+  await waitFor(() => expect(open).toHaveBeenCalledWith(value.originalUrl));
+  expect(update).not.toHaveBeenCalled();
+  expect(screen.getByRole('combobox', { name: '진행 상태' })).toHaveProperty('value', value.salesStage);
+});
 
 it('통화별 합계를 분리하고 USD 최소 단위 100을 USD 1.00으로 표시한다', () => {
   const { wrapper } = harness();

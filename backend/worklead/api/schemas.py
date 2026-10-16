@@ -26,7 +26,7 @@ SalesStage = Literal["new", "reviewing", "contacted", "negotiating", "won", "los
 Recommendation = Literal["recommended", "needs_review", "excluded"]
 PayUnit = Literal["project", "hour", "day", "week", "month", "negotiable", "unknown"]
 UserMark = Literal["interested", "dismissed"]
-QueueId = Literal["recommended", "needs_review", "interested", "active", "dismissed", "auto_excluded", "all"]
+QueueId = Literal["fresh", "recommended", "needs_review", "interested", "active", "dismissed", "auto_excluded", "all"]
 RemoteFilter = Literal["any", "confirmed", "confirmed_or_inferred", "unknown", "onsite"]
 RecruitFilter = Literal["not_closed", "open_fresh", "recheck", "unknown", "closed", "access_issue", "any"]
 IntentFilter = Literal["any", "buyer", "hiring", "seller", "other"]
@@ -332,6 +332,12 @@ class Span(Model):
 
 
 # ── 리드 ─────────────────────────────────────────────────────────────
+class LeadFreshness(Model):
+    discovery_delay_seconds: float | None = Field(default=None, ge=0, description="정확한 현재 게시 시각부터 최초 발견까지. 미래·근사 시각은 null; 최초 게시 지연 보장은 아님")
+    first_listed_at: datetime | None = Field(default=None, description="이 설치가 공개 목록에서 처음 관찰한 시각. 기능 도입 전 노출은 추정하지 않음")
+    listing_to_detail_seconds: float | None = Field(default=None, ge=0)
+
+
 class LeadSummary(Model):
     id: str
     source_id: str
@@ -350,6 +356,7 @@ class LeadSummary(Model):
     last_checked_at: datetime | None
     published: FuzzyDate
     first_seen_at: datetime
+    freshness: LeadFreshness | None = None
     deadline: FuzzyDate = Field(description="구인 마감일 (근무일·납기와 다름)")
     posted_region: str | None
     found_in: list[str] = Field(description="이 공고가 발견된 탐색 지역 (게시 지역과 다를 수 있음)")
@@ -641,6 +648,16 @@ class Research(Model):
     missing: list[str]
 
 
+class SourceMonitoring(Model):
+    state: Literal["disabled", "stopped", "never", "running", "waiting", "overdue"]
+    interval_minutes: int
+    last_started_at: datetime | None = None
+    last_finished_at: datetime | None = None
+    next_due_at: datetime | None = None
+    overdue_seconds: int = Field(default=0, ge=0)
+    previous_gap_seconds: int | None = Field(default=None, ge=0, description="직전 탐색 종료부터 최근 탐색 시작까지 실제 간격. OS·앱 중단 원인은 추정하지 않음")
+
+
 class SourceOut(Model):
     id: str
     name: str
@@ -655,6 +672,7 @@ class SourceOut(Model):
     coverage: Coverage | None
     research: Research
     last_run_id: str | None
+    monitoring: SourceMonitoring | None = None
 
 
 class SourceList(Model):
@@ -669,7 +687,7 @@ class PolicyReviewIn(Model):
 
 class SourcePatch(Model):
     auto_collect_enabled: bool | None = None
-    interval_minutes: int | None = Field(default=None, ge=60, le=10080)
+    interval_minutes: int | None = Field(default=None, ge=30, le=10080)
     clear_stop: bool | None = Field(default=None, description="차단으로 정지된 소스를 사용자가 확인 후 해제")
     policy: PolicyReviewIn | None = None
 
@@ -759,6 +777,7 @@ class QuietHours(Model):
 
 class NotificationSettings(Model):
     new_recommended: bool
+    new_review: bool = True
     meaningful_change: bool
     source_issue: bool
     quiet_hours: QuietHours
@@ -957,7 +976,7 @@ class RestoreOut(Model):
 
 
 # Native delivery never contains source titles, bodies, or contact details.
-NativeNotificationKind = Literal["new_lead", "lead_changed", "source_issue", "cafe_request"]
+NativeNotificationKind = Literal["new_lead", "new_review_lead", "lead_changed", "source_issue", "cafe_request"]
 NativeNotificationState = Literal["pending", "attempted", "accepted", "failed", "unknown", "suppressed"]
 
 
@@ -1002,6 +1021,13 @@ class QueueOut(Model):
     description: str
 
 
+class AppNotice(Model):
+    id: str
+    kind: Literal["new_lead", "new_review_lead"]
+    title: str
+    created_at: datetime
+
+
 class BootstrapOut(Model):
     mode: Literal["live", "demo"]
     app_version: str
@@ -1012,6 +1038,7 @@ class BootstrapOut(Model):
     queues: list[QueueOut]
     recheck_ttl_hours: int
     event_seq: int
+    notices: list[AppNotice] = Field(default_factory=list, description="최근 24시간 생성된 영속 야간 요약. 현재 유효 공고 수가 아닌 당시 요약 기록")
 
 
 class HealthOut(Model):
@@ -1079,8 +1106,22 @@ class SalesMetrics(Model):
     by_currency: list[CurrencySales] = Field(default_factory=list)
 
 
+class SourceFreshnessMetrics(Model):
+    source_id: str
+    period_days: int = 7
+    records: int
+    samples: int
+    unavailable_samples: int
+    median_discovery_seconds: float | None = None
+    p95_discovery_seconds: float | None = None
+    within_15_minutes: int
+    within_1_hour: int
+    note: str
+
+
 class MetricsOut(Model):
     collection: CollectionMetrics
     quality: QualityMetrics
     sales: SalesMetrics
+    freshness: list[SourceFreshnessMetrics] = Field(default_factory=list)
     note: str

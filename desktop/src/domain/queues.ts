@@ -4,7 +4,7 @@
  */
 import type { LeadSummary, QueueId } from './model';
 
-export type ViewId = 'review' | 'interested' | 'active' | 'excluded' | 'all';
+export type ViewId = 'fresh' | 'review' | 'interested' | 'active' | 'excluded' | 'all';
 
 export interface ViewDef {
   id: ViewId;
@@ -15,6 +15,7 @@ export interface ViewDef {
 }
 
 export const VIEWS: ViewDef[] = [
+  { id: 'fresh', label: '지금 검토', key: '6', sections: [{ queue: 'fresh', title: '지금 검토', hint: '24시간 내 정확한 게시 시각 · 모집 확인된 제작 의뢰 · 추천과 확인 필요 함께' }], empty: '최근 24시간 내 게시된 검토 대상이 없습니다. 게시 시각이 불명확하거나 오래된 건은 검토 탭에서 확인하세요.' },
   {
     id: 'review',
     label: '검토',
@@ -44,9 +45,17 @@ const PRE = new Set(['new', 'reviewing']);
 const ACTIVE = new Set(['contacted', 'negotiating', 'won', 'on_hold']);
 
 /** 백엔드 services/leads.py queue_clause 와 같은 규칙 */
-export function inQueue(l: Pick<LeadSummary, 'recommendation' | 'userMark' | 'salesStage'>, q: QueueId): boolean {
+export function inQueue(l: Pick<LeadSummary, 'recommendation' | 'userMark' | 'salesStage'> & Partial<LeadSummary>, q: QueueId, now: Date = new Date()): boolean {
   const notDismissed = l.userMark !== 'dismissed' && l.salesStage !== 'ignored';
   switch (q) {
+    case 'fresh': {
+      const posted = l.published?.precision === 'exact' && l.published.at ? Date.parse(l.published.at) : NaN;
+      const age = now.getTime() - posted;
+      return notDismissed && PRE.has(l.salesStage) && l.recommendation !== 'excluded'
+        && ['buyer_project', 'buyer_ongoing'].includes(l.demandIntent?.value ?? '')
+        && l.engagementType?.value === 'project' && l.sourceStatus === 'open' && l.accessStatus === 'accessible'
+        && l.recheckDue === false && l.lastCheckedAt != null && age >= 0 && age <= 24 * 60 * 60_000;
+    }
     case 'recommended':
       return l.recommendation === 'recommended' && notDismissed && PRE.has(l.salesStage);
     case 'needs_review':

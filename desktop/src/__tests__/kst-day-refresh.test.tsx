@@ -32,21 +32,28 @@ async function advance(ms: number) {
   await act(async () => { await vi.advanceTimersByTimeAsync(10); });
 }
 
-async function harness(at: string) {
+async function harness(at: string, fresh = false) {
   vi.useFakeTimers();
   vi.setSystemTime(new Date(at));
   window.localStorage.clear();
   const input = JSON.parse(readFileSync(join(__dirname, '../../../contracts/fixtures/lead-details/01.json'), 'utf8'));
+  // 만료된 게시일도 남는 기존 검토 보기에서 자정 갱신·입력 보존을 검증한다.
+  window.localStorage.setItem('worklead.view', JSON.stringify(fresh ? 'fresh' : 'review'));
+  window.localStorage.setItem('worklead.filter', JSON.stringify({ ...DEFAULT_FILTER, sort: fresh ? 'published' : 'priority' }));
   let current: LeadDetail = {
     ...mapDetail(input), id: 'kst-deadline', title: '자정 마감 웹사이트 제작', memo: '저장된 메모',
     deadline: { at: '2026-09-29T15:00:00Z', precision: 'day', raw: '2026년 9월 30일까지' },
     draft: { text: '저장된 초안', editedByUser: true, generatedAt: null },
   };
+  if (fresh) current = { ...current, published: { at: new Date(Date.now() - 24 * 60 * 60_000 + 30_000).toISOString(), precision: 'exact', raw: null },
+    firstSeenAt: new Date(Date.now() - 60_000).toISOString(), lastCheckedAt: new Date().toISOString(), recheckDue: false,
+    sourceStatus: 'open', accessStatus: 'accessible', recommendation: 'needs_review',
+    demandIntent: { value: 'buyer_project', basis: 'explicit' }, engagementType: { value: 'project', basis: 'explicit' } };
   const port = new MockPort({ scenario: 'normal', initialLeads: [current], latency: [0, 0] });
   ports.push(port);
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity }, mutations: { retry: false } } });
   clients.push(client);
-  const queues: QueueId[] = ['recommended', 'needs_review', 'interested', 'active', 'dismissed', 'auto_excluded', 'all'];
+  const queues: QueueId[] = ['fresh', 'recommended', 'needs_review', 'interested', 'active', 'dismissed', 'auto_excluded', 'all'];
   const counts = vi.spyOn(port, 'countQueues').mockImplementation(async () => Object.fromEntries(queues.map((q) => [q, Number(inQueue(current, q))])) as Record<QueueId, number>);
   const list = vi.spyOn(port, 'listLeads').mockImplementation(async ({ queue }) => ({ items: inQueue(current, queue) ? [toSummary(current)] : [], hasMore: false, nextCursor: null }));
   const detail = vi.spyOn(port, 'getLead').mockImplementation(async () => current);
@@ -63,6 +70,18 @@ async function harness(at: string) {
     expire: () => { current = { ...current, recommendation: 'excluded', sourceStatus: 'closed', memo: '서버 메모 갱신', draft: { text: '서버 초안 갱신', editedByUser: true, generatedAt: null } }; },
   };
 }
+
+it('지금 검토의 24시간 경계는 수집 이벤트 없이 갱신하며 열린 초안을 보존한다', async () => {
+  const h = await harness('2026-10-16T05:00:00Z', true);
+  fireEvent.change(screen.getByRole('textbox', { name: '문의 초안' }), { target: { value: '작성 중인 지원 내용' } });
+  const before = h.list.mock.calls.length;
+  await advance(60_000);
+  expect(h.list.mock.calls.length).toBeGreaterThan(before);
+  expect(h.list).toHaveBeenLastCalledWith(expect.objectContaining({ queue: 'fresh', filter: expect.objectContaining({ sort: 'published' }) }));
+  expect(screen.queryByRole('option', { name: /자정 마감 웹사이트 제작/ })).toBeNull();
+  expect(screen.getByRole('textbox', { name: '문의 초안' })).toHaveProperty('value', '작성 중인 지원 내용');
+  expect(h.update).not.toHaveBeenCalled();
+});
 
 it('KST 23:59에서 자정을 지나면 로컬 목록·카운트·상세를 한 번 갱신하고 열린 입력을 보존한다', async () => {
   const h = await harness('2026-09-30T14:59:00Z');

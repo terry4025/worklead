@@ -452,6 +452,92 @@
       ],
       "title": "Research",
       "type": "object"
+    },
+    "SourceMonitoring": {
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "enum": [
+            "disabled",
+            "stopped",
+            "never",
+            "running",
+            "waiting",
+            "overdue"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "interval_minutes": {
+          "title": "Interval Minutes",
+          "type": "integer"
+        },
+        "last_started_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Started At"
+        },
+        "last_finished_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Finished At"
+        },
+        "next_due_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Due At"
+        },
+        "overdue_seconds": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Overdue Seconds",
+          "type": "integer"
+        },
+        "previous_gap_seconds": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "직전 탐색 종료부터 최근 탐색 시작까지 실제 간격. OS·앱 중단 원인은 추정하지 않음",
+          "title": "Previous Gap Seconds"
+        }
+      },
+      "required": [
+        "state",
+        "interval_minutes"
+      ],
+      "title": "SourceMonitoring",
+      "type": "object"
     }
   },
   "additionalProperties": false,
@@ -537,6 +623,17 @@
         }
       ],
       "title": "Last Run Id"
+    },
+    "monitoring": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SourceMonitoring"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     }
   },
   "required": [

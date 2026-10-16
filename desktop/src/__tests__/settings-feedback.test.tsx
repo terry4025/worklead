@@ -51,6 +51,19 @@ it('설정 화면을 다시 열면 이전 저장 완료 표시를 초기화한�
   view.unmount(); qc.clear();
 });
 
+it('확인 필요 알림을 추천 알림과 별도로 저장한다', async () => {
+  const { port, qc, wrapper, dialog } = harness();
+  const save = vi.spyOn(port, 'updateSettings');
+  const view = render(dialog(), { wrapper });
+  const toggle = await screen.findByRole('checkbox', { name: '새 제작 의뢰 중 확인 필요' });
+  expect(toggle).toHaveProperty('checked', true);
+  fireEvent.click(toggle);
+  fireEvent.click(screen.getByRole('button', { name: /^저장$/ }));
+  await waitFor(() => expect(save).toHaveBeenCalledWith(expect.objectContaining({ notifications: expect.objectContaining({ newReview: false, newRecommended: true }) })));
+  await screen.findByText('저장됨');
+  view.unmount(); qc.clear();
+});
+
 it('복원 캐시 초기화 이후에는 저장 표시를 해제하고 복원된 설정을 표시한다', async () => {
   const { port, qc, wrapper, dialog } = harness();
   const original = structuredClone(await port.getSettings());

@@ -32,6 +32,7 @@ import { buildScenario, type ScenarioId } from './scenarios';
 import { MockCafePort } from './MockCafePort';
 
 const QUEUES: Bootstrap['queues'] = [
+  { id: 'fresh', label: '지금 검토', description: '24시간 내 게시된 모집 중 제작 의뢰 · 추천과 확인 필요' },
   { id: 'recommended', label: '추천', description: '자동 판정 추천 · 내가 제외하지 않음 · 진행 전' },
   { id: 'needs_review', label: '확인 필요', description: '유망하지만 재택·모집·외주 여부 등 확인 필요 · 진행 전' },
   { id: 'interested', label: '관심', description: '관심 표시 · 진행 전' },
@@ -116,7 +117,7 @@ const DEFAULT_SETTINGS: SettingsView = {
     allowShortTermEmployment: true,
   },
   recheck: { ttlHours: 24 },
-  notifications: { newRecommended: true, meaningfulChange: true, sourceIssue: true, quietHours: { enabled: true, start: '22:00', end: '08:00' } },
+  notifications: { newRecommended: true, newReview: true, meaningfulChange: true, sourceIssue: true, quietHours: { enabled: true, start: '22:00', end: '08:00' } },
   ai: { enabled: false, externalTransferConsent: false, engineLabel: null, monthlyCostCap: null, dailyCostCap: null, keyConfigured: false, providerAvailable: false,
     provider: 'openai', model: 'gpt-4.1-mini-2025-04-14', usdToKrwRate: null, maxOutputTokens: 1024, pricingConfirmed: false, revision: 0, databaseGeneration: 0 },
   retention: { rawDays: 30 },
@@ -234,7 +235,7 @@ export class MockPort implements WorkleadPort {
     return this.delay(() => {
       const rows = this.leads
         .map((l) => this.withDerived(l))
-        .filter((l) => inQueue(l, req.queue) && matchesFilter(l, req.filter))
+        .filter((l) => inQueue(l, req.queue, new Date(this.now())) && matchesFilter(l, req.filter))
         .sort((a, b) => sortKey(b, req.filter) - sortKey(a, req.filter) || (a.id < b.id ? 1 : -1));
       const start = req.cursor ? Number(req.cursor) : 0;
       const slice = rows.slice(start, start + req.limit);
@@ -247,7 +248,7 @@ export class MockPort implements WorkleadPort {
     return this.delay(() => {
       const rows = this.leads.map((l) => this.withDerived(l)).filter((l) => matchesFilter(l, filter));
       const out = {} as Record<QueueId, number>;
-      for (const q of QUEUES) out[q.id] = rows.filter((l) => inQueue(l, q.id)).length;
+      for (const q of QUEUES) out[q.id] = rows.filter((l) => inQueue(l, q.id, new Date(this.now()))).length;
       return out;
     });
   }

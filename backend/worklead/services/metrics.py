@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import statistics
+import math
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 
@@ -14,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from ..api import schemas as S
 from ..db import utcnow
-from ..models import AnalysisResult, Lead, LeadActivity, Outcome, Run, UserFeedback
+from ..models import AnalysisResult, Lead, LeadActivity, Outcome, Run, SourceRecord, UserFeedback
 
 PERIOD_DAYS = 30
 KST = timezone(timedelta(hours=9))
@@ -43,6 +44,31 @@ def _legacy_krw(total: S.MoneyTotal) -> int | None:
         return None
     amount = int(total.amount)
     return amount if abs(amount) <= MAX_SAFE_INTEGER else None
+
+
+def freshness_metrics(s: Session, now: datetime) -> list[S.SourceFreshnessMetrics]:
+    records = s.execute(select(SourceRecord.source_id, SourceRecord.published_at,
+                               SourceRecord.published_precision, SourceRecord.first_seen_at)
+                        .where(SourceRecord.first_seen_at >= now - timedelta(days=7),
+                               SourceRecord.first_seen_at <= now)).all()
+    grouped = defaultdict(list)
+    for row in records:
+        grouped[row.source_id].append(row)
+    result = []
+    for source_id, rows in sorted(grouped.items()):
+        samples = sorted((row.first_seen_at - row.published_at).total_seconds() for row in rows
+                         if row.published_precision == "exact" and row.published_at is not None
+                         and row.published_at <= row.first_seen_at)
+        result.append(S.SourceFreshnessMetrics(
+            source_id=source_id, records=len(rows), samples=len(samples),
+            unavailable_samples=len(rows) - len(samples),
+            median_discovery_seconds=round(statistics.median(samples), 3) if samples else None,
+            p95_discovery_seconds=round(samples[math.ceil(len(samples) * .95) - 1], 3) if samples else None,
+            within_15_minutes=sum(delay <= 900 for delay in samples),
+            within_1_hour=sum(delay <= 3600 for delay in samples),
+            note="최근 7일 처음 발견한 저장 공고. 현재 게시 시각이 정확하고 최초 발견보다 늦지 않은 표본만 계산. p95는 nearest-rank. 백필 포함, 재게시 시각 변경 가능. 전체 시장 지연·포괄률이 아니며 근사·미확인 시각은 제외.",
+        ))
+    return result
 
 
 def metrics(s: Session, *, now: datetime | None = None) -> S.MetricsOut:
@@ -131,5 +157,6 @@ def metrics(s: Session, *, now: datetime | None = None) -> S.MetricsOut:
         collection=collection,
         quality=quality,
         sales=sales,
+        freshness=freshness_metrics(s, now),
         note=f"수집은 최근 {PERIOD_DAYS}일 실행 기록, 검토는 같은 기간의 관심·제외/진행 상태/메모/확인 사용자 활동 기준이다. 계약·수금·환불·비용은 한국 날짜 {period_start.isoformat()}~{period_end.isoformat()} 발생일 기준이며 통화별로 합산한다. 연락·협의·수주는 현재 전체 리드의 단계별 수다. 금액 미기록은 0원으로 추정하지 않으며 예상 금액·수주 표시는 수금에 포함하지 않는다. 원천 전체 공고 수를 모르므로 재현율은 계산하지 않는다.",
     )

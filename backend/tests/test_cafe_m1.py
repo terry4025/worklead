@@ -109,9 +109,10 @@ def test_migration_preserves_0005_and_backup(tmp_path):
         conn.execute("INSERT INTO app_settings(key,value,updated_at) VALUES ('preserved','{\"value\":42}','2026-10-12')")
     assert validate_database(path)[0] == '0005_page_checkpoints'
     migrate(path, tmp_path / 'backups')
-    assert validate_database(path)[0] == '0006_daangn_cafe'
+    assert validate_database(path)[0] == '0007_discovery_listings'
     with sqlite3.connect(path) as conn:
         assert conn.execute("SELECT value FROM app_settings WHERE key='preserved'").fetchone()[0] == '{"value":42}'
+        assert conn.execute("SELECT count(*) FROM discovery_listings").fetchone()[0] == 0
     assert list((tmp_path / 'backups').glob('*.sqlite3'))
 
 

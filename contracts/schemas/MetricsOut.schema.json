@@ -334,6 +334,79 @@
       ],
       "title": "SalesMetrics",
       "type": "object"
+    },
+    "SourceFreshnessMetrics": {
+      "additionalProperties": false,
+      "properties": {
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "period_days": {
+          "default": 7,
+          "title": "Period Days",
+          "type": "integer"
+        },
+        "records": {
+          "title": "Records",
+          "type": "integer"
+        },
+        "samples": {
+          "title": "Samples",
+          "type": "integer"
+        },
+        "unavailable_samples": {
+          "title": "Unavailable Samples",
+          "type": "integer"
+        },
+        "median_discovery_seconds": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Median Discovery Seconds"
+        },
+        "p95_discovery_seconds": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "P95 Discovery Seconds"
+        },
+        "within_15_minutes": {
+          "title": "Within 15 Minutes",
+          "type": "integer"
+        },
+        "within_1_hour": {
+          "title": "Within 1 Hour",
+          "type": "integer"
+        },
+        "note": {
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "records",
+        "samples",
+        "unavailable_samples",
+        "within_15_minutes",
+        "within_1_hour",
+        "note"
+      ],
+      "title": "SourceFreshnessMetrics",
+      "type": "object"
     }
   },
   "additionalProperties": false,
@@ -346,6 +419,13 @@
     },
     "sales": {
       "$ref": "#/$defs/SalesMetrics"
+    },
+    "freshness": {
+      "items": {
+        "$ref": "#/$defs/SourceFreshnessMetrics"
+      },
+      "title": "Freshness",
+      "type": "array"
     },
     "note": {
       "title": "Note",

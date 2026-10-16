@@ -207,6 +207,7 @@
 }
 .tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 2px;
   padding: 2px;
   background: var(--surface-3);
@@ -1927,3 +1928,18 @@ input[aria-invalid='true'] {
 .pane-list > .skeleton-list {
   padding-top: 4px;
 }
+.lead-timing {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 12px;
+  margin-top: 6px;
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  line-height: 1.6;
+}
+.lead-timing-detail { margin: 8px 0 12px; font-size: 12px; }
+.fresh-review-note { padding: 10px 20px; color: var(--text-3); font-size: 12px; line-height: 1.6; border-bottom: 1px solid var(--line); }
+.freshness-metrics { padding: 8px 20px; background: var(--surface); color: var(--text-2); font-size: var(--fs-xs); border-bottom: 1px solid var(--line); }
+.freshness-metrics-grid { display: flex; flex-wrap: wrap; gap: 12px 32px; padding-top: 8px; }
+.freshness-metrics-grid > div { flex: 1 1 260px; }
+.freshness-metrics-grid p { margin: 4px 0; }

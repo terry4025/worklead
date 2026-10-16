@@ -231,7 +231,30 @@ def ingest(
     emit(s, "lead.created", {"lead_id": lead.id, "recommendation": lead.recommendation}, dedupe_key=f"lead.created:{lead.id}")
     if lead.recommendation == "recommended":
         notify(s, "new_lead", f"새 추천 리드: {lead.title}", dedupe_key=f"notify:new_lead:{lead.id}", lead_id=lead.id, now=now)
+    elif _recent_review_candidate(lead, rec, analysis, now, source_kind):
+        notify(s, "new_review_lead", f"새 제작 의뢰 · 조건 확인 필요: {lead.title}", dedupe_key=f"notify:new_review_lead:{lead.id}", lead_id=lead.id, now=now)
     return IngestResult("created", lead.id, rec.id, analysis.recommendation)
+
+
+def _recent_review_candidate(lead: Lead, rec: SourceRecord, analysis: RuleAnalysis, now: datetime, source_kind: str) -> bool:
+    """Alert promptly without treating an uncertain or low-pay lead as recommended.
+
+    Day/relative timestamps cannot establish the 24-hour freshness window.
+    This path runs only on first ingest, never on reanalysis or rediscovery.
+    """
+    return bool(
+        source_kind == "site"
+        and lead.recommendation == "needs_review"
+        and lead.demand_intent in ("buyer_project", "buyer_ongoing")
+        and lead.engagement_type == "project"
+        and analysis.dev_relevant
+        and rec.source_status == "open"
+        and rec.access_status == "accessible"
+        and rec.published_precision == "exact"
+        and rec.published_at is not None
+        and rec.published_at.tzinfo is not None
+        and timedelta(0) <= now - rec.published_at <= timedelta(hours=24)
+    )
 
 
 def _new_lead(s: Session, source_id: str, rec: SourceRecord, now: datetime) -> Lead:

@@ -15,7 +15,7 @@ import json
 import logging
 import secrets
 from collections.abc import AsyncIterator
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Annotated, Any
 
 from fastapi import Depends, FastAPI, Query, Request
@@ -97,7 +97,7 @@ def lead_filter(
     sales_stage: Annotated[list[S.SalesStage] | None, Query()] = None,
     pay_unit: Annotated[list[S.PayUnit] | None, Query()] = None,
     checked_since: datetime | None = None,
-    sort: S.SortKey = "priority",
+    sort: S.SortKey | None = None,
 ) -> dict[str, Any]:
     return {
         "keyword": keyword,
@@ -252,6 +252,11 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
     @app.get("/v1/bootstrap", response_model=S.BootstrapOut, tags=["system"], responses=ERRORS)
     def bootstrap(s: Sess) -> S.BootstrapOut:
         seq = s.scalar(select(func.max(EventOutbox.seq))) or 0
+        notices = s.scalars(select(EventOutbox).where(
+            EventOutbox.type == "notification.created", EventOutbox.notify.is_(False),
+            EventOutbox.dedupe_key.like("notify:quiet_summary:%"),
+            EventOutbox.created_at >= utcnow() - timedelta(hours=24),
+        ).order_by(EventOutbox.created_at.desc(), EventOutbox.seq.desc()).limit(10)).all()
         return S.BootstrapOut(
             mode="demo" if ctx.config.demo else "live",
             app_version=APP_VERSION,
@@ -262,6 +267,8 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
             queues=[S.QueueOut(id=q, label=label, description=d) for q, label, d in lead_svc.QUEUES],  # type: ignore[arg-type]
             recheck_ttl_hours=settings_svc.ttl_hours(s),
             event_seq=seq,
+            notices=[S.AppNotice(id=row.id, kind=row.payload["kind"], title=row.payload["title"], created_at=row.created_at)
+                     for row in notices if row.payload.get("kind") in ("new_lead", "new_review_lead")],
         )
 
     # ── 소스 ────────────────────────────────────────────────────────
@@ -805,9 +812,7 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
                 for seq, eid, typ, payload, at, suppressed in batch:
                     if generation != ctx.db.gate.generation:
                         break
-                    data = {"id": eid, "seq": seq, "type": typ, "at": at.isoformat(), **payload}
-                    if typ == "notification.created":
-                        data["suppressed_reason"] = suppressed
+                    data = _event_data(seq, eid, typ, payload, at, suppressed)
                     yield _sse(data, seq)
                     start = seq
                 if batch:
@@ -822,6 +827,15 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
         return StreamingResponse(gen(), media_type="text/event-stream", headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"})
 
     return app
+
+
+def _event_data(seq: int, eid: str, typ: str, payload: dict[str, Any], at: datetime, suppressed: str | None) -> dict[str, Any]:
+    # Delivery claims are private to the native consumer, including on SSE replay.
+    public = {key: value for key, value in payload.items() if key != "native_delivery"}
+    data = {"id": eid, "seq": seq, "type": typ, "at": at.isoformat(), **public}
+    if typ == "notification.created":
+        data["suppressed_reason"] = suppressed
+    return data
 
 
 def _sse(data: dict[str, Any], seq: int) -> bytes:

@@ -14,6 +14,7 @@ import { TopBar } from '../features/header/TopBar';
 import { ShortcutHelp } from '../features/help/ShortcutHelp';
 import { DEFAULT_FILTER, FilterBar, isDefaultFilter } from '../features/leads/FilterBar';
 import { LeadList, type ListSnapshot } from '../features/leads/LeadList';
+import { FreshnessMetrics } from '../features/leads/FreshnessMetrics';
 import { QueueTabs, viewCount } from '../features/leads/QueueTabs';
 import { SettingsDialog } from '../features/settings/SettingsDialog';
 import { Button } from '../ui/Button';
@@ -46,8 +47,8 @@ export function Workspace() {
   const cafeStatus = useQuery({ queryKey: ['cafe', 'status'], queryFn: () => port.cafe.status(), refetchInterval: 5000 });
   const qc = useQueryClient();
   const now = useNow();
-  const [view, setView] = usePref<ViewId>('view', 'review');
-  const [filter, setFilterPref] = usePref<LeadFilter>('filter', DEFAULT_FILTER);
+  const [view, setView] = usePref<ViewId>('view', 'fresh');
+  const [filter, setFilterPref] = usePref<LeadFilter>('filter', { ...DEFAULT_FILTER, sort: 'published' });
   const [fontScale, setFontScale] = usePref<FontScale>('fontScale', 'normal');
   const [theme, setTheme] = usePref<ThemePref>('theme', 'system');
   const [split, setSplit] = usePref<number>('split', 0.42);
@@ -69,11 +70,22 @@ export function Workspace() {
   const sources = useSources();
   const runs = useRunStatus();
   const counts = useCounts(filter);
-  const sales = useSales(view === 'active');
+  const sales = useSales(view === 'active' || view === 'fresh');
   const viewDef = VIEWS.find((v) => v.id === view) ?? (VIEWS[0] as (typeof VIEWS)[number]);
 
   // 알림·가져오기 등 목록 밖에서 연 리드는 목록에 아직 없어도 선택을 유지한다
   const pinnedRef = useRef<string | null>(null);
+  // 24시간 경계로 목록에서 빠져도 열린 상세·작성 중인 초안은 유지한다.
+  const minute = Math.floor(now.getTime() / 60_000);
+  const freshRefreshMinute = useRef(minute);
+  useEffect(() => {
+    if (freshRefreshMinute.current === minute) return;
+    freshRefreshMinute.current = minute;
+    if (view !== 'fresh') return;
+    pinnedRef.current = selectedId;
+    void qc.invalidateQueries({ queryKey: qk.leads('fresh', filter) });
+    void qc.invalidateQueries({ queryKey: qk.counts(filter) });
+  }, [minute, view, qc, filter, selectedId]);
   const kstDay = todayKst(now);
   const previousKstDay = useRef(kstDay);
   useEffect(() => {
@@ -117,8 +129,9 @@ export function Workspace() {
     (v: ViewId) => {
       pinnedRef.current = null;
       setView(v);
+      if (v === 'fresh') setFilterPref({ ...filter, sort: 'published' });
     },
-    [setView],
+    [setView, setFilterPref, filter],
   );
 
   const move = useCallback(
@@ -217,6 +230,7 @@ export function Workspace() {
   );
 
   const issues = deriveIssues({
+    notices: boot.data?.notices,
     sources: sources.data ?? [],
     runs: runs.data ?? [],
     stream: live.stream,
@@ -291,6 +305,9 @@ export function Workspace() {
         <QueueTabs view={view} onChange={changeView} counts={counts.data} />
         <FilterBar ref={searchRef} filter={filter} onChange={setFilter} sources={sources.data ?? []} categories={boot.data?.categories ?? []} />
       </div>
+
+      {view === 'fresh' ? <div className="fresh-review-note" role="note">24시간 내 게시된 모집 중 제작 의뢰를 추천·확인 필요 구분 없이 보여줍니다. 재택·보수 등 확인할 조건은 그대로 남습니다. 오래되거나 게시 시각이 불명확한 건은 검토 탭에서 확인하세요.</div> : null}
+      {view === 'fresh' ? <FreshnessMetrics metrics={sales.data?.freshness} sources={sources.data ?? []} /> : null}
 
       {view === 'active' && sales.data ? (
         <div className="sales-strip" aria-label="영업 성과">

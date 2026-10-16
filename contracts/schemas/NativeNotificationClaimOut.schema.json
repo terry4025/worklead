@@ -10,6 +10,7 @@
         {
           "enum": [
             "new_lead",
+            "new_review_lead",
             "lead_changed",
             "source_issue",
             "cafe_request"

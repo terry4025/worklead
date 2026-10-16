@@ -95,6 +95,7 @@ export interface LeadSummary {
   lastCheckedAt: IsoDateTime | null;
   published: FuzzyDate;
   firstSeenAt: IsoDateTime;
+  freshness?: { discoveryDelaySeconds: number | null; firstListedAt: IsoDateTime | null; listingToDetailSeconds: number | null } | null;
   /** 구인 마감일. 근무일·납기와 다르다. */
   deadline: FuzzyDate;
   postedRegion: string | null;
@@ -342,6 +343,7 @@ export interface SourceInfo {
   /** 사이트 조사 완료 여부 — 미완료면 자동 탐색을 실행할 수 없다 */
   research: { ready: boolean; missing: string[] };
   lastRunId: string | null;
+  monitoring?: { state: 'disabled' | 'stopped' | 'never' | 'running' | 'waiting' | 'overdue'; lastStartedAt: IsoDateTime | null; lastFinishedAt: IsoDateTime | null; nextDueAt: IsoDateTime | null; overdueSeconds: number | null; intervalMinutes: number | null; previousGapSeconds?: number | null } | null;
 }
 
 export type RunState = 'queued' | 'running' | 'paused' | 'succeeded' | 'partial' | 'failed' | 'cancelled';
@@ -413,6 +415,7 @@ export interface SettingsView {
   recheck: { ttlHours: number };
   notifications: {
     newRecommended: boolean;
+    newReview: boolean;
     meaningfulChange: boolean;
     sourceIssue: boolean;
     quietHours: { enabled: boolean; start: string; end: string };
@@ -482,6 +485,7 @@ export interface CurrencySales {
 }
 
 export interface SalesSummary {
+  freshness?: { sourceId: string; periodDays: number; records: number; samples: number; unavailableSamples: number; medianDiscoverySeconds: number | null; p95DiscoverySeconds: number | null; within15Minutes: number; within1Hour: number; note: string }[];
   periodDays: number;
   periodStart: string | null;
   periodEnd: string | null;
@@ -531,6 +535,7 @@ export interface RestoreResult {
 }
 
 export interface Bootstrap {
+  notices?: { id: string; kind: 'new_lead' | 'new_review_lead'; title: string; createdAt: IsoDateTime }[];
   mode: 'demo' | 'live';
   appVersion: string;
   contractVersion: string | null;
@@ -563,7 +568,7 @@ export interface LeadFilter {
  * - active: 연락함·협상 중·수주·보류
  * - dismissed: 내가 제외
  */
-export type QueueId = 'recommended' | 'needs_review' | 'interested' | 'active' | 'dismissed' | 'auto_excluded' | 'all';
+export type QueueId = 'fresh' | 'recommended' | 'needs_review' | 'interested' | 'active' | 'dismissed' | 'auto_excluded' | 'all';
 
 export interface Page<T> {
   items: T[];
@@ -618,7 +623,7 @@ export type WorkleadEvent =
   | (EventBase & { type: 'analysis.completed'; leadId: string; status: AnalysisStatus })
   | (EventBase & {
       type: 'notification.created';
-      kind: 'new_lead' | 'lead_changed' | 'source_issue' | 'cafe_request';
+      kind: 'new_lead' | 'new_review_lead' | 'lead_changed' | 'source_issue' | 'cafe_request';
       title: string;
       leadId: string | null;
       sourceId: string | null;

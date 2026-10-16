@@ -67,6 +67,8 @@ class DiscoverResult:
     # Optional candidates for a bounded, rotating detail check after core refs.
     # Appended to preserve existing positional adapter calls.
     exploration_refs: list[PostRef] = field(default_factory=list)
+    # Public metadata before candidate filtering; no detail/body content.
+    listed_refs: list[PostRef] = field(default_factory=list)
 
 
 @dataclass

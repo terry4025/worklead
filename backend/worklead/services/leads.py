@@ -8,17 +8,18 @@ import json
 from datetime import date, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import Select, and_, case, func, not_, or_, select
+from sqlalchemy import Select, and_, case, func, not_, or_, select, tuple_
 from sqlalchemy.orm import Session
 
 from ..api import schemas as S
 from ..analysis.dates import KST
 from ..db import utcnow
-from ..models import AnalysisResult, DiscoveryPath, DuplicateLink, FieldEvidence, Lead, LeadActivity, Outcome, ScoreBreakdown, SourceRecord
+from ..models import AnalysisResult, DiscoveryListing, DiscoveryPath, DuplicateLink, FieldEvidence, Lead, LeadActivity, Outcome, ScoreBreakdown, SourceRecord
 from .settings import ttl_hours
 from .relations import decision
 
 QUEUES: list[tuple[str, str, str]] = [
+    ("fresh", "지금 검토", "최근 24시간 게시 · 모집 확인 유효 · 제작 구매 의뢰 · 진행 전"),
     ("recommended", "추천", "자동 판정 추천 · 내가 제외하지 않음 · 진행 전"),
     ("needs_review", "확인 필요", "유망하지만 재택·모집·외주 여부 등 확인 필요 · 진행 전"),
     ("interested", "관심", "관심 표시 · 진행 전"),
@@ -80,6 +81,21 @@ def _recommendation_clause(values: list[str], now: datetime, ttl: int):
 
 
 def queue_clause(queue: str, now: datetime, ttl: int):
+    if queue == "fresh":
+        precise_recent = select(SourceRecord.id).where(
+            SourceRecord.id == Lead.primary_record_id,
+            SourceRecord.published_precision == "exact",
+            SourceRecord.published_at >= now - timedelta(hours=24),
+            SourceRecord.published_at <= now,
+        ).correlate(Lead).exists()
+        return and_(
+            _recommendation_clause(["recommended", "needs_review"], now, ttl),
+            _not_dismissed(), Lead.sales_stage.in_(PRE_STAGES),
+            Lead.demand_intent.in_(("buyer_project", "buyer_ongoing")),
+            Lead.engagement_type == "project", _effective_source_status(now) == "open",
+            Lead.access_status == "accessible", Lead.last_checked_at >= now - timedelta(hours=ttl),
+            precise_recent,
+        )
     if queue == "recommended":
         return and_(_recommendation_clause(["recommended"], now, ttl), _not_dismissed(), Lead.sales_stage.in_(PRE_STAGES))
     if queue == "needs_review":
@@ -202,7 +218,7 @@ def base_query(queue: str, f: dict[str, Any], now: datetime, ttl: int) -> Select
 def list_leads(s: Session, queue: str, f: dict[str, Any], cursor: str | None, limit: int) -> tuple[list[Lead], str | None]:
     now = utcnow()
     ttl = ttl_hours(s)
-    sort = f.get("sort") or "priority"
+    sort = f.get("sort") or ("published" if queue == "fresh" else "priority")
     fh = _filter_hash(queue, f)
     expr = _sort_expr(sort)
     q = base_query(queue, f, now, ttl)
@@ -270,7 +286,7 @@ def _fuzzy(at: datetime | None, precision: str, raw: str | None) -> S.FuzzyDate:
     return S.FuzzyDate(at=at, precision=precision if at or precision == "unknown" else "unknown", raw=raw)  # type: ignore[arg-type]
 
 
-def summary(lead: Lead, rec: SourceRecord | None, now: datetime, ttl: int) -> S.LeadSummary:
+def summary(lead: Lead, rec: SourceRecord | None, now: datetime, ttl: int, first_listed_at: datetime | None = None) -> S.LeadSummary:
     expired = bool(
         lead.source_id == "iboss" and lead.source_status in ("open", "unknown")
         and rec is not None and rec.id == lead.primary_record_id and rec.source_id == "iboss"
@@ -311,6 +327,14 @@ def summary(lead: Lead, rec: SourceRecord | None, now: datetime, ttl: int) -> S.
         last_checked_at=lead.last_checked_at,
         published=_fuzzy(rec.published_at, rec.published_precision, rec.published_raw) if rec else _fuzzy(None, "unknown", None),
         first_seen_at=lead.first_seen_at,
+        freshness=S.LeadFreshness(
+            discovery_delay_seconds=(lead.first_seen_at - rec.published_at).total_seconds()
+            if rec and rec.published_precision == "exact" and rec.published_at is not None
+            and rec.published_at <= lead.first_seen_at and rec.published_at <= now else None,
+            first_listed_at=first_listed_at,
+            listing_to_detail_seconds=(lead.first_seen_at - first_listed_at).total_seconds()
+            if first_listed_at is not None and first_listed_at <= lead.first_seen_at else None,
+        ),
         deadline=_fuzzy(rec.deadline_at, rec.deadline_precision, rec.deadline_raw) if rec else _fuzzy(None, "unknown", None),
         posted_region=rec.posted_region_raw if rec else None,
         found_in=list(prov.get("found_in", [])),
@@ -329,7 +353,20 @@ def summaries(s: Session, leads: list[Lead]) -> list[S.LeadSummary]:
     ttl = ttl_hours(s)
     ids = [lead.primary_record_id for lead in leads if lead.primary_record_id]
     recs = {r.id: r for r in s.scalars(select(SourceRecord).where(SourceRecord.id.in_(ids)))} if ids else {}
-    return [summary(lead, recs.get(lead.primary_record_id or ""), now, ttl) for lead in leads]
+    listed = _listed_times(s, list(recs.values()))
+    return [summary(lead, recs.get(lead.primary_record_id or ""), now, ttl,
+                    listed.get((lead.source_id, recs[lead.primary_record_id].source_post_id))
+                    if lead.primary_record_id in recs else None) for lead in leads]
+
+
+def _listed_times(s: Session, recs: list[SourceRecord]) -> dict[tuple[str, str], datetime]:
+    keys = {(rec.source_id, rec.source_post_id) for rec in recs if rec.source_post_id}
+    if not keys:
+        return {}
+    return {(source_id, post_id): first for source_id, post_id, first in s.execute(
+        select(DiscoveryListing.source_id, DiscoveryListing.source_post_id, func.min(DiscoveryListing.first_listed_at))
+        .where(tuple_(DiscoveryListing.source_id, DiscoveryListing.source_post_id).in_(keys))
+        .group_by(DiscoveryListing.source_id, DiscoveryListing.source_post_id))}
 
 
 def _span(a: int | None, b: int | None) -> S.Span | None:
@@ -341,7 +378,7 @@ def detail(s: Session, lead: Lead) -> S.LeadDetail:
     ttl = ttl_hours(s)
     rec = s.get(SourceRecord, lead.primary_record_id) if lead.primary_record_id else None
     assert rec is not None, "리드에 원천 레코드가 없습니다"
-    base = summary(lead, rec, now, ttl)
+    base = summary(lead, rec, now, ttl, _listed_times(s, [rec]).get((rec.source_id, rec.source_post_id)))
     evidence: dict[str, list[S.Evidence]] = {}
     for e in s.scalars(select(FieldEvidence).where(FieldEvidence.lead_id == lead.id).order_by(FieldEvidence.id)):
         key = {

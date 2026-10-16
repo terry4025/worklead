@@ -245,6 +245,11 @@ export function SettingsDialog({
               <span>새 추천 리드 (같은 공고 재수집은 알리지 않음)</span>
             </label>
             <label className="toggle">
+              <input type="checkbox" checked={d.notifications.newReview} onChange={(e) => set((x) => void (x.notifications.newReview = e.target.checked))} />
+              <span>새 제작 의뢰 중 확인 필요</span>
+            </label>
+            <p className="field-hint">최근 모집 중인 제작 의뢰를 알립니다. 재택·보수 등 확인할 조건은 그대로 표시합니다. 조용한 시간에 미룬 알림은 종료 후 전달합니다.</p>
+            <label className="toggle">
               <input type="checkbox" checked={d.notifications.meaningfulChange} onChange={(e) => set((x) => void (x.notifications.meaningfulChange = e.target.checked))} />
               <span>관심·진행 중 리드의 의미 있는 조건 변경</span>
             </label>

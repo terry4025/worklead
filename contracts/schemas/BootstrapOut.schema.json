@@ -1,5 +1,39 @@
 {
   "$defs": {
+    "AppNotice": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "new_lead",
+            "new_review_lead"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "title",
+        "created_at"
+      ],
+      "title": "AppNotice",
+      "type": "object"
+    },
     "CategoryOut": {
       "additionalProperties": false,
       "properties": {
@@ -24,6 +58,7 @@
       "properties": {
         "id": {
           "enum": [
+            "fresh",
             "recommended",
             "needs_review",
             "interested",
@@ -101,6 +136,14 @@
     "event_seq": {
       "title": "Event Seq",
       "type": "integer"
+    },
+    "notices": {
+      "description": "최근 24시간 생성된 영속 야간 요약. 현재 유효 공고 수가 아닌 당시 요약 기록",
+      "items": {
+        "$ref": "#/$defs/AppNotice"
+      },
+      "title": "Notices",
+      "type": "array"
     }
   },
   "required": [

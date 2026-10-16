@@ -646,6 +646,54 @@
       "title": "IntentAssessed",
       "type": "object"
     },
+    "LeadFreshness": {
+      "additionalProperties": false,
+      "properties": {
+        "discovery_delay_seconds": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "정확한 현재 게시 시각부터 최초 발견까지. 미래·근사 시각은 null; 최초 게시 지연 보장은 아님",
+          "title": "Discovery Delay Seconds"
+        },
+        "first_listed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "이 설치가 공개 목록에서 처음 관찰한 시각. 기능 도입 전 노출은 추정하지 않음",
+          "title": "First Listed At"
+        },
+        "listing_to_detail_seconds": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Listing To Detail Seconds"
+        }
+      },
+      "title": "LeadFreshness",
+      "type": "object"
+    },
     "Outcome": {
       "additionalProperties": false,
       "properties": {
@@ -1464,6 +1512,17 @@
       "format": "date-time",
       "title": "First Seen At",
       "type": "string"
+    },
+    "freshness": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LeadFreshness"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "deadline": {
       "$ref": "#/$defs/FuzzyDate",

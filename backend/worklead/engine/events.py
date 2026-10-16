@@ -18,6 +18,10 @@ from ..services.settings import get_setting, put_setting
 
 KST = timezone(timedelta(hours=9))
 RETAIN_EVENTS = 5000
+NOTIFICATION_TOGGLES = {
+    "new_lead": "new_recommended", "new_review_lead": "new_review",
+    "lead_changed": "meaningful_change", "source_issue": "source_issue", "cafe_request": "new_recommended",
+}
 
 
 class EventHub:
@@ -77,6 +81,16 @@ def _in_quiet_hours(cfg: dict[str, Any], now: datetime) -> bool:
     return (start <= local or local < end) if start > end else (start <= local < end)
 
 
+def quiet_delivery(cfg: dict[str, Any], now: datetime) -> dict[str, Any]:
+    """Persist an unattempted delivery through quiet hours, including restarts."""
+    local = now.astimezone(KST)
+    end = time.fromisoformat(cfg["end"])
+    until = datetime.combine(local.date(), end, KST)
+    if until <= local:
+        until += timedelta(days=1)
+    return {"state": "pending", "deferred_until": until.astimezone(timezone.utc).isoformat()}
+
+
 def notify(
     s: Session,
     kind: str,
@@ -87,20 +101,28 @@ def notify(
     source_id: str | None = None,
     now: datetime | None = None,
 ) -> EventOutbox | None:
-    """알림 이벤트. 설정에서 끈 종류는 기록하지 않고, 조용한 시간에는 억제 사유를 남긴다."""
+    """설정에서 끈 종류는 기록하지 않고, 조용한 시간에는 다음 허용 시간까지 보류한다."""
     cfg = get_setting(s, "notifications")
-    toggle = {"new_lead": "new_recommended", "lead_changed": "meaningful_change", "source_issue": "source_issue", "cafe_request": "new_recommended"}[kind]
+    toggle = NOTIFICATION_TOGGLES[kind]
     if not cfg.get(toggle, True):
         return None
-    suppressed = "quiet_hours" if _in_quiet_hours(cfg.get("quiet_hours", {}), now or utcnow()) else None
-    return emit(
+    at = now or utcnow()
+    quiet = cfg.get("quiet_hours", {})
+    suppressed = "quiet_hours" if _in_quiet_hours(quiet, at) else None
+    payload = {"kind": kind, "title": title, "lead_id": lead_id, "source_id": source_id}
+    if suppressed:
+        payload["native_delivery"] = quiet_delivery(quiet, at)
+    row = emit(
         s,
         "notification.created",
-        {"kind": kind, "title": title, "lead_id": lead_id, "source_id": source_id},
+        payload,
         dedupe_key=dedupe_key,
         notify=True,
         suppressed_reason=suppressed,
     )
+    if row is not None:
+        row.created_at = at
+    return row
 
 
 def trim(s: Session) -> None:

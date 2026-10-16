@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { formatCount, formatDateTime, formatRelative } from '../../domain/format';
 import { healthLabel, policyLabel, runKindLabel, runStateLabel, supportLabel } from '../../domain/labels';
 import type { ManualImportInput, RunInfo, RunKind, SourceInfo } from '../../domain/model';
+import { SourceMonitoring } from './SourceMonitoring';
 import type { Tone } from '../../domain/present';
 import { usePort, usePortCtx } from '../../app/PortContext';
 import { qk, useRuns, useRunStatus, useSources } from '../../app/queries';
@@ -65,6 +66,9 @@ function RunDetails({ run }: { run: RunInfo }) {
     ['exploration_candidates', '추가 확인 후보', '개'],
     ['exploration_requests', '추가 상세 요청', '회'],
     ['exploration_deferred', '다음 탐색 보류', '개'],
+    ['watch_detail_requests', '이번 감시 상세 요청', '회'],
+    ['watch_refresh_requests', '기존 상세 갱신 요청', '회'],
+    ['watch_deferred_details', '다음 감시로 넘긴 후보', '개'],
   ] as const).flatMap(([key, label, unit]) => {
     const count = countValue(titleDiscovery?.[key]);
     return count === null ? [] : [`${label} ${formatCount(count)}${unit}`];
@@ -72,6 +76,7 @@ function RunDetails({ run }: { run: RunInfo }) {
   const explorationSettings = ([
     ['exploration_limit', '이번 실행 추가 요청 한도'],
     ['exploration_reserve', '다른 작업에 남길 요청 예산'],
+    ['detail_requests_per_watch', '신규 목록 감시당 상세 요청'],
   ] as const).flatMap(([key, label]) => {
     const count = countValue(titleDiscovery?.[key]);
     return count === null ? [] : [`${label} ${formatCount(count)}회`];
@@ -297,6 +302,7 @@ function SourceCard({ source: s, runs }: { source: SourceInfo; runs: RunInfo[] }
 
       {s.kind === 'site' ? (
         <>
+          <SourceMonitoring source={s} />
           {!s.research.ready ? (
             <div className="inline-alert inline-alert-info">
               <div>
@@ -415,9 +421,9 @@ function SourceCard({ source: s, runs }: { source: SourceInfo; runs: RunInfo[] }
                 disabled={update.isPending}
                 onChange={(e) => update.mutate({ intervalMinutes: Number(e.target.value) })}
               >
-                {[180, 360, 720, 1440].map((m) => (
+                {[30, 60, 180, 360, 720, 1440].map((m) => (
                   <option key={m} value={m}>
-                    {m / 60}시간마다
+                    {m < 60 ? `${m}분마다` : `${m / 60}시간마다`}
                   </option>
                 ))}
               </select>

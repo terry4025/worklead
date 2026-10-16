@@ -27,7 +27,7 @@ export const qk = {
 
 export function useBootstrap() {
   const port = usePort();
-  return useQuery({ queryKey: qk.bootstrap, queryFn: () => port.bootstrap(), staleTime: 60_000 });
+  return useQuery({ queryKey: qk.bootstrap, queryFn: () => port.bootstrap(), staleTime: 60_000, refetchInterval: 60_000 });
 }
 
 export function useSources() {

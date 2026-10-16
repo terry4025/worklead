@@ -158,6 +158,11 @@
           "title": "New Recommended",
           "type": "boolean"
         },
+        "new_review": {
+          "default": true,
+          "title": "New Review",
+          "type": "boolean"
+        },
         "meaningful_change": {
           "title": "Meaningful Change",
           "type": "boolean"

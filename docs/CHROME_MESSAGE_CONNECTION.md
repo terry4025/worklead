@@ -19,6 +19,8 @@ Worklead에서 다시 연결하면 이전 키를 폐기한다. 앱 종료·재�
 
 ## 사용자 설치·연결 순서
 
+2026-10-16 사용자가 설치·연결을 승인했다. 브라우저 도구는 보안 정책상 `chrome://extensions/`를 열 수 없으므로 아래 설치 화면은 직접 조작해야 한다. 승인 대기가 아니라 도구의 URL 제한이며, 권한을 우회해 설치하지 않는다.
+
 1. Worklead의 **지원 준비·메시지 → 현재 크롬으로 연결**을 누른다. 이 단계는 이 PC에 확장 파일과 연결 코드를 준비하며 확장을 설치하지 않는다.
 2. **확장 폴더 경로 복사**로 준비된 폴더를 확인한다. 현재 설치에서는 `C:\Users\Administrator\AppData\Local\Worklead\chrome-message-extension`이다.
 3. 크롬 슬롯 1의 `chrome://extensions`에서 개발자 모드를 켜고 **압축해제된 확장 프로그램을 로드합니다**로 해당 폴더를 선택한다. 확장 이름은 **Worklead 당근 메시지 연결**, ID는 `ljakiellilahkchbfjalkecollnfldoc`이다. 설치 권한은 사용자가 직접 확인한다.

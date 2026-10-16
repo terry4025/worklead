@@ -244,7 +244,7 @@ export function SettingsDialog({
               <input type="checkbox" checked={d.notifications.daangnMessages ?? true} onChange={(e) => set((x) => void (x.notifications.daangnMessages = e.target.checked))} />
               <span>당근 새 메시지 (미읽음 수 증가 감지)</span>
             </label>
-            <p className="field-hint">‘지원 준비·메시지’에서 전용 Edge를 연결해야 합니다. 연결 전에는 새 메시지를 감시하지 않습니다.</p>
+            <p className="field-hint">‘지원 준비·메시지’에서 크롬 확장 또는 전용 Edge를 연결해야 합니다. 연결 전에는 새 메시지를 감시하지 않습니다.</p>
             <label className="toggle">
               <input type="checkbox" checked={d.notifications.newRecommended} onChange={(e) => set((x) => void (x.notifications.newRecommended = e.target.checked))} />
               <span>새 추천 리드 (같은 공고 재수집은 알리지 않음)</span>

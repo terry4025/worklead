@@ -136,6 +136,10 @@ const DEFAULT_SETTINGS: SettingsView = {
 export class MockPort implements WorkleadPort {
   readonly cafe = new MockCafePort();
   readonly jobs: JobsPort = {
+    messagesChromeStart: () => this.delay(() => {
+      this.messageStatus = { ...this.messageStatus, provider: 'chrome', enabled: true, state: 'starting', unread_count: null, last_observed_at: null, needs_user_action: true, browser_open: false, message: '데모에서는 크롬 확장 연결과 실제 메시지 관찰을 하지 않습니다.' };
+      return { connection: { url: 'http://127.0.0.1:0', token: 'demo-only-not-a-real-connection' }, status: this.messageStatus, extension_directory: '데모에서는 확장 폴더를 준비하지 않습니다.' };
+    }),
     messagesStatus: () => this.delay(() => this.messageStatus),
     messagesStart: () => this.delay(() => {
       this.messageStatus = { ...this.messageStatus, enabled: true, state: 'login_required', needs_user_action: true, message: '데모에서는 실제 Edge를 열거나 메시지를 조회하지 않습니다. 실사용 모드에서 직접 연결하세요.' };

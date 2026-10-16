@@ -31,6 +31,7 @@ export interface JobApplicationList {
   total: number;
 }
 export interface JobMessageWatchStatus {
+  provider?: 'chrome' | 'edge';
   enabled: boolean;
   state: 'stopped' | 'starting' | 'login_required' | 'watching' | 'surface_unrecognized' | 'error';
   unread_count: number | null;
@@ -44,6 +45,11 @@ export interface JobMessageWatchStatus {
   browser_notifications: 'default' | 'granted' | 'denied' | 'unsupported' | 'unknown';
   browser_open: boolean;
   needs_user_action: boolean;
+}
+export interface JobChromeMessageConnection {
+  connection: { url: string; token: string };
+  status: JobMessageWatchStatus;
+  extension_directory: string;
 }
 export type LeadSummary = Schemas['LeadSummary'];
 export type LeadDetail = Schemas['LeadDetail'];
@@ -220,6 +226,7 @@ export function createClient(source: ConnectionSource, fetchImpl: typeof fetch =
     jobMessagesStatus: () => request<JobMessageWatchStatus>('GET', '/v1/jobs/messages/status'),
     jobMessagesStart: () => request<JobMessageWatchStatus>('POST', '/v1/jobs/messages/start', { body: { confirm: true } }),
     jobMessagesStop: () => request<JobMessageWatchStatus>('POST', '/v1/jobs/messages/stop'),
+    jobMessagesChromeStart: () => request<JobChromeMessageConnection>('POST', '/v1/jobs/messages/chrome/start', { body: { confirm: true } }),
     cafeStatus: () => request<Schemas['CafeSnapshot']>('GET', '/v1/cafe/status'),
     cafeComments: () => request<Schemas['CafeCommentList']>('GET', '/v1/cafe/comments'),
     cafeCommentUpdate: (id: string, body: Schemas['CafeCommentPatch']) => request<Schemas['CafeCommentOut']>('PATCH', `/v1/cafe/comments/${enc(id)}`, { body }),

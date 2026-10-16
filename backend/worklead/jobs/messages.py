@@ -26,6 +26,7 @@ POLL_SECONDS = 2
 
 
 class MessageStatus(BaseModel):
+    provider: Literal["edge", "chrome"] = "edge"
     enabled: bool = False
     state: Literal["stopped", "starting", "login_required", "watching", "surface_unrecognized", "error"] = "stopped"
     unread_count: int | None = None
@@ -46,7 +47,7 @@ def badge_count(label: str | None) -> int | None:
     return int(match[1] or 0) if match else None
 
 
-def record_count(s, count: int, now: datetime, *, previous: int | None):
+def record_count(s, count: int, now: datetime, *, previous: int | None, resumed: bool = False):
     """Only increases within this live observation produce an alert.
 
     First observation/reconnection is a baseline: account switches, existing
@@ -61,7 +62,8 @@ def record_count(s, count: int, now: datetime, *, previous: int | None):
         s.add(AppSetting(key="jobs_message_serial", value=serial, updated_at=now))
     else:
         row.value, row.updated_at = serial, now
-    notify(s, "daangn_message", f"당근알바 읽지 않은 메시지가 {count}개로 늘었습니다", now=now,
+    title = f"크롬 감시 재개 후 미읽음 {count}개 확인이 필요합니다" if resumed else f"당근알바 읽지 않은 메시지가 {count}개로 늘었습니다"
+    notify(s, "daangn_message", title, now=now,
            dedupe_key=f"notify:jobs_message:{serial}", source_id="daangn-alba")
     return True
 

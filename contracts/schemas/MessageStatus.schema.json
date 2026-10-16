@@ -1,5 +1,14 @@
 {
   "properties": {
+    "provider": {
+      "default": "edge",
+      "enum": [
+        "edge",
+        "chrome"
+      ],
+      "title": "Provider",
+      "type": "string"
+    },
     "enabled": {
       "default": false,
       "title": "Enabled",

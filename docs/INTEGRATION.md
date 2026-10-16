@@ -1,5 +1,11 @@
 # 연동 계약 (화면 ↔ 로컬 API)
 
+## 기존 크롬 연결 추가 계약 (2026-10-16)
+
+POST `/v1/jobs/messages/chrome/start` `{confirm:true}`는 `{connection:{url,token},status,extension_directory}`를 반환한다. 키는 메인 API와 다른 임시 권한이며 응답은 no-store다. 화면은 비밀을 조회/변경 캐시에 저장하거나 표시하지 않고 복사만 제공한다. 매 시작마다 이전 키·순서를 폐기하며 GET 전체 `/v1/jobs/messages/status`는 선택한 provider=edge/chrome의 상태만 반환한다. 일반 stop은 양쪽 감시를 중지한다. Edge/Chrome 동시 시작은 409다.
+
+Chrome 확장은 사용자가 직접 설치하고 선택한 당근 탭에서 연결한다. 별도 127.0.0.1 HTTP의 `/observe`만 exact 확장 Origin/Host/Bearer/JSON 512바이트와 `{state,unread_count,sequence}`를 검증해 받는다. 일반 앱 API의 Origin/인증은 확장에 개방하지 않는다. 첫 관찰과 로그인·DB 복원은 기준값이며, heartbeat 공백 뒤 늘어난 표시는 별도 재개 확인 알림으로 처리한다. 실제 신규 메시지 도착 시각을 추정하지 않는다. `scripts/gen-contracts.sh --chrome-only`로 이 계약만 갱신한다. 설치/권한과 제한은 `CHROME_MESSAGE_CONNECTION.md`를 따른다.
+
 ## 지원 준비·메시지 추가 계약 (2026-10-16)
 
 `GET /v1/jobs/applications?limit=1..100`와 단건 GET은 최신순 후보/보류 사유/질문/초안을 반환한다. POST `/{lead_id}/prepare`는 기존 초안을 보존하고 PATCH `/{lead_id}/draft`의 `{text,expected_text}`는 텍스트 비교 후 저장한다. 제출 POST `/{lead_id}/submit`은 항상 409 `application_submission_unavailable`, details.sent=0이다. mode=draft_only이며 외부 제출 클라이언트는 없다.

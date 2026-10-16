@@ -15,6 +15,7 @@ a = Analysis(
         (str(PKG / "sources" / "daangn" / "profile.json"), "worklead/sources/daangn"),
         (str(PKG / "sources" / "iboss" / "profile.json"), "worklead/sources/iboss"),
         (str(PKG / "cafe" / "default_template.json"), "worklead/cafe"),
+        (str(ROOT.parent / "extensions" / "worklead-messages"), "extensions/worklead-messages"),
     ] + collect_data_files("playwright"),
     hiddenimports=collect_submodules("worklead") + collect_submodules("uvicorn") + collect_submodules("alembic") + collect_submodules("playwright"),
     excludes=["tkinter", "pytest", "PyInstaller"],

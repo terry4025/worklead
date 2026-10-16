@@ -28,5 +28,9 @@
 .message-status { font-size: var(--fs-xs); color: var(--text-2); padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .message-status > div { display: flex; justify-content: space-between; gap: 8px; margin: 7px 0; }
 .message-status dd { margin: 0; text-align: right; }
+.chrome-connection-guide { margin: 14px 0; font-size: var(--fs-xs); color: var(--text-2); }
+.chrome-connection-guide ol { padding-left: 20px; line-height: 1.8; }
+.chrome-extension-path { overflow-wrap: anywhere; }
+.chrome-connection-code { padding: 12px; margin-top: 12px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); }
 @media (max-width: 1050px) { .jobs-columns { grid-template-columns: minmax(0, 1fr); } .jobs-connection { position: static; grid-row: 1; } }
 @media (max-width: 600px) { .jobs-workspace { padding: 18px 14px; } .jobs-workspace-head, .application-card-head { flex-wrap: wrap; } .application-card, .message-connection { padding: 16px; } }

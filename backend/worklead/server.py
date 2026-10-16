@@ -303,6 +303,8 @@ def serve(argv: list[str] | None = None) -> int:
             server.run(sockets=[sock])
         finally:
             workers.stop()
+            if ctx._jobs_chrome_runtime is not None:
+                ctx._jobs_chrome_runtime.stop()
             if ctx._jobs_message_runtime is not None:
                 ctx._jobs_message_runtime.stop()
             if ctx._cafe_runtime is not None:

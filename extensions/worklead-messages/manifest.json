@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Worklead 당근 메시지 연결",
+  "description": "직접 선택한 당근알바 탭의 미읽음 표시만 이 PC의 Worklead로 전달합니다.",
+  "version": "0.1.0",
+  "minimum_chrome_version": "120",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAudy4Mm1lUKUC0zyRw3mHX7tzm2y0DPTU4iqybOKn16dOMhzqZqGS+PuNLnVEQAcf6DOOWEUWs2lbfY5IXJ6A5XPwEpzIODZLwUaXWgMWAH0hvcr3sC7nKVIL9Wuzwz7GRKUnjTOmO8Or+dvG+SJnet24NS5wMY9cGHvcIaW5wORbt27bbzg1CwWvjAcu1U6bMaYY0WrUc5Pe44O3MTR8ZwrySADb8rC1hQkBoAnQ35F/cmOsKyWh3ovfmwFivo1SiUMfeUaiWyujg1D2Rr9jXBBMcIvWN7wPIjLDWW6gxuwsnHOCmRNn5nRWNaL0g+AJ+KR+wdXcgabZ1pTfvh86SQIDAQAB",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "optional_host_permissions": ["http://127.0.0.1/*"],
+  "background": {"service_worker": "worker.js", "type": "module"},
+  "action": {"default_popup": "popup.html", "default_title": "Worklead 메시지 연결"},
+  "content_security_policy": {"extension_pages": "script-src 'self'; object-src 'none'; connect-src http://127.0.0.1:*"}
+}

@@ -993,6 +993,89 @@
         }
       }
     },
+    "/v1/jobs/messages/chrome/status": {
+      "get": {
+        "tags": [
+          "job-messages"
+        ],
+        "summary": "Status",
+        "operationId": "status_v1_jobs_messages_chrome_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/messages/chrome/start": {
+      "post": {
+        "tags": [
+          "job-messages"
+        ],
+        "summary": "Start",
+        "operationId": "start_v1_jobs_messages_chrome_start_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartMessageWatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChromeStart"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/messages/chrome/stop": {
+      "post": {
+        "tags": [
+          "job-messages"
+        ],
+        "summary": "Stop",
+        "operationId": "stop_v1_jobs_messages_chrome_stop_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/health": {
       "get": {
         "tags": [
@@ -7518,6 +7601,46 @@
         ],
         "title": "CategoryOut"
       },
+      "ChromeConnection": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "token": {
+            "type": "string",
+            "title": "Token"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "url",
+          "token"
+        ],
+        "title": "ChromeConnection"
+      },
+      "ChromeStart": {
+        "properties": {
+          "connection": {
+            "$ref": "#/components/schemas/ChromeConnection"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MessageStatus"
+          },
+          "extension_directory": {
+            "type": "string",
+            "title": "Extension Directory"
+          }
+        },
+        "type": "object",
+        "required": [
+          "connection",
+          "status",
+          "extension_directory"
+        ],
+        "title": "ChromeStart"
+      },
       "CollaborationAssessed": {
         "properties": {
           "value": {
@@ -9488,6 +9611,15 @@
       },
       "MessageStatus": {
         "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "edge",
+              "chrome"
+            ],
+            "title": "Provider",
+            "default": "edge"
+          },
           "enabled": {
             "type": "boolean",
             "title": "Enabled",

@@ -13,6 +13,7 @@ from worklead.jobs.messages import MessageStatus
 FIX = Path(__file__).resolve().parents[2] / "contracts" / "fixtures"
 
 CASES = [
+    ("chrome-message-waiting.json", MessageStatus),
     ("job-applications.json", S.JobApplicationList),
     ("job-application-draft.json", S.JobApplicationCandidate),
     ("job-message-status.json", MessageStatus),

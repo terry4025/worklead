@@ -114,9 +114,52 @@ it('로컬 API는 현재 인증 연결을 사용하고 준비·저장·메시지
   await client.jobApplicationPrepare('id / 한글');
   await client.jobApplicationDraft('id / 한글', { text: '초안 변경', expected_text: '기존 초안' });
   await client.jobMessagesStart();
+  await client.jobMessagesChromeStart();
   expect(calls[0]!.url).toContain('/v1/jobs/applications/id%20%2F%20%ED%95%9C%EA%B8%80/prepare');
   expect(JSON.parse(calls[1]!.init!.body as string)).toEqual({ text: '초안 변경', expected_text: '기존 초안' });
   expect(JSON.parse(calls[2]!.init!.body as string)).toEqual({ confirm: true });
+  expect(calls[3]!.url).toBe('http://127.0.0.1:43000/v1/jobs/messages/chrome/start');
+  expect(JSON.parse(calls[3]!.init!.body as string)).toEqual({ confirm: true });
   expect(calls.every((call) => new Headers(call.init?.headers).get('Authorization') === 'Bearer local-test')).toBe(true);
   expect(calls.some((call) => /\/submit$|jobs\.daangn/.test(call.url))).toBe(false);
+});
+
+it('크롬 연결코드는 복사로만 전달하고 DOM·조회캐시·mutation캐시·저장소에 노출하지 않는다', async () => {
+  const { port, qc, wrapper } = harness();
+  const token = 'synthetic-bridge-secret-do-not-render';
+  const pairing = { connection: { url: 'http://127.0.0.1:43111', token }, extension_directory: 'C:\\LocalWorklead\\chrome-message-extension', status: status({ provider: 'chrome', enabled: true, state: 'starting', needs_user_action: true, message: '크롬 확장 연결을 기다립니다.' }) };
+  const start = vi.spyOn(port.jobs, 'messagesChromeStart').mockResolvedValue(pairing);
+  const copy = vi.spyOn(external, 'copyText').mockResolvedValue(true);
+  const storageBefore = JSON.stringify({ ...localStorage });
+  const view = render(<MessageConnectionPanel now={now} onSettings={vi.fn()} />, { wrapper });
+  await screen.findByText('연결하지 않음');
+  expect(start).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button', { name: '현재 크롬으로 연결' }));
+  await screen.findByText('크롬 확장 연결을 기다립니다.');
+  expect(screen.queryByText('미읽음 표시 감시 중')).toBeNull();
+  expect(view.container.innerHTML).not.toContain(token);
+  expect(JSON.stringify(qc.getQueryCache().getAll().map((query) => query.state.data))).not.toContain(token);
+  expect(JSON.stringify(qc.getMutationCache().getAll().map((mutation) => mutation.state))).not.toContain(token);
+  expect(JSON.stringify({ ...localStorage })).toBe(storageBefore);
+  fireEvent.click(screen.getByRole('button', { name: '크롬 연결코드 복사' }));
+  await waitFor(() => expect(copy).toHaveBeenCalledWith(JSON.stringify(pairing.connection)));
+  fireEvent.click(screen.getByText('크롬 확장 설치·연결 방법'));
+  fireEvent.click(screen.getByRole('button', { name: '확장 폴더 경로 복사' }));
+  await waitFor(() => expect(copy).toHaveBeenCalledWith(pairing.extension_directory));
+  expect(screen.getByText(/선택한 당근 탭의 로그인 여부와 미읽음 수만/)).toBeTruthy();
+  expect(screen.getByText(/앱을 다시 시작하면 다시 연결해야/)).toBeTruthy();
+  expect(screen.getByRole('button', { name: '연결하고 감시 시작' })).toHaveProperty('disabled', true);
+  fireEvent.click(screen.getByRole('button', { name: '감시 중지' }));
+  await screen.findByText('연결하지 않음');
+  expect(screen.queryByRole('button', { name: '크롬 연결코드 복사' })).toBeNull();
+});
+
+it('전용 Edge 감시 중에는 크롬 연결을 겹쳐 시작하지 않는다', async () => {
+  const { port, wrapper } = harness();
+  vi.mocked(port.jobs.messagesStatus).mockResolvedValue(status({ provider: 'edge', enabled: true, state: 'watching', browser_open: true, message: '전용 Edge에서 감시 중입니다.' }));
+  const chrome = vi.spyOn(port.jobs, 'messagesChromeStart');
+  render(<MessageConnectionPanel now={now} onSettings={vi.fn()} />, { wrapper });
+  await screen.findByText('미읽음 표시 감시 중');
+  expect(screen.getByRole('button', { name: '현재 크롬으로 연결' })).toHaveProperty('disabled', true);
+  expect(chrome).not.toHaveBeenCalled();
 });

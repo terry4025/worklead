@@ -1,0 +1,16 @@
+{
+  "provider": "chrome",
+  "enabled": true,
+  "state": "starting",
+  "unread_count": null,
+  "last_observed_at": null,
+  "last_increase_at": null,
+  "error_code": null,
+  "message": "크롬 확장 연결 대기 중입니다. 선택한 당근 탭을 연결하세요",
+  "poll_interval_seconds": 2,
+  "observation": "visible_unread_badge",
+  "captures_message_body": false,
+  "browser_notifications": "unknown",
+  "browser_open": false,
+  "needs_user_action": true
+}

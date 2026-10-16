@@ -138,6 +138,8 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
     from ..jobs.applications import ApplicationError
     app.include_router(job_router(_session))
     app.include_router(job_message_router())
+    from .job_chrome_routes import router as job_chrome_router
+    app.include_router(job_chrome_router())
 
     @app.exception_handler(ApplicationError)
     async def application_error(request: Request, exc: ApplicationError):

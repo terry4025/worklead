@@ -193,6 +193,21 @@ def jobs_only() -> None:
 
 
 def main() -> None:
+    if "--chrome-only" in sys.argv:
+        from worklead.jobs.messages import MessageStatus
+        from worklead.api.job_chrome_routes import ChromeConnection, ChromeStart
+        with tempfile.TemporaryDirectory(prefix="worklead-chrome-contracts-") as tmp:
+            ctx = make_ctx(Path(tmp), dev=True)
+            try:
+                write_openapi(client_for(ctx).app)
+                for model in (MessageStatus, ChromeConnection, ChromeStart):
+                    dump(OUT / "schemas" / f"{model.__name__}.schema.json", model.model_json_schema())
+                dump(OUT / "fixtures" / "chrome-message-waiting.json", MessageStatus(provider="chrome", state="starting", enabled=True,
+                     message="크롬 확장 연결 대기 중입니다. 선택한 당근 탭을 연결하세요").model_dump(mode="json"))
+            finally:
+                ctx.db.dispose()
+        print("chrome contracts written; no pairing secret or unrelated fixture exported")
+        return
     if "--cafe-only" in sys.argv:
         with tempfile.TemporaryDirectory(prefix="worklead-cafe-contracts-") as tmpdir:
             ctx = make_ctx(Path(tmpdir), dev=True)

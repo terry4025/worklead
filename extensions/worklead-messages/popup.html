@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="popup.css"><title>Worklead 메시지 연결</title></head>
+<body><h1>당근 메시지 연결</h1><p>현재 선택한 당근알바 탭의 로그인 여부와 미읽음 수만 <strong>이 PC의 Worklead</strong>에 전달합니다.</p>
+<p>채팅 본문·계정 정보·쿠키는 전달하지 않습니다. 지원·메시지 발송을 하지 않습니다.</p>
+<label for="code">Worklead에서 복사한 연결 코드</label><textarea id="code" rows="3" spellcheck="false" autocomplete="off" placeholder="연결 코드 붙여 넣기"></textarea>
+<button id="connect">이 당근 탭 연결</button><button id="disconnect" class="secondary">연결 중지</button>
+<p id="status" role="status">연결 상태를 확인하고 있습니다.</p><p class="hint">Worklead·크롬 재시작, 탭 새로고침 후에는 다시 연결하세요. 배경 탭·절전에서는 확인이 지연되거나 일부 메시지를 놓칠 수 있습니다.</p>
+<script type="module" src="popup.js"></script></body></html>

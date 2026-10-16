@@ -415,6 +415,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/jobs/messages/chrome/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status */
+        get: operations["status_v1_jobs_messages_chrome_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/jobs/messages/chrome/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start */
+        post: operations["start_v1_jobs_messages_chrome_start_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/jobs/messages/chrome/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stop */
+        post: operations["stop_v1_jobs_messages_chrome_stop_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/health": {
         parameters: {
             query?: never;
@@ -1706,6 +1757,20 @@ export interface components {
             /** Label */
             label: string;
         };
+        /** ChromeConnection */
+        ChromeConnection: {
+            /** Url */
+            url: string;
+            /** Token */
+            token: string;
+        };
+        /** ChromeStart */
+        ChromeStart: {
+            connection: components["schemas"]["ChromeConnection"];
+            status: components["schemas"]["MessageStatus"];
+            /** Extension Directory */
+            extension_directory: string;
+        };
         /** CollaborationAssessed */
         CollaborationAssessed: {
             /**
@@ -2315,6 +2380,12 @@ export interface components {
         };
         /** MessageStatus */
         MessageStatus: {
+            /**
+             * Provider
+             * @default edge
+             * @enum {string}
+             */
+            provider: "edge" | "chrome";
             /**
              * Enabled
              * @default false
@@ -4001,6 +4072,79 @@ export interface operations {
         };
     };
     stop_v1_jobs_messages_stop_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageStatus"];
+                };
+            };
+        };
+    };
+    status_v1_jobs_messages_chrome_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageStatus"];
+                };
+            };
+        };
+    };
+    start_v1_jobs_messages_chrome_start_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartMessageWatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChromeStart"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stop_v1_jobs_messages_chrome_stop_post: {
         parameters: {
             query?: never;
             header?: never;

@@ -31,9 +31,11 @@ export interface JobsPort {
   messagesStatus(): Promise<MessageWatchStatus>;
   messagesStart(): Promise<MessageWatchStatus>;
   messagesStop(): Promise<MessageWatchStatus>;
+  messagesChromeStart(): Promise<ChromeMessageConnection>;
 }
 
 export interface MessageWatchStatus {
+  provider?: 'chrome' | 'edge';
   enabled: boolean;
   state: 'stopped' | 'starting' | 'login_required' | 'watching' | 'surface_unrecognized' | 'error';
   unread_count: number | null;
@@ -47,4 +49,10 @@ export interface MessageWatchStatus {
   browser_notifications: 'default' | 'granted' | 'denied' | 'unsupported' | 'unknown';
   browser_open: boolean;
   needs_user_action: boolean;
+}
+
+export interface ChromeMessageConnection {
+  connection: { url: string; token: string };
+  status: MessageWatchStatus;
+  extension_directory: string;
 }

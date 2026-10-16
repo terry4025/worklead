@@ -54,6 +54,7 @@ export class LivePort implements WorkleadPort {
     messagesStatus: () => wrap(this.client.jobMessagesStatus()),
     messagesStart: () => wrap(this.client.jobMessagesStart()),
     messagesStop: () => wrap(this.client.jobMessagesStop()),
+    messagesChromeStart: () => wrap(this.client.jobMessagesChromeStart()),
   };
   readonly cafe: WorkleadPort['cafe'] = {
     comments: () => wrap(this.client.cafeComments()),

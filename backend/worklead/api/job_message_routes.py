@@ -17,14 +17,28 @@ def router():
 
     @routes.get("/status", response_model=MessageStatus)
     def status(request: Request):
-        return runtime(request.app.state.ctx).status()
+        ctx = request.app.state.ctx
+        if ctx.jobs_message_provider == "chrome" and ctx._jobs_chrome_runtime is not None:
+            return ctx._jobs_chrome_runtime.status()
+        return runtime(ctx).status()
 
     @routes.post("/start", response_model=MessageStatus)
     def start(body: StartMessageWatch, request: Request):
-        return runtime(request.app.state.ctx).start()
+        from ..jobs.applications import ApplicationError
+        ctx = request.app.state.ctx
+        with ctx.ai_control_lock:
+            if ctx._jobs_chrome_runtime is not None and ctx._jobs_chrome_runtime.status().enabled:
+                raise ApplicationError(409, "message_watch_active", "크롬 감시를 먼저 중지한 뒤 Edge를 연결하세요")
+            ctx.jobs_message_provider = "edge"
+            return runtime(ctx).start()
 
     @routes.post("/stop", response_model=MessageStatus)
     def stop(request: Request):
-        return runtime(request.app.state.ctx).stop()
+        ctx = request.app.state.ctx
+        with ctx.ai_control_lock:
+            if ctx._jobs_chrome_runtime is not None:
+                ctx._jobs_chrome_runtime.stop()
+            result = runtime(ctx).stop()
+            return ctx._jobs_chrome_runtime.status() if ctx.jobs_message_provider == "chrome" and ctx._jobs_chrome_runtime is not None else result
 
     return routes

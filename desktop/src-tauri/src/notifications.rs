@@ -238,6 +238,7 @@ fn notification_body(kind: &str) -> Option<&'static str> {
         "new_lead" => Some("새 추천 리드가 있습니다. Worklead에서 확인하세요."),
         "new_review_lead" => Some("새 제작 의뢰에 확인할 사항이 있습니다. Worklead에서 지금 검토하세요."),
         "cafe_request" => Some("새 카페 문의가 있습니다. Worklead에서 확인하세요."),
+        "daangn_message" => Some("당근알바 읽지 않은 메시지가 늘었습니다. Worklead의 전용 Edge에서 확인하세요."),
         "lead_changed" => {
             Some("관심·진행 중 리드의 조건이 변경되었습니다. Worklead에서 확인하세요.")
         }
@@ -337,7 +338,7 @@ mod tests {
     #[test]
     fn only_known_kinds_have_fixed_private_os_payloads() {
         assert!(notification_body("arbitrary title or contact").is_none());
-        for kind in ["new_lead", "lead_changed", "source_issue", "cafe_request"] {
+        for kind in ["new_lead", "lead_changed", "source_issue", "cafe_request", "daangn_message"] {
             assert!(notification_body(kind).unwrap().contains("Worklead"));
         }
     }

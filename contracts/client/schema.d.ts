@@ -279,6 +279,142 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/jobs/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listing */
+        get: operations["listing_v1_jobs_applications_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/jobs/applications/{lead_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get */
+        get: operations["get_v1_jobs_applications__lead_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/jobs/applications/{lead_id}/prepare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Prepare */
+        post: operations["prepare_v1_jobs_applications__lead_id__prepare_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/jobs/applications/{lead_id}/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Save */
+        patch: operations["save_v1_jobs_applications__lead_id__draft_patch"];
+        trace?: never;
+    };
+    "/v1/jobs/applications/{lead_id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit */
+        post: operations["submit_v1_jobs_applications__lead_id__submit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/jobs/messages/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status */
+        get: operations["status_v1_jobs_messages_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/jobs/messages/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start */
+        post: operations["start_v1_jobs_messages_start_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/jobs/messages/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stop */
+        post: operations["stop_v1_jobs_messages_stop_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/health": {
         parameters: {
             query?: never;
@@ -1872,6 +2008,84 @@ export interface components {
             /** Run Id */
             run_id: string | null;
         };
+        /** JobApplicationCandidate */
+        JobApplicationCandidate: {
+            /** Lead Id */
+            lead_id: string;
+            /** Title */
+            title: string;
+            /** Original Url */
+            original_url: string | null;
+            /**
+             * Recommendation
+             * @enum {string}
+             */
+            recommendation: "recommended" | "needs_review" | "excluded";
+            /** Published At */
+            published_at: string | null;
+            /** Last Checked At */
+            last_checked_at: string | null;
+            /** Candidate */
+            candidate: boolean;
+            /** Can Prepare */
+            can_prepare: boolean;
+            /**
+             * Can Submit
+             * @default false
+             * @constant
+             */
+            can_submit: false;
+            /**
+             * Mode
+             * @default draft_only
+             * @constant
+             */
+            mode: "draft_only";
+            /**
+             * Submission Supported
+             * @default false
+             * @constant
+             */
+            submission_supported: false;
+            /** Hold Reasons */
+            hold_reasons: components["schemas"]["JobApplicationHold"][];
+            /** Questions */
+            questions: string[];
+            draft: components["schemas"]["Draft"] | null;
+        };
+        /** JobApplicationDraftPatch */
+        JobApplicationDraftPatch: {
+            /** Text */
+            text: string;
+            /** Expected Text */
+            expected_text: string | null;
+        };
+        /** JobApplicationHold */
+        JobApplicationHold: {
+            /** Code */
+            code: string;
+            /** Message */
+            message: string;
+        };
+        /** JobApplicationList */
+        JobApplicationList: {
+            /**
+             * Mode
+             * @default draft_only
+             * @constant
+             */
+            mode: "draft_only";
+            /**
+             * Submission Supported
+             * @default false
+             * @constant
+             */
+            submission_supported: false;
+            /** Total */
+            total: number;
+            /** Items */
+            items: components["schemas"]["JobApplicationCandidate"][];
+        };
         /** LeadDetail */
         LeadDetail: {
             /** Id */
@@ -2099,6 +2313,63 @@ export interface components {
             /** Active Job */
             active_job: ("recheck" | "reanalyze") | null;
         };
+        /** MessageStatus */
+        MessageStatus: {
+            /**
+             * Enabled
+             * @default false
+             */
+            enabled: boolean;
+            /**
+             * State
+             * @default stopped
+             * @enum {string}
+             */
+            state: "stopped" | "starting" | "login_required" | "watching" | "surface_unrecognized" | "error";
+            /** Unread Count */
+            unread_count?: number | null;
+            /** Last Observed At */
+            last_observed_at?: string | null;
+            /** Last Increase At */
+            last_increase_at?: string | null;
+            /** Error Code */
+            error_code?: string | null;
+            /**
+             * Message
+             * @default 메시지 감시가 꺼져 있습니다
+             */
+            message: string;
+            /**
+             * Poll Interval Seconds
+             * @default 2
+             */
+            poll_interval_seconds: number;
+            /**
+             * Observation
+             * @default visible_unread_badge
+             */
+            observation: string;
+            /**
+             * Captures Message Body
+             * @default false
+             */
+            captures_message_body: boolean;
+            /**
+             * Browser Notifications
+             * @default unknown
+             */
+            browser_notifications: string;
+            /**
+             * Browser Open
+             * @default false
+             */
+            browser_open: boolean;
+            /**
+             * Needs User Action
+             * @default true
+             */
+            needs_user_action: boolean;
+        };
         /** MetricsOut */
         MetricsOut: {
             collection: components["schemas"]["CollectionMetrics"];
@@ -2131,7 +2402,7 @@ export interface components {
             /** Allowed */
             allowed: boolean;
             /** Kind */
-            kind: ("new_lead" | "new_review_lead" | "lead_changed" | "source_issue" | "cafe_request") | null;
+            kind: ("new_lead" | "new_review_lead" | "lead_changed" | "source_issue" | "cafe_request" | "daangn_message") | null;
             /**
              * State
              * @enum {string}
@@ -2150,7 +2421,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "new_lead" | "new_review_lead" | "lead_changed" | "source_issue" | "cafe_request";
+            kind: "new_lead" | "new_review_lead" | "lead_changed" | "source_issue" | "cafe_request" | "daangn_message";
             /**
              * Created At
              * Format: date-time
@@ -2182,7 +2453,7 @@ export interface components {
             /** Id */
             id: string;
             /** Kind */
-            kind: ("new_lead" | "new_review_lead" | "lead_changed" | "source_issue" | "cafe_request") | null;
+            kind: ("new_lead" | "new_review_lead" | "lead_changed" | "source_issue" | "cafe_request" | "daangn_message") | null;
             /**
              * State
              * @enum {string}
@@ -2198,6 +2469,11 @@ export interface components {
              * @default true
              */
             new_review: boolean;
+            /**
+             * Daangn Messages
+             * @default true
+             */
+            daangn_messages: boolean;
             /** Meaningful Change */
             meaningful_change: boolean;
             /** Source Issue */
@@ -2931,6 +3207,14 @@ export interface components {
             /** End */
             end: number;
         };
+        /** StartMessageWatch */
+        StartMessageWatch: {
+            /**
+             * Confirm
+             * @constant
+             */
+            confirm: true;
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -3500,6 +3784,238 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listing_v1_jobs_applications_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobApplicationList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_v1_jobs_applications__lead_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lead_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobApplicationCandidate"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    prepare_v1_jobs_applications__lead_id__prepare_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lead_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobApplicationCandidate"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_v1_jobs_applications__lead_id__draft_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lead_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JobApplicationDraftPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobApplicationCandidate"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_v1_jobs_applications__lead_id__submit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lead_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobApplicationCandidate"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    status_v1_jobs_messages_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageStatus"];
+                };
+            };
+        };
+    };
+    start_v1_jobs_messages_start_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartMessageWatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stop_v1_jobs_messages_stop_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageStatus"];
                 };
             };
         };

@@ -7,6 +7,7 @@ import { emptyCollectionMessage } from '../domain/collection';
 import { VIEWS, type ViewId } from '../domain/queues';
 import { CollectionPanel } from '../features/collection/CollectionPanel';
 import { CafeWorkspace } from '../features/cafe/CafeWorkspace';
+import { ApplicationWorkspace } from '../features/jobs/ApplicationWorkspace';
 import { LeadDetailPane, type DetailHandle } from '../features/detail/LeadDetailPane';
 import { CurrencyTotals } from '../features/detail/Records';
 import { IssueStrip, deriveIssues } from '../features/header/IssueStrip';
@@ -42,7 +43,7 @@ function useNow(ms = 60_000): Date {
 const EMPTY_SNAPSHOT: ListSnapshot = { ids: [], byId: new Map(), loading: true, error: null, hasMore: new Map() };
 
 export function Workspace() {
-  const [workspace, setWorkspace] = useState<'leads' | 'cafe'>('leads');
+  const [workspace, setWorkspace] = useState<'leads' | 'cafe' | 'jobs'>('leads');
   const { port, mode, scenario, setScenario } = usePortCtx();
   const cafeStatus = useQuery({ queryKey: ['cafe', 'status'], queryFn: () => port.cafe.status(), refetchInterval: 5000 });
   const qc = useQueryClient();
@@ -104,7 +105,7 @@ export function Workspace() {
     setOverlayOpen(true);
     window.setTimeout(() => detailRef.current?.focus(), 0);
   }, []);
-  const live = useLiveEvents(openLead);
+  const live = useLiveEvents(openLead, () => setWorkspace('jobs'));
 
   const setFilter = useCallback(
     (f: LeadFilter) => {
@@ -165,7 +166,7 @@ export function Workspace() {
         void qc.invalidateQueries({ queryKey: ['cafe'] });
         return;
       }
-      if (workspace === 'cafe' || anyDialog || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (workspace !== 'leads' || anyDialog || e.altKey || e.ctrlKey || e.metaKey) return;
       if (isTyping(e.target)) return;
       const k = e.key;
       const handled = (fn: () => void) => {
@@ -282,7 +283,7 @@ export function Workspace() {
 
   return (
     <div className="app" data-mode={mode}>
-      <a href={workspace === 'cafe' ? '#cafe-workspace' : '#lead-list'} className="skip-link">
+      <a href={workspace === 'cafe' ? '#cafe-workspace' : workspace === 'jobs' ? '#jobs-workspace' : '#lead-list'} className="skip-link">
         목록으로 건너뛰기
       </a>
       <TopBar
@@ -298,8 +299,8 @@ export function Workspace() {
         now={now}
       />
       <IssueStrip issues={issues} />
-      <nav className="workspace-switch" aria-label="작업 공간"><Button pressed={workspace === 'leads'} onClick={() => setWorkspace('leads')}>리드</Button><Button pressed={workspace === 'cafe'} onClick={() => setWorkspace('cafe')}>카페</Button></nav>
-      {workspace === 'cafe' ? <CafeWorkspace onOpenLead={(id) => { setWorkspace('leads'); changeView('all'); void qc.invalidateQueries({ queryKey: qk.leadsAll }); void qc.invalidateQueries({ queryKey: ['counts'] }); openLead(id); }} /> : <>
+      <nav className="workspace-switch" aria-label="작업 공간"><Button pressed={workspace === 'leads'} onClick={() => setWorkspace('leads')}>리드</Button><Button pressed={workspace === 'jobs'} onClick={() => setWorkspace('jobs')}>지원 준비·메시지</Button><Button pressed={workspace === 'cafe'} onClick={() => setWorkspace('cafe')}>카페</Button></nav>
+      {workspace === 'jobs' ? <ApplicationWorkspace now={now} onSettings={() => setSettingsOpen(true)} onOpenLead={(id) => { setWorkspace('leads'); changeView('all'); void qc.invalidateQueries({ queryKey: qk.leadsAll }); void qc.invalidateQueries({ queryKey: ['counts'] }); openLead(id); }} /> : workspace === 'cafe' ? <CafeWorkspace onOpenLead={(id) => { setWorkspace('leads'); changeView('all'); void qc.invalidateQueries({ queryKey: qk.leadsAll }); void qc.invalidateQueries({ queryKey: ['counts'] }); openLead(id); }} /> : <>
 
       <div className="toolbar">
         <QueueTabs view={view} onChange={changeView} counts={counts.data} />

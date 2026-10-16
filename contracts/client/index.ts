@@ -8,6 +8,43 @@
 import type { components } from './schema';
 
 export type Schemas = components['schemas'];
+export interface JobApplicationCandidate {
+  lead_id: string;
+  title: string;
+  original_url: string | null;
+  recommendation: 'recommended' | 'needs_review' | 'excluded';
+  published_at: string | null;
+  last_checked_at: string | null;
+  candidate: boolean;
+  can_prepare: boolean;
+  can_submit: false;
+  mode: 'draft_only';
+  submission_supported: false;
+  hold_reasons: { code: string; message: string }[];
+  questions: string[];
+  draft: { text: string; generated_at: string | null; edited_by_user: boolean } | null;
+}
+export interface JobApplicationList {
+  mode: 'draft_only';
+  submission_supported: false;
+  items: JobApplicationCandidate[];
+  total: number;
+}
+export interface JobMessageWatchStatus {
+  enabled: boolean;
+  state: 'stopped' | 'starting' | 'login_required' | 'watching' | 'surface_unrecognized' | 'error';
+  unread_count: number | null;
+  last_observed_at: string | null;
+  last_increase_at: string | null;
+  error_code: string | null;
+  message: string;
+  poll_interval_seconds: number;
+  observation: 'visible_unread_badge';
+  captures_message_body: false;
+  browser_notifications: 'default' | 'granted' | 'denied' | 'unsupported' | 'unknown';
+  browser_open: boolean;
+  needs_user_action: boolean;
+}
 export type LeadSummary = Schemas['LeadSummary'];
 export type LeadDetail = Schemas['LeadDetail'];
 export type LeadPage = Schemas['LeadPage'];
@@ -176,6 +213,13 @@ export function createClient(source: ConnectionSource, fetchImpl: typeof fetch =
   const enc = encodeURIComponent;
 
   return {
+    jobApplications: (limit = 50) => request<JobApplicationList>('GET', '/v1/jobs/applications', { query: { limit } }),
+    jobApplication: (id: string) => request<JobApplicationCandidate>('GET', `/v1/jobs/applications/${enc(id)}`),
+    jobApplicationPrepare: (id: string) => request<JobApplicationCandidate>('POST', `/v1/jobs/applications/${enc(id)}/prepare`),
+    jobApplicationDraft: (id: string, body: { text: string; expected_text: string | null }) => request<JobApplicationCandidate>('PATCH', `/v1/jobs/applications/${enc(id)}/draft`, { body }),
+    jobMessagesStatus: () => request<JobMessageWatchStatus>('GET', '/v1/jobs/messages/status'),
+    jobMessagesStart: () => request<JobMessageWatchStatus>('POST', '/v1/jobs/messages/start', { body: { confirm: true } }),
+    jobMessagesStop: () => request<JobMessageWatchStatus>('POST', '/v1/jobs/messages/stop'),
     cafeStatus: () => request<Schemas['CafeSnapshot']>('GET', '/v1/cafe/status'),
     cafeComments: () => request<Schemas['CafeCommentList']>('GET', '/v1/cafe/comments'),
     cafeCommentUpdate: (id: string, body: Schemas['CafeCommentPatch']) => request<Schemas['CafeCommentOut']>('PATCH', `/v1/cafe/comments/${enc(id)}`, { body }),

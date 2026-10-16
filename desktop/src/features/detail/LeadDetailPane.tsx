@@ -19,6 +19,7 @@ import { SourceText, type Mark } from './SourceText';
 import { RelatedRecordsPanel } from './RelatedRecordsPanel';
 import { AiInterpretationPanel } from './AiInterpretationPanel';
 import { LeadTiming } from '../leads/LeadTiming';
+import { ApplicationAssessment } from '../jobs/ApplicationWorkspace';
 
 export interface DetailHandle {
   openOriginal: () => void;
@@ -299,6 +300,7 @@ export const LeadDetailPane = forwardRef<
                 지원 준비
               </h3>
               <p className="field-hint">요구사항·범위·가능한 일정과 관련 포트폴리오를 초안에 보완하세요. 이미 지원했다면 진행 상태와 활동 기록을 먼저 확인하세요.</p>
+              {full.sourceId === 'daangn-alba' ? <ApplicationAssessment key={full.id} leadId={full.id} /> : null}
               <DraftBox key={full.id} lead={full} mode={mode} />
               <div className="draft-actions">
                 <Button size="sm" busy={rechecking || lead.activeJob === 'recheck'} onClick={() => void recheck()}>모집 재확인</Button>

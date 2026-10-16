@@ -133,6 +133,15 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
     from .cafe_routes import router as cafe_router
     from ..services.cafe import CafeError
     app.include_router(cafe_router(_session))
+    from .job_routes import router as job_router
+    from .job_message_routes import router as job_message_router
+    from ..jobs.applications import ApplicationError
+    app.include_router(job_router(_session))
+    app.include_router(job_message_router())
+
+    @app.exception_handler(ApplicationError)
+    async def application_error(request: Request, exc: ApplicationError):
+        return _error(request, exc.status, exc.code, exc.message, exc.details)
 
     @app.exception_handler(CafeError)
     async def cafe_error(request: Request, exc: CafeError):

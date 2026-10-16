@@ -30,6 +30,7 @@ import { PortError, type WorkleadPort } from '../port';
 import { DEMO_CATEGORIES, buildImportedLead, buildReserveLead } from './fixtures';
 import { buildScenario, type ScenarioId } from './scenarios';
 import { MockCafePort } from './MockCafePort';
+import type { ApplicationEntry, JobsPort, MessageWatchStatus } from '../../domain/jobs';
 
 const QUEUES: Bootstrap['queues'] = [
   { id: 'fresh', label: '지금 검토', description: '24시간 내 게시된 모집 중 제작 의뢰 · 추천과 확인 필요' },
@@ -134,6 +135,53 @@ const DEFAULT_SETTINGS: SettingsView = {
 
 export class MockPort implements WorkleadPort {
   readonly cafe = new MockCafePort();
+  readonly jobs: JobsPort = {
+    messagesStatus: () => this.delay(() => this.messageStatus),
+    messagesStart: () => this.delay(() => {
+      this.messageStatus = { ...this.messageStatus, enabled: true, state: 'login_required', needs_user_action: true, message: '데모에서는 실제 Edge를 열거나 메시지를 조회하지 않습니다. 실사용 모드에서 직접 연결하세요.' };
+      return this.messageStatus;
+    }),
+    messagesStop: () => this.delay(() => {
+      this.messageStatus = { ...this.messageStatus, enabled: false, state: 'stopped', needs_user_action: false, message: '메시지 감시를 시작하지 않았습니다.' };
+      return this.messageStatus;
+    }),
+    applications: (limit = 50) => this.delay(() => {
+      const items = this.leads.map((lead) => this.applicationEntry(lead)).filter((entry) => entry.candidate);
+      return { mode: 'draft_only' as const, submission_supported: false as const, total: items.length, items: items.slice(0, limit) };
+    }),
+    application: (id) => this.delay(() => this.applicationEntry(this.find(id))),
+    prepare: async (id) => {
+      const lead = this.find(id);
+      if (!this.applicationEntry(lead).can_prepare) throw new PortError({ kind: 'api', code: 'application_not_eligible', message: '지원 준비 대상이 아닙니다' });
+      if (!lead.draft) await this.generateDraft(id);
+      return this.applicationEntry(this.find(id));
+    },
+    saveDraft: (id, text, expectedText) => this.delay(() => {
+      const lead = this.find(id);
+      if ((lead.draft?.text ?? null) !== expectedText) throw new PortError({ kind: 'api', code: 'draft_changed', message: '다른 화면에서 초안이 변경되었습니다. 최신 초안을 다시 확인하세요.' });
+      if (!text.trim() || text.length > 20000) throw new PortError({ kind: 'invalid_input', code: 'invalid_draft', message: '초안은 1~20,000자로 작성하세요.' });
+      lead.draft = { text, generatedAt: lead.draft?.generatedAt ?? null, editedByUser: true };
+      return this.applicationEntry(lead);
+    }),
+  };
+  private messageStatus: MessageWatchStatus = {
+    enabled: false, state: 'stopped', unread_count: null, last_observed_at: null, last_increase_at: null,
+    error_code: null, message: '메시지 감시를 시작하지 않았습니다.', poll_interval_seconds: 2,
+    observation: 'visible_unread_badge', captures_message_body: false, browser_notifications: 'unknown', browser_open: false, needs_user_action: false,
+  };
+
+  private applicationEntry(lead: LeadDetail): ApplicationEntry {
+    const candidate = lead.sourceId === 'daangn-alba' && lead.recommendation !== 'excluded' && lead.userMark !== 'dismissed' && ['new', 'reviewing'].includes(lead.salesStage);
+    const hold = lead.analysis.uncertain.map((message) => ({ code: 'condition_uncertain', message }));
+    if (lead.sourceStatus !== 'open' || lead.recheckDue) hold.unshift({ code: 'recheck_required', message: '모집 상태를 다시 확인해야 합니다.' });
+    return {
+      lead_id: lead.id, title: lead.title, original_url: lead.originalUrl, recommendation: lead.recommendation,
+      published_at: lead.published.at, last_checked_at: lead.lastCheckedAt, candidate, can_prepare: candidate,
+      can_submit: false, mode: 'draft_only', submission_supported: false,
+      hold_reasons: hold, questions: lead.analysis.questions,
+      draft: lead.draft ? { text: lead.draft.text, generated_at: lead.draft.generatedAt, edited_by_user: lead.draft.editedByUser } : null,
+    };
+  }
   readonly mode = 'demo' as const;
   private leads: LeadDetail[];
   private sources: SourceInfo[];

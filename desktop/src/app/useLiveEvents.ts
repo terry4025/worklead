@@ -17,7 +17,7 @@ export interface LiveState {
   acknowledge: () => Promise<boolean>;
 }
 
-export function useLiveEvents(onOpenLead: (id: string) => void): LiveState {
+export function useLiveEvents(onOpenLead: (id: string) => void, onOpenMessages?: () => void): LiveState {
   const port = usePort();
   const qc = useQueryClient();
   const toast = useToast();
@@ -28,6 +28,8 @@ export function useLiveEvents(onOpenLead: (id: string) => void): LiveState {
   const refreshSerial = useRef(0);
   const openRef = useRef(onOpenLead);
   openRef.current = onOpenLead;
+  const messagesRef = useRef(onOpenMessages);
+  messagesRef.current = onOpenMessages;
 
   useEffect(() => {
     let disconnected = false;
@@ -37,6 +39,7 @@ export function useLiveEvents(onOpenLead: (id: string) => void): LiveState {
       void qc.invalidateQueries({ queryKey: qk.runs });
       void qc.invalidateQueries({ queryKey: ['counts'] });
       void qc.invalidateQueries({ queryKey: ['lead'] });
+      void qc.invalidateQueries({ queryKey: ['jobs'] });
       listRevision.current += 1;
       setListStale(true);
     };
@@ -64,12 +67,15 @@ export function useLiveEvents(onOpenLead: (id: string) => void): LiveState {
           }
           break;
         case 'lead.created':
+          void qc.invalidateQueries({ queryKey: ['jobs', 'applications'] });
           listRevision.current += 1;
           if (e.recommendation !== 'excluded') setNewLeads((n) => n + 1);
           void qc.invalidateQueries({ queryKey: ['counts'] });
           break;
         case 'lead.updated':
         case 'analysis.completed':
+          void qc.invalidateQueries({ queryKey: ['jobs', 'applications'] });
+          void qc.invalidateQueries({ queryKey: ['jobs', 'application', e.leadId] });
           refreshLead(e.leadId);
           void qc.invalidateQueries({ queryKey: ['counts'] });
           break;
@@ -77,11 +83,12 @@ export function useLiveEvents(onOpenLead: (id: string) => void): LiveState {
           void qc.invalidateQueries({ queryKey: qk.sources });
           break;
         case 'notification.created':
+          if (e.kind === 'daangn_message') void qc.invalidateQueries({ queryKey: ['jobs', 'messages'] });
           toast.show(
             {
               tone: e.kind === 'source_issue' ? 'bad' : e.kind === 'lead_changed' ? 'warn' : 'info',
               text: e.title,
-              action: e.leadId ? { label: '보기', run: () => openRef.current(e.leadId as string) } : undefined,
+              action: e.kind === 'daangn_message' && messagesRef.current ? { label: '메시지 상태 보기', run: () => messagesRef.current?.() } : e.leadId ? { label: '보기', run: () => openRef.current(e.leadId as string) } : undefined,
             },
             8000,
           );

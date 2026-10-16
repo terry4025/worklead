@@ -161,6 +161,37 @@ def ai_only(*, schemas_only: bool = False) -> None:
     print("AI contracts written; existing fixtures preserved")
 
 
+def jobs_only() -> None:
+    """Export only the new draft/message contracts; keep old compatibility fixtures."""
+    from tests.test_job_applications import post, NOW
+    from worklead.engine.pipeline import ingest
+    from worklead.jobs.messages import MessageStatus
+    from worklead.api.job_message_routes import StartMessageWatch
+    with tempfile.TemporaryDirectory(prefix="worklead-jobs-contracts-") as tmp:
+        ctx = make_ctx(Path(tmp), dev=True)
+        ctx.clock = lambda: NOW
+        try:
+            with ctx.db.session() as s:
+                s.get(SourcePolicy, "daangn-alba").status = "allowed"
+                id_ = ingest(s, "daangn-alba", post(), parser_version="synthetic", now=NOW).lead_id
+            c = client_for(ctx)
+            write_openapi(c.app)
+            for model in (S.JobApplicationCandidate, S.JobApplicationHold, S.JobApplicationList, S.JobApplicationDraftPatch,
+                          MessageStatus, StartMessageWatch, S.SettingsOut, S.SettingsPatch):
+                dump(OUT / "schemas" / f"{model.__name__}.schema.json", model.model_json_schema())
+            dump(OUT / "fixtures/job-applications.json", c.get("/v1/jobs/applications").json())
+            dump(OUT / "fixtures/job-message-status.json", c.get("/v1/jobs/messages/status").json())
+            draft = c.post(f"/v1/jobs/applications/{id_}/prepare")
+            draft.raise_for_status()
+            dump(OUT / "fixtures/job-application-draft.json", draft.json())
+            rejected = c.post(f"/v1/jobs/applications/{id_}/submit")
+            assert rejected.status_code == 409 and rejected.json()["error"]["details"]["sent"] == 0
+            dump(OUT / "fixtures/errors/application-submission-unavailable.json", rejected.json())
+        finally:
+            ctx.db.dispose()
+    print("jobs contracts written; unrelated fixtures preserved; no browser or remote submission")
+
+
 def main() -> None:
     if "--cafe-only" in sys.argv:
         with tempfile.TemporaryDirectory(prefix="worklead-cafe-contracts-") as tmpdir:
@@ -186,6 +217,9 @@ def main() -> None:
         return
     if "--relations-only" in sys.argv:
         relations_only()
+        return
+    if "--jobs-only" in sys.argv:
+        jobs_only()
         return
     if "--native-only" in sys.argv:
         native_only()

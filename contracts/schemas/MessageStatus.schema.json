@@ -1,0 +1,109 @@
+{
+  "properties": {
+    "enabled": {
+      "default": false,
+      "title": "Enabled",
+      "type": "boolean"
+    },
+    "state": {
+      "default": "stopped",
+      "enum": [
+        "stopped",
+        "starting",
+        "login_required",
+        "watching",
+        "surface_unrecognized",
+        "error"
+      ],
+      "title": "State",
+      "type": "string"
+    },
+    "unread_count": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Unread Count"
+    },
+    "last_observed_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Last Observed At"
+    },
+    "last_increase_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Last Increase At"
+    },
+    "error_code": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Error Code"
+    },
+    "message": {
+      "default": "메시지 감시가 꺼져 있습니다",
+      "title": "Message",
+      "type": "string"
+    },
+    "poll_interval_seconds": {
+      "default": 2,
+      "title": "Poll Interval Seconds",
+      "type": "integer"
+    },
+    "observation": {
+      "default": "visible_unread_badge",
+      "title": "Observation",
+      "type": "string"
+    },
+    "captures_message_body": {
+      "default": false,
+      "title": "Captures Message Body",
+      "type": "boolean"
+    },
+    "browser_notifications": {
+      "default": "unknown",
+      "title": "Browser Notifications",
+      "type": "string"
+    },
+    "browser_open": {
+      "default": false,
+      "title": "Browser Open",
+      "type": "boolean"
+    },
+    "needs_user_action": {
+      "default": true,
+      "title": "Needs User Action",
+      "type": "boolean"
+    }
+  },
+  "title": "MessageStatus",
+  "type": "object"
+}

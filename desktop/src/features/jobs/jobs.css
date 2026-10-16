@@ -1,0 +1,32 @@
+.jobs-workspace { overflow-y: auto; flex: 1; padding: 26px 30px; background: var(--bg); }
+.jobs-workspace-head, .application-card-head, .application-list-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.jobs-workspace h1 { font-size: var(--fs-xl); margin: 0 0 6px; }
+.jobs-workspace-head p { margin: 0; font-size: var(--fs-sm); }
+.jobs-mode-note { margin: 22px 0; padding: 16px 20px; background: var(--accent-weak); border: 1px solid var(--accent-line); border-radius: var(--radius); color: var(--text-2); }
+.jobs-mode-note p { margin: 6px 0 0; font-size: var(--fs-sm); line-height: 1.7; }
+.jobs-columns { display: grid; grid-template-columns: minmax(0, 1fr) 310px; gap: 22px; align-items: start; }
+.application-list-heading { align-items: center; margin-bottom: 12px; }
+.application-list-heading h2, .message-connection h2 { margin: 0; font-size: var(--fs-lg); }
+.application-list-heading > span { font-size: var(--fs-xs); }
+.application-card, .message-connection { background: var(--surface); border: 1px solid var(--line); padding: 20px; border-radius: var(--radius); }
+.application-card + .application-card { margin-top: 14px; }
+.application-card-head h3 { margin: 10px 0 6px; font-size: var(--fs-lg); overflow-wrap: anywhere; }
+.application-card-head > .btn { flex-shrink: 0; }
+.application-assessment { margin: 12px 0; }
+.application-holds { padding-left: 20px; margin: 8px 0; color: var(--warn); font-size: var(--fs-sm); line-height: 1.7; }
+.application-questions { font-size: var(--fs-sm); color: var(--text-2); margin-top: 10px; }
+.application-questions ul { padding-left: 20px; }
+.application-editor { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+.application-editor textarea { width: 100%; box-sizing: border-box; margin: 8px 0; resize: vertical; min-height: 140px; }
+.application-inline { border: 1px solid var(--line); background: var(--surface-2); border-radius: var(--radius); padding: 12px; margin: 12px 0; }
+.application-inline .application-assessment { margin-top: 0; }
+.jobs-empty { color: var(--text-3); padding: 30px 20px; background: var(--surface); border: 1px dashed var(--line-strong); border-radius: var(--radius); line-height: 1.7; }
+.jobs-connection { position: sticky; top: 0; }
+.message-connection h2 { display: flex; align-items: center; gap: 7px; margin-bottom: 16px; }
+.message-connection > p { font-size: var(--fs-sm); line-height: 1.7; overflow-wrap: anywhere; }
+.message-connection .field-hint { font-size: var(--fs-xs); }
+.message-status { font-size: var(--fs-xs); color: var(--text-2); padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.message-status > div { display: flex; justify-content: space-between; gap: 8px; margin: 7px 0; }
+.message-status dd { margin: 0; text-align: right; }
+@media (max-width: 1050px) { .jobs-columns { grid-template-columns: minmax(0, 1fr); } .jobs-connection { position: static; grid-row: 1; } }
+@media (max-width: 600px) { .jobs-workspace { padding: 18px 14px; } .jobs-workspace-head, .application-card-head { flex-wrap: wrap; } .application-card, .message-connection { padding: 16px; } }

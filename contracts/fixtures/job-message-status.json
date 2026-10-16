@@ -1,0 +1,15 @@
+{
+  "enabled": false,
+  "state": "stopped",
+  "unread_count": null,
+  "last_observed_at": null,
+  "last_increase_at": null,
+  "error_code": null,
+  "message": "메시지 감시가 꺼져 있습니다",
+  "poll_interval_seconds": 2,
+  "observation": "visible_unread_badge",
+  "captures_message_body": false,
+  "browser_notifications": "unknown",
+  "browser_open": false,
+  "needs_user_action": true
+}

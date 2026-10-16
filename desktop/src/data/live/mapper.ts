@@ -272,6 +272,7 @@ export function mapSettings(x: C.SettingsOut): SettingsView {
     notifications: {
       newRecommended: x.notifications.new_recommended,
       newReview: x.notifications.new_review ?? true,
+      daangnMessages: x.notifications.daangn_messages ?? true,
       meaningfulChange: x.notifications.meaningful_change,
       sourceIssue: x.notifications.source_issue,
       quietHours: { enabled: x.notifications.quiet_hours.enabled, start: x.notifications.quiet_hours.start, end: x.notifications.quiet_hours.end },
@@ -315,6 +316,7 @@ export function settingsPatchToContract(p: Parameters<import('../port').Worklead
     out.notifications = {
       new_recommended: p.notifications.newRecommended,
       new_review: p.notifications.newReview,
+      daangn_messages: p.notifications.daangnMessages ?? true,
       meaningful_change: p.notifications.meaningfulChange,
       source_issue: p.notifications.sourceIssue,
       quiet_hours: p.notifications.quietHours,
@@ -419,7 +421,7 @@ export function mapEvent(e: C.ApiEvent): WorkleadEvent | null {
       return {
         ...base,
         type: e.type,
-        kind: e.kind as 'new_lead' | 'new_review_lead' | 'lead_changed' | 'source_issue' | 'cafe_request',
+        kind: e.kind as 'new_lead' | 'new_review_lead' | 'lead_changed' | 'source_issue' | 'cafe_request' | 'daangn_message',
         title: str('title') ?? '',
         leadId: str('lead_id'),
         sourceId: str('source_id'),

@@ -1,0 +1,210 @@
+{
+  "$defs": {
+    "Draft": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "generated_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Generated At"
+        },
+        "edited_by_user": {
+          "title": "Edited By User",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "text",
+        "generated_at",
+        "edited_by_user"
+      ],
+      "title": "Draft",
+      "type": "object"
+    },
+    "JobApplicationCandidate": {
+      "additionalProperties": false,
+      "properties": {
+        "lead_id": {
+          "title": "Lead Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "original_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Original Url"
+        },
+        "recommendation": {
+          "enum": [
+            "recommended",
+            "needs_review",
+            "excluded"
+          ],
+          "title": "Recommendation",
+          "type": "string"
+        },
+        "published_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Published At"
+        },
+        "last_checked_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last Checked At"
+        },
+        "candidate": {
+          "title": "Candidate",
+          "type": "boolean"
+        },
+        "can_prepare": {
+          "title": "Can Prepare",
+          "type": "boolean"
+        },
+        "can_submit": {
+          "const": false,
+          "default": false,
+          "title": "Can Submit",
+          "type": "boolean"
+        },
+        "mode": {
+          "const": "draft_only",
+          "default": "draft_only",
+          "title": "Mode",
+          "type": "string"
+        },
+        "submission_supported": {
+          "const": false,
+          "default": false,
+          "title": "Submission Supported",
+          "type": "boolean"
+        },
+        "hold_reasons": {
+          "items": {
+            "$ref": "#/$defs/JobApplicationHold"
+          },
+          "title": "Hold Reasons",
+          "type": "array"
+        },
+        "questions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Questions",
+          "type": "array"
+        },
+        "draft": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Draft"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "lead_id",
+        "title",
+        "original_url",
+        "recommendation",
+        "published_at",
+        "last_checked_at",
+        "candidate",
+        "can_prepare",
+        "hold_reasons",
+        "questions",
+        "draft"
+      ],
+      "title": "JobApplicationCandidate",
+      "type": "object"
+    },
+    "JobApplicationHold": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "title": "JobApplicationHold",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "mode": {
+      "const": "draft_only",
+      "default": "draft_only",
+      "title": "Mode",
+      "type": "string"
+    },
+    "submission_supported": {
+      "const": false,
+      "default": false,
+      "title": "Submission Supported",
+      "type": "boolean"
+    },
+    "total": {
+      "minimum": 0,
+      "title": "Total",
+      "type": "integer"
+    },
+    "items": {
+      "items": {
+        "$ref": "#/$defs/JobApplicationCandidate"
+      },
+      "title": "Items",
+      "type": "array"
+    }
+  },
+  "required": [
+    "total",
+    "items"
+  ],
+  "title": "JobApplicationList",
+  "type": "object"
+}

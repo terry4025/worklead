@@ -516,6 +516,40 @@ class Draft(Model):
     edited_by_user: bool
 
 
+class JobApplicationHold(Model):
+    code: str
+    message: str
+
+
+class JobApplicationCandidate(Model):
+    lead_id: str
+    title: str
+    original_url: str | None
+    recommendation: Recommendation
+    published_at: datetime | None
+    last_checked_at: datetime | None
+    candidate: bool
+    can_prepare: bool
+    can_submit: Literal[False] = False
+    mode: Literal["draft_only"] = "draft_only"
+    submission_supported: Literal[False] = False
+    hold_reasons: list[JobApplicationHold]
+    questions: list[str]
+    draft: Draft | None
+
+
+class JobApplicationList(Model):
+    mode: Literal["draft_only"] = "draft_only"
+    submission_supported: Literal[False] = False
+    total: int = Field(ge=0)
+    items: list[JobApplicationCandidate]
+
+
+class JobApplicationDraftPatch(Model):
+    text: str = Field(min_length=1, max_length=20000)
+    expected_text: str | None
+
+
 class FeedbackState(Model):
     remote: Literal["confirmed", "denied"] | None
     real_request: Literal["yes", "no"] | None
@@ -778,6 +812,7 @@ class QuietHours(Model):
 class NotificationSettings(Model):
     new_recommended: bool
     new_review: bool = True
+    daangn_messages: bool = True
     meaningful_change: bool
     source_issue: bool
     quiet_hours: QuietHours
@@ -976,7 +1011,7 @@ class RestoreOut(Model):
 
 
 # Native delivery never contains source titles, bodies, or contact details.
-NativeNotificationKind = Literal["new_lead", "new_review_lead", "lead_changed", "source_issue", "cafe_request"]
+NativeNotificationKind = Literal["new_lead", "new_review_lead", "lead_changed", "source_issue", "cafe_request", "daangn_message"]
 NativeNotificationState = Literal["pending", "attempted", "accepted", "failed", "unknown", "suppressed"]
 
 

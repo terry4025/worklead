@@ -1,5 +1,13 @@
 # 연동 계약 (화면 ↔ 로컬 API)
 
+## 지원 준비·메시지 추가 계약 (2026-10-16)
+
+`GET /v1/jobs/applications?limit=1..100`와 단건 GET은 최신순 후보/보류 사유/질문/초안을 반환한다. POST `/{lead_id}/prepare`는 기존 초안을 보존하고 PATCH `/{lead_id}/draft`의 `{text,expected_text}`는 텍스트 비교 후 저장한다. 제출 POST `/{lead_id}/submit`은 항상 409 `application_submission_unavailable`, details.sent=0이다. mode=draft_only이며 외부 제출 클라이언트는 없다.
+
+`GET /v1/jobs/messages/status`, POST `/start` `{confirm:true}`, POST `/stop`은 사용자 시작형 전용 Edge 감시를 제어한다. 최초 상태는 stopped이며 조회만으로 브라우저를 열지 않는다. 로그인은 직접 진행하고 표시 카운터를 2초마다 읽는다. state는 stopped/starting/login_required/watching/surface_unrecognized/error, unread_count의 null은 미확인이며 0과 다르다. 첫 관찰/재연결 기준값 이후 증가만 `daangn_message`로 알린다. `notifications.daangn_messages` 기본 true, Windows 선택·조용한 시간은 유지한다. 본문·발신자 저장/채팅방 열기/자동 지원은 없다. 재시작 시 사용자가 감시를 다시 시작한다.
+
+해당 계약만 갱신할 때는 `scripts/gen-contracts.sh --jobs-only`를 사용한다. 합성 API로 새 fixture·OpenAPI·타입을 생성하고 기존 호환성 fixture는 보존한다.
+
 ## 리드 발견 개선 추가 계약 (2026-10-16)
 
 `queue=fresh`는 최근 24시간의 정확한 게시 시각·열린 구매 제작 의뢰·확인 TTL 유효·진행 전 조건이다. 정렬을 생략하면 fresh는 published, 나머지는 priority다. 목록·집계·커서 조건을 일치시킨다. 기존 확인 필요 전체 목록은 유지한다.

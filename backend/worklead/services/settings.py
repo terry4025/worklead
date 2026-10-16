@@ -56,6 +56,7 @@ DEFAULTS: dict[str, Any] = {
         "new_review": True,
         "meaningful_change": True,
         "source_issue": True,
+        "daangn_messages": True,
         "quiet_hours": {"enabled": True, "start": "22:00", "end": "08:00"},
     },
     "ai": {

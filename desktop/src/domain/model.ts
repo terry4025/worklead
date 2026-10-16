@@ -416,6 +416,7 @@ export interface SettingsView {
   notifications: {
     newRecommended: boolean;
     newReview: boolean;
+    daangnMessages?: boolean;
     meaningfulChange: boolean;
     sourceIssue: boolean;
     quietHours: { enabled: boolean; start: string; end: string };
@@ -623,7 +624,7 @@ export type WorkleadEvent =
   | (EventBase & { type: 'analysis.completed'; leadId: string; status: AnalysisStatus })
   | (EventBase & {
       type: 'notification.created';
-      kind: 'new_lead' | 'new_review_lead' | 'lead_changed' | 'source_issue' | 'cafe_request';
+      kind: 'new_lead' | 'new_review_lead' | 'lead_changed' | 'source_issue' | 'cafe_request' | 'daangn_message';
       title: string;
       leadId: string | null;
       sourceId: string | null;

@@ -1,0 +1,28 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "text": {
+      "maxLength": 20000,
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    },
+    "expected_text": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Expected Text"
+    }
+  },
+  "required": [
+    "text",
+    "expected_text"
+  ],
+  "title": "JobApplicationDraftPatch",
+  "type": "object"
+}

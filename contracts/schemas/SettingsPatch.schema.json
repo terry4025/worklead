@@ -163,6 +163,11 @@
           "title": "New Review",
           "type": "boolean"
         },
+        "daangn_messages": {
+          "default": true,
+          "title": "Daangn Messages",
+          "type": "boolean"
+        },
         "meaningful_change": {
           "title": "Meaningful Change",
           "type": "boolean"

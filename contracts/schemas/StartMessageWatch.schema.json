@@ -1,0 +1,15 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "confirm": {
+      "const": true,
+      "title": "Confirm",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "confirm"
+  ],
+  "title": "StartMessageWatch",
+  "type": "object"
+}

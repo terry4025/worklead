@@ -21,6 +21,7 @@ RETAIN_EVENTS = 5000
 NOTIFICATION_TOGGLES = {
     "new_lead": "new_recommended", "new_review_lead": "new_review",
     "lead_changed": "meaningful_change", "source_issue": "source_issue", "cafe_request": "new_recommended",
+    "daangn_message": "daangn_messages",
 }
 
 

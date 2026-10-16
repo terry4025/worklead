@@ -8,10 +8,14 @@ from pathlib import Path
 import pytest
 
 from worklead.api import schemas as S
+from worklead.jobs.messages import MessageStatus
 
 FIX = Path(__file__).resolve().parents[2] / "contracts" / "fixtures"
 
 CASES = [
+    ("job-applications.json", S.JobApplicationList),
+    ("job-application-draft.json", S.JobApplicationCandidate),
+    ("job-message-status.json", MessageStatus),
     ("cafe-status.json", S.CafeSnapshot),
     ("cafes.json", S.CafeList),
     ("cafe-template.json", S.CafeTemplate),

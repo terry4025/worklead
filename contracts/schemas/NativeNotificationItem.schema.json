@@ -11,7 +11,8 @@
         "new_review_lead",
         "lead_changed",
         "source_issue",
-        "cafe_request"
+        "cafe_request",
+        "daangn_message"
       ],
       "title": "Kind",
       "type": "string"

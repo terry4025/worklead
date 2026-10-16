@@ -687,6 +687,312 @@
         }
       }
     },
+    "/v1/jobs/applications": {
+      "get": {
+        "tags": [
+          "job-applications"
+        ],
+        "summary": "Listing",
+        "operationId": "listing_v1_jobs_applications_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobApplicationList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/applications/{lead_id}": {
+      "get": {
+        "tags": [
+          "job-applications"
+        ],
+        "summary": "Get",
+        "operationId": "get_v1_jobs_applications__lead_id__get",
+        "parameters": [
+          {
+            "name": "lead_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Lead Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobApplicationCandidate"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/applications/{lead_id}/prepare": {
+      "post": {
+        "tags": [
+          "job-applications"
+        ],
+        "summary": "Prepare",
+        "operationId": "prepare_v1_jobs_applications__lead_id__prepare_post",
+        "parameters": [
+          {
+            "name": "lead_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Lead Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobApplicationCandidate"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/applications/{lead_id}/draft": {
+      "patch": {
+        "tags": [
+          "job-applications"
+        ],
+        "summary": "Save",
+        "operationId": "save_v1_jobs_applications__lead_id__draft_patch",
+        "parameters": [
+          {
+            "name": "lead_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Lead Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobApplicationDraftPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobApplicationCandidate"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/applications/{lead_id}/submit": {
+      "post": {
+        "tags": [
+          "job-applications"
+        ],
+        "summary": "Submit",
+        "operationId": "submit_v1_jobs_applications__lead_id__submit_post",
+        "parameters": [
+          {
+            "name": "lead_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Lead Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobApplicationCandidate"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/messages/status": {
+      "get": {
+        "tags": [
+          "job-messages"
+        ],
+        "summary": "Status",
+        "operationId": "status_v1_jobs_messages_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/messages/start": {
+      "post": {
+        "tags": [
+          "job-messages"
+        ],
+        "summary": "Start",
+        "operationId": "start_v1_jobs_messages_start_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartMessageWatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/messages/stop": {
+      "post": {
+        "tags": [
+          "job-messages"
+        ],
+        "summary": "Stop",
+        "operationId": "stop_v1_jobs_messages_stop_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/health": {
       "get": {
         "tags": [
@@ -8170,6 +8476,210 @@
         ],
         "title": "JobAccepted"
       },
+      "JobApplicationCandidate": {
+        "properties": {
+          "lead_id": {
+            "type": "string",
+            "title": "Lead Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "original_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Original Url"
+          },
+          "recommendation": {
+            "type": "string",
+            "enum": [
+              "recommended",
+              "needs_review",
+              "excluded"
+            ],
+            "title": "Recommendation"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "last_checked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Checked At"
+          },
+          "candidate": {
+            "type": "boolean",
+            "title": "Candidate"
+          },
+          "can_prepare": {
+            "type": "boolean",
+            "title": "Can Prepare"
+          },
+          "can_submit": {
+            "type": "boolean",
+            "const": false,
+            "title": "Can Submit",
+            "default": false
+          },
+          "mode": {
+            "type": "string",
+            "const": "draft_only",
+            "title": "Mode",
+            "default": "draft_only"
+          },
+          "submission_supported": {
+            "type": "boolean",
+            "const": false,
+            "title": "Submission Supported",
+            "default": false
+          },
+          "hold_reasons": {
+            "items": {
+              "$ref": "#/components/schemas/JobApplicationHold"
+            },
+            "type": "array",
+            "title": "Hold Reasons"
+          },
+          "questions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Questions"
+          },
+          "draft": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Draft"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "lead_id",
+          "title",
+          "original_url",
+          "recommendation",
+          "published_at",
+          "last_checked_at",
+          "candidate",
+          "can_prepare",
+          "hold_reasons",
+          "questions",
+          "draft"
+        ],
+        "title": "JobApplicationCandidate"
+      },
+      "JobApplicationDraftPatch": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 20000,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "expected_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Text"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text",
+          "expected_text"
+        ],
+        "title": "JobApplicationDraftPatch"
+      },
+      "JobApplicationHold": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "JobApplicationHold"
+      },
+      "JobApplicationList": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "const": "draft_only",
+            "title": "Mode",
+            "default": "draft_only"
+          },
+          "submission_supported": {
+            "type": "boolean",
+            "const": false,
+            "title": "Submission Supported",
+            "default": false
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/JobApplicationCandidate"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "total",
+          "items"
+        ],
+        "title": "JobApplicationList"
+      },
       "LeadDetail": {
         "properties": {
           "id": {
@@ -8976,6 +9486,111 @@
         ],
         "title": "LeadSummary"
       },
+      "MessageStatus": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": false
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "stopped",
+              "starting",
+              "login_required",
+              "watching",
+              "surface_unrecognized",
+              "error"
+            ],
+            "title": "State",
+            "default": "stopped"
+          },
+          "unread_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unread Count"
+          },
+          "last_observed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Observed At"
+          },
+          "last_increase_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Increase At"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "메시지 감시가 꺼져 있습니다"
+          },
+          "poll_interval_seconds": {
+            "type": "integer",
+            "title": "Poll Interval Seconds",
+            "default": 2
+          },
+          "observation": {
+            "type": "string",
+            "title": "Observation",
+            "default": "visible_unread_badge"
+          },
+          "captures_message_body": {
+            "type": "boolean",
+            "title": "Captures Message Body",
+            "default": false
+          },
+          "browser_notifications": {
+            "type": "string",
+            "title": "Browser Notifications",
+            "default": "unknown"
+          },
+          "browser_open": {
+            "type": "boolean",
+            "title": "Browser Open",
+            "default": false
+          },
+          "needs_user_action": {
+            "type": "boolean",
+            "title": "Needs User Action",
+            "default": true
+          }
+        },
+        "type": "object",
+        "title": "MessageStatus"
+      },
       "MetricsOut": {
         "properties": {
           "collection": {
@@ -9066,7 +9681,8 @@
                   "new_review_lead",
                   "lead_changed",
                   "source_issue",
-                  "cafe_request"
+                  "cafe_request",
+                  "daangn_message"
                 ]
               },
               {
@@ -9134,7 +9750,8 @@
               "new_review_lead",
               "lead_changed",
               "source_issue",
-              "cafe_request"
+              "cafe_request",
+              "daangn_message"
             ],
             "title": "Kind"
           },
@@ -9217,7 +9834,8 @@
                   "new_review_lead",
                   "lead_changed",
                   "source_issue",
-                  "cafe_request"
+                  "cafe_request",
+                  "daangn_message"
                 ]
               },
               {
@@ -9257,6 +9875,11 @@
           "new_review": {
             "type": "boolean",
             "title": "New Review",
+            "default": true
+          },
+          "daangn_messages": {
+            "type": "boolean",
+            "title": "Daangn Messages",
             "default": true
           },
           "meaningful_change": {
@@ -11552,6 +12175,21 @@
           "end"
         ],
         "title": "Span"
+      },
+      "StartMessageWatch": {
+        "properties": {
+          "confirm": {
+            "type": "boolean",
+            "const": true,
+            "title": "Confirm"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "confirm"
+        ],
+        "title": "StartMessageWatch"
       },
       "ValidationError": {
         "properties": {

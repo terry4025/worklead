@@ -40,6 +40,7 @@ import type {
 export interface WorkleadPort {
   readonly mode: 'demo' | 'live';
   readonly cafe: import('../domain/cafe').CafePort;
+  readonly jobs: import('../domain/jobs').JobsPort;
 
   bootstrap(): Promise<Bootstrap>;
 

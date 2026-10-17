@@ -1076,6 +1076,110 @@
         }
       }
     },
+    "/v1/notifications/telegram": {
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Status",
+        "operationId": "status_v1_notifications_telegram_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TelegramStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/notifications/telegram/token": {
+      "post": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Save Token",
+        "operationId": "save_token_v1_notifications_telegram_token_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TelegramTokenIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TelegramStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/notifications/telegram/connect": {
+      "post": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Connect",
+        "operationId": "connect_v1_notifications_telegram_connect_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TelegramStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/notifications/telegram/delete": {
+      "post": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Delete",
+        "operationId": "delete_v1_notifications_telegram_delete_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TelegramStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/health": {
       "get": {
         "tags": [
@@ -12322,6 +12426,68 @@
           "confirm"
         ],
         "title": "StartMessageWatch"
+      },
+      "TelegramStatus": {
+        "properties": {
+          "key_supported": {
+            "type": "boolean",
+            "title": "Key Supported"
+          },
+          "key_configured": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key Configured"
+          },
+          "chat_connected": {
+            "type": "boolean",
+            "title": "Chat Connected"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key_supported",
+          "key_configured",
+          "chat_connected",
+          "enabled"
+        ],
+        "title": "TelegramStatus"
+      },
+      "TelegramTokenIn": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "format": "password",
+            "title": "Token",
+            "writeOnly": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "title": "TelegramTokenIn"
       },
       "ValidationError": {
         "properties": {

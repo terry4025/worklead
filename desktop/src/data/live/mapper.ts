@@ -7,6 +7,7 @@ import { legacyScalar } from '../../domain/sales';
 import type {
   AiBudgetPeriod,
   AiStatus,
+  TelegramStatus,
   Bootstrap,
   Evidence,
   EvidenceKey,
@@ -349,6 +350,10 @@ export function mapAiStatus(x: C.AIStatus): AiStatus {
     price: { inputUsdPerMillion: x.price_metadata.input_usd_per_million, cachedInputUsdPerMillion: x.price_metadata.cached_input_usd_per_million,
       outputUsdPerMillion: x.price_metadata.output_usd_per_million, sourceUrl: x.price_metadata.source_url, version: x.price_metadata.version },
     ledger: x.ledger ? { day: period(x.ledger.day), month: period(x.ledger.month) } : null };
+}
+
+export function mapTelegram(x: C.TelegramStatus): TelegramStatus {
+  return { keySupported: x.key_supported, keyConfigured: x.key_configured, chatConnected: x.chat_connected, enabled: x.enabled, errorCode: x.error_code ?? null };
 }
 
 export function mapBootstrap(x: C.BootstrapOut): Bootstrap {

@@ -72,6 +72,7 @@ DEFAULTS: dict[str, Any] = {
         "pricing_confirmed": False,
         "price_version": None,
     },
+    "telegram": {"enabled": False, "chat_id": None, "connected_at": None},
     "ai_revision": 0,
     "retention": {"raw_days": 30},
     "query_groups": DEFAULT_QUERY_GROUPS,

@@ -140,6 +140,8 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
     app.include_router(job_message_router())
     from .job_chrome_routes import router as job_chrome_router
     app.include_router(job_chrome_router())
+    from .telegram_routes import router as telegram_router
+    app.include_router(telegram_router())
 
     @app.exception_handler(ApplicationError)
     async def application_error(request: Request, exc: ApplicationError):
@@ -197,7 +199,7 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
 
     @app.exception_handler(RequestValidationError)
     async def _validation(request: Request, exc: RequestValidationError):  # type: ignore[no-untyped-def]
-        if request.url.path.startswith("/v1/ai/credentials"):
+        if request.url.path.startswith(("/v1/ai/credentials", "/v1/notifications/telegram")):
             # Unknown JSON property names can themselves contain a secret.
             # No input, location, validator text or submitted key is reflected.
             return _error(request, 422, "validation_error", "키 요청 형식이 올바르지 않습니다")

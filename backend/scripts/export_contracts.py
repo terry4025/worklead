@@ -193,6 +193,18 @@ def jobs_only() -> None:
 
 
 def main() -> None:
+    if "--telegram-only" in sys.argv:
+        from worklead.services.telegram import TelegramStatus, TelegramTokenIn
+        with tempfile.TemporaryDirectory(prefix="worklead-telegram-contracts-") as tmp:
+            ctx = make_ctx(Path(tmp), dev=True)
+            try:
+                write_openapi(client_for(ctx).app)
+                for model in (TelegramStatus, TelegramTokenIn):
+                    dump(OUT / "schemas" / f"{model.__name__}.schema.json", model.model_json_schema())
+            finally:
+                ctx.db.dispose()
+        print("telegram contracts written; no token exported")
+        return
     if "--chrome-only" in sys.argv:
         from worklead.jobs.messages import MessageStatus
         from worklead.api.job_chrome_routes import ChromeConnection, ChromeStart

@@ -153,6 +153,12 @@ class Scheduler(threading.Thread):
                 continue
             except Exception:  # noqa: BLE001
                 log.exception("scheduler error")
+            # Outside the DB gate: a slow network call must not block maintenance.
+            try:
+                from ..services.telegram import deliver_pending
+                deliver_pending(self.app)
+            except Exception as exc:  # noqa: BLE001 - never log text; the token is in the URL
+                log.warning("telegram delivery error type=%s", type(exc).__name__)
             self._halt.wait(self.app.config.scheduler_interval_seconds)
 
 

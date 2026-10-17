@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
-PROVIDERS = frozenset({"openai"})
+PROVIDERS = frozenset({"openai", "telegram"})
 MAX_KEY_BYTES = 5 * 512  # CRED_MAX_CREDENTIAL_BLOB_SIZE (wincred.h)
 _ERROR_NOT_FOUND = 1168
 _CRED_TYPE_GENERIC = 1

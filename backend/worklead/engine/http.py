@@ -160,6 +160,11 @@ class Fetcher:
                 row = HostBudget(host=host, window=window, used=0, limit=self.daily_budget)
                 s.add(row)
                 s.flush()
+            elif row.limit < self.daily_budget:
+                # A raised source budget applies to today's window as well; a
+                # larger current limit (e.g. kept by restore) is not lowered.
+                row.limit = self.daily_budget
+                s.flush()
             res = s.execute(
                 update(HostBudget)
                 .where(HostBudget.host == host, HostBudget.window == window, HostBudget.used < HostBudget.limit)

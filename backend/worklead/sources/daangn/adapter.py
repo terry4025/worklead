@@ -1,16 +1,20 @@
 """Anonymous public HTML adapter, verified against the 2026-09-28 site.
 
+Region feeds (/s?regionId=, first 20 only) were verified on 2026-10-17;
+the web client fixes regionRange and pages only through GraphQL.
+
 Only the downloaded document is parsed. Embedded JSON is decoded as data,
 never evaluated; no GraphQL, login session or pagination API is requested.
 """
 from __future__ import annotations
 
 import json
+import math
 import re
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from html.parser import HTMLParser
-from urllib.parse import unquote, urlsplit
+from urllib.parse import unquote, urlencode, urlsplit
 
 from ...analysis.pay import parse_pay
 from ...analysis.types import DateInfo, Ev
@@ -164,7 +168,50 @@ def _sitemap(fetcher: Fetcher, url: str, root_name: str):
     return root
 
 
+def _title_match(title: str, keywords: list[str], specific_keywords: list[str], title_pattern: re.Pattern) -> tuple[bool, bool, bool]:
+    """(core, explore, physical_filtered) for one public listing title."""
+    normalized = re.sub(r"\s+", "", title).casefold()
+    query_match = any(word in normalized for word in keywords)
+    core = bool(title_pattern.search(title) or _SOFTWARE_DELIVERY_REQUEST.search(title)) and query_match
+    explore = not core and query_match and (
+        any(word in normalized for word in specific_keywords) or bool(_WEAK_CREATION_REQUEST.search(title))
+    )
+    # Preserve all existing core candidates. Suppress only clear
+    # physical-service requests entering the optional detail queue.
+    technical_object = _DEVELOPMENT_TECHNOLOGY.search(title) and _SOFTWARE_OBJECT.search(title)
+    if explore and _PHYSICAL_WORK_TITLE.search(title) and not technical_object:
+        return core, False, True
+    return core, explore, False
+
+
+def _post_slug(title: str) -> str:
+    """Public detail slug; matched all 782 installed detail URLs on 2026-10-17."""
+    return re.sub(r"[^0-9a-z가-힣]+", "-", title.lower()).strip("-")
+
+
 class DaangnAdapter(ProfiledSiteAdapter):
+    FEED_PREFIX = "feed-"
+
+    def _anchors(self) -> list[tuple[int, str, str]]:
+        return [(int(region), label, tier) for region, label, tier in self.profile["discovery"]["feed"]["anchors"]]
+
+    @property
+    def max_tasks_per_run(self) -> int:
+        return len(self._anchors()) + 1  # every due feed and the sitemap fit one watch
+
+    def daily_list_requests(self, interval_minutes: int) -> int:
+        """List requests per day at this watch interval (feeds + sitemap backstop)."""
+        config = self.profile["discovery"]
+        tiers = config["feed"]["tier_minutes"]
+        anchors = self._anchors()
+        # The next watch starts an interval after this one finishes, so the
+        # watch period includes the paced feed requests themselves.
+        per_watch = sum(min(1, interval_minutes / tiers[tier]) if tiers[tier] else 1 for _, _, tier in anchors)
+        period = interval_minutes + per_watch * (self.min_interval_seconds + 1) / 60
+        feeds = sum(1440 / max(period, tiers[tier]) for _, _, tier in anchors)
+        sitemap = 1440 / max(interval_minutes, int(config["sitemap_min_revisit_minutes"])) * 2  # index + one map
+        return math.ceil(feeds + sitemap)
+
     def plan_discovery(self, query_groups: list[dict], now: datetime):
         check = check_profile(self.profile)
         if not check.ready:
@@ -172,17 +219,27 @@ class DaangnAdapter(ProfiledSiteAdapter):
         keywords = list(dict.fromkeys(query for _, query in self._queries(query_groups)))
         if not keywords:
             raise SourceNotReady("no_queries", "활성화된 검색어가 없습니다")
+        query = json.dumps(keywords, ensure_ascii=False)
+        config = self.profile["discovery"]
+        tiers = config["feed"]["tier_minutes"]
+        feeds = [TaskSpec("national-title-v1", f"{self.FEED_PREFIX}{region}", f"{label} 지역 피드", query,
+                          min_revisit_minutes=int(tiers[tier])) for region, label, tier in self._anchors()]
+        sitemap = TaskSpec("national-title-v1", "nationwide-sitemap", "전국 공개 공고 목록", query,
+                           min_revisit_minutes=int(config["sitemap_min_revisit_minutes"]))
         return DiscoveryPlan(
-            [TaskSpec("national-title-v1", "nationwide-sitemap", "전국 공개 공고 목록", json.dumps(keywords, ensure_ascii=False))],
-            "전국 공개 공고 목록", "not_applicable", "공개 공고 목록", 1,
-            ["사이트가 공개한 전국 공고 사이트맵 제목에서 활성 검색어와 명시 동의어로 제작 후보를 선별하고 상세 본문을 확인합니다.",
+            [sitemap] + feeds,
+            "전국 지역 피드·공개 공고 목록", "not_applicable", "지역 피드·공고 목록", 1,
+            [f"전국 {len(feeds)}개 앵커 동네의 공개 지역 피드(기타·가벼운 업무·사무보조·과외 직종, 최근 20건)를 밀집도에 따라 30분~2시간 간격으로 확인합니다.",
+             "피드 제목에서 활성 검색어와 명시 동의어로 제작 후보를 고르고, 건당 보수를 먼저, 월급·연봉 공고는 약한 후보로 낮추거나 빼고 상세 본문을 확인합니다.",
              "구체 검색어·약한 제작 요청 후보는 예산 안에서 제한된 수만 순환 확인합니다. 전체 공고의 본문을 검색하지 않습니다.",
-             "사이트맵 미등재 공고와 제목에 관련 표현이 없는 공고는 누락될 수 있습니다. 전체 시장 포괄률은 알 수 없습니다."],
+             "공개 공고 사이트맵은 하루 두 번 누락 보완용으로 확인합니다. 피드가 덮지 못한 지역과 제목에 관련 표현이 없는 공고는 누락될 수 있고 전체 시장 포괄률은 알 수 없습니다."],
             None, None,
             query_labels={"national-title-v1": "웹사이트·프로그램·자동화 관련 공고"},
         )
 
     def discover(self, task: TaskSpec, fetcher: Fetcher) -> DiscoverResult:
+        if task.region_scope.startswith(self.FEED_PREFIX) and not task.cursor:
+            return self._discover_feed(task, fetcher)
         if task.region_scope != "nationwide-sitemap" or task.cursor:
             raise ParseError("현재 어댑터와 맞지 않는 탐색 계획입니다. 새 탐색을 시작하세요.")
         config = self.profile["discovery"]
@@ -218,18 +275,8 @@ class DaangnAdapter(ProfiledSiteAdapter):
                 if post_id not in listed or (modified.timestamp() if modified else 0) > (
                         listed[post_id].source_updated_at.timestamp() if listed[post_id].source_updated_at else 0):
                     listed[post_id] = ref
-                normalized = re.sub(r"\s+", "", title).casefold()
-                query_match = any(word in normalized for word in keywords)
-                core = bool(title_pattern.search(title) or _SOFTWARE_DELIVERY_REQUEST.search(title)) and query_match
-                explore = not core and query_match and (
-                    any(word in normalized for word in specific_keywords) or bool(_WEAK_CREATION_REQUEST.search(title))
-                )
-                # Preserve all existing core candidates. Suppress only clear
-                # physical-service requests entering the optional detail queue.
-                technical_object = _DEVELOPMENT_TECHNOLOGY.search(title) and _SOFTWARE_OBJECT.search(title)
-                if explore and _PHYSICAL_WORK_TITLE.search(title) and not technical_object:
-                    non_software_exploration_filtered += 1
-                    explore = False
+                core, explore, physical = _title_match(title, keywords, specific_keywords, title_pattern)
+                non_software_exploration_filtered += physical
                 if core or explore:
                     candidate = (modified.timestamp() if modified else 0, ref, core)
                     if post_id not in candidates or (candidate[0], core) > (candidates[post_id][0], candidates[post_id][2]):
@@ -248,6 +295,68 @@ class DaangnAdapter(ProfiledSiteAdapter):
             "filter_basis": "제목의 제작 관련 표현 + 활성 검색어·명시 동의어, 이후 상세 본문 확인",
             "exploration_filter_basis": "활성 구체 검색어·약한 제작 요청 제목을 제한 순환 확인. 전체 본문 검색 아님",
         }, exploration_refs, list(listed.values()))
+
+    def _discover_feed(self, task: TaskSpec, fetcher: Fetcher) -> DiscoverResult:
+        """First page (20 newest) of one public region feed; no GraphQL paging."""
+        region = int(task.region_scope.removeprefix(self.FEED_PREFIX))
+        config = self.profile["discovery"]
+        job_tasks = json.dumps(config["feed"]["job_tasks"], separators=(",", ":"))
+        result = fetcher.get(f"{config['feed']['url']}?{urlencode({'regionId': region, 'jobTasks': job_tasks})}")
+        if result.outcome != "ok":
+            raise TaskFailed(result.outcome, f"지역 피드 요청 실패 (HTTP {result.status or '-'}, {result.outcome})")
+        store = _Document(result.text or "").store()
+        root = store["client:root"]
+        # The web client fixes regionRange; accept only this region's feed
+        # with exactly the requested job-task filter and no search keyword.
+        keys = [key for key in root if key.startswith("searchedFeed(") and f'"region":{region},' in key
+                and f'filter:{{"jobTasks":{job_tasks}}}' in key and '"searchKeyword":""' in key]
+        if len(keys) != 1:
+            raise ParseError("지역 피드 데이터를 찾을 수 없습니다 (구조 변경 또는 잘못된 지역)")
+        edges = _node(store, root[keys[0]]).get("edges")
+        if not isinstance(edges, dict) or not isinstance(edges.get("__refs"), list):
+            raise ParseError("지역 피드 목록 형식이 변경되었습니다")
+        keywords = _discovery_keywords(task.query)
+        specific_keywords = [word for word in keywords if len(word) >= 2 and word not in _GENERIC_QUERY_TERMS]
+        title_pattern = re.compile(config["title_pattern"], re.I)
+        listed, refs, exploration_refs, published = [], [], [], []
+        physical_filtered = employment_filtered = employment_demoted = closed = 0
+        for edge_key in edges["__refs"]:
+            card = _node(store, (store.get(edge_key) or {}).get("node"))
+            post = _node(store, card.get("jobPost"))
+            if post.get("__typename") != "JobPost":
+                continue
+            public_id = _node(store, post.get("daangnPermalink")).get("publicId")
+            title = normalize_text(str(post.get("title") or ""))
+            url = f"https://jobs.daangn.com/job-posts/{_post_slug(title)}-{public_id}"
+            if not isinstance(public_id, str) or not self._link_re or not self._link_re.fullmatch(url):
+                raise ParseError("지역 피드의 공고 주소 형식이 변경되었습니다")
+            at, _ = parse_iso(post.get("publishedAt"))
+            if at:
+                published.append(at)
+            salary = post.get("salaryType")
+            ref = PostRef(url, public_id, title, at, priority=1 if salary == "PER_CASE" else 0)
+            listed.append(ref)
+            if post.get("closed") is True:
+                closed += 1
+                continue
+            core, explore, physical = _title_match(title, keywords, specific_keywords, title_pattern)
+            physical_filtered += physical
+            # Every reviewed lead so far was paid per case. A monthly or yearly
+            # salary is employment: a core title becomes optional, a weak one drops.
+            if salary in ("MONTHLY", "YEARLY") and (core or explore):
+                employment_filtered += explore
+                employment_demoted += core
+                core, explore = False, core
+            (refs if core else exploration_refs if explore else []).append(ref)
+        return DiscoverResult(refs, None, {
+            "scope": "region_feed", "region_id": region, "listed_urls": len(listed),
+            "oldest_published_at": min(published).isoformat() if published else None,
+            "newest_published_at": max(published).isoformat() if published else None,
+            "core_candidates": len(refs), "exploration_candidates": len(exploration_refs),
+            "closed_listings": closed, "non_software_exploration_filtered": physical_filtered,
+            "employment_exploration_filtered": employment_filtered, "employment_core_demoted": employment_demoted,
+            "filter_basis": "지역 피드 제목의 제작 관련 표현 + 활성 검색어·명시 동의어, 건당 보수 우선, 이후 상세 본문 확인",
+        }, exploration_refs, listed)
 
     def parse(self, ref: PostRef, result: FetchResult, observed_at: datetime) -> ParsedPost:
         if result.outcome != "ok" or urlsplit(result.final_url).hostname not in self.allowed_hosts:

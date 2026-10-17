@@ -12254,7 +12254,7 @@
               {
                 "type": "integer",
                 "maximum": 10080.0,
-                "minimum": 30.0
+                "minimum": 15.0
               },
               {
                 "type": "null"

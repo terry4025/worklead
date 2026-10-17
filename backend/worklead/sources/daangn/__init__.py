@@ -14,7 +14,7 @@ def create() -> ProfiledSiteAdapter:
     return DaangnAdapter(
         load_profile(PROFILE_PATH),
         name="당근알바",
-        scope_note="전국 공개 공고 목록 · 활성 검색어·동의어로 제목 후보 선별 · 약한 후보는 제한 순환 조회 · 본문 전수 검색 아님",
-        adapter_version="0.6.0",
+        scope_note="전국 앵커 지역 피드(첫 20건) + 하루 두 번 공개 공고 목록 · 활성 검색어·동의어로 제목 후보 선별 · 건당 보수 우선 · 본문 전수 검색 아님",
+        adapter_version="0.7.0",
         parser_version="daangn-0.2.0",
     )

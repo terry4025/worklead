@@ -82,7 +82,8 @@ def ordered_candidates(app, source_id, result):
         return (visits[key].timestamp() if key in visits else
                 -first_listed[key].timestamp() if key in first_listed else 0,
                 -ref.source_updated_at.timestamp() if ref.source_updated_at else 0, key)
-    fresh = {kind: sorted([item for item in items if item[0] == kind and ref_key(item[1]) not in visits], key=ordering)
+    fresh = {kind: sorted([item for item in items if item[0] == kind and ref_key(item[1]) not in visits],
+                          key=lambda item: (-item[1].priority, *ordering(item)))
              for kind in ("core", "exploration")}
     ordered = []
     while fresh["core"] or fresh["exploration"]:
@@ -106,6 +107,11 @@ def watch_reserve(session, app, source_id, adapter):
     if source is None or not source.auto_collect_enabled:
         return 0
     now = app.clock()
+    tomorrow = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+    if hasattr(adapter, "daily_list_requests"):
+        # Tiered list plans declare their own daily request volume.
+        daily = adapter.daily_list_requests(max(15, source.interval_minutes or 30))
+        return math.ceil(daily * (tomorrow - now).total_seconds() / 86400)
     # A newly queued watch has no metadata yet. Find the latest actual list
     # observation rather than under-reserving after a multi-map discovery.
     maps = 1
@@ -115,6 +121,5 @@ def watch_reserve(session, app, source_id, adapter):
         if observed_maps is not None:
             maps = max(1, int(observed_maps))
             break
-    tomorrow = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
     interval = max(30, source.interval_minutes or 30) * 60
     return max(0, math.ceil((tomorrow - now).total_seconds() / interval) - 1) * (maps + 1)

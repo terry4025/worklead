@@ -170,3 +170,23 @@ REA로 공개 지역 검색과 첨부 공고 상세, 관찰한 JS 4개를 분석
 - [위시켓 공식 약관](https://auth.wishket.com/terms/service) 제10조의 정보 수집 목적 크롤링 제한을 확인했다. 프리모아·이랜서의 자동 수집 허용 근거 및 세 사이트의 공식 프로젝트 RSS/API는 이번 조사에서 확인하지 못했다. robots 내용은 접근할 수 없어 미확인이다.
 - 앱에는 자동 수집 미연결을 명시한 공식 목록 링크만 추가한다: [위시켓](https://www.wishket.com/project/), [프리모아](https://www.freemoa.net/m4/s41), [이랜서 재택](https://www.elancer.co.kr/list-partner?pf=%ED%84%B4%ED%82%A4). 재택 목록에도 월 단가 공고가 있어 지급 방식과 모집 상태를 원문에서 확인해야 한다.
 - 상세 근거: `C:/Users/Administrator/Downloads/프로젝트 works/artifacts/coverage-finish-20260930/SOURCE_EXPANSION_RESEARCH.md`. 링크를 제공한 사이트를 자동 수집 사이트 수에 포함하지 않는다.
+
+## 2026-10-17 지역 피드 검증 (어댑터 0.7.0)
+
+사이트맵(`job-posts-1.xml`)은 하루 한 번 몰아서 갱신되어(10/17 03:50 KST 11,064건 일괄) 등재 시점이 게시 후 중앙값 9.4시간이었다. 반면 `/s?regionId=<id>` 지역 피드에는 1~2분 전 게시글이 보인다. 소량 HTTP와 공개 정적 JS 번들로 다음을 확인했다. GraphQL(`/api/`)과 지원 경로는 호출하지 않았다.
+
+| 항목 | 확인 결과 |
+| --- | --- |
+| 데이터 위치 | HTML의 `window.__RELAY_STORE__` 안 `searchedFeed(advertisement:false,filter:{…},first:20,where:{"region":<id>,"regionRange":"RANGE_4","searchKeyword":""})`. 카드마다 `JobPost`(title, publishedAt, salaryType, closed, workplaceRegion, daangnPermalink.publicId) |
+| RANGE_4 | 웹 클라이언트 상수(`feed-region-range` 청크: `t="RANGE_4"`). URL로 바꿀 수 없음. 반경은 밀집도에 따라 다름: 신당동 약 7km(자양·홍제·잠원까지), 대구 불로봉무동 약 8km, 홍천 서면·무안 삼향 25~30km(양평·가평·춘천, 목포·영암) |
+| 다음 페이지 | `endCursor`는 있으나 `after`는 URL 검색 파라미터가 아니고 무한 스크롤 GraphQL 전용. 첫 20건만 수집 |
+| URL 파라미터 | `query, regionId, workPeriod, employmentType, workDays, workTime, jobTask, jobTasks`(번들의 검증 스키마). 급여 형태 필터는 없음 |
+| `query=` | 본문까지 매칭(제목에 검색어가 없는 글도 나옴). 결과가 한 페이지에 모두 들어오고 여러 날치(`hasNextPage:false`) |
+| 시도·시군구 ID | `regionId=1`(서울), `2`(종로구)는 0건. 동 단위 ID만 동작. 목록은 `region-searches.xml` 6,525개 |
+| 상세 주소 | `/job-posts/<slug>-<publicId>`. 슬러그가 다르면 301. 규칙(소문자, 한글·영숫자 외 구간은 `-`, 앞뒤 `-` 제거)은 설치 DB 상세 782건 전부와 일치 |
+| 20건 시간폭(토 12~13시) | 전체 직종: 서울 0.3~1.7h, 부산·대구·광주 0.7~1.6h, 경기 0.3~2.9h, 군 지역 4~70h |
+| 직종 필터 | 개발 의뢰 성격 공고 21건의 `jobTasks`: ETC 14·TUTORING 3·LIGHT_WORK 3·OFFICE_ASSISTANCE 1·LEAFLET 1. 검토 후보 9건은 ETC 8·TUTORING 1. `jobTasks=["ETC","LIGHT_WORK","OFFICE_ASSISTANCE","TUTORING"]`로 거르면 20건 폭이 신당동 0.5h→2.0h, 대림 0.3h→2.7h |
+| 급여 형태 | 설치 DB 검토 후보 10건 모두 건당(PER_CASE) |
+| 응답 | gzip 약 111KB, 0.5~0.8초 |
+
+설계: 앵커 동네 피드(직종 필터, 첫 20건)를 밀집도 등급별로 확인한다(A 매 감시, B 60분, C 120분). 피드 제목이 기존 핵심·약한 후보 규칙에 맞는 글만 상세를 조회하고 건당 보수를 먼저 본다. 월급·연봉 글은 핵심이면 약한 후보로 낮추고, 약한 후보면 뺀다. 마감 글은 후보에서 뺀다. 사이트맵은 12시간마다 누락 보완용으로 남긴다. 다른 직종으로 올라온 개발 글, 앵커 반경 밖의 글, 제목에 관련 표현이 없는 글은 사이트맵 보완(제목 기준)에만 의존한다. 근거 자료: `artifacts/daangn-region-feed-20261017/`.

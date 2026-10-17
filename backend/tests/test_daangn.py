@@ -21,6 +21,14 @@ INDEX = f'<sitemapindex {NS}><sitemap><loc>https://jobs.daangn.com/sitemaps/job-
 JOBS = f'<urlset {NS}><url><loc>{URL}</loc><lastmod>2026-09-28T00:00:00Z</lastmod></url><url><loc>https://jobs.daangn.com/job-posts/식당-서빙-abcVBA123456</loc></url></urlset>'
 
 
+def sitemap_only():
+    """Adapter without region feeds, for tests whose fixture serves only sitemaps."""
+    adapter = create()
+    adapter.profile["discovery"]["feed"]["anchors"] = []
+    adapter.profile["discovery"]["sitemap_min_revisit_minutes"] = 0  # every watch, as before feeds
+    return adapter
+
+
 def task():
     return create().plan_discovery([{"id": "dev", "keywords": ["프로그램", "VBA"]}], NOW).tasks[0]
 
@@ -136,16 +144,16 @@ def test_default_permission_and_partial_coverage(tmp_path):
     assert src["policy"]["status"] == "permission_pending"
     assert c.post("/v1/runs", json={"kind": "discovery", "source_id": "daangn-alba"}).json()["error"]["code"] == "policy_not_allowed"
     plan = create().plan_discovery([{"id": "dev", "keywords": ["프로그램"]}], NOW)
-    assert len(plan.tasks) == 1 and plan.depth_limit == 1
+    assert len(plan.tasks) == 1 + len(create().profile["discovery"]["feed"]["anchors"]) and plan.depth_limit == 1
     assert plan.region_list_status == "not_applicable"
     assert plan.target_units_covered is None and plan.target_units_total is None
-    assert plan.target_label == "전국 공개 공고 목록"
+    assert plan.target_label == "전국 지역 피드·공개 공고 목록"
     assert any("누락" in n for n in plan.notes)
     ctx.db.dispose()
 
 
 def test_adapter_through_collection_worker_and_dedup(tmp_path):
-    adapter = create()
+    adapter = sitemap_only()
     ctx = make_ctx(tmp_path, adapters={adapter.source_id: adapter})
     def handler(request):
         if request.url.path == "/robots.txt":
@@ -170,13 +178,13 @@ def test_adapter_through_collection_worker_and_dedup(tmp_path):
     assert run["counts"]["created"] == 0 and run["counts"]["duplicates"] == 1
     assert run["result"]["discovery"]["listed_urls"] == 2
     source = next(row for row in c.get('/v1/sources').json()['items'] if row['id'] == 'daangn-alba')
-    assert source['coverage']['unit_label'] == '공개 공고 목록'
+    assert source['coverage']['unit_label'] == '지역 피드·공고 목록'
     assert source['coverage']['next_up'] == '전국 공개 공고 목록 · 웹사이트·프로그램·자동화 관련 공고'
     ctx.db.dispose()
 
 
 def test_unconfirmed_crawl_permission_is_reported_as_skip_not_parse_failure(tmp_path):
-    adapter = create()
+    adapter = sitemap_only()
     ctx = make_ctx(tmp_path, adapters={adapter.source_id: adapter})
     second_url = URL.replace("fixture00001", "fixture00002")
     two_jobs = JOBS.replace("</urlset>", f"<url><loc>{second_url}</loc></url></urlset>")
@@ -227,7 +235,7 @@ def test_sitemap_size_override_keeps_html_limit_and_robots(tmp_path):
 def test_scheduled_nationwide_scan_adds_new_post_without_duplicate(tmp_path, monkeypatch):
     from datetime import timedelta
     from worklead.engine.worker import schedule_due
-    adapter = create()
+    adapter = sitemap_only()
     ctx = make_ctx(tmp_path, adapters={adapter.source_id: adapter})
     clock = [NOW]
     ctx.clock = lambda: clock[0]

@@ -4,7 +4,7 @@ import httpx
 from sqlalchemy import select
 
 from tests.conftest import client_for, make_ctx
-from tests.test_daangn import INDEX, JOBS, NOW, URL, changed, markup
+from tests.test_daangn import INDEX, JOBS, NOW, URL, changed, markup, sitemap_only
 from worklead.engine import runs
 from worklead.engine.worker import Worker
 from worklead.models import DetailFetchState, Lead, SourceRecord
@@ -12,7 +12,7 @@ from worklead.sources.daangn import create
 
 
 def setup(tmp_path, monkeypatch):
-    adapter = create()
+    adapter = sitemap_only()
     ctx = make_ctx(tmp_path, adapters={adapter.source_id: adapter})
     clock = [NOW]
     ctx.clock = lambda: clock[0]

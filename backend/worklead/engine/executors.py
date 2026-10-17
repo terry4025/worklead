@@ -256,16 +256,8 @@ def _task_key(source_id: str, t: TaskSpec, cycle: int) -> str:
     return f"{source_id}|{t.query_group}|{t.region_scope}|{t.cursor or '-'}|{cycle}"
 
 
-def _current_cycle(s, source_id: str, unit_keys: set[str]) -> int:
+def _current_cycle(s, source_id: str, unit_keys: set[str], *, revisit: bool = False) -> int:
     cycle = s.scalar(select(func.max(CollectionTask.scan_cycle)).where(CollectionTask.source_id == source_id)) or 1
-    unfinished = s.scalar(select(CollectionTask.id).where(
-        CollectionTask.source_id == source_id,
-        CollectionTask.scan_cycle == cycle,
-        (CollectionTask.region_scope + "|" + CollectionTask.query_group).in_(unit_keys),
-        CollectionTask.state != "done",
-    ).limit(1))
-    if unfinished:
-        return cycle
     done_units = {
         _unit_key(r, q)
         for r, q in s.execute(
@@ -277,7 +269,36 @@ def _current_cycle(s, source_id: str, unit_keys: set[str]) -> int:
             )
         )
     }
+    # A due revisit unit already done in this cycle starts the next cycle,
+    # even with leftovers: fast units must not wait for slow or unfinished ones.
+    # Leftover units are still due (not visited) and are planned again.
+    if revisit and unit_keys & done_units:
+        return cycle + 1
+    unfinished = s.scalar(select(CollectionTask.id).where(
+        CollectionTask.source_id == source_id,
+        CollectionTask.scan_cycle == cycle,
+        (CollectionTask.region_scope + "|" + CollectionTask.query_group).in_(unit_keys),
+        CollectionTask.state != "done",
+    ).limit(1))
+    if unfinished:
+        return cycle
     if unit_keys and unit_keys <= done_units:
+        return cycle + 1
+    return cycle
+    done_units = {
+        _unit_key(r, q)
+        for r, q in s.execute(
+            select(CollectionTask.region_scope, CollectionTask.query_group).where(
+                CollectionTask.source_id == source_id,
+                CollectionTask.scan_cycle == cycle,
+                CollectionTask.depth == 0,
+                CollectionTask.state == "done",
+            )
+        )
+    }
+    # A due revisit unit already done in this cycle starts the next cycle,
+    # otherwise fast units would wait for every slow unit to come due.
+    if unit_keys and (unit_keys <= done_units or (revisit and unit_keys & done_units)):
         return cycle + 1
     return cycle
 
@@ -329,9 +350,18 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
             _set_health(app, source_id, "unknown", exc.message, exc.code)
             raise Halt("failed", exc.code, exc.message) from exc
         with app.db.session() as s:
-            unit_keys = {_unit_key(t.region_scope, t.query_group) for t in plan.tasks}
-            cycle = _current_cycle(s, source_id, unit_keys)
             existing_units = {u.unit_key: u for u in s.scalars(select(CoverageUnit).where(CoverageUnit.source_id == source_id))}
+            revisit = any(t.min_revisit_minutes for t in plan.tasks)
+            if revisit:
+                # Tiered units wait out their revisit interval; five minutes of
+                # slack keeps a unit due on the next watch despite schedule jitter.
+                def due(t: TaskSpec) -> bool:
+                    unit = existing_units.get(_unit_key(t.region_scope, t.query_group))
+                    return (not t.min_revisit_minutes or unit is None or unit.last_visited_at is None
+                            or now - unit.last_visited_at >= timedelta(minutes=t.min_revisit_minutes - 5))
+                plan.tasks = [t for t in plan.tasks if due(t)]
+            unit_keys = {_unit_key(t.region_scope, t.query_group) for t in plan.tasks}
+            cycle = _current_cycle(s, source_id, unit_keys, revisit=revisit)
             for t in plan.tasks:
                 key = _unit_key(t.region_scope, t.query_group)
                 if key not in existing_units:
@@ -356,7 +386,8 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
                 )
             }
             adopted = s.scalar(select(func.count()).select_from(CollectionTask).where(CollectionTask.run_id == run.id, CollectionTask.state == "pending")) or 0
-            capacity = max(0, MAX_TASKS_PER_RUN - adopted)
+            # A tiered plan must fit one watch, or fast units would skip a watch.
+            capacity = max(0, int(getattr(adapter, "max_tasks_per_run", MAX_TASKS_PER_RUN)) - adopted)
             # 공정 순환: 가장 오래 방문하지 않은 단위부터 (미방문 우선)
             fresh = [t for t in plan.tasks if _unit_key(t.region_scope, t.query_group) not in have]
             fresh.sort(key=lambda t: (existing_units[_unit_key(t.region_scope, t.query_group)].last_visited_at is not None, existing_units[_unit_key(t.region_scope, t.query_group)].last_visited_at or now, _unit_key(t.region_scope, t.query_group)))
@@ -410,11 +441,16 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
         s.execute(update(CollectionTask).where(CollectionTask.run_id == run.id, CollectionTask.state == "running").values(state="pending"))
     fetcher = app.fetcher_for(adapter)
     exploration = _Exploration(app, scope, adapter)
-    watch_detail_limit = max(0, int(getattr(adapter, "profile", {}).get("discovery", {}).get("detail_requests_per_watch", 0)))
-    watch = {"active": False, "known": False, "requests": 0, "refresh_requests": 0, "deferred": 0}
+    discovery_config = getattr(adapter, "profile", {}).get("discovery", {})
+    watch_detail_limit = max(0, int(discovery_config.get("detail_requests_per_watch", 0)))
+    # The per-watch allowance grows by each never-fetched candidate up to the
+    # cap, so a burst drains in this watch; budget and pacing rules still apply.
+    watch_detail_cap = max(watch_detail_limit, int(discovery_config.get("detail_requests_per_watch_max", 0)))
+    watch = {"active": False, "known": False, "requests": 0, "refresh_requests": 0, "deferred": 0,
+             "limit": watch_detail_limit, "fresh": 0}
     batch_limit = max(0, int(getattr(adapter, "discovery_request_limit", 0)))
     def reserve_request(s, row) -> None:
-        if watch["active"] and (watch["requests"] >= watch_detail_limit
+        if watch["active"] and (watch["requests"] >= watch["limit"]
                 or (watch["known"] and watch["refresh_requests"] >= 1)
                 or row.limit - row.used <= watch_reserve(s, app, source_id, adapter)):
             watch["deferred"] += 1
@@ -475,11 +511,14 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
                 candidates = (ordered_candidates(app, source_id, result) if incremental else
                               [("core", ref, False) for ref in result.refs[start_index:]])
                 scope.detail_progress["total"] = len(candidates) + start_index
+                if incremental:
+                    watch["fresh"] += sum(1 for _, _, known in candidates if not known)
+                    watch["limit"] = min(watch_detail_cap, watch_detail_limit + watch["fresh"])
                 for index, (candidate_kind, ref, known) in enumerate(candidates, start=start_index):
                     remaining = len(candidates) + start_index - index
                     # Quota exhaustion is not an HTTP attempt. Do not pace each
                     # remaining candidate after the watch has spent its allowance.
-                    if incremental and (watch["requests"] >= watch_detail_limit
+                    if incremental and (watch["requests"] >= watch["limit"]
                             or (known and watch["refresh_requests"] >= 1)):
                         watch["deferred"] += remaining
                         break
@@ -523,7 +562,7 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
                         current = s.get(Run, run.id)
                         current.result = {**(current.result or {}), "discovery": {
                             **(current.result or {}).get("discovery", {}),
-                            "detail_requests_per_watch": watch_detail_limit,
+                            "detail_requests_per_watch": watch["limit"],
                             "watch_detail_requests": watch["requests"],
                             "watch_refresh_requests": watch["refresh_requests"],
                             "watch_deferred_details": watch["deferred"],

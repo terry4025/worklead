@@ -132,9 +132,9 @@ def test_schedule_monitoring_distinguishes_overdue_disabled_active_and_cooldown(
         assert sources.monitoring(s, source, adapter, now=NOW).state == "stopped"
 
 
-def test_half_hour_patch_is_allowed_but_faster_setting_rejected(client):
-    assert client.patch("/v1/sources/daangn-alba", json={"interval_minutes": 30}).status_code == 200
-    assert client.patch("/v1/sources/daangn-alba", json={"interval_minutes": 29}).status_code == 422
+def test_quarter_hour_patch_is_allowed_but_faster_setting_rejected(client):
+    assert client.patch("/v1/sources/daangn-alba", json={"interval_minutes": 15}).status_code == 200
+    assert client.patch("/v1/sources/daangn-alba", json={"interval_minutes": 14}).status_code == 422
 
 
 def test_sse_replay_never_exposes_native_claim_tokens_or_mutates_delivery():

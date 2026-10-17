@@ -35,6 +35,8 @@ class TaskSpec:
     query: str | None = None
     cursor: str | None = None
     depth: int = 0
+    #: Planning only: skip this unit until it is this old (0 = every watch).
+    min_revisit_minutes: int = 0
 
 
 @dataclass
@@ -57,6 +59,8 @@ class PostRef:
     source_post_id: str | None = None
     title_hint: str | None = None
     source_updated_at: datetime | None = None
+    #: Higher first among never-fetched candidates of the same kind.
+    priority: int = 0
 
 
 @dataclass

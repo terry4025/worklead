@@ -106,6 +106,10 @@ export function Workspace() {
     window.setTimeout(() => detailRef.current?.focus(), 0);
   }, []);
   const live = useLiveEvents(openLead, () => setWorkspace('jobs'));
+  useEffect(() => {
+    // 자동 반영으로 행이 다른 대기열로 이동해도 현재 상세·편집 내용을 유지한다.
+    if (live.listStale && selectedId) pinnedRef.current = selectedId;
+  }, [live.listStale, selectedId]);
 
   const setFilter = useCallback(
     (f: LeadFilter) => {
@@ -328,9 +332,9 @@ export function Workspace() {
         <div className="pane-list" role="tabpanel" aria-label={viewDef.label}>
           {live.newLeads > 0 || live.listStale ? (
             <div className="new-banner" role="status">
-              <span>{live.newLeads > 0 ? `새 리드 ${live.newLeads}건이 들어왔습니다` : '새 수집·재확인 결과가 있습니다'}</span>
+              <span>{live.newLeads > 0 ? `새 리드 ${live.newLeads}건 · 목록 자동 반영 중` : '새 결과 자동 반영 · 오류 시 자동 재시도'}</span>
               <Button size="sm" variant="primary" icon={<RefreshCw size={13} />} onClick={refreshAll}>
-                목록에 반영 (F5)
+                다시 불러오기
               </Button>
             </div>
           ) : null}

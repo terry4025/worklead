@@ -9,7 +9,7 @@ import { qk } from '../app/queries';
 import { Workspace } from '../app/Workspace';
 import { mapDetail } from '../data/live/mapper';
 import { MockPort } from '../data/mock/mockPort';
-import type { LeadDetail, QueueId } from '../domain/model';
+import type { LeadDetail, QueueId, WorkleadEvent } from '../domain/model';
 import { inQueue } from '../domain/queues';
 import { toSummary } from '../domain/summary';
 import { DEFAULT_FILTER } from '../features/leads/FilterBar';
@@ -61,15 +61,33 @@ async function harness(at: string, fresh = false) {
   const startRun = vi.spyOn(port, 'startRun');
   const recheck = vi.spyOn(port, 'recheckLead');
   const update = vi.spyOn(port, 'updateLead');
+  let emit!: (event: WorkleadEvent) => void;
+  vi.spyOn(port, 'subscribe').mockImplementation((onEvent) => { emit = onEvent; return () => undefined; });
   render(<StrictMode><QueryClientProvider client={client}><PortProvider value={{ port, mode: 'demo', scenario: 'normal', setScenario: () => undefined }}><ToastProvider><Workspace /></ToastProvider></PortProvider></QueryClientProvider></StrictMode>);
   await advance(20);
   await advance(20);
   expect(screen.getByRole('textbox', { name: /^메모 / })).toHaveProperty('value', '저장된 메모');
   return {
-    client, counts, list, detail, invalidate, startRun, recheck, update,
+    client, counts, list, detail, invalidate, startRun, recheck, update, emit: (event: WorkleadEvent) => emit(event),
     expire: () => { current = { ...current, recommendation: 'excluded', sourceStatus: 'closed', memo: '서버 메모 갱신', draft: { text: '서버 초안 갱신', editedByUser: true, generatedAt: null } }; },
   };
 }
+
+it('탐색 이벤트가 목록을 자동 반영해도 열린 상세·작성 중인 메모와 초안은 보존한다', async () => {
+  const h = await harness('2026-10-24T05:00:00Z');
+  const memo = screen.getByRole('textbox', { name: /^메모 / });
+  const draft = screen.getByRole('textbox', { name: '문의 초안' });
+  fireEvent.change(memo, { target: { value: '자동 갱신 중 작성한 메모' } });
+  fireEvent.change(draft, { target: { value: '자동 갱신 중 작성한 초안' } });
+  h.expire();
+  act(() => h.emit({ id: 'scan-ended', seq: 200, at: new Date().toISOString(), type: 'run.state_changed', runId: 'scan', state: 'succeeded', sourceId: 'daangn-alba' }));
+  await advance(350);
+  expect(screen.queryByRole('listbox')).toBeNull();
+  expect(screen.getByRole('textbox', { name: /^메모 / })).toBe(memo);
+  expect(memo).toHaveProperty('value', '자동 갱신 중 작성한 메모');
+  expect(draft).toHaveProperty('value', '자동 갱신 중 작성한 초안');
+  expect(h.startRun).not.toHaveBeenCalled(); expect(h.recheck).not.toHaveBeenCalled(); expect(h.update).not.toHaveBeenCalled();
+});
 
 it('지금 검토의 24시간 경계는 수집 이벤트 없이 갱신하며 열린 초안을 보존한다', async () => {
   const h = await harness('2026-10-16T05:00:00Z', true);

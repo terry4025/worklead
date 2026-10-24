@@ -1,6 +1,6 @@
 /**
- * 데이터 조회·변경 훅. 목록은 사용자가 읽는 동안 순서를 바꾸지 않도록,
- * 변경은 기존 목록 캐시의 해당 행만 고치고(재정렬 없음) 새로고침은 사용자가 결정한다.
+ * 데이터 조회·변경 훅. 수집 결과는 useLiveEvents에서 자동 반영한다.
+ * 사용자 편집 응답은 기존 목록의 같은 행을 우선 갱신한다.
  */
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type InfiniteData, type QueryClient } from '@tanstack/react-query';
 import { useRef } from 'react';

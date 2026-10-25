@@ -23,6 +23,7 @@ const reasonLabels: Record<string, string> = {
   submission_unconfirmed: '공식 제출 완료를 확인하지 못함', cancelled: '작업 중지', source_unverified: '원문 확인 필요', source_stale: '원문 상태 재확인 필요',
   connection_ended: '확장 연결 종료', lease_expired: '처리 가능 시간 만료', daily_limit: '오늘 제출 상한 도달', previous_permit: '기존 제출 시도 확인 필요',
   source_permission_unverified: '수집 소스 허용 상태 확인 필요', database_restored: '데이터 복원 후 다시 연결 필요', journal_unavailable: '지원 기록 저장 상태 확인 필요',
+  completion_reconciled: '연결 복구 후 공식 완료 표시를 재대조함 · 재제출 없음',
 };
 
 export function AutoApplyPanel({ now, onOpenLead }: { now: Date; onOpenLead: (id: string) => void }) {
@@ -84,6 +85,7 @@ export function AutoApplyPanel({ now, onOpenLead }: { now: Date; onOpenLead: (id
       <div className="draft-actions"><Button size="sm" variant="primary" icon={<Link size={14} />} busy={start.isPending} disabled={!status || q.isError || !valid || stop.isPending || mode === 'demo' || (status.enabled && status.state === 'connected')} onClick={() => { stop.reset(); start.mutate(); }}>{status?.enabled ? '자동 지원 연결 다시 준비' : '기준에 맞는 공고 자동 지원 시작'}</Button>{status?.enabled ? <Button size="sm" icon={<Square size={13} />} busy={stop.isPending} disabled={start.isPending} onClick={() => { start.reset(); stop.mutate(); }}>자동 지원 중지</Button> : null}</div>
       {codeReady ? <div className="chrome-connection-code"><p className="field-hint">로그인한 당근 탭의 Worklead 확장 팝업에서 <strong>자동 지원 연결</strong> 입력란에 붙여 넣고 ‘자동 지원 탭 연결’을 누르세요. 메시지 감시 연결코드와 별개입니다.</p><Button size="sm" icon={<Copy size={14} />} onClick={async () => { if (code.current) setCopied(await copyText(code.current) ? 'copied' : 'failed'); }}>자동 지원 연결코드 복사</Button><p className={copied === 'failed' ? 'field-error' : 'field-hint'} role="status">{copied === 'copied' ? '자동 지원 전용 코드를 복사했습니다.' : copied === 'failed' ? '복사하지 못했습니다. 다시 시도하세요.' : '실제 확장 연결 전에는 지원을 시작하지 않습니다.'}</p>{directory ? <p className="field-hint chrome-extension-path">확장 폴더: {directory}</p> : null}</div> : null}
       <p className="field-hint">앱을 종료하면 자동 지원이 중지됩니다. 다시 시작한 뒤 새 코드로 연결하세요. 결과 미확인 건은 자동 재제출하지 않습니다.</p>
+      <p className="field-hint">같은 연결에서 응답이 끊기면 완료 표시만 최대 3회 자동 대조합니다. 지원 버튼을 다시 누르지 않으며, 확인되지 않으면 결과 미확인을 유지합니다.</p>
       {mode === 'demo' ? <p className="field-hint">데모에서는 자동 지원 연결·실제 제출을 실행하지 않습니다.</p> : null}
       {hasError ? <div role="alert"><p className="field-error">{start.isError ? '자동 지원 연결을 준비하지 못했습니다.' : stop.isError ? '중지 결과를 확인하지 못했습니다. 현재 상태를 다시 확인한 뒤 중지를 재시도하세요.' : '현재 상태를 확인하지 못했습니다. 이전 기록을 정상 실행 상태로 보지 마세요.'}</p><Button size="sm" disabled={q.isFetching} onClick={() => void q.refetch()}>자동 지원 상태 다시 확인</Button></div> : null}
     </div><div className="auto-apply-results">

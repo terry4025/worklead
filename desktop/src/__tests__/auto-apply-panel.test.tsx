@@ -26,6 +26,17 @@ function harness(initial = status(), mode: 'live' | 'demo' = 'live') {
   return { port, qc, query, wrapper, open, panel: <AutoApplyPanel now={now} onOpenLead={open} /> };
 }
 
+it('연결 복구로 대조한 완료는 재제출 없이 확인한 기록으로 표시한다', async () => {
+  const h = harness(status({ enabled: true, state: 'connected', today_submitted: 1,
+    attempts: [{ id: 'auto_recovered', lead_id: 'lead_recovered', title: '복구한 공고', state: 'submitted', reason_code: 'completion_reconciled', created_at: now.toISOString(), finished_at: now.toISOString() }] }));
+  const start = vi.spyOn(h.port.jobs, 'autoApplyStart');
+  render(h.panel, { wrapper: h.wrapper });
+  await screen.findByText('연결 복구 후 공식 완료 표시를 재대조함 · 재제출 없음');
+  expect(screen.getByText('제출 확인')).toBeTruthy();
+  expect(screen.getByText(/완료 표시만 최대 3회 자동 대조/)).toBeTruthy();
+  expect(start).not.toHaveBeenCalled();
+});
+
 it('50점부터 포함하는 기본 정책은 자동 시작하지 않고 명시적 시작 뒤에도 실제 연결 대기로 표시한다', async () => {
   const h = harness();
   const secret = 'synthetic-auto-apply-secret-never-render';

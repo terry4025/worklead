@@ -26,6 +26,7 @@ from .auto_apply_models import AutoApplyStartIn, AutoApplyStatus, AutoAttemptOut
 LEASE_SECONDS = 90
 PERMIT_SECONDS = 3
 CONNECTED_SECONDS = 90
+RECEIPT_SECONDS = 15 * 60
 
 
 def job_identity(rec):
@@ -77,6 +78,7 @@ class AutoApplyRuntime:
         self._status = AutoApplyStatus()
         self._account = self._profile = None
         self._leases = {}
+        self._receipts = {}
         self._generation = app.db.gate.generation
         self._connected = None
         self._journal = app.config.data_dir / "auto-apply-submit.journal"
@@ -125,6 +127,7 @@ class AutoApplyRuntime:
 
     def _status_in(self, s):
         self._expire(s)
+        self._receipts = {key: value for key, value in self._receipts.items() if value[3] > self.monotonic()}
         rows = list(s.scalars(select(JobAutoAttempt).order_by(JobAutoAttempt.created_at.desc(), JobAutoAttempt.id.desc())))
         today = [row for row in rows if row.permitted_at and row.permitted_at >= self._day_start(self.app.clock())]
         result = self._status.model_copy(deep=True)
@@ -166,6 +169,7 @@ class AutoApplyRuntime:
             self._stop.clear()
             self._account = self._profile = None
             self._leases.clear()
+            self._receipts.clear()
             self._connected = None
             self._generation = self.app.db.gate.generation
             self._server = BridgeServer(("127.0.0.1", 0), Handler)
@@ -199,6 +203,7 @@ class AutoApplyRuntime:
             self._status.enabled, self._status.state, self._status.message = False, "stopped", "자동 지원이 꺼져 있습니다"
             self._account = self._profile = None
             self._leases.clear()
+            self._receipts.clear()
             server, thread = self._server, self._thread
         if server: server.server_close()
         if thread and thread is not threading.current_thread(): thread.join(timeout=3)
@@ -209,9 +214,11 @@ class AutoApplyRuntime:
         if not self._status.enabled or self._stop.is_set() or self._status.state == "paused":
             raise ApplicationError(409, "auto_apply_stopped", "자동 지원이 중지되었습니다")
         if self._generation != self.app.db.gate.generation:
+            self._receipts.clear()
             self._status.state, self._status.error_code = "paused", "database_restored"
             raise ApplicationError(409, "database_restored", "복원 후에는 크롬을 다시 연결하세요")
         if self._account is not None and self._account != body.account_hash:
+            self._receipts.clear()
             self._status.state, self._status.error_code = "paused", "account_changed"
             raise ApplicationError(409, "account_changed", "로그인 계정이 바뀌어 중지되었습니다")
         self._account = body.account_hash
@@ -279,6 +286,9 @@ class AutoApplyRuntime:
             elif body.outcome == "ready" and body.reason_code == "ready":
                 self._profile = body.profile_hash
                 row.state, row.reason_code = "ready", "ready"
+                receipt = secrets.token_urlsafe(32)
+                self._receipts[row.id] = (receipt, body.account_hash, body.profile_hash, self.monotonic() + RECEIPT_SECONDS)
+                return {"status": "ready", "receipt_token": receipt}
             else:
                 row.state = "already_applied" if body.outcome == "already_applied" and body.reason_code == "already_applied" else "held"
                 row.reason_code, row.finished_at = body.reason_code, self.app.clock()
@@ -319,14 +329,52 @@ class AutoApplyRuntime:
             row.state = "submitted" if body.outcome == "submitted" else "uncertain"
             row.reason_code, row.finished_at, row.expires_at = body.reason_code, self.app.clock(), None
             if row.state == "submitted":
-                lead = s.get(Lead, row.lead_id)
-                if lead.sales_stage in ("new", "reviewing"): lead.sales_stage = "contacted"
-                s.add(LeadActivity(id=new_id("act"), lead_id=lead.id, at=self.app.clock(), kind="contact", text="당근 자동 지원 — 지원 취소 버튼으로 완료 확인"))
-                emit(s, "lead.updated", {"lead_id": lead.id, "changes": ["sales_stage"]})
-            emit(s, "notification.created", {"kind": "lead_changed", "title": "당근 지원 완료" if row.state == "submitted" else "당근 지원 결과 확인 필요", "lead_id": row.lead_id}, notify=True)
+                self._completed(s, row)
+            else:
+                emit(s, "notification.created", {"kind": "lead_changed", "title": "당근 지원 결과 확인 필요", "lead_id": row.lead_id}, notify=True)
             outcome = {"status": row.state}
         self.app.hub.notify()
         return outcome
+
+    def _completed(self, s, row):
+        lead = s.get(Lead, row.lead_id)
+        if lead.sales_stage in ("new", "reviewing"): lead.sales_stage = "contacted"
+        s.add(LeadActivity(id=new_id("act"), lead_id=lead.id, at=self.app.clock(), kind="contact", text="당근 자동 지원 — 지원 취소 버튼으로 완료 확인"))
+        emit(s, "lead.updated", {"lead_id": lead.id, "changes": ["sales_stage"]})
+        emit(s, "notification.created", {"kind": "lead_changed", "title": "당근 지원 완료", "lead_id": row.lead_id}, notify=True)
+
+    def reconcile(self, body):
+        # This capability can only confirm an existing send. It cannot issue a
+        # permit, revive a lease or authorize a new click after a lost reply.
+        with self._lock, self.app.db.session() as s:
+            s.execute(text("BEGIN IMMEDIATE"))
+            self._check(body)
+            proof = self._receipts.get(body.attempt_id)
+            if (proof is None or proof[3] <= self.monotonic()
+                    or not hmac.compare_digest(body.receipt_token, proof[0])
+                    or body.account_hash != proof[1] or body.profile_hash != proof[2]):
+                raise ApplicationError(409, "receipt_invalid", "현재 연결에서 확인할 수 있는 제출 기록이 아닙니다")
+            row = s.get(JobAutoAttempt, body.attempt_id)
+            if (not row or row.state not in ("submitting", "uncertain", "submitted")
+                    or not row.permitted_at or row.job_key not in self._journal_keys()):
+                raise ApplicationError(409, "reconcile_invalid", "제출 허가 기록을 대조할 수 없습니다")
+            if row.state == "submitted": return {"status": "submitted"}
+            row.state, row.reason_code = "submitted", "completion_reconciled"
+            row.finished_at, row.expires_at = self.app.clock(), None
+            self._completed(s, row)
+        self.app.hub.notify()
+        return {"status": "submitted"}
+
+    def pause(self, body):
+        with self._lock:
+            if not self._status.enabled or self._stop.is_set():
+                raise ApplicationError(409, "auto_apply_stopped", "자동 지원이 중지되었습니다")
+            self._receipts.clear()
+            self._leases.clear()
+            self._recover()
+            self._status.state, self._status.error_code = "paused", body.reason
+            self._status.message = "로그인 상태가 바뀌어 중지했습니다. 확인 후 새 코드로 연결하세요"
+        return {"status": "paused"}
 
 
 def runtime(app):

@@ -132,3 +132,19 @@ for (const mutation of ['intro', 'job', 'required']) test(`${mutation} change wh
   assert.notEqual(result.state, 'clicked');
   assert.equal(h.counts().submits, 0);
 });
+
+for (const mutation of ['account', 'job', 'title']) test(`read-only completion inspect rejects ${mutation} changes during account hashing`, async () => {
+  const h = harness();
+  const expected = await h.identity();
+  h.window.document.querySelector('#application-region').innerHTML = '<button>지원 취소</button>';
+  h.context.crypto = { subtle: { digest: async (...args) => {
+    if (mutation === 'account') h.window.document.querySelector('header button').setAttribute('aria-label', '다른 합성 프로필 메뉴');
+    if (mutation === 'job') h.window.history.replaceState(null, '', '/job-posts/other-aaaaaaaaaaaa');
+    if (mutation === 'title') h.window.document.querySelector('h1').textContent = '다른 공고';
+    return webcrypto.subtle.digest(...args);
+  } } };
+  const result = await h.call('inspect', expected);
+  assert.equal(result.state, 'held');
+  assert.notEqual(result.state, 'already_applied');
+  assert.deepEqual(h.counts(), { opens: 0, submits: 0 });
+});

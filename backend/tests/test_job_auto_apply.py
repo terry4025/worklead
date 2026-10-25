@@ -60,7 +60,9 @@ def claimed(client):
 def ready(client, body):
     result = client.post("/review", json={**body, "outcome": "ready", "reason_code": "ready"})
     assert result.status_code == 200, result.text
-    assert result.json() == {"status": "ready"}
+    assert result.json()["status"] == "ready"
+    assert len(result.json()["receipt_token"]) >= 32
+    return result.json()["receipt_token"]
 
 
 def test_50_inclusive_review_candidates_and_visible_success_only(app):

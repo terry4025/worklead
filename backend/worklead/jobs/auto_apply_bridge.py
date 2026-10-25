@@ -2,11 +2,11 @@
 import json
 
 from .applications import ApplicationError
-from .auto_apply_models import IdentityIn, NextIn, ResultIn, ReviewIn
+from .auto_apply_models import IdentityIn, NextIn, PauseIn, ReconcileIn, ResultIn, ReviewIn
 from .chrome_bridge import EXTENSION_ORIGIN, _BridgeServer, _Handler, _unique_object
 
 BridgeServer = _BridgeServer
-MODELS = {"/next": NextIn, "/review": ReviewIn, "/permit": IdentityIn, "/result": ResultIn}
+MODELS = {"/next": NextIn, "/review": ReviewIn, "/permit": IdentityIn, "/result": ResultIn, "/reconcile": ReconcileIn, "/pause": PauseIn}
 
 
 class Handler(_Handler):

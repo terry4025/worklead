@@ -2,6 +2,8 @@
 
 ## 자동 지원·조회 복구 계약 (2026-10-25)
 
+후속 복구 계약: 확장 전용 `/review`의 ready 응답에 `receipt_token`을 추가한다. 이는 제출 lease와 별개이며 현재 연결의 시도·계정·소개에 묶인 15분 메모리 권한이다. POST `/reconcile`은 `{attempt_id,receipt_token,account_hash,profile_hash,evidence:"cancel_button"}`만 받아 기존 허가/journal을 대조하고 완료를 확정한다. 중복 완료 응답은 부작용 없이 성공한다. POST `/pause` `{reason:"login_required"|"account_changed"}`는 기존 receipt/lease를 폐기하고 새 연결까지 정지한다. 기존 exact Origin/Host/Bearer/2,048바이트 경계를 공통 적용한다. 새 제출 권한·공개 main API는 추가하지 않는다. 확장 복구는 최대 3회 읽기 전용이며 자세한 흐름은 `JOB_AUTO_APPLY_RECOVERY.md`를 따른다.
+
 GET `/v1/jobs/auto-apply/status`, POST `/start` `{confirm:true,min_score:50,daily_limit:20}`, POST `/stop`을 추가한다. start 응답은 `{connection:{url,token},status,extension_directory}`이며 no-store이고 연결 비밀은 UI ref에만 보관한다. 자동 지원은 미읽음 감시와 다른 포트·임시 키를 사용한다. 확장 전용 POST `/next`는 공고 작업, `/review`는 화면 검토 결과, `/permit`은 짧은 1회 제출 허가, `/result`는 공식 지원 취소 표시를 근거로 한 완료/미확인을 받는다. 크기 2,048바이트·확장 Origin·Host·독립 Bearer·필드·상태 순서를 검사한다. 기본 50점은 경계 포함이며 직전 재분석·모집·프로필·허가·일일 한도를 모두 대조한다. 별도 중복 기록은 날짜/공개 공고 키 해시만 기록하고 DB 복원으로 지워지지 않는다. 실제 계정/소개/연결 키는 영속 로그에 쓰지 않는다. 기존 초안 API는 계속 제출을 거부한다.
 
 유한 GET 조회는 연결 획득부터 응답 본문 파싱까지 15초 상한을 적용해 `request_timeout`(재시도 가능)을 반환한다. SSE는 별도 장기 연결이며 이 상한을 적용하지 않는다. 변경/제출 요청을 자동 재전송하지 않는다. 목록 자동 재조회는 진행 중 조회를 취소하지 않고, 한 대기열의 오류를 다른 대기열의 로딩 화면으로 숨기지 않는다. 최초 조회 실패도 30초 주기로 복구하며, 서버/수집 속도를 이 조회 상한과 혼동하지 않는다.

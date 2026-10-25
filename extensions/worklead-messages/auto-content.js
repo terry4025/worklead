@@ -70,12 +70,12 @@
     return first.length === 1 ? { state: 'openable', account_hash } : { state: 'held', reason_code: 'ui_unrecognized', account_hash };
   }
   async function run(operation, expected) {
-    const before = operation === 'inspect' ? null : interactionSnapshot();
+    const before = interactionSnapshot();
     const result = await inspect(expected);
-    if (operation === 'inspect') return result;
     // Hashing awaits must not create a gap between the inspected DOM and the click.
     // This comparison and the final click run synchronously in the same JS turn.
     if (before !== interactionSnapshot()) return { state: 'held', reason_code: 'ui_unrecognized' };
+    if (operation === 'inspect') return result;
     if (result.account_hash !== expected.account_hash) return { state: 'held', reason_code: 'account_changed' };
     if (operation === 'open' && result.state === 'openable') {
       exact(document.querySelector('main'), '지원하기')[0].click();

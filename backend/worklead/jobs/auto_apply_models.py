@@ -74,3 +74,14 @@ class ResultIn(IdentityIn):
     outcome: Literal["submitted", "uncertain", "held"]
     reason_code: ReasonCode
     evidence: Literal["cancel_button"] | None = None
+
+
+class ReconcileIn(NextIn):
+    attempt_id: str = Field(min_length=1, max_length=40)
+    receipt_token: str = Field(min_length=32, max_length=128, repr=False)
+    profile_hash: str = Field(pattern=r"^[a-f0-9]{64}$")
+    evidence: Literal["cancel_button"]
+
+
+class PauseIn(StrictModel):
+    reason: Literal["login_required", "account_changed"]

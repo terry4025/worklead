@@ -931,6 +931,27 @@
         }
       }
     },
+    "/v1/jobs/messages/inbox": {
+      "get": {
+        "tags": [
+          "job-messages"
+        ],
+        "summary": "Inbox",
+        "operationId": "inbox_v1_jobs_messages_inbox_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/jobs/messages/start": {
       "post": {
         "tags": [
@@ -1025,7 +1046,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/StartMessageWatch"
+                "$ref": "#/components/schemas/ChromeStartIn"
               }
             }
           },
@@ -7908,6 +7929,89 @@
         ],
         "title": "CategoryOut"
       },
+      "ChatView": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": false
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "off",
+              "waiting",
+              "visible",
+              "panel_closed",
+              "surface_unrecognized",
+              "login_required",
+              "stale",
+              "account_changed"
+            ],
+            "title": "State",
+            "default": "off"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "lead_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Id"
+          },
+          "lead_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Title"
+          },
+          "source": {
+            "type": "string",
+            "const": "visible_chat_panel",
+            "title": "Source",
+            "default": "visible_chat_panel"
+          },
+          "persists_body": {
+            "type": "boolean",
+            "const": false,
+            "title": "Persists Body",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "ChatView"
+      },
       "ChromeConnection": {
         "properties": {
           "url": {
@@ -7947,6 +8051,26 @@
           "extension_directory"
         ],
         "title": "ChromeStart"
+      },
+      "ChromeStartIn": {
+        "properties": {
+          "confirm": {
+            "type": "boolean",
+            "const": true,
+            "title": "Confirm"
+          },
+          "capture_visible_chat": {
+            "type": "boolean",
+            "title": "Capture Visible Chat",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "confirm"
+        ],
+        "title": "ChromeStartIn"
       },
       "CollaborationAssessed": {
         "properties": {

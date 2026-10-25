@@ -25,13 +25,15 @@ export function MessageConnectionPanel({ onSettings, now }: { onSettings: () => 
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
   const [extensionDirectory, setExtensionDirectory] = useState<string | null>(null);
   const [folderCopied, setFolderCopied] = useState(false);
+  const [captureChat, setCaptureChat] = useState(true);
   const mounted = useRef(false);
   const clearCode = () => { connectionCode.current = null; setCodeReady(false); setCopyState('idle'); setExtensionDirectory(null); setFolderCopied(false); };
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; connectionCode.current = null; }; }, []);
   const chrome = useMutation({
     mutationFn: async () => {
       clearCode();
-      const result = await port.jobs.messagesChromeStart();
+      qc.removeQueries({ queryKey: ['jobs', 'messages', 'inbox'] });
+      const result = await port.jobs.messagesChromeStart(captureChat);
       if (mounted.current) {
         connectionCode.current = JSON.stringify({ url: result.connection.url, token: result.connection.token });
         setCodeReady(true);
@@ -44,7 +46,7 @@ export function MessageConnectionPanel({ onSettings, now }: { onSettings: () => 
   });
   const action = useMutation({
     mutationFn: (start: boolean) => { clearCode(); return start ? port.jobs.messagesStart() : port.jobs.messagesStop(); },
-    onSuccess: (status) => { qc.setQueryData(key, status); },
+    onSuccess: (status) => { qc.setQueryData(key, status); qc.removeQueries({ queryKey: ['jobs', 'messages', 'inbox'] }); },
   });
   const status = q.data;
   useEffect(() => {
@@ -62,7 +64,8 @@ export function MessageConnectionPanel({ onSettings, now }: { onSettings: () => 
       <Button size="sm" icon={<Link size={14} />} busy={action.isPending} disabled={!status || chrome.isPending || (status.enabled && (status.provider === 'chrome' || !['error', 'stopped'].includes(status.state)))} onClick={() => { chrome.reset(); action.mutate(true); }}>연결하고 감시 시작</Button>
       {status?.enabled ? <Button size="sm" icon={<Square size={13} />} disabled={action.isPending || chrome.isPending} onClick={() => { chrome.reset(); action.mutate(false); }}>감시 중지</Button> : null}
     </div>
-    <p className="field-hint">현재 크롬 연결은 선택한 당근 탭의 로그인 여부와 미읽음 수만 이 PC의 Worklead에 전달합니다.</p>
+    <label className="field-hint"><input type="checkbox" checked={captureChat} disabled={chrome.isPending || status?.enabled} onChange={e => setCaptureChat(e.target.checked)} /> 보이는 채팅 내용도 Worklead에서 보기</label>
+    <p className="field-hint">켜고 크롬으로 연결하면 선택한 탭에 보이는 채팅 내용을 이 PC에서 일시 표시합니다. 확장 팝업에서도 같은 항목을 선택하세요. 앱 종료·연결 중지·로그인 변경 시 내용을 지우며 파일·DB·AI로 보내지 않습니다.</p>
     {codeReady ? <div className="chrome-connection-code">
       <p className="field-hint">확장 설치 후 당근 탭에서 Worklead 확장 팝업을 열고 연결코드를 붙여 넣으세요. 실제 탭 관찰이 확인되기 전에는 연결 완료가 아닙니다.</p>
       <Button size="sm" icon={<Copy size={14} />} onClick={async () => { if (!connectionCode.current) return; setCopyState(await copyText(connectionCode.current) ? 'copied' : 'failed'); }}>크롬 연결코드 복사</Button>
@@ -75,7 +78,7 @@ export function MessageConnectionPanel({ onSettings, now }: { onSettings: () => 
     </details>
     {chrome.isError ? <p className="field-error" role="alert">크롬 연결코드를 준비하지 못했습니다. 다시 연결을 시도하세요.</p> : null}
     {q.isError || action.isError ? <div role="alert"><p className="field-error">{errorMessage(action.error ?? q.error)}</p><Button size="sm" disabled={action.isPending} onClick={() => void q.refetch()}>연결 상태 다시 확인</Button></div> : null}
-    <p className="field-hint">{mode === 'demo' ? '데모에서는 실제 메시지를 읽지 않습니다. ' : ''}{status?.provider === 'chrome' ? '크롬 확장은 직접 선택한 당근 탭만 관찰합니다. ' : '‘연결하고 감시 시작’은 전용 Edge 창을 엽니다. 그 창에서 직접 로그인하세요. '}메시지 본문은 저장하지 않습니다.</p>
+    <p className="field-hint">{mode === 'demo' ? '데모에서는 실제 메시지를 읽지 않습니다. ' : ''}{status?.provider === 'chrome' ? '크롬 확장은 직접 선택한 당근 탭만 관찰합니다. ' : '‘연결하고 감시 시작’은 전용 Edge 창을 엽니다. 그 창에서 직접 로그인하세요. '}채팅 내용은 영구 저장하지 않습니다.</p>
     <p className="field-hint">화면의 미읽음 수를 {status?.poll_interval_seconds ?? 2}초마다 확인하고 증가하면 알립니다. 처음 읽은 수는 기준값입니다. 수가 그대로인 새 메시지는 감지하지 못할 수 있으며, Worklead나 연결한 브라우저를 종료하면 감시가 중단됩니다.</p>
     <p className="field-hint">크롬 배경 탭·절전에서는 관찰과 알림이 지연되거나 일부 메시지를 놓칠 수 있습니다. 연결 공백 후 수가 늘면 재개 확인 알림을 보냅니다. Worklead를 종료하거나 연결한 탭을 닫으면 감시가 끊깁니다.</p>
     {status?.browser_notifications === 'denied' ? <p className="field-error">Edge 알림이 차단되어 있습니다. 브라우저에서 직접 알림 권한을 확인하세요.</p> : null}

@@ -1,6 +1,6 @@
 """Main-app-authenticated setup for the separate Chrome observation bridge."""
 from fastapi import APIRouter, Request, Response
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StrictBool
 
 from ..jobs.chrome_bridge import runtime
 from ..jobs.messages import MessageStatus
@@ -20,6 +20,10 @@ class ChromeStart(BaseModel):
     extension_directory: str
 
 
+class ChromeStartIn(StartMessageWatch):
+    capture_visible_chat: StrictBool = False
+
+
 def router():
     routes = APIRouter(prefix="/v1/jobs/messages/chrome", tags=["job-messages"])
 
@@ -28,7 +32,7 @@ def router():
         return runtime(request.app.state.ctx).status()
 
     @routes.post("/start", response_model=ChromeStart)
-    def start(body: StartMessageWatch, request: Request, response: Response):
+    def start(body: ChromeStartIn, request: Request, response: Response):
         from ..jobs.chrome_extension import prepare_extension_directory
         app = request.app.state.ctx
         with app.ai_control_lock:
@@ -38,7 +42,7 @@ def router():
             directory = prepare_extension_directory(app.config.data_dir)
             bridge = runtime(app)
             bridge.stop()
-            result = bridge.start()
+            result = bridge.start(capture_visible_chat=body.capture_visible_chat)
             app.jobs_message_provider = "chrome"
             result["extension_directory"] = str(directory)
         response.headers["Cache-Control"] = "no-store"

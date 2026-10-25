@@ -14,6 +14,7 @@ import { StatusMark } from '../../ui/StatusMark';
 import { useToast } from '../../ui/Toasts';
 import { MessageConnectionPanel } from './MessageConnectionPanel';
 import { AutoApplyPanel } from './AutoApplyPanel';
+import { MessageInboxPanel } from './MessageInboxPanel';
 import './jobs.css';
 
 const applicationKey = ['jobs', 'applications'] as const;
@@ -139,6 +140,7 @@ export function ApplicationWorkspace({ onOpenLead, onSettings, now }: { onOpenLe
     <div className="jobs-workspace-head"><div><h1>지원 준비</h1><p className="muted-text">확인 필요 의뢰도 함께 살펴보고, 저장된 정보로 초안을 준비하세요.</p></div><Button size="sm" icon={<RefreshCw size={14} />} busy={q.isFetching} onClick={() => void q.refetch()}>후보 새로고침</Button></div>
     <div className="jobs-mode-note" role="note"><strong>저장된 초안과 자동 지원을 따로 관리합니다</strong><p>아래 후보의 초안 준비·저장은 외부로 전송하지 않습니다. 자동 지원은 별도 연결 후 당근에 저장된 기본 자기소개를 사용합니다. 저장된 초안은 덮어쓰지 않습니다.{mode === 'demo' ? ' 현재 데모 데이터입니다.' : ''}</p></div>
     <AutoApplyPanel now={now} onOpenLead={onOpenLead} />
+    <MessageInboxPanel now={now} onOpenLead={onOpenLead} />
     <div className="jobs-columns"><section className="application-list" aria-labelledby="application-list-heading"><div className="application-list-heading"><h2 id="application-list-heading">지원 준비 후보</h2>{q.data ? <span className="muted-text">총 {q.data.total.toLocaleString()}건 · {q.data.items.length.toLocaleString()}건 표시</span> : null}</div>
       {q.isError ? <ErrorState error={q.error} onRetry={() => void q.refetch()} /> : null}
       {q.isPending ? <p role="status">지원 준비 후보를 불러오는 중…</p> : null}

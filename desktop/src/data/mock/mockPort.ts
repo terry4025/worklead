@@ -136,6 +136,7 @@ const DEFAULT_SETTINGS: SettingsView = {
 export class MockPort implements WorkleadPort {
   readonly cafe = new MockCafePort();
   readonly jobs: JobsPort = {
+    messagesInbox: () => this.delay(() => ({ enabled: false, state: 'off' as const, text: null, observed_at: null, lead_id: null, lead_title: null, source: 'visible_chat_panel' as const, persists_body: false as const })),
     autoApplyStatus: () => this.delay(() => this.autoApplyStatus),
     autoApplyStart: () => this.delay(() => { throw new PortError({ kind: 'api', code: 'demo_only', message: '데모에서는 자동 지원 연결이나 실제 제출을 실행하지 않습니다.' }); }),
     autoApplyStop: () => this.delay(() => this.autoApplyStatus),

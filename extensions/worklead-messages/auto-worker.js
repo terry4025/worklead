@@ -193,7 +193,7 @@ async function tick() {
       return;
     }
     identity.profile_hash = view.profile_hash;
-    const review = await post(c, '/review', { ...identity, outcome: 'ready', reason_code: 'ready' });
+    const review = await post(c, '/review', { ...identity, outcome: 'ready', reason_code: 'ready', evidence: 'application_form' });
     if (review.status !== 'ready' || !/^[A-Za-z0-9_-]{32,128}$/.test(review.receipt_token)) return;
     // Persist the separate read-only receipt BEFORE requesting any final permit.
     pending = { ...pending, identity, phase: 'permitting', receipt_token: review.receipt_token, next_check_at: Date.now() + 5000 };

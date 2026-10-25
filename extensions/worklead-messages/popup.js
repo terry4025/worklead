@@ -20,7 +20,7 @@ connect.addEventListener('click', async () => {
       return;
     }
     connect.disabled = true;
-    const result = await chrome.runtime.sendMessage({ type: 'connect', code: code.value });
+    const result = await chrome.runtime.sendMessage({ type: 'connect', code: code.value, capture_visible_chat: document.getElementById('chat-consent').checked });
     code.value = '';  // Do not leave the local key in the popup DOM.
     if (!result?.ok) throw new Error(result?.message || '연결하지 못했습니다.');
     await refresh();

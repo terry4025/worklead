@@ -146,7 +146,8 @@ it('크롬 연결코드는 복사로만 전달하고 DOM·조회캐시·mutation
   fireEvent.click(screen.getByText('크롬 확장 설치·연결 방법'));
   fireEvent.click(screen.getByRole('button', { name: '확장 폴더 경로 복사' }));
   await waitFor(() => expect(copy).toHaveBeenCalledWith(pairing.extension_directory));
-  expect(screen.getByText(/선택한 당근 탭의 로그인 여부와 미읽음 수만/)).toBeTruthy();
+  expect(start).toHaveBeenCalledWith(true);
+  expect(screen.getByText(/보이는 채팅 내용도 Worklead에서 보기/)).toBeTruthy();
   expect(screen.getByText(/앱을 다시 시작하면 다시 연결해야/)).toBeTruthy();
   expect(screen.getByRole('button', { name: '연결하고 감시 시작' })).toHaveProperty('disabled', true);
   fireEvent.click(screen.getByRole('button', { name: '감시 중지' }));

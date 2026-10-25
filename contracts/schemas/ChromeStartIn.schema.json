@@ -1,0 +1,20 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "confirm": {
+      "const": true,
+      "title": "Confirm",
+      "type": "boolean"
+    },
+    "capture_visible_chat": {
+      "default": false,
+      "title": "Capture Visible Chat",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "confirm"
+  ],
+  "title": "ChromeStartIn",
+  "type": "object"
+}

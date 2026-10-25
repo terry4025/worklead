@@ -856,9 +856,20 @@ def _recheck_targets(app: AppContext, run: Run) -> list[str]:
     now = app.clock()
     with app.db.session() as s:
         ttl = ttl_hours(s)
-        if run.kind == "recheck_lead":
+        if run.kind == "recheck_lead" or (run.kind == "recheck_stale" and run.lead_id):
             lead = s.get(Lead, run.lead_id)
-            return [lead.primary_record_id] if lead and lead.primary_record_id else []
+            if not lead or not lead.primary_record_id:
+                return []
+            if run.kind == "recheck_stale":
+                if lead.source_id != run.source_id:
+                    return []
+                rec = s.get(SourceRecord, lead.primary_record_id)
+                if not rec:
+                    return []
+                state = s.get(DetailFetchState, (lead.source_id, _ref_key(PostRef(rec.original_url or rec.canonical_url or "", rec.source_post_id))))
+                if state and state.retry_at and now < state.retry_at:
+                    return []
+            return [lead.primary_record_id]
         recent_cut = now - timedelta(days=RECHECK_RECENT_DAYS)
         q = select(SourceRecord).join(Lead, Lead.primary_record_id == SourceRecord.id).where(
             Lead.source_id == run.source_id,

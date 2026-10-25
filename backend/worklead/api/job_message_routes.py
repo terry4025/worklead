@@ -1,7 +1,7 @@
 """User-started browser session. No remote chat API or credential input."""
 from typing import Literal
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Response
 from pydantic import BaseModel, ConfigDict
 
 from ..jobs.messages import MessageStatus, runtime
@@ -21,6 +21,14 @@ def router():
         if ctx.jobs_message_provider == "chrome" and ctx._jobs_chrome_runtime is not None:
             return ctx._jobs_chrome_runtime.status()
         return runtime(ctx).status()
+
+    from ..jobs.chat_view import ChatView
+
+    @routes.get("/inbox", response_model=ChatView)
+    def inbox(request: Request, response: Response):
+        response.headers["Cache-Control"] = "no-store"
+        ctx = request.app.state.ctx
+        return ctx._jobs_chrome_runtime.chat_view() if ctx._jobs_chrome_runtime is not None else ChatView()
 
     @routes.post("/start", response_model=MessageStatus)
     def start(body: StartMessageWatch, request: Request):

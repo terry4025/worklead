@@ -36,7 +36,7 @@ class MessageStatus(BaseModel):
     message: str = "메시지 감시가 꺼져 있습니다"
     poll_interval_seconds: int = POLL_SECONDS
     observation: str = "visible_unread_badge"
-    captures_message_body: bool = False
+    captures_message_body: bool = False  # Only the separate Chrome opt-in can enable a visible mirror.
     browser_notifications: str = "unknown"
     browser_open: bool = False
     needs_user_action: bool = True

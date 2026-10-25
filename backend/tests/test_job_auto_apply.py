@@ -58,7 +58,7 @@ def claimed(client):
 
 
 def ready(client, body):
-    result = client.post("/review", json={**body, "outcome": "ready", "reason_code": "ready"})
+    result = client.post("/review", json={**body, "outcome": "ready", "reason_code": "ready", "evidence": "application_form"})
     assert result.status_code == 200, result.text
     assert result.json()["status"] == "ready"
     assert len(result.json()["receipt_token"]) >= 32
@@ -85,6 +85,112 @@ def test_50_inclusive_review_candidates_and_visible_success_only(app):
         with app.db.session() as s:
             assert s.get(Lead, accepted).sales_stage == "contacted"
             assert s.get(Lead, low).sales_stage == "new"
+    finally: client.close()
+
+
+def old_record(app, key="ABCDEFGHIJK1", age=45, fresh=False):
+    lead_id = add(app, score=60, key=key)
+    with app.db.session() as s:
+        lead = s.get(Lead, lead_id)
+        rec = s.get(SourceRecord, lead.primary_record_id)
+        lead.published_at = rec.published_at = NOW - timedelta(days=age)
+        rec.last_checked_at = NOW if fresh else NOW - timedelta(days=age)
+    return lead_id
+
+
+def test_saved_old_job_requires_current_visible_form_before_permit(app):
+    lead_id = old_record(app)
+    bridge, client, _ = connect(app)
+    try:
+        assert claimed(client) is None
+        from worklead.models import Run
+        with app.db.session() as s:
+            refresh = s.scalar(select(Run).where(Run.kind == 'recheck_stale', Run.lead_id == lead_id))
+            assert refresh is not None and refresh.trigger == 'schedule'
+            rec = s.get(SourceRecord, s.get(Lead, lead_id).primary_record_id)
+            rec.last_checked_at = NOW  # Simulate the existing public recheck worker.
+        body = claimed(client)
+        assert body is not None
+        with app.db.session() as s:
+            assert s.get(JobAutoAttempt, body["attempt_id"]).lead_id == lead_id
+        ready(client, body)
+        assert client.post("/permit", json=body).json()["permit"] is True
+        with app.db.session() as s:
+            rec = s.get(SourceRecord, s.get(Lead, lead_id).primary_record_id)
+            assert rec.published_at == NOW - timedelta(days=45)
+            assert rec.last_checked_at == NOW
+    finally: client.close()
+
+
+def test_saved_old_job_cannot_use_old_extension_without_form_evidence(app):
+    old_record(app, fresh=True)
+    bridge, client, _ = connect(app)
+    try:
+        body = claimed(client)
+        result = client.post("/review", json={**body, "outcome": "ready", "reason_code": "ready"})
+        assert result.json()["status"] == "held"
+        assert bridge.status().attempts[0].reason_code == "source_stale"
+        assert client.post("/permit", json=body).status_code == 409
+    finally: client.close()
+
+
+def test_saved_old_already_applied_and_closed_jobs_are_never_resubmitted(app):
+    old_record(app, fresh=True)
+    old_record(app, key="ABCDEFGHIJK2", fresh=True)
+    bridge, client, _ = connect(app)
+    try:
+        body = claimed(client)
+        assert client.post("/review", json={**body,"outcome":"already_applied","reason_code":"already_applied"}).json()["status"] == "already_applied"
+        body = claimed(client)
+        assert client.post("/review", json={**body,"outcome":"held","reason_code":"closed"}).json()["status"] == "held"
+        assert claimed(client) is None
+        assert bridge.status().today_reserved == bridge.status().today_submitted == 0
+    finally: client.close()
+
+
+def test_current_form_does_not_replace_expired_public_terms(app):
+    lead_id = old_record(app, fresh=True)
+    bridge, client, _ = connect(app)
+    try:
+        body = claimed(client)
+        with app.db.session() as s:
+            s.get(SourceRecord, s.get(Lead, lead_id).primary_record_id).last_checked_at = NOW - timedelta(days=2)
+        review = client.post('/review',json={**body,'outcome':'ready','reason_code':'ready','evidence':'application_form'})
+        assert review.json()['status'] == 'held'
+        assert bridge.status().attempts[0].reason_code == 'source_stale'
+        assert client.post('/permit',json=body).status_code == 409
+    finally: client.close()
+
+
+def test_form_review_also_rechecks_source_permission(app):
+    add(app)
+    bridge, client, _ = connect(app)
+    try:
+        body = claimed(client)
+        with app.db.session() as s: s.get(SourcePolicy, 'daangn-alba').status = 'restricted'
+        review = client.post('/review',json={**body,'outcome':'ready','reason_code':'ready','evidence':'application_form'})
+        assert review.json()['status'] == 'held'
+        assert bridge.status().attempts[0].reason_code == 'source_permission_unverified'
+        assert client.post('/permit',json=body).status_code == 409
+    finally: client.close()
+
+
+def test_auto_backlog_recheck_keeps_failure_backoff_and_deduplicates_queue(app):
+    from worklead.models import DetailFetchState, Run
+    from worklead.engine.executors import _recheck_targets, _ref_key
+    from worklead.sources.base import PostRef
+    lead_id = old_record(app)
+    bridge, client, _ = connect(app)
+    try:
+        assert claimed(client) is None and claimed(client) is None
+        with app.db.session() as s:
+            refreshes = list(s.scalars(select(Run).where(Run.kind == 'recheck_stale', Run.lead_id == lead_id)))
+            assert len(refreshes) == 1
+            rec = s.get(SourceRecord, s.get(Lead, lead_id).primary_record_id)
+            s.add(DetailFetchState(source_id=rec.source_id,ref_key=_ref_key(PostRef(rec.original_url,rec.source_post_id)),
+                url=rec.original_url,outcome='http_404',attempted_at=NOW,retry_at=NOW+timedelta(days=1)))
+        assert _recheck_targets(app, refreshes[0]) == []
+        assert bridge.status().today_submitted == bridge.status().today_reserved == 0
     finally: client.close()
 
 

@@ -41,7 +41,7 @@ export interface JobMessageWatchStatus {
   message: string;
   poll_interval_seconds: number;
   observation: 'visible_unread_badge';
-  captures_message_body: false;
+  captures_message_body: boolean;
   browser_notifications: 'default' | 'granted' | 'denied' | 'unsupported' | 'unknown';
   browser_open: boolean;
   needs_user_action: boolean;
@@ -50,6 +50,16 @@ export interface JobChromeMessageConnection {
   connection: { url: string; token: string };
   status: JobMessageWatchStatus;
   extension_directory: string;
+}
+export interface JobChatView {
+  enabled: boolean;
+  state: 'off' | 'waiting' | 'visible' | 'panel_closed' | 'surface_unrecognized' | 'login_required' | 'stale' | 'account_changed';
+  text: string | null;
+  observed_at: string | null;
+  lead_id: string | null;
+  lead_title: string | null;
+  source: 'visible_chat_panel';
+  persists_body: false;
 }
 export interface JobAutoApplyAttempt {
   id: string;
@@ -275,7 +285,8 @@ export function createClient(source: ConnectionSource, fetchImpl: typeof fetch =
     jobMessagesStatus: () => request<JobMessageWatchStatus>('GET', '/v1/jobs/messages/status'),
     jobMessagesStart: () => request<JobMessageWatchStatus>('POST', '/v1/jobs/messages/start', { body: { confirm: true } }),
     jobMessagesStop: () => request<JobMessageWatchStatus>('POST', '/v1/jobs/messages/stop'),
-    jobMessagesChromeStart: () => request<JobChromeMessageConnection>('POST', '/v1/jobs/messages/chrome/start', { body: { confirm: true } }),
+    jobMessagesChromeStart: (captureVisibleChat = false) => request<JobChromeMessageConnection>('POST', '/v1/jobs/messages/chrome/start', { body: { confirm: true, ...(captureVisibleChat ? { capture_visible_chat: true } : {}) } }),
+    jobMessagesInbox: () => request<JobChatView>('GET', '/v1/jobs/messages/inbox'),
     jobAutoApplyStatus: () => request<JobAutoApplyStatus>('GET', '/v1/jobs/auto-apply/status'),
     jobAutoApplyStart: (body: { confirm: true; min_score: number; daily_limit: number }) => request<JobAutoApplyStart>('POST', '/v1/jobs/auto-apply/start', { body }),
     jobAutoApplyStop: () => request<JobAutoApplyStatus>('POST', '/v1/jobs/auto-apply/stop'),

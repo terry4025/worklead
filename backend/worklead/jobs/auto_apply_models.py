@@ -68,6 +68,7 @@ ReasonCode = Literal["ready", "already_applied", "questions_required", "profile_
 class ReviewIn(IdentityIn):
     outcome: Literal["ready", "already_applied", "held"]
     reason_code: ReasonCode
+    evidence: Literal["application_form"] | None = None
 
 
 class ResultIn(IdentityIn):

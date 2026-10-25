@@ -42,7 +42,7 @@ def job_identity(rec):
         return None
 
 
-def condition(s, lead, now, min_score):
+def condition(s, lead, now, min_score, *, queue=False, visible_form=False):
     if (lead.source_id != "daangn-alba" or (lead.priority_total or 0) < min_score
             or lead.recommendation not in ("recommended", "needs_review")
             or lead.demand_intent not in ("buyer_project", "buyer_ongoing")
@@ -52,12 +52,20 @@ def condition(s, lead, now, min_score):
     rec = s.get(SourceRecord, lead.primary_record_id)
     if not rec or not rec.body_text or rec.source_status != "open" or rec.access_status != "accessible" or not job_identity(rec):
         return "source_unverified"
-    if (rec.published_precision != "exact" or rec.published_at is None or not now - timedelta(hours=24) <= rec.published_at <= now
-            or rec.last_checked_at is None or not now - timedelta(hours=ttl_hours(s)) <= rec.last_checked_at <= now):
+    if rec.published_precision != "exact" or rec.published_at is None or rec.published_at > now:
+        return "source_stale"
+    fresh = rec.last_checked_at is not None and now - timedelta(hours=ttl_hours(s)) <= rec.last_checked_at <= now
+    if not fresh and not queue:
+        return "source_stale"
+    if not queue and rec.published_at < now - timedelta(hours=24) and not visible_form:
         return "source_stale"
     profile = get_profile(s)
-    current = analyze(post_input_from_record(rec, "site"), profile, now, ttl_hours(s), feedback_map(s, lead.id))
-    if current.recommendation == "excluded" or not current.dev_relevant or current.pay.unit != "project" or current.total is None or current.total < min_score:
+    post = post_input_from_record(rec, "site")
+    # An open form must not replace a fresh public detail check: old terms/pay
+    # may have changed even when the same title and application button remain.
+    current = analyze(post, profile, now, ttl_hours(s), feedback_map(s, lead.id))
+    if (current.recommendation == "excluded" or not current.dev_relevant or current.pay.unit != "project"
+            or current.total is None or (not queue and current.total < min_score)):
         return "condition_changed"
     if profile.min_contract is not None and rec.pay_min is not None and rec.pay_min < profile.min_contract:
         return "condition_conflict"
@@ -81,6 +89,7 @@ class AutoApplyRuntime:
         self._receipts = {}
         self._generation = app.db.gate.generation
         self._connected = None
+        self._refresh_after = 0
         self._journal = app.config.data_dir / "auto-apply-submit.journal"
         self._recover()
 
@@ -171,6 +180,7 @@ class AutoApplyRuntime:
             self._leases.clear()
             self._receipts.clear()
             self._connected = None
+            self._refresh_after = 0
             self._generation = self.app.db.gate.generation
             self._server = BridgeServer(("127.0.0.1", 0), Handler)
             self._server.runtime = self
@@ -233,12 +243,15 @@ class AutoApplyRuntime:
             raise ApplicationError(409, "lease_invalid", "지난 지원 연결입니다")
         return row
 
-    def _eligible(self, s, row):
+    def _eligible(self, s, row, *, visible_form=None):
         policy = s.get(SourcePolicy, "daangn-alba")
         if not policy or policy.status != "allowed": return "source_permission_unverified"
         lead = s.get(Lead, row.lead_id)
         if not lead: return "condition_changed"
-        return condition(s, lead, self.app.clock(), self._status.min_score)
+        receipt = self._receipts.get(row.id)
+        if visible_form is None:
+            visible_form = bool(receipt and len(receipt) > 4 and receipt[4] and receipt[3] > self.monotonic())
+        return condition(s, lead, self.app.clock(), self._status.min_score, visible_form=visible_form)
 
     def next(self, body):
         with self._lock, self.app.db.session() as s:
@@ -253,13 +266,29 @@ class AutoApplyRuntime:
             if not policy or policy.status != "allowed": return {"job": None}
             seen = set(s.scalars(select(JobAutoAttempt.job_key))) | self._journal_keys()
             candidates = s.scalars(select(Lead).where(Lead.source_id == "daangn-alba", Lead.priority_total >= self._status.min_score,
-                Lead.published_at >= self.app.clock() - timedelta(hours=24)).order_by(Lead.published_at.desc(), Lead.first_seen_at.desc()).limit(1000))
+                Lead.recommendation.in_(("recommended", "needs_review")), Lead.source_status == "open",
+                Lead.sales_stage.in_(("new", "reviewing")),
+                ~Lead.id.in_(select(JobAutoAttempt.lead_id)))
+                .order_by(Lead.published_at.desc(), Lead.first_seen_at.desc()).limit(1000))
             for lead in candidates:
                 rec = s.get(SourceRecord, lead.primary_record_id)
                 key = job_identity(rec) if rec else None
                 if not key or key in seen: continue
-                reason = condition(s, lead, self.app.clock(), self._status.min_score)
+                reason = condition(s, lead, self.app.clock(), self._status.min_score, queue=True)
                 if reason and reason != "condition_conflict": continue
+                fresh = rec.last_checked_at is not None and self.app.clock() - timedelta(hours=ttl_hours(s)) <= rec.last_checked_at <= self.app.clock()
+                if not fresh and not reason:
+                    if self.monotonic() >= self._refresh_after:
+                        from ..engine.runs import enqueue, RunConflict
+                        try:
+                            _, created = enqueue(s, "recheck_stale", source_id=lead.source_id, lead_id=lead.id,
+                                trigger="schedule", idempotency_key=f"auto-refresh:{lead.id}:{int(self.app.clock().timestamp() // 3600)}")
+                            if created:
+                                self._refresh_after = self.monotonic() + 60
+                                self._status.message = "저장 공고의 현재 본문·보수·모집 상태를 다시 확인한 뒤 지원합니다"
+                        except RunConflict:
+                            pass  # Existing scheduled source work keeps priority and quotas.
+                    continue
                 now = self.app.clock()
                 row = JobAutoAttempt(id=new_id("auto"), job_key=key, lead_id=lead.id, state="held" if reason else "claimed",
                     reason_code=reason, created_at=now, finished_at=now if reason else None,
@@ -279,7 +308,10 @@ class AutoApplyRuntime:
             self._expire(s)
             row = self._attempt(s, body)
             if row.state != "claimed": raise ApplicationError(409, "review_invalid", "검토 가능한 지원이 아닙니다")
-            reason = self._eligible(s, row)
+            if body.outcome == "already_applied" and body.reason_code == "already_applied":
+                row.state, row.reason_code, row.finished_at = "already_applied", "already_applied", self.app.clock()
+                return {"status": row.state}
+            reason = self._eligible(s, row, visible_form=body.outcome == "ready" and body.evidence == "application_form")
             if body.outcome == "ready" and self._profile is not None and self._profile != body.profile_hash: reason = "profile_changed"
             if reason:
                 row.state, row.reason_code, row.finished_at = "held", reason, self.app.clock()
@@ -287,7 +319,8 @@ class AutoApplyRuntime:
                 self._profile = body.profile_hash
                 row.state, row.reason_code = "ready", "ready"
                 receipt = secrets.token_urlsafe(32)
-                self._receipts[row.id] = (receipt, body.account_hash, body.profile_hash, self.monotonic() + RECEIPT_SECONDS)
+                self._receipts[row.id] = (receipt, body.account_hash, body.profile_hash, self.monotonic() + RECEIPT_SECONDS,
+                    body.evidence == "application_form")
                 return {"status": "ready", "receipt_token": receipt}
             else:
                 row.state = "already_applied" if body.outcome == "already_applied" and body.reason_code == "already_applied" else "held"

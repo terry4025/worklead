@@ -1,0 +1,87 @@
+{
+  "properties": {
+    "enabled": {
+      "default": false,
+      "title": "Enabled",
+      "type": "boolean"
+    },
+    "state": {
+      "default": "off",
+      "enum": [
+        "off",
+        "waiting",
+        "visible",
+        "panel_closed",
+        "surface_unrecognized",
+        "login_required",
+        "stale",
+        "account_changed"
+      ],
+      "title": "State",
+      "type": "string"
+    },
+    "text": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Text"
+    },
+    "observed_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Observed At"
+    },
+    "lead_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Lead Id"
+    },
+    "lead_title": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Lead Title"
+    },
+    "source": {
+      "const": "visible_chat_panel",
+      "default": "visible_chat_panel",
+      "title": "Source",
+      "type": "string"
+    },
+    "persists_body": {
+      "const": false,
+      "default": false,
+      "title": "Persists Body",
+      "type": "boolean"
+    }
+  },
+  "title": "ChatView",
+  "type": "object"
+}

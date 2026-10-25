@@ -171,7 +171,7 @@ def _sitemap(fetcher: Fetcher, url: str, root_name: str):
 def _title_match(title: str, keywords: list[str], specific_keywords: list[str], title_pattern: re.Pattern) -> tuple[bool, bool, bool]:
     """(core, explore, physical_filtered) for one public listing title."""
     normalized = re.sub(r"\s+", "", title).casefold()
-    query_match = any(word in normalized for word in keywords)
+    query_match = any(word in normalized or (word == "앱" and any(alias in normalized for alias in ("어플리케이션", "애플리케이션", "어플"))) for word in keywords)
     core = bool(title_pattern.search(title) or _SOFTWARE_DELIVERY_REQUEST.search(title)) and query_match
     explore = not core and query_match and (
         any(word in normalized for word in specific_keywords) or bool(_WEAK_CREATION_REQUEST.search(title))

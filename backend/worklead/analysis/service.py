@@ -16,9 +16,9 @@ from .text import first_sentence
 from .types import Ev, Factor, Judgement, PayInfo, PostInput, Profile, Profitability, Reason, RuleAnalysis, Scenario
 
 WEIGHTS = {
-    "work_fit": ("업무 적합성", 30),
-    "buyer_intent": ("구매 의도", 25),
-    "remote_fit": ("원격 적합성", 20),
+    "work_fit": ("업무 적합성", 35),
+    "buyer_intent": ("구매 의도", 30),
+    "remote_fit": ("원격 적합성", 10),
     "freshness": ("최신성", 15),
     "scope_clarity": ("범위 명확성", 10),
 }
@@ -59,19 +59,19 @@ def _score_work_fit(categories: list[str], dev: bool, profile: Profile, excluded
         return Factor("work_fit", label, mx, 3, "개발·자동화 업무 근거 없음")
     matched = [c for c in categories if c in profile.services]
     if profile.services and matched:
-        return Factor("work_fit", label, mx, min(mx, 24 + 3 * len(matched)), f"{names} — 제공 서비스와 일치")
+        return Factor("work_fit", label, mx, min(mx, 29 + 3 * len(matched)), f"{names} — 제공 서비스와 일치")
     if profile.services:
         return Factor("work_fit", label, mx, 16, f"{names} — 제공 서비스 목록에 없음")
-    return Factor("work_fit", label, mx, 20, f"{names} — 제공 서비스 미설정")
+    return Factor("work_fit", label, mx, 25, f"{names} — 개발 업무 근거 있음, 제공 서비스 미설정")
 
 
 def _score_intent(intent: Judgement, engagement: Judgement) -> Factor:
     label, mx = WEIGHTS["buyer_intent"]
     v, b = intent.value, intent.basis
     if v == "buyer_project":
-        return Factor("buyer_intent", label, mx, 23 if b == "explicit" else 18, "구매 표현 " + ("명시" if b == "explicit" else "추정"))
+        return Factor("buyer_intent", label, mx, 28 if b in ("explicit", "user_confirmed") else 20, "구매 표현 " + ("확인" if b == "user_confirmed" else "명시" if b == "explicit" else "추정"))
     if v == "buyer_ongoing":
-        return Factor("buyer_intent", label, mx, 21 if b == "explicit" else 16, "지속 의뢰 " + ("명시" if b == "explicit" else "추정"))
+        return Factor("buyer_intent", label, mx, 28 if b in ("explicit", "user_confirmed") else 20, "지속 의뢰 " + ("확인" if b == "user_confirmed" else "명시" if b == "explicit" else "추정"))
     if v == "employee_hiring":
         pts = 4 if engagement.value == "full_time" else 8
         return Factor("buyer_intent", label, mx, pts, "고용 공고 — 외주 구매 아님")
@@ -89,15 +89,15 @@ def _score_remote(work: Judgement, collab: Judgement, profile: Profile) -> Facto
         return Factor("remote_fit", label, mx, 0, "출근 필요")
     if v == "fully_remote":
         if b in ("explicit", "user_confirmed"):
-            pts, why = (20, "재택·온라인 진행 명시") if collab.value == "online_only" else (17, "재택 명시, 진행 방식 일부 불명확")
+            pts, why = (10, "재택·온라인 진행 명시") if collab.value == "online_only" else (8, "재택 명시, 진행 방식 일부 불명확")
         else:
-            pts, why = 8, "재택 명시 없음 — 추정"
+            pts, why = 4, "재택 명시 없음 — 추정"
     elif v == "hybrid":
-        pts, why = 8, "일부 재택"
+        pts, why = 4, "일부 재택"
     else:
-        pts, why = 10, "재택 협의"
+        pts, why = 5, "재택 협의"
     if collab.value == "onsite_required":
-        cap = {"no": 8, "first_meeting": 15, "yes": 18}[profile.onsite]
+        cap = {"no": 4, "first_meeting": 7, "yes": 9}[profile.onsite]
         pts, why = min(pts, cap), why + ", 대면 필요"
     return Factor("remote_fit", label, mx, pts, why)
 

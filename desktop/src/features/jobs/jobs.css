@@ -56,3 +56,6 @@
 @media (max-width: 850px) { .auto-apply-columns { grid-template-columns: minmax(0, 1fr); } .auto-apply-head { flex-wrap: wrap; gap: 0; } }
 @media (max-width: 1050px) { .jobs-columns { grid-template-columns: minmax(0, 1fr); } .jobs-connection { position: static; grid-row: 1; } }
 @media (max-width: 600px) { .jobs-workspace { padding: 18px 14px; } .jobs-workspace-head, .application-card-head { flex-wrap: wrap; } .application-card, .message-connection { padding: 16px; } }
+.message-inbox { border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; background: var(--surface); margin-bottom: 20px; }
+.message-inbox h2 { display: flex; align-items: center; gap: 8px; }
+.message-inbox-text { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 360px; overflow-y: auto; padding: 16px; border-radius: 8px; background: var(--bg-subtle, #f4f6f9); margin: 12px 0; line-height: 1.65; }

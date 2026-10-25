@@ -1,7 +1,7 @@
 """A short-lived loopback capability for one fixed Chrome companion extension.
 
-Only visible aggregate unread counts enter this process. No browser profile,
-cookies, account identifiers, chat text, remote APIs or submission transport.
+Unread counts and separately enabled visible chat text enter this process.
+Chat text stays in memory. No browser profile, cookies, remote APIs or sends.
 """
 from __future__ import annotations
 
@@ -18,6 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field, StrictInt, model_validator
 from ..db import MaintenanceBusy
 from .applications import ApplicationError
 from .messages import MessageStatus, record_count
+from .chat_view import ChatObservation, ChatView
 
 EXTENSION_ID = "ljakiellilahkchbfjalkecollnfldoc"
 EXTENSION_ORIGIN = f"chrome-extension://{EXTENSION_ID}"
@@ -69,6 +70,15 @@ class _Handler(BaseHTTPRequestHandler):
     def _reply(self, code: int, data=None, *, cors=False):
         payload = json.dumps(data or {}, separators=(",", ":")).encode()
         try:
+            # Drain a small rejected POST before closing. An unread body can
+            # turn an intended 4xx into a TCP reset on Windows. No parsing/logging.
+            if self.command == "POST" and not getattr(self, "_body_read", False) and not getattr(self, "_body_consumed", False):
+                length = self.headers.get("Content-Length", "")
+                cap = 25_000
+                if len(self.headers.get_all("Content-Length", [])) == 1 and len(length) <= 5 and length.isascii() and length.isdecimal() and 0 < int(length) <= cap:
+                    self.connection.settimeout(0.2)
+                    try: self.rfile.read(int(length))
+                    except (OSError, TimeoutError): pass
             self.send_response(code)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(payload)))
@@ -85,7 +95,7 @@ class _Handler(BaseHTTPRequestHandler):
 
     def _scope(self):
         runtime = self.server.runtime
-        if self.path != "/observe":
+        if self.path not in ("/observe", "/chat"):
             self._reply(404, {"error": "not_found"})
             return False
         if len(self.headers.get_all("Host", [])) != 1 or self.headers.get("Host") != f"127.0.0.1:{self.server.server_port}":
@@ -126,6 +136,7 @@ class _Handler(BaseHTTPRequestHandler):
         self._reply(405, {"error": "method_not_allowed"})
 
     def do_POST(self):
+        self._body_read = False
         if not self._scope():
             return
         runtime = self.server.runtime
@@ -141,26 +152,28 @@ class _Handler(BaseHTTPRequestHandler):
         if not raw_length.isascii() or not raw_length.isdecimal():
             self._reply(400, {"error": "invalid_length"}, cors=True)
             return
-        if len(raw_length) > 4:
+        if len(raw_length) > (5 if self.path == "/chat" else 4):
             self._reply(413, {"error": "body_too_large"}, cors=True)
             return
         length = int(raw_length)
-        if length < 1 or length > MAX_BODY:
+        if length < 1 or length > (25_000 if self.path == "/chat" else MAX_BODY):
             self._reply(413, {"error": "body_too_large"}, cors=True)
             return
         if self.headers.get("Content-Type", "").lower().replace(" ", "") not in {"application/json", "application/json;charset=utf-8"}:
             self._reply(415, {"error": "json_required"}, cors=True)
             return
         try:
+            self._body_read = True
             raw = self.rfile.read(length)
             if len(raw) != length:
                 raise ValueError("incomplete body")
-            observation = Observation.model_validate(json.loads(raw, object_pairs_hook=_unique_object))
+            model = ChatObservation if self.path == "/chat" else Observation
+            observation = model.model_validate(json.loads(raw, object_pairs_hook=_unique_object))
         except (ValueError, TypeError, UnicodeError, OSError, TimeoutError):
             self._reply(422, {"error": "invalid_observation"}, cors=True)
             return
         try:
-            result = runtime.observe(observation)
+            result = runtime.observe_chat(observation) if self.path == "/chat" else runtime.observe(observation)
         except ApplicationError as exc:
             self._reply(exc.status, {"error": exc.code}, cors=True)
         except Exception:
@@ -185,6 +198,11 @@ class ChromeBridgeRuntime:
         self._heartbeat = None
         self._generation = app.db.gate.generation
         self._status = MessageStatus(provider="chrome")
+        self._chat = ChatView()
+        self._chat_account = None
+        self._chat_sequence = 0
+        self._chat_heartbeat = None
+        self._chat_capture = False
 
     def _update(self, **changes):
         self._status = self._status.model_copy(update=changes)
@@ -207,7 +225,7 @@ class ChromeBridgeRuntime:
         with self._lock:
             return bool(self._token and not self._stop.is_set() and hmac.compare_digest(authorization.encode(), f"Bearer {self._token}".encode()))
 
-    def start(self):
+    def start(self, *, capture_visible_chat=False):
         with self._lock:
             if self._thread and self._thread.is_alive():
                 if self._stop.is_set():
@@ -222,7 +240,11 @@ class ChromeBridgeRuntime:
             self._gap_previous = None
             self._generation = self.app.db.gate.generation
             self._heartbeat = None  # Installation/pairing can precede the first observation.
+            self._chat_capture = capture_visible_chat
+            self._chat = ChatView(enabled=capture_visible_chat, state="waiting" if capture_visible_chat else "off")
+            self._chat_account, self._chat_sequence, self._chat_heartbeat = None, 0, None
             self._status = MessageStatus(provider="chrome", enabled=True, state="starting", needs_user_action=True,
+                                         captures_message_body=capture_visible_chat,
                                          message="크롬 확장 연결 대기 중입니다. 선택한 당근 탭을 연결하세요")
             self._thread = threading.Thread(target=self._run, name="jobs-chrome-bridge", daemon=True)
             self._thread.start()
@@ -244,6 +266,54 @@ class ChromeBridgeRuntime:
                                  browser_open=False, needs_user_action=True, message="크롬 확장 연결을 시작하지 못했습니다. 다시 연결하세요")
         finally:
             server.server_close()
+
+    def chat_view(self):
+        with self._lock:
+            if self._generation != self.app.db.gate.generation:
+                self._chat_capture = False
+                self._chat = ChatView()
+            if self._chat.enabled and self._chat_heartbeat is not None and self.monotonic() - self._chat_heartbeat >= HEARTBEAT_SECONDS:
+                self._chat = ChatView(enabled=True, state="stale")
+            return self._chat.model_copy(deep=True)
+
+    def observe_chat(self, observation: ChatObservation):
+        with self._lock:
+            if not self._chat_capture or self._stop.is_set() or not self._status.enabled:
+                raise ApplicationError(403, "chat_capture_not_enabled", "보이는 채팅 표시를 먼저 켜세요")
+            if self._generation != self.app.db.gate.generation:
+                self._chat_capture = False
+                self._chat = ChatView()
+                raise ApplicationError(409, "database_restored", "복원 후 새 코드로 다시 연결하세요")
+            if observation.sequence <= self._chat_sequence:
+                raise ApplicationError(409, "stale_sequence", "지난 채팅 관찰입니다")
+            if observation.state == "login_required" or (self._chat_account and self._chat_account != observation.account_hash):
+                state = "login_required" if observation.state == "login_required" else "account_changed"
+                self._chat_capture = False
+                self._chat = ChatView(state=state)
+                self._previous = self._gap_previous = None
+                self._update(enabled=False, state="login_required" if state == "login_required" else "error",
+                    captures_message_body=False, unread_count=None, needs_user_action=True,
+                    message="당근 로그인 계정이 바뀌어 보이는 채팅 표시를 지웠습니다. 새 코드로 다시 연결하세요")
+                return {"accepted": False, "reconnect_required": True}
+            lead_id = lead_title = None
+            if observation.job_id:
+                from sqlalchemy import select
+                from ..models import Lead, SourceRecord
+                with self.app.db.session() as s:
+                    rows = s.scalars(select(SourceRecord).where(SourceRecord.source_id == "daangn-alba",
+                        SourceRecord.source_post_id == observation.job_id)).all()
+                    ids = {r.lead_id for r in rows if r.lead_id}
+                    if len(ids) == 1:
+                        lead = s.get(Lead, next(iter(ids)))
+                        if lead:
+                            lead_id, lead_title = lead.id, lead.title
+            self._chat_account = observation.account_hash
+            self._chat_sequence = observation.sequence
+            self._chat_heartbeat = self.monotonic()
+            self._chat = ChatView(enabled=True, state=observation.state, text=observation.text,
+                observed_at=self.app.clock(), lead_id=lead_id, lead_title=lead_title)
+            # Body is never written to SQLite, notification payloads, logs or AI.
+            return {"accepted": True, "reconnect_required": False}
 
     def observe(self, observation: Observation):
         with self._lock:
@@ -290,7 +360,8 @@ class ChromeBridgeRuntime:
                     self._gap_previous = None
                     self._update(state="watching", unread_count=observation.unread_count, last_observed_at=now,
                                  error_code=None, browser_open=True, needs_user_action=False,
-                                 message="선택한 크롬 탭의 읽지 않은 메시지 수만 감시합니다. 본문·발신자는 읽거나 저장하지 않습니다")
+                                 message=("미읽음 수를 감시하며 보이는 채팅 내용을 일시 표시합니다. 대화방 선택·메시지 전송은 하지 않습니다"
+                                     if self._chat_capture else "선택한 크롬 탭의 읽지 않은 메시지 수만 감시합니다. 본문·발신자는 읽거나 저장하지 않습니다"))
                     if increased:
                         self._update(last_increase_at=now)
             self._heartbeat = self.monotonic()
@@ -303,6 +374,9 @@ class ChromeBridgeRuntime:
         self._stop.set()
         with self._lock:
             self._token, self._url, self._previous = "", "", None
+            self._chat_capture = False
+            self._chat = ChatView()
+            self._chat_account = None
             self._gap_previous = None
             self._update(enabled=False, state="stopped", unread_count=None, last_observed_at=None,
                          error_code=None, browser_open=False, needs_user_action=True, message="크롬 확장 연결이 중지되었습니다")

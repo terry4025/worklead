@@ -18,7 +18,7 @@ from .text import any_match, c, find
 from .pay import EXPLICIT_SALARY
 from .types import Ev, Judgement, Risk
 
-RULE_VERSION = "rules-2026.10.25-delivery"
+RULE_VERSION = "rules-2026.10.25-fit2"
 
 # ── 요청 유형 ─────────────────────────────────────────────────────────
 SELLER = c(
@@ -30,6 +30,10 @@ SELLER = c(
 )
 JOB_SEEKER = c(r"구직\s*(?:중|합니다)", r"일\s*(?:구합니다|구해요|찾습니다|찾아요)", r"일자리\s*(?:구|찾)", r"알바\s*구해요")
 BUYER = c(
+    r"(?:홈페이지|홈피|웹\s*(?:사이트|페이지|서비스)|워드프레스|프로그램|소프트웨어|앱|어플(?:리케이션)?|API|매크로)"
+    r"(?:\s*(?:의|을|를|접속|오류|버그|결제|로그인|기능|페이지|서버|코드|좀|에러|이|가)){0,8}\s*"
+    r"(?:고쳐\s*(?:주실|주세요)|(?:복구|버그\s*수정|오류\s*해결|연동|배포|퍼블리싱)\s*(?:을|를)?\s*(?:의뢰|요청|부탁|해\s*주실|해\s*주세요))"
+    r"(?!\s*(?:는|은|가|이)?\s*(?:아니|아닌|아닙|아님|없))",
     r"(?:만들어|제작해|개발해|수정해|구축해|연동해|리뉴얼\s*해|고쳐|맡아)\s*(?:주실|줄|주세요|주시|주셨으면)",
     r"(?:만들어|제작해|개발해)\s*주실\s*수\s*있는\s*분",
     r"(?:제작|개발|구축|수정|리뉴얼)\s*(?:을|를)?\s*(?:의뢰|외주)",
@@ -143,7 +147,7 @@ CATEGORY_RULES: list[tuple[str, list[re.Pattern[str]], bool]] = [
     ("shop", c(r"쇼핑몰", r"카페24|자사몰", r"상세\s*페이지"), False),
     ("website", c(r"홈페이지|홈피", r"웹\s*사이트|웹사이트", r"워드프레스|wordpress", r"예약\s*페이지", r"웹\s*페이지"), False),
     ("fullstack", c(r"웹\s*(?:프로그램|서비스|앱)", r"관리자\s*페이지|관리\s*페이지", r"풀스택", r"백엔드|서버\s*개발", r"앱\s*[·/,]\s*웹|웹\s*[·/,]\s*앱", r"플랫폼\s*개발"), True),
-    ("software", c(r"프로그램\s*(?:제작|개발|이\s*필요)", r"소프트웨어", r"C#|파이썬|python|자바|윈도우\s*(?:PC|프로그램)", r"변환\s*프로그램", r"(?:앱|어플)\s*(?:개발|제작)", r"크롤링|크롤러|시스템\s*(?:개발|구축)"), True),
+    ("software", c(r"프로그램\s*(?:제작|개발|이\s*필요)", r"소프트웨어", r"C#|파이썬|python|자바|윈도우\s*(?:PC|프로그램)", r"변환\s*프로그램", r"(?:앱|어플(?:리케이션)?|애플리케이션)\s*(?:개발|제작|복구)", r"크롤링|크롤러|시스템\s*(?:개발|구축)"), True),
     ("vba", c(r"VBA|vba", r"매크로", r"엑셀[^.\n]{0,15}(?:자동|매크로|함수\s*개발)"), True),
     ("automation", c(r"자동화(?!물)", r"자동으로", r"API|api|(?i:RPA)", r"연동", r"알림톡", r"구글\s*(?:시트|스프레드시트)", r"스프레드시트"), True),
     ("data", c(r"데이터\s*(?:정리|입력|취합)", r"정리\s*작업", r"엑셀\s*(?:정리|취합|입력)", r"취합"), False),
@@ -312,7 +316,7 @@ def classify_scope(title: str, body: str) -> Judgement:
 
 def classify_categories(title: str, body: str) -> tuple[list[str], bool]:
     text = f"{title}\n{body}"
-    has_verb = bool(DEV_VERB.search(text))
+    has_verb = bool(DEV_VERB.search(text) or BUYER[0].search(text))
     out: list[str] = []
     for cid, pats, inherently_dev in CATEGORY_RULES:
         if any_match(pats, text) and (inherently_dev or has_verb or cid == "data"):
@@ -322,6 +326,9 @@ def classify_categories(title: str, body: str) -> tuple[list[str], bool]:
     change = SOFTWARE_CHANGE_REQUEST.search(text)
     if not out and change:
         out.append("website" if re.search(r"사이트|(?i:HTML|CSS|React)", change.group()) else "software")
+    repair = BUYER[0].search(text)
+    if not out and repair:
+        out.append("website" if re.search(r"홈페이지|홈피|웹|워드프레스", repair.group()) else "software")
     # '엑셀 데이터 정리' 는 데이터 정리이지 VBA 개발이 아니다
     if "vba" in out and not re.search(r"VBA|vba|매크로|자동", text):
         out.remove("vba")
@@ -374,7 +381,7 @@ def non_delivery_reason(title: str, body: str) -> tuple[str, Ev] | None:
     advice = find(ADVICE_REQUEST, body, title, "explicit")
     if advice and not SOFTWARE_CHANGE_REQUEST.search(f"{title}\n{body}"):
         return "첨삭·조언 요청 — 제작 납품 의뢰 아님", advice
-    primary_education = re.search(r"과외|강의|가르쳐|배우|교육해\s*주|교육\s*선생|취업.*도와", title)
+    primary_education = re.search(r"과외|강의|가르쳐|배우|교육해\s*주|교육\s*선생|취업.*도와|(?:제작|개발|코딩)(?:하는\s*(?:거|것|방법)|\s*방법)[^.\n]{0,12}알려", title)
     delivery_title = re.search(r"(?:제작|개발|구축|납품)\s*(?:의뢰|외주)|납품", title)
     education = find(c(r"과외", r"강의", r"교육해\s*주", r"가르쳐\s*주", r"배우고\s*싶", r"선생님|수업"), body, title, "explicit")
     if education and primary_education and not delivery_title:

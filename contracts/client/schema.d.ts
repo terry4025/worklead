@@ -381,6 +381,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/jobs/messages/inbox": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inbox */
+        get: operations["inbox_v1_jobs_messages_inbox_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/jobs/messages/start": {
         parameters: {
             query?: never;
@@ -1918,6 +1935,40 @@ export interface components {
             /** Label */
             label: string;
         };
+        /** ChatView */
+        ChatView: {
+            /**
+             * Enabled
+             * @default false
+             */
+            enabled: boolean;
+            /**
+             * State
+             * @default off
+             * @enum {string}
+             */
+            state: "off" | "waiting" | "visible" | "panel_closed" | "surface_unrecognized" | "login_required" | "stale" | "account_changed";
+            /** Text */
+            text?: string | null;
+            /** Observed At */
+            observed_at?: string | null;
+            /** Lead Id */
+            lead_id?: string | null;
+            /** Lead Title */
+            lead_title?: string | null;
+            /**
+             * Source
+             * @default visible_chat_panel
+             * @constant
+             */
+            source: "visible_chat_panel";
+            /**
+             * Persists Body
+             * @default false
+             * @constant
+             */
+            persists_body: false;
+        };
         /** ChromeConnection */
         ChromeConnection: {
             /** Url */
@@ -1931,6 +1982,19 @@ export interface components {
             status: components["schemas"]["MessageStatus"];
             /** Extension Directory */
             extension_directory: string;
+        };
+        /** ChromeStartIn */
+        ChromeStartIn: {
+            /**
+             * Confirm
+             * @constant
+             */
+            confirm: true;
+            /**
+             * Capture Visible Chat
+             * @default false
+             */
+            capture_visible_chat: boolean;
         };
         /** CollaborationAssessed */
         CollaborationAssessed: {
@@ -4199,6 +4263,26 @@ export interface operations {
             };
         };
     };
+    inbox_v1_jobs_messages_inbox_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatView"];
+                };
+            };
+        };
+    };
     start_v1_jobs_messages_start_post: {
         parameters: {
             query?: never;
@@ -4281,7 +4365,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["StartMessageWatch"];
+                "application/json": components["schemas"]["ChromeStartIn"];
             };
         };
         responses: {

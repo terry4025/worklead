@@ -34,7 +34,8 @@ export interface JobsPort {
   messagesStatus(): Promise<MessageWatchStatus>;
   messagesStart(): Promise<MessageWatchStatus>;
   messagesStop(): Promise<MessageWatchStatus>;
-  messagesChromeStart(): Promise<ChromeMessageConnection>;
+  messagesChromeStart(captureVisibleChat?: boolean): Promise<ChromeMessageConnection>;
+  messagesInbox(): Promise<import('@contracts/index').JobChatView>;
 }
 
 export type { JobAutoApplyStatus as AutoApplyStatus, JobAutoApplyStart as AutoApplyStart, JobAutoApplyAttempt as AutoApplyAttempt } from '@contracts/index';
@@ -51,7 +52,7 @@ export interface MessageWatchStatus {
   message: string;
   poll_interval_seconds: number;
   observation: 'visible_unread_badge';
-  captures_message_body: false;
+  captures_message_body: boolean;
   browser_notifications: 'default' | 'granted' | 'denied' | 'unsupported' | 'unknown';
   browser_open: boolean;
   needs_user_action: boolean;

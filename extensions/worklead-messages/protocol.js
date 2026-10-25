@@ -18,3 +18,11 @@ export function validSample(value) {
     ['watching', 'login_required', 'surface_unrecognized'].includes(value.state) &&
     (value.state === 'watching' ? Number.isSafeInteger(value.unread_count) && value.unread_count >= 0 && value.unread_count <= 9999999 : value.unread_count === null);
 }
+
+export function validChatSample(v) {
+  return v && Object.keys(v).sort().join(',') === 'account_hash,job_id,state,text' &&
+    ['visible','panel_closed','surface_unrecognized','login_required'].includes(v.state) &&
+    (v.state === 'visible' ? typeof v.text === 'string' && v.text.length > 0 && v.text.length <= 4000 : v.text === null) &&
+    (v.state === 'login_required' ? v.account_hash === null : typeof v.account_hash === 'string' && /^[a-f0-9]{64}$/.test(v.account_hash)) &&
+    (v.job_id === null || (v.state === 'visible' && typeof v.job_id === 'string' && /^[A-Za-z0-9]{12}$/.test(v.job_id)));
+}

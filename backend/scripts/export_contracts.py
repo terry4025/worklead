@@ -193,6 +193,20 @@ def jobs_only() -> None:
 
 
 def main() -> None:
+    if "--auto-apply-only" in sys.argv:
+        from worklead.jobs.auto_apply_models import AutoApplyStartIn, AutoApplyStartOut, AutoApplyStatus, AutoAttemptOut, AutoConnection
+        with tempfile.TemporaryDirectory(prefix="worklead-auto-apply-contracts-") as tmp:
+            ctx = make_ctx(Path(tmp), dev=True)
+            try:
+                c = client_for(ctx)
+                write_openapi(c.app)
+                for model in (AutoApplyStartIn, AutoApplyStartOut, AutoApplyStatus, AutoAttemptOut, AutoConnection, S.SourcePatch):
+                    dump(OUT / "schemas" / f"{model.__name__}.schema.json", model.model_json_schema())
+                dump(OUT / "fixtures" / "auto-apply-stopped.json", c.get("/v1/jobs/auto-apply/status").json())
+            finally:
+                ctx.db.dispose()
+        print("auto-apply contracts written; no pairing secret exported; unrelated fixtures preserved")
+        return
     if "--chrome-only" in sys.argv:
         from worklead.jobs.messages import MessageStatus
         from worklead.api.job_chrome_routes import ChromeConnection, ChromeStart

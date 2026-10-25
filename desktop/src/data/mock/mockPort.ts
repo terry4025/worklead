@@ -30,7 +30,7 @@ import { PortError, type WorkleadPort } from '../port';
 import { DEMO_CATEGORIES, buildImportedLead, buildReserveLead } from './fixtures';
 import { buildScenario, type ScenarioId } from './scenarios';
 import { MockCafePort } from './MockCafePort';
-import type { ApplicationEntry, JobsPort, MessageWatchStatus } from '../../domain/jobs';
+import type { ApplicationEntry, AutoApplyStatus, JobsPort, MessageWatchStatus } from '../../domain/jobs';
 
 const QUEUES: Bootstrap['queues'] = [
   { id: 'fresh', label: '지금 검토', description: '24시간 내 게시된 모집 중 제작 의뢰 · 추천과 확인 필요' },
@@ -136,6 +136,9 @@ const DEFAULT_SETTINGS: SettingsView = {
 export class MockPort implements WorkleadPort {
   readonly cafe = new MockCafePort();
   readonly jobs: JobsPort = {
+    autoApplyStatus: () => this.delay(() => this.autoApplyStatus),
+    autoApplyStart: () => this.delay(() => { throw new PortError({ kind: 'api', code: 'demo_only', message: '데모에서는 자동 지원 연결이나 실제 제출을 실행하지 않습니다.' }); }),
+    autoApplyStop: () => this.delay(() => this.autoApplyStatus),
     messagesChromeStart: () => this.delay(() => {
       this.messageStatus = { ...this.messageStatus, provider: 'chrome', enabled: true, state: 'starting', unread_count: null, last_observed_at: null, needs_user_action: true, browser_open: false, message: '데모에서는 크롬 확장 연결과 실제 메시지 관찰을 하지 않습니다.' };
       return { connection: { url: 'http://127.0.0.1:0', token: 'demo-only-not-a-real-connection' }, status: this.messageStatus, extension_directory: '데모에서는 확장 폴더를 준비하지 않습니다.' };
@@ -167,6 +170,10 @@ export class MockPort implements WorkleadPort {
       lead.draft = { text, generatedAt: lead.draft?.generatedAt ?? null, editedByUser: true };
       return this.applicationEntry(lead);
     }),
+  };
+  private autoApplyStatus: AutoApplyStatus = {
+    enabled: false, state: 'stopped', min_score: 50, daily_limit: 20, today_submitted: 0, today_reserved: 0,
+    held: 0, uncertain: 0, last_connected_at: null, error_code: null, message: '자동 지원이 중지되어 있습니다.', attempts: [],
   };
   private messageStatus: MessageWatchStatus = {
     enabled: false, state: 'stopped', unread_count: null, last_observed_at: null, last_increase_at: null,

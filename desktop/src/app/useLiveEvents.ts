@@ -53,7 +53,7 @@ export function useLiveEvents(onOpenLead: (id: string) => void, onOpenMessages?:
       try {
         // Inactive filters must also be stale when the user next opens them.
         await qc.invalidateQueries({ queryKey: qk.leadsAll, refetchType: 'none' });
-        await qc.refetchQueries({ queryKey: qk.leadsAll, type: 'active' }, { throwOnError: true });
+        await qc.refetchQueries({ queryKey: qk.leadsAll, type: 'active' }, { throwOnError: true, cancelRefetch: false });
         if (!disposed && epoch === getDatabaseEpoch(qc) && refreshSerial.current === serial && listRevision.current === revision) {
           setNewLeads(0);
           setListStale(false);
@@ -93,7 +93,7 @@ export function useLiveEvents(onOpenLead: (id: string) => void, onOpenMessages?:
     const handle = (e: WorkleadEvent) => {
       switch (e.type) {
         case 'run.progress':
-          qc.setQueriesData<RunInfo[]>({ queryKey: qk.runs }, (runs) => runs?.map((r) => (r.id === e.runId ? { ...r, state: 'running', progress: e.progress } : r)));
+          qc.setQueriesData<RunInfo[]>({ queryKey: qk.runs }, (runs) => runs?.map((r) => (r.id === e.runId && ['queued', 'running'].includes(r.state) ? { ...r, state: 'running', progress: e.progress } : r)));
           if (!qc.getQueryData<RunInfo[]>([...qk.runs, 'status'])?.some((r) => r.id === e.runId)) void qc.invalidateQueries({ queryKey: qk.runs });
           scheduleRefresh();
           break;
@@ -194,7 +194,7 @@ export function useLiveEvents(onOpenLead: (id: string) => void, onOpenMessages?:
       const revision = listRevision.current;
       const serial = ++refreshSerial.current;
       try {
-        await qc.refetchQueries({ queryKey: qk.leadsAll, type: 'active' }, { throwOnError: true });
+        await qc.refetchQueries({ queryKey: qk.leadsAll, type: 'active' }, { throwOnError: true, cancelRefetch: false });
       } catch {
         if (refreshSerial.current === serial) setListStale(true);
         return false;

@@ -1,0 +1,106 @@
+{
+  "$defs": {
+    "PolicyReviewIn": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "permission_pending",
+            "allowed",
+            "restricted",
+            "blocked"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "basis": {
+          "anyOf": [
+            {
+              "maxLength": 4000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "허용·제한 판단 근거 (약관 조항, 허가 문서 등). allowed/restricted 에 필수",
+          "title": "Basis"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "maxLength": 4000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "title": "PolicyReviewIn",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "auto_collect_enabled": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Auto Collect Enabled"
+    },
+    "interval_minutes": {
+      "anyOf": [
+        {
+          "maximum": 10080,
+          "minimum": 5,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Interval Minutes"
+    },
+    "clear_stop": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "차단으로 정지된 소스를 사용자가 확인 후 해제",
+      "title": "Clear Stop"
+    },
+    "policy": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PolicyReviewIn"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "title": "SourcePatch",
+  "type": "object"
+}

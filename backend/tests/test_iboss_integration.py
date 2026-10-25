@@ -85,7 +85,7 @@ def test_existing_task_and_permission_survive_checkpoint_migration(tmp_path):
     with ctx.db.session() as s:
         assert s.get(CollectionTask, "task-migrate").checkpoint == {}
         assert s.get(SourcePolicy, "iboss").basis == "이전 권한 보존"
-    assert storage.validate_database(ctx.config.db_path) == ("0007_discovery_listings", 0)
+    assert storage.validate_database(ctx.config.db_path) == ("0008_job_auto_attempts", 0)
     with sqlite3.connect(ctx.config.db_path) as conn:
         assert conn.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
     ctx.db.dispose()

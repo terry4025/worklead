@@ -466,6 +466,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/jobs/auto-apply/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status */
+        get: operations["status_v1_jobs_auto_apply_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/jobs/auto-apply/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start */
+        post: operations["start_v1_jobs_auto_apply_start_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/jobs/auto-apply/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stop */
+        post: operations["stop_v1_jobs_auto_apply_stop_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/health": {
         parameters: {
             query?: never;
@@ -1242,12 +1293,122 @@ export interface components {
              */
             created_at: string;
         };
+        /** AutoApplyStartIn */
+        AutoApplyStartIn: {
+            /**
+             * Confirm
+             * @constant
+             */
+            confirm: true;
+            /**
+             * Min Score
+             * @default 50
+             */
+            min_score: number;
+            /**
+             * Daily Limit
+             * @default 20
+             */
+            daily_limit: number;
+        };
+        /** AutoApplyStartOut */
+        AutoApplyStartOut: {
+            connection: components["schemas"]["AutoConnection"];
+            status: components["schemas"]["AutoApplyStatus"];
+            /** Extension Directory */
+            extension_directory: string;
+        };
+        /** AutoApplyStatus */
+        AutoApplyStatus: {
+            /**
+             * Enabled
+             * @default false
+             */
+            enabled: boolean;
+            /**
+             * State
+             * @default stopped
+             * @enum {string}
+             */
+            state: "stopped" | "waiting" | "connected" | "paused";
+            /**
+             * Min Score
+             * @default 50
+             */
+            min_score: number;
+            /**
+             * Daily Limit
+             * @default 20
+             */
+            daily_limit: number;
+            /**
+             * Today Submitted
+             * @default 0
+             */
+            today_submitted: number;
+            /**
+             * Today Reserved
+             * @default 0
+             */
+            today_reserved: number;
+            /**
+             * Held
+             * @default 0
+             */
+            held: number;
+            /**
+             * Uncertain
+             * @default 0
+             */
+            uncertain: number;
+            /** Last Connected At */
+            last_connected_at?: string | null;
+            /** Error Code */
+            error_code?: string | null;
+            /**
+             * Message
+             * @default 자동 지원이 꺼져 있습니다
+             */
+            message: string;
+            /** Attempts */
+            attempts?: components["schemas"]["AutoAttemptOut"][];
+        };
+        /** AutoAttemptOut */
+        AutoAttemptOut: {
+            /** Id */
+            id: string;
+            /** Lead Id */
+            lead_id: string;
+            /** Title */
+            title: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "claimed" | "ready" | "submitting" | "submitted" | "already_applied" | "held" | "uncertain";
+            /** Reason Code */
+            reason_code: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Finished At */
+            finished_at: string | null;
+        };
         /** AutoCollect */
         AutoCollect: {
             /** Enabled */
             enabled: boolean;
             /** Interval Minutes */
             interval_minutes: number | null;
+        };
+        /** AutoConnection */
+        AutoConnection: {
+            /** Url */
+            url: string;
+            /** Token */
+            token: string;
         };
         /** BackupInspection */
         BackupInspection: {
@@ -4160,6 +4321,79 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MessageStatus"];
+                };
+            };
+        };
+    };
+    status_v1_jobs_auto_apply_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutoApplyStatus"];
+                };
+            };
+        };
+    };
+    start_v1_jobs_auto_apply_start_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AutoApplyStartIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutoApplyStartOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stop_v1_jobs_auto_apply_stop_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutoApplyStatus"];
                 };
             };
         };

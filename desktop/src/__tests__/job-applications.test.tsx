@@ -33,14 +33,14 @@ function harness(initial = entry()) {
   return { port, qc, wrapper, workspace };
 }
 
-it('확인 필요 공고의 보류 사유와 기존 초안을 보여주며 자동 제출 동작을 제공하지 않는다', async () => {
+it('확인 필요 공고의 기존 초안은 별도 자동 지원과 분리해 보존한다', async () => {
   const { port, wrapper, workspace } = harness();
   const prepare = vi.spyOn(port.jobs, 'prepare').mockResolvedValue(entry());
   const open = vi.spyOn(external, 'openExternal').mockResolvedValue('opened');
   render(workspace, { wrapper });
   await screen.findByText('상세페이지 제작 의뢰');
   expect(screen.getByText('재택 가능 여부 확인 필요')).toBeTruthy();
-  expect(screen.getByText('초안 전용 · 자동 제출 꺼짐')).toBeTruthy();
+  expect(screen.getByText('저장된 초안과 자동 지원을 따로 관리합니다')).toBeTruthy();
   expect(screen.queryByRole('button', { name: /제출하기|자동 지원 켜기/ })).toBeNull();
   expect(prepare).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole('button', { name: '저장된 초안 열기' }));

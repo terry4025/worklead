@@ -5,14 +5,14 @@
   "research": {
     "document": "docs/SOURCE_RESEARCH.md",
     "reviewed_at": "2026-10-17T15:00:00+09:00",
-    "notes": "2026-09-28 robots가 공개한 sitemap.xml과 공고 사이트맵 전체 확인. 지역 제한 없이 제목으로 개발 관련 후보 선별 후 공개 상세 HTML 확인. 사이트맵 미등재·본문에만 관련 표현이 있는 공고의 누락 가능성 있음. 설치별 권한 기록 필요. 2026-10-17 공개 지역 피드(/s?regionId=, 첫 20건, 직종 필터) 검증: RANGE_4 고정·GraphQL 페이지 미사용. 표본 261개 동네로 앵커 99개 선정(A 70 매 감시, C 29 120분). 피드 반경 밖·다른 직종·제목 무관 공고는 12시간 사이트맵 보완에 의존."
+    "notes": "2026-09-28 robots가 공개한 sitemap.xml과 공고 사이트맵 전체 확인. 지역 제한 없이 제목으로 개발 관련 후보 선별 후 공개 상세 HTML 확인. 사이트맵 미등재·본문에만 관련 표현이 있는 공고의 누락 가능성 있음. 설치별 권한 기록 필요. 2026-10-17 공개 지역 피드(/s?regionId=, 첫 20건, 직종 필터) 검증: RANGE_4 고정·GraphQL 페이지 미사용. 표본 261개 동네로 앵커 99개 선정(A 70 매 감시, C 29 120분). 피드 반경 밖·다른 직종·제목 무관 공고는 12시간 사이트맵 보완에 의존. 2026-10-25: 5분 마이크로 감시, A30분/C120분, 최근 신규 제작 후보 관찰 앵커 최대8개10분. HTTP6초·5500/일 유지."
   },
   "allowed_hosts": [
     "jobs.daangn.com"
   ],
   "request_budget_per_day": 5500,
   "min_interval_seconds": 6,
-  "default_interval_minutes": 15,
+  "default_interval_minutes": 5,
   "search": {
     "status": "unverified",
     "url_template": null,
@@ -63,7 +63,7 @@
     },
     "incremental": {
       "support": "supported",
-      "note": "공개 목록 최초 관찰 보존. 신규 후보 수만큼 감시당 상세 한도를 늘림(기본 4, 최대 40), 건당 보수 우선. 남은 목록 감시 예산 보호. 기존 자동 재조회 최대 1회/감시"
+      "note": "공개 목록 최초 관찰 보존. 신규 후보 수만큼 감시당 상세 한도를 늘림(기본 4, 최대 40), 건당 보수 우선. 남은 목록 감시 예산 보호. 기존 자동 재조회 최대 1회/감시 최근 신규 제작 후보 관찰 지역 최대8개를10분 우선 확인; 나머지A30분/C120분."
     },
     "detail": {
       "support": "supported",
@@ -91,7 +91,7 @@
         "TUTORING"
       ],
       "tier_minutes": {
-        "A": 0,
+        "A": 30,
         "B": 60,
         "C": 120
       },
@@ -195,7 +195,12 @@
         [7004, "제주특별자치도 제주시 용강동", "A"],
         [7085, "충청남도 아산시 득산동", "A"],
         [7110, "충청남도 천안시 동남구 쌍용동", "A"]
-      ]
+      ],
+      "adaptive": {
+        "history_days": 30,
+        "max_hot_anchors": 8,
+        "hot_minutes": 10
+      }
     },
     "max_sitemaps": 20,
     "exploration_max_requests": 50,

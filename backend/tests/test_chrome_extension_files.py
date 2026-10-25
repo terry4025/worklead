@@ -16,8 +16,8 @@ def test_extension_preparation_and_scope(tmp_path):
     manifest = json.loads((path / 'manifest.json').read_text(encoding='utf-8'))
     digest = hashlib.sha256(base64.b64decode(manifest['key'])).hexdigest()[:32]
     assert ''.join(chr(97 + int(ch, 16)) for ch in digest) == EXTENSION_ID
-    assert manifest['permissions'] == ['activeTab', 'scripting', 'storage']
-    assert manifest['optional_host_permissions'] == ['http://127.0.0.1/*']
+    assert manifest['permissions'] == ['activeTab', 'scripting', 'storage', 'alarms']
+    assert manifest['optional_host_permissions'] == ['http://127.0.0.1/*', 'https://jobs.daangn.com/*']
     assert not manifest.get('host_permissions')
     assert not manifest.get('content_scripts')
     assert not manifest.get('externally_connectable')

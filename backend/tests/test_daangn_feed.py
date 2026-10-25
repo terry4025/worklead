@@ -100,6 +100,8 @@ def test_slug_matches_public_detail_urls():
 
 def test_plan_tiers_and_daily_list_requests():
     adapter = create()
+    adapter.profile["discovery"]["feed"].pop("adaptive")
+    adapter.profile["discovery"]["feed"]["tier_minutes"]["A"] = 0
     adapter.profile["discovery"]["feed"]["anchors"] = [[28, "신당동", "A"], [500, "영도", "B"], [2000, "홍천", "C"]]
     tasks = adapter.plan_discovery([{"id": "dev", "keywords": ["프로그램"]}], NOW).tasks
     assert [(t.region_scope, t.min_revisit_minutes) for t in tasks] == [
@@ -159,8 +161,8 @@ def test_tiered_units_revisit_on_their_own_interval(tmp_path):
     ctx, c, clock, calls = site(tmp_path, [[28, "신당동", "A"], [500, "영도", "B"]], {})
     collect(ctx, c)
     assert lists(calls) == ["/s?regionId=28", "/s?regionId=500", "/sitemap.xml"]
-    for minutes, expected in ((15, ["/s?regionId=28"]), (30, ["/s?regionId=28"]),
-                              (60, ["/s?regionId=28", "/s?regionId=500"]), (75, ["/s?regionId=28"])):
+    for minutes, expected in ((15, []), (30, ["/s?regionId=28"]),
+                              (60, ["/s?regionId=28", "/s?regionId=500"]), (75, [])):
         calls.clear()
         clock[0] = NOW + timedelta(minutes=minutes, seconds=40)
         collect(ctx, c)
@@ -205,7 +207,7 @@ def test_watch_reserve_uses_declared_tier_volume(tmp_path):
         source = s.get(Source, "daangn-alba")
         source.auto_collect_enabled, source.interval_minutes = True, 15
         # half of the UTC day's (95 + 24 + 4) list requests remain
-        assert watch_reserve(s, ctx, "daangn-alba", adapter) == math.ceil(adapter.daily_list_requests(15) / 2) == 62
+        assert watch_reserve(s, ctx, "daangn-alba", adapter) == adapter.remaining_list_requests(12 * 3600, 15)
     ctx.db.dispose()
 
 
@@ -233,9 +235,9 @@ def test_all_due_feeds_fit_one_watch_beyond_default_task_cap(tmp_path):
     collect(ctx, c)
     assert len([u for u in lists(calls) if u.startswith("/s?")]) == 70
     calls.clear()
-    clock[0] = NOW + timedelta(minutes=20)
+    clock[0] = NOW + timedelta(minutes=30)
     collect(ctx, c)
-    assert len(lists(calls)) == 70  # every fast unit again, nothing left over
+    assert len(lists(calls)) == 70  # all ordinary units due again, nothing left over
     ctx.db.dispose()
 
 

@@ -13,6 +13,7 @@ import { ErrorState, errorMessage } from '../../ui/States';
 import { StatusMark } from '../../ui/StatusMark';
 import { useToast } from '../../ui/Toasts';
 import { MessageConnectionPanel } from './MessageConnectionPanel';
+import { AutoApplyPanel } from './AutoApplyPanel';
 import './jobs.css';
 
 const applicationKey = ['jobs', 'applications'] as const;
@@ -57,7 +58,7 @@ export function ApplicationAssessment({ leadId }: { leadId: string }) {
   if (!q.data) return <p className="field-hint" role="status">지원 준비 조건 확인 중…</p>;
   return <div className="application-inline">
     <HoldReasons entry={q.data} />
-    <p className="field-hint">자동 제출 꺼짐 · 기존 정보로 초안만 준비합니다. 불확실한 조건은 제출 보류합니다.</p>
+    <p className="field-hint">이 초안은 자동 전송하지 않습니다. 점수 기준 자동 지원은 지원 준비 화면에서 별도로 시작·연결합니다.</p>
     {!q.data.draft ? <Button size="sm" icon={<FileText size={14} />} disabled={!q.data.can_prepare} busy={prepare.isPending} onClick={() => prepare.mutate(leadId)}>지원 초안 준비</Button> : <p className="field-hint">저장된 초안을 유지합니다. 아래에서 내용을 확인·편집하세요.</p>}
   </div>;
 }
@@ -136,7 +137,8 @@ export function ApplicationWorkspace({ onOpenLead, onSettings, now }: { onOpenLe
   const q = useQuery({ queryKey: applicationKey, queryFn: () => port.jobs.applications(50), staleTime: 15_000, refetchInterval: 30_000 });
   return <main className="jobs-workspace" id="jobs-workspace" aria-label="지원 준비와 메시지">
     <div className="jobs-workspace-head"><div><h1>지원 준비</h1><p className="muted-text">확인 필요 의뢰도 함께 살펴보고, 저장된 정보로 초안을 준비하세요.</p></div><Button size="sm" icon={<RefreshCw size={14} />} busy={q.isFetching} onClick={() => void q.refetch()}>후보 새로고침</Button></div>
-    <div className="jobs-mode-note" role="note"><strong>초안 전용 · 자동 제출 꺼짐</strong><p>불확실한 보수·작업 조건과 답이 없는 질문은 확인 대상으로 남깁니다. 지원 버튼 클릭·제출·메시지 발송은 실행하지 않습니다. 저장된 초안은 덮어쓰지 않습니다.{mode === 'demo' ? ' 현재 데모 데이터입니다.' : ''}</p></div>
+    <div className="jobs-mode-note" role="note"><strong>저장된 초안과 자동 지원을 따로 관리합니다</strong><p>아래 후보의 초안 준비·저장은 외부로 전송하지 않습니다. 자동 지원은 별도 연결 후 당근에 저장된 기본 자기소개를 사용합니다. 저장된 초안은 덮어쓰지 않습니다.{mode === 'demo' ? ' 현재 데모 데이터입니다.' : ''}</p></div>
+    <AutoApplyPanel now={now} onOpenLead={onOpenLead} />
     <div className="jobs-columns"><section className="application-list" aria-labelledby="application-list-heading"><div className="application-list-heading"><h2 id="application-list-heading">지원 준비 후보</h2>{q.data ? <span className="muted-text">총 {q.data.total.toLocaleString()}건 · {q.data.items.length.toLocaleString()}건 표시</span> : null}</div>
       {q.isError ? <ErrorState error={q.error} onRetry={() => void q.refetch()} /> : null}
       {q.isPending ? <p role="status">지원 준비 후보를 불러오는 중…</p> : null}

@@ -1,0 +1,159 @@
+{
+  "$defs": {
+    "AutoAttemptOut": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "lead_id": {
+          "title": "Lead Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "claimed",
+            "ready",
+            "submitting",
+            "submitted",
+            "already_applied",
+            "held",
+            "uncertain"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason Code"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Finished At"
+        }
+      },
+      "required": [
+        "id",
+        "lead_id",
+        "title",
+        "state",
+        "reason_code",
+        "created_at",
+        "finished_at"
+      ],
+      "title": "AutoAttemptOut",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "enabled": {
+      "default": false,
+      "title": "Enabled",
+      "type": "boolean"
+    },
+    "state": {
+      "default": "stopped",
+      "enum": [
+        "stopped",
+        "waiting",
+        "connected",
+        "paused"
+      ],
+      "title": "State",
+      "type": "string"
+    },
+    "min_score": {
+      "default": 50,
+      "title": "Min Score",
+      "type": "integer"
+    },
+    "daily_limit": {
+      "default": 20,
+      "title": "Daily Limit",
+      "type": "integer"
+    },
+    "today_submitted": {
+      "default": 0,
+      "title": "Today Submitted",
+      "type": "integer"
+    },
+    "today_reserved": {
+      "default": 0,
+      "title": "Today Reserved",
+      "type": "integer"
+    },
+    "held": {
+      "default": 0,
+      "title": "Held",
+      "type": "integer"
+    },
+    "uncertain": {
+      "default": 0,
+      "title": "Uncertain",
+      "type": "integer"
+    },
+    "last_connected_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Last Connected At"
+    },
+    "error_code": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Error Code"
+    },
+    "message": {
+      "default": "자동 지원이 꺼져 있습니다",
+      "title": "Message",
+      "type": "string"
+    },
+    "attempts": {
+      "items": {
+        "$ref": "#/$defs/AutoAttemptOut"
+      },
+      "title": "Attempts",
+      "type": "array"
+    }
+  },
+  "title": "AutoApplyStatus",
+  "type": "object"
+}

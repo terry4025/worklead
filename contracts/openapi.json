@@ -1076,6 +1076,89 @@
         }
       }
     },
+    "/v1/jobs/auto-apply/status": {
+      "get": {
+        "tags": [
+          "job-auto-apply"
+        ],
+        "summary": "Status",
+        "operationId": "status_v1_jobs_auto_apply_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutoApplyStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/auto-apply/start": {
+      "post": {
+        "tags": [
+          "job-auto-apply"
+        ],
+        "summary": "Start",
+        "operationId": "start_v1_jobs_auto_apply_start_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AutoApplyStartIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutoApplyStartOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/auto-apply/stop": {
+      "post": {
+        "tags": [
+          "job-auto-apply"
+        ],
+        "summary": "Stop",
+        "operationId": "stop_v1_jobs_auto_apply_stop_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutoApplyStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/health": {
       "get": {
         "tags": [
@@ -6057,6 +6140,211 @@
         ],
         "title": "AppNotice"
       },
+      "AutoApplyStartIn": {
+        "properties": {
+          "confirm": {
+            "type": "boolean",
+            "const": true,
+            "title": "Confirm"
+          },
+          "min_score": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Min Score",
+            "default": 50
+          },
+          "daily_limit": {
+            "type": "integer",
+            "maximum": 200.0,
+            "minimum": 1.0,
+            "title": "Daily Limit",
+            "default": 20
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "confirm"
+        ],
+        "title": "AutoApplyStartIn"
+      },
+      "AutoApplyStartOut": {
+        "properties": {
+          "connection": {
+            "$ref": "#/components/schemas/AutoConnection"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AutoApplyStatus"
+          },
+          "extension_directory": {
+            "type": "string",
+            "title": "Extension Directory"
+          }
+        },
+        "type": "object",
+        "required": [
+          "connection",
+          "status",
+          "extension_directory"
+        ],
+        "title": "AutoApplyStartOut"
+      },
+      "AutoApplyStatus": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": false
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "stopped",
+              "waiting",
+              "connected",
+              "paused"
+            ],
+            "title": "State",
+            "default": "stopped"
+          },
+          "min_score": {
+            "type": "integer",
+            "title": "Min Score",
+            "default": 50
+          },
+          "daily_limit": {
+            "type": "integer",
+            "title": "Daily Limit",
+            "default": 20
+          },
+          "today_submitted": {
+            "type": "integer",
+            "title": "Today Submitted",
+            "default": 0
+          },
+          "today_reserved": {
+            "type": "integer",
+            "title": "Today Reserved",
+            "default": 0
+          },
+          "held": {
+            "type": "integer",
+            "title": "Held",
+            "default": 0
+          },
+          "uncertain": {
+            "type": "integer",
+            "title": "Uncertain",
+            "default": 0
+          },
+          "last_connected_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Connected At"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "자동 지원이 꺼져 있습니다"
+          },
+          "attempts": {
+            "items": {
+              "$ref": "#/components/schemas/AutoAttemptOut"
+            },
+            "type": "array",
+            "title": "Attempts"
+          }
+        },
+        "type": "object",
+        "title": "AutoApplyStatus"
+      },
+      "AutoAttemptOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "lead_id": {
+            "type": "string",
+            "title": "Lead Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "claimed",
+              "ready",
+              "submitting",
+              "submitted",
+              "already_applied",
+              "held",
+              "uncertain"
+            ],
+            "title": "State"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Code"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "lead_id",
+          "title",
+          "state",
+          "reason_code",
+          "created_at",
+          "finished_at"
+        ],
+        "title": "AutoAttemptOut"
+      },
       "AutoCollect": {
         "properties": {
           "enabled": {
@@ -6082,6 +6370,25 @@
           "interval_minutes"
         ],
         "title": "AutoCollect"
+      },
+      "AutoConnection": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "token": {
+            "type": "string",
+            "title": "Token"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "url",
+          "token"
+        ],
+        "title": "AutoConnection"
       },
       "BackupInspection": {
         "properties": {
@@ -12254,7 +12561,7 @@
               {
                 "type": "integer",
                 "maximum": 10080.0,
-                "minimum": 15.0
+                "minimum": 5.0
               },
               {
                 "type": "null"

@@ -20,7 +20,7 @@ from ..services.settings import get_setting, ttl_hours
 from ..sources.base import DiscoverResult, ParseError, PostNotCollectable, PostRef, SourceNotReady, TaskSpec
 from ..sources.profiled import TaskFailed, canonicalize
 from . import runs
-from .freshness import observe_listings, ordered_candidates, watch_reserve
+from .freshness import observe_listings, ordered_candidates, prioritize_feed_tasks, watch_reserve
 from .events import emit, notify
 from .http import PolicyStop, RunHalt
 from .pipeline import apply_analysis, ingest, record_path
@@ -350,15 +350,17 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
             _set_health(app, source_id, "unknown", exc.message, exc.code)
             raise Halt("failed", exc.code, exc.message) from exc
         with app.db.session() as s:
+            plan = prioritize_feed_tasks(s, adapter, plan, now)
             existing_units = {u.unit_key: u for u in s.scalars(select(CoverageUnit).where(CoverageUnit.source_id == source_id))}
             revisit = any(t.min_revisit_minutes for t in plan.tasks)
             if revisit:
-                # Tiered units wait out their revisit interval; five minutes of
-                # slack keeps a unit due on the next watch despite schedule jitter.
+                # Adaptive micro-watches use exact due times. A five-minute
+                # grace would double a hot anchor's intended request volume.
+                slack = 0 if getattr(adapter, "profile", {}).get("discovery", {}).get("feed", {}).get("adaptive") else 5
                 def due(t: TaskSpec) -> bool:
                     unit = existing_units.get(_unit_key(t.region_scope, t.query_group))
                     return (not t.min_revisit_minutes or unit is None or unit.last_visited_at is None
-                            or now - unit.last_visited_at >= timedelta(minutes=t.min_revisit_minutes - 5))
+                            or now - unit.last_visited_at >= timedelta(minutes=t.min_revisit_minutes - slack))
                 plan.tasks = [t for t in plan.tasks if due(t)]
             unit_keys = {_unit_key(t.region_scope, t.query_group) for t in plan.tasks}
             cycle = _current_cycle(s, source_id, unit_keys, revisit=revisit)
@@ -390,7 +392,10 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
             capacity = max(0, int(getattr(adapter, "max_tasks_per_run", MAX_TASKS_PER_RUN)) - adopted)
             # 공정 순환: 가장 오래 방문하지 않은 단위부터 (미방문 우선)
             fresh = [t for t in plan.tasks if _unit_key(t.region_scope, t.query_group) not in have]
-            fresh.sort(key=lambda t: (existing_units[_unit_key(t.region_scope, t.query_group)].last_visited_at is not None, existing_units[_unit_key(t.region_scope, t.query_group)].last_visited_at or now, _unit_key(t.region_scope, t.query_group)))
+            adaptive = getattr(adapter, "profile", {}).get("discovery", {}).get("feed", {}).get("adaptive")
+            fresh.sort(key=lambda t: (existing_units[_unit_key(t.region_scope, t.query_group)].last_visited_at is not None,
+                                     t.min_revisit_minutes if adaptive else 0,
+                                     existing_units[_unit_key(t.region_scope, t.query_group)].last_visited_at or now, _unit_key(t.region_scope, t.query_group)))
             base_order = (s.scalar(select(func.max(CollectionTask.order_no)).where(CollectionTask.run_id == run.id)) or 0) + 1
             for i, t in enumerate(fresh[:capacity]):
                 s.add(
@@ -417,6 +422,7 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
             r.checkpoint = {
                 "cycle": cycle,
                 "plan": {
+                    "priority_anchor_scopes": sorted(getattr(adapter, "_priority_anchor_scopes", set())),
                     "units": len(unit_keys),
                     "unit_keys": sorted(unit_keys),
                     "unit_label": plan.unit_label,
@@ -492,6 +498,12 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
             try:
                 result, start_index, resumed = _discovery_page(app, adapter, spec, fetcher, task_id)
                 observe_listings(app, source_id, result)
+                if "new_core_candidates" in result.metadata:
+                    with app.db.session() as s:
+                        saved_task = s.get(CollectionTask, task_id)
+                        saved_task.checkpoint = {**(saved_task.checkpoint or {}),
+                                                 "new_core_candidates": result.metadata["new_core_candidates"],
+                                                 "priority_anchor": spec.region_scope in plan_info.get("priority_anchor_scopes", [])}
                 found = len(result.refs)
                 last_result = "ok" if found else "empty"
                 if result.metadata:
@@ -618,6 +630,7 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
                 t = s.get(CollectionTask, task_id)
                 if t:
                     t.state = result_state
+                    t.updated_at = app.clock()
                     t.last_error = error
                     t.result_count = found
                 if spec.depth == 0 or result_state != "done":

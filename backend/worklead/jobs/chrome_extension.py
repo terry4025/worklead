@@ -3,7 +3,8 @@ import os
 import sys
 from pathlib import Path
 
-FILES = ('manifest.json', 'protocol.js', 'content.js', 'worker.js', 'popup.html', 'popup.css', 'popup.js')
+FILES = ('manifest.json', 'protocol.js', 'content.js', 'worker.js', 'popup.html', 'popup.css', 'popup.js',
+         'auto-protocol.js', 'auto-content.js', 'auto-worker.js')
 
 
 def prepare_extension_directory(data_dir: Path) -> str:

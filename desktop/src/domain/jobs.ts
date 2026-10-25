@@ -24,6 +24,9 @@ export interface ApplicationList {
 }
 
 export interface JobsPort {
+  autoApplyStatus(): Promise<AutoApplyStatus>;
+  autoApplyStart(body: { confirm: true; min_score: number; daily_limit: number }): Promise<AutoApplyStart>;
+  autoApplyStop(): Promise<AutoApplyStatus>;
   applications(limit?: number): Promise<ApplicationList>;
   application(leadId: string): Promise<ApplicationEntry>;
   prepare(leadId: string): Promise<ApplicationEntry>;
@@ -33,6 +36,9 @@ export interface JobsPort {
   messagesStop(): Promise<MessageWatchStatus>;
   messagesChromeStart(): Promise<ChromeMessageConnection>;
 }
+
+export type { JobAutoApplyStatus as AutoApplyStatus, JobAutoApplyStart as AutoApplyStart, JobAutoApplyAttempt as AutoApplyAttempt } from '@contracts/index';
+import type { JobAutoApplyStatus as AutoApplyStatus, JobAutoApplyStart as AutoApplyStart } from '@contracts/index';
 
 export interface MessageWatchStatus {
   provider?: 'chrome' | 'edge';

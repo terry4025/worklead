@@ -721,7 +721,7 @@ class PolicyReviewIn(Model):
 
 class SourcePatch(Model):
     auto_collect_enabled: bool | None = None
-    interval_minutes: int | None = Field(default=None, ge=15, le=10080)
+    interval_minutes: int | None = Field(default=None, ge=5, le=10080)
     clear_stop: bool | None = Field(default=None, description="차단으로 정지된 소스를 사용자가 확인 후 해제")
     policy: PolicyReviewIn | None = None
 

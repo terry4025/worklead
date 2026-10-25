@@ -37,6 +37,7 @@ class AppContext:
     _cafe_runtime: object | None = field(default=None, init=False, repr=False)
     _jobs_message_runtime: object | None = field(default=None, init=False, repr=False)
     _jobs_chrome_runtime: object | None = field(default=None, init=False, repr=False)
+    _jobs_auto_apply_runtime: object | None = field(default=None, init=False, repr=False)
     jobs_message_provider: str = field(default="edge", init=False, repr=False)
 
     def __post_init__(self) -> None:

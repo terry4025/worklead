@@ -1,4 +1,5 @@
 import { connectionFrom, isJobPage, validSample } from './protocol.js';
+import './auto-worker.js';
 
 // session storage is available to trusted extension contexts only by default.
 // Never put this scoped local key in page messages, localStorage or sync storage.
@@ -18,6 +19,7 @@ async function configure(message, sender) {
   const config = connectionFrom(message.code);
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab || !Number.isInteger(tab.id) || !isJobPage(tab.url)) throw new Error('당근알바 탭을 선택한 뒤 연결하세요.');
+  if ((await chrome.storage.session.get('autoBridge')).autoBridge?.tabId === tab.id) throw new Error('자동 지원과 메시지 감시는 별도 당근 탭을 사용하세요.');
   if (!await chrome.permissions.contains({ origins: ['http://127.0.0.1/*'] })) throw new Error('이 PC의 Worklead 연결 권한을 허용하세요.');
   await disconnect();
   await chrome.storage.session.set({ bridge: { ...config, tabId: tab.id, sequence: 0 }, connectionStatus: { state: 'waiting', message: '선택한 당근 탭의 표시를 기다리고 있습니다.' } });

@@ -599,6 +599,20 @@ class AppSetting(Base):
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, onupdate=utcnow)
 
 
+class JobAutoAttempt(Base):
+    __tablename__ = "job_auto_attempts"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    job_key: Mapped[str] = mapped_column(String(64), unique=True)
+    lead_id: Mapped[str] = mapped_column(ForeignKey("leads.id", ondelete="CASCADE"))
+    state: Mapped[str] = mapped_column(String(24))
+    reason_code: Mapped[str | None] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    expires_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    permitted_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    finished_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    __table_args__ = (Index("ix_auto_attempt_created", "created_at"),)
+
+
 class EventOutbox(Base):
     """DB 변경과 같은 트랜잭션에 기록하는 이벤트·알림. seq 가 이어받기 순서값이다."""
 

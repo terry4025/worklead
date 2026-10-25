@@ -32,5 +32,27 @@
 .chrome-connection-guide ol { padding-left: 20px; line-height: 1.8; }
 .chrome-extension-path { overflow-wrap: anywhere; }
 .chrome-connection-code { padding: 12px; margin-top: 12px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); }
+.auto-apply-panel { margin: 0 0 22px; padding: 20px; background: var(--surface); border: 1px solid var(--accent-line); border-radius: var(--radius); }
+.auto-apply-head, .auto-apply-fields { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; }
+.auto-apply-head h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: var(--fs-lg); }
+.auto-apply-head p { margin: 8px 0 16px; }
+.auto-apply-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(250px, .75fr); gap: 24px; }
+.auto-apply-fields { justify-content: flex-start; }
+.auto-apply-fields label { display: grid; gap: 6px; min-width: 0; }
+.auto-apply-fields input { width: 130px; max-width: 100%; box-sizing: border-box; }
+.auto-apply-panel p { line-height: 1.7; font-size: var(--fs-sm); overflow-wrap: anywhere; }
+.auto-apply-panel .field-hint { font-size: var(--fs-xs); }
+.auto-apply-consent { padding: 12px; background: var(--accent-weak); border-radius: var(--radius); }
+.auto-apply-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 14px 0; }
+.auto-apply-metrics div { padding: 12px; background: var(--surface-2); border-radius: var(--radius); }
+.auto-apply-metrics dt { color: var(--text-3); font-size: var(--fs-xs); }
+.auto-apply-metrics dd { margin: 6px 0 0; font-weight: 700; }
+.auto-apply-results h3 { margin: 18px 0 12px; font-size: var(--fs-sm); }
+.auto-apply-attempts { list-style: none; padding: 0; margin: 0; max-height: 340px; overflow-y: auto; }
+.auto-apply-attempts li { padding: 10px 0; border-top: 1px solid var(--line); }
+.auto-apply-attempts li > div { display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap; }
+.auto-apply-attempts .btn { max-width: 100%; text-align: left; height: auto; white-space: normal; overflow-wrap: anywhere; }
+.auto-apply-attempts p { margin: 4px 0 0; }
+@media (max-width: 850px) { .auto-apply-columns { grid-template-columns: minmax(0, 1fr); } .auto-apply-head { flex-wrap: wrap; gap: 0; } }
 @media (max-width: 1050px) { .jobs-columns { grid-template-columns: minmax(0, 1fr); } .jobs-connection { position: static; grid-row: 1; } }
 @media (max-width: 600px) { .jobs-workspace { padding: 18px 14px; } .jobs-workspace-head, .application-card-head { flex-wrap: wrap; } .application-card, .message-connection { padding: 16px; } }

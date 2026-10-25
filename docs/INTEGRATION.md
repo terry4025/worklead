@@ -1,5 +1,13 @@
 # 연동 계약 (화면 ↔ 로컬 API)
 
+## 자동 지원·조회 복구 계약 (2026-10-25)
+
+GET `/v1/jobs/auto-apply/status`, POST `/start` `{confirm:true,min_score:50,daily_limit:20}`, POST `/stop`을 추가한다. start 응답은 `{connection:{url,token},status,extension_directory}`이며 no-store이고 연결 비밀은 UI ref에만 보관한다. 자동 지원은 미읽음 감시와 다른 포트·임시 키를 사용한다. 확장 전용 POST `/next`는 공고 작업, `/review`는 화면 검토 결과, `/permit`은 짧은 1회 제출 허가, `/result`는 공식 지원 취소 표시를 근거로 한 완료/미확인을 받는다. 크기 2,048바이트·확장 Origin·Host·독립 Bearer·필드·상태 순서를 검사한다. 기본 50점은 경계 포함이며 직전 재분석·모집·프로필·허가·일일 한도를 모두 대조한다. 별도 중복 기록은 날짜/공개 공고 키 해시만 기록하고 DB 복원으로 지워지지 않는다. 실제 계정/소개/연결 키는 영속 로그에 쓰지 않는다. 기존 초안 API는 계속 제출을 거부한다.
+
+유한 GET 조회는 연결 획득부터 응답 본문 파싱까지 15초 상한을 적용해 `request_timeout`(재시도 가능)을 반환한다. SSE는 별도 장기 연결이며 이 상한을 적용하지 않는다. 변경/제출 요청을 자동 재전송하지 않는다. 목록 자동 재조회는 진행 중 조회를 취소하지 않고, 한 대기열의 오류를 다른 대기열의 로딩 화면으로 숨기지 않는다. 최초 조회 실패도 30초 주기로 복구하며, 서버/수집 속도를 이 조회 상한과 혼동하지 않는다.
+
+로컬 QueryClient는 조회·명령 모두 `networkMode: 'always'`를 사용한다. 외부 인터넷의 오프라인 판정으로 루프백 조회를 일시 중지하지 않으며, 명령을 연결 복구 시점으로 미뤄 재생하지 않는다. 명령 자동 재시도는 꺼져 있다. 이전 기본값의 조회 일시 중지와 수정 후 오프라인 조회·재조회·명령 1회 실행은 `local-query-offline.test.tsx`로 재현한다. 동작 기준은 [TanStack Query 네트워크 모드](https://tanstack.com/query/latest/docs/framework/react/guides/network-mode)를 따른다.
+
 ## 기존 크롬 연결 추가 계약 (2026-10-16)
 
 POST `/v1/jobs/messages/chrome/start` `{confirm:true}`는 `{connection:{url,token},status,extension_directory}`를 반환한다. 키는 메인 API와 다른 임시 권한이며 응답은 no-store다. 화면은 비밀을 조회/변경 캐시에 저장하거나 표시하지 않고 복사만 제공한다. 매 시작마다 이전 키·순서를 폐기하며 GET 전체 `/v1/jobs/messages/status`는 선택한 provider=edge/chrome의 상태만 반환한다. 일반 stop은 양쪽 감시를 중지한다. Edge/Chrome 동시 시작은 409다.

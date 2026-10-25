@@ -51,6 +51,34 @@ export interface JobChromeMessageConnection {
   status: JobMessageWatchStatus;
   extension_directory: string;
 }
+export interface JobAutoApplyAttempt {
+  id: string;
+  lead_id: string;
+  title: string;
+  state: 'claimed' | 'ready' | 'submitting' | 'submitted' | 'already_applied' | 'held' | 'uncertain';
+  reason_code: string | null;
+  created_at: string;
+  finished_at: string | null;
+}
+export interface JobAutoApplyStatus {
+  enabled: boolean;
+  state: 'stopped' | 'waiting' | 'connected' | 'paused';
+  min_score: number;
+  daily_limit: number;
+  today_submitted: number;
+  today_reserved: number;
+  held: number;
+  uncertain: number;
+  last_connected_at: string | null;
+  error_code: string | null;
+  message: string;
+  attempts: JobAutoApplyAttempt[];
+}
+export interface JobAutoApplyStart {
+  connection: { url: string; token: string };
+  status: JobAutoApplyStatus;
+  extension_directory: string;
+}
 export type LeadSummary = Schemas['LeadSummary'];
 export type LeadDetail = Schemas['LeadDetail'];
 export type LeadPage = Schemas['LeadPage'];
@@ -175,7 +203,28 @@ export function createClient(source: ConnectionSource, fetchImpl: typeof fetch =
   }
 
   async function request<T>(method: string, path: string, opts: { query?: Query; body?: unknown; signal?: AbortSignal } = {}): Promise<T> {
+    // A live SSE stream does not prove ordinary reads are completing. Bound
+    // connection acquisition, headers AND JSON so a stalled read cannot leave
+    // the list skeleton or refresh queue pending forever. Never time out/retry writes here.
+    if (method !== 'GET') return requestBody<T>(method, path, opts);
+    const controller = new AbortController();
+    const cancelled = () => controller.abort();
+    opts.signal?.addEventListener('abort', cancelled, { once: true });
+    if (opts.signal?.aborted) controller.abort();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<never>((_resolve, reject) => {
+      timer = setTimeout(() => {
+        reject(new WorkleadApiError({ status: null, code: 'request_timeout', message: '목록 조회 응답이 늦어 다시 확인합니다', retryable: true, kind: 'connection' }));
+        controller.abort();
+      }, 15_000);
+    });
+    try { return await Promise.race([requestBody<T>(method, path, { ...opts, signal: controller.signal }), timeout]); }
+    finally { clearTimeout(timer); opts.signal?.removeEventListener('abort', cancelled); }
+  }
+
+  async function requestBody<T>(method: string, path: string, opts: { query?: Query; body?: unknown; signal?: AbortSignal } = {}): Promise<T> {
     const c = await conn();
+    if (opts.signal?.aborted) throw new DOMException('Aborted', 'AbortError');
     let res: Response;
     try {
       res = await fetchImpl(`${c.baseUrl}${path}${toSearch(opts.query)}`, {
@@ -227,6 +276,9 @@ export function createClient(source: ConnectionSource, fetchImpl: typeof fetch =
     jobMessagesStart: () => request<JobMessageWatchStatus>('POST', '/v1/jobs/messages/start', { body: { confirm: true } }),
     jobMessagesStop: () => request<JobMessageWatchStatus>('POST', '/v1/jobs/messages/stop'),
     jobMessagesChromeStart: () => request<JobChromeMessageConnection>('POST', '/v1/jobs/messages/chrome/start', { body: { confirm: true } }),
+    jobAutoApplyStatus: () => request<JobAutoApplyStatus>('GET', '/v1/jobs/auto-apply/status'),
+    jobAutoApplyStart: (body: { confirm: true; min_score: number; daily_limit: number }) => request<JobAutoApplyStart>('POST', '/v1/jobs/auto-apply/start', { body }),
+    jobAutoApplyStop: () => request<JobAutoApplyStatus>('POST', '/v1/jobs/auto-apply/stop'),
     cafeStatus: () => request<Schemas['CafeSnapshot']>('GET', '/v1/cafe/status'),
     cafeComments: () => request<Schemas['CafeCommentList']>('GET', '/v1/cafe/comments'),
     cafeCommentUpdate: (id: string, body: Schemas['CafeCommentPatch']) => request<Schemas['CafeCommentOut']>('PATCH', `/v1/cafe/comments/${enc(id)}`, { body }),

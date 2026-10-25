@@ -47,6 +47,9 @@ function mapBackup(b: { id: string; file_name: string; created_at: string; size_
 export class LivePort implements WorkleadPort {
   readonly mode = 'live' as const;
   readonly jobs: WorkleadPort['jobs'] = {
+    autoApplyStatus: () => wrap(this.client.jobAutoApplyStatus()),
+    autoApplyStart: (body) => wrap(this.client.jobAutoApplyStart(body)),
+    autoApplyStop: () => wrap(this.client.jobAutoApplyStop()),
     applications: (limit) => wrap(this.client.jobApplications(limit)),
     application: (id) => wrap(this.client.jobApplication(id)),
     prepare: (id) => wrap(this.client.jobApplicationPrepare(id)),

@@ -7,6 +7,27 @@ const restarted = { baseUrl: 'http://127.0.0.1:41002', token: 'next-session' };
 afterEach(() => vi.useRealTimers());
 
 describe('sidecar session changes', () => {
+  it.each(['connection', 'headers', 'body'])('bounds a stalled %s read and allows the next read to recover', async (stage) => {
+    vi.useFakeTimers();
+    let stalled = true;
+    const never = () => new Promise<never>(() => undefined);
+    const source = vi.fn(async () => stage === 'connection' && stalled ? never() : first);
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(async () => {
+      if (stalled && stage === 'headers') return never();
+      if (stalled && stage === 'body') return { ok: true, json: never } as unknown as Response;
+      return Response.json({ items: [], has_more: false, next_cursor: null });
+    });
+    const client = createClient(source, fetcher);
+    const pending = client.listLeads({ queue: 'all' });
+    const rejected = expect(pending).rejects.toMatchObject({ code: 'request_timeout', retryable: true });
+    await vi.advanceTimersByTimeAsync(15_001);
+    await rejected;
+    const before = fetcher.mock.calls.length;
+    stalled = false;
+    await expect(client.listLeads({ queue: 'all' })).resolves.toMatchObject({ items: [] });
+    expect(fetcher).toHaveBeenCalledTimes(before + 1);
+  });
+
   it('uses the current native connection after the backend restarts', async () => {
     let current = first;
     const fetcher = vi.fn<typeof fetch>().mockImplementation(async (url, init) => {

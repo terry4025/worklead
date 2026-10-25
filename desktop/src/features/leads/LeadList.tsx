@@ -96,8 +96,8 @@ export function LeadList({
     scrollWithin(el, listRef.current, 'nearest', (head?.offsetHeight ?? 0) + (section?.offsetHeight ?? 0));
   }, [selectedId]);
 
-  if (snapshot.loading && snapshot.ids.length === 0) return <RowSkeleton />;
   if (snapshot.error) return <ErrorState error={snapshot.error} onRetry={() => sections.forEach((s) => void s.q.refetch())} />;
+  if (snapshot.loading && snapshot.ids.length === 0) return <RowSkeleton />;
   if (snapshot.ids.length === 0) return <>{empty}</>;
 
   const refetchFailed = sections.find((s) => s.q.isRefetchError);

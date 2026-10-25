@@ -140,6 +140,8 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
     app.include_router(job_message_router())
     from .job_chrome_routes import router as job_chrome_router
     app.include_router(job_chrome_router())
+    from .job_auto_apply_routes import router as auto_apply_router
+    app.include_router(auto_apply_router())
 
     @app.exception_handler(ApplicationError)
     async def application_error(request: Request, exc: ApplicationError):
@@ -314,6 +316,8 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
             source.health_code = None
             source.health_message = "사용자가 정지를 해제함 — 다음 실행에서 상태 확인"
         if body.interval_minutes is not None:
+            if body.interval_minutes < 15 and source_id != "daangn-alba":
+                raise ApiError(422, "interval_too_short", "이 소스의 최소 탐색 주기는 15분입니다")
             source.interval_minutes = body.interval_minutes
         if body.auto_collect_enabled is not None:
             was_enabled = source.auto_collect_enabled

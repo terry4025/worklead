@@ -78,8 +78,8 @@ export function useLeadList(queue: QueueId, filter: LeadFilter, enabled = true) 
     queryFn: ({ pageParam }) => port.listLeads({ queue, filter, cursor: pageParam, limit: PAGE_SIZE }),
     getNextPageParam: (last) => (last.hasMore ? last.nextCursor : undefined),
     staleTime: 30_000,
-    retry: (count, error) => count < 2 && toPortError(error).retryable,
-    refetchInterval: (query) => query.state.status === 'error' && query.state.data ? 30_000 : false,
+    retry: (count, error) => count < 2 && toPortError(error).retryable && toPortError(error).code !== 'request_timeout',
+    refetchInterval: (query) => query.state.status === 'error' ? 30_000 : false,
   });
 }
 

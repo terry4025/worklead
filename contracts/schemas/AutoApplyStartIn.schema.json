@@ -1,0 +1,29 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "confirm": {
+      "const": true,
+      "title": "Confirm",
+      "type": "boolean"
+    },
+    "min_score": {
+      "default": 50,
+      "maximum": 100,
+      "minimum": 0,
+      "title": "Min Score",
+      "type": "integer"
+    },
+    "daily_limit": {
+      "default": 20,
+      "maximum": 200,
+      "minimum": 1,
+      "title": "Daily Limit",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "confirm"
+  ],
+  "title": "AutoApplyStartIn",
+  "type": "object"
+}

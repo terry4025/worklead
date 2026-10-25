@@ -40,18 +40,19 @@ test('content sampler reads labels only, never clicks, and cleans up before rein
 
 test('worker binds one selected top-level jobs tab; never forwards content-supplied URLs or secrets', async () => {
   const memory = {};
-  let listener, fetches = [], injected = [];
+  let listeners = [], fetches = [], injected = [];
   globalThis.chrome = {
-    runtime: {getURL:name=>'chrome-extension://test/'+name,onMessage:{addListener:fn=>{listener=fn;}}},
+    runtime: {getURL:name=>'chrome-extension://test/'+name,onMessage:{addListener:fn=>{listeners.push(fn);}}},
     storage:{session:{async get(name) {return {[name]:memory[name]};},async set(values) {Object.assign(memory,values);},async remove(keys) {for(const key of keys)delete memory[key];}}},
     permissions:{contains:async()=>true},
     tabs:{query:async()=>[{id:7,url:'https://jobs.daangn.com/'}],sendMessage:async()=>{},onRemoved:{addListener(){}}},
     scripting:{executeScript:async value=>{injected.push(value);}},
+    alarms:{onAlarm:{addListener(){}},clear:async()=>true,create:async()=>{}},
   };
   const originalFetch=globalThis.fetch;
   globalThis.fetch=async(url,options)=>{fetches.push({url,options});return {ok:true};};
   await import('../worklead-messages/worker.js');
-  const dispatch=(message,sender)=>new Promise(resolve=>{if(listener(message,sender,resolve)===false)resolve(undefined);});
+  const dispatch=(message,sender)=>new Promise(resolve=>{if(!listeners.some(listener=>listener(message,sender,resolve)===true))resolve(undefined);});
   try {
     const popup={url:'chrome-extension://test/popup.html'};
     assert.ok((await dispatch({type:'connect',code:JSON.stringify(code)},popup)).ok);

@@ -1,8 +1,14 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="popup.css"><title>Worklead 메시지 연결</title></head>
-<body><h1>당근 메시지 연결</h1><p>현재 선택한 당근알바 탭의 로그인 여부와 미읽음 수만 <strong>이 PC의 Worklead</strong>에 전달합니다.</p>
-<p>채팅 본문·계정 정보·쿠키는 전달하지 않습니다. 지원·메시지 발송을 하지 않습니다.</p>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="popup.css"><title>Worklead 당근 연결</title></head>
+<body><h1>Worklead 당근 연결</h1><h2>메시지 표시 감시</h2><p>현재 선택한 당근알바 탭의 로그인 여부와 미읽음 수만 <strong>이 PC의 Worklead</strong>에 전달합니다.</p>
+<p>메시지 감시는 채팅 본문·발신자·쿠키를 전달하거나 지원을 제출하지 않습니다.</p>
 <label for="code">Worklead에서 복사한 연결 코드</label><textarea id="code" rows="3" spellcheck="false" autocomplete="off" placeholder="연결 코드 붙여 넣기"></textarea>
 <button id="connect">이 당근 탭 연결</button><button id="disconnect" class="secondary">연결 중지</button>
 <p id="status" role="status">연결 상태를 확인하고 있습니다.</p><p class="hint">Worklead·크롬 재시작, 탭 새로고침 후에는 다시 연결하세요. 배경 탭·절전에서는 확인이 지연되거나 일부 메시지를 놓칠 수 있습니다.</p>
+<hr><h2>50점 이상 자동 지원</h2>
+<p>Worklead에서 설정한 점수 이상의 제작 의뢰를 별도 선택한 당근 탭에서 확인하고, 저장된 <strong>기본 자기소개</strong>로 지원합니다. 확인 필요 공고도 포함하며 추가 질문·동의·양식 변경은 보류합니다. 채팅을 보내지 않습니다.</p>
+<p class="hint">이 탭은 자동으로 공고 사이를 이동합니다. 메시지 감시 탭과는 별도 당근 탭을 선택하세요. Worklead를 종료하거나 연결을 중지하면 새로운 지원을 시작하지 않습니다. 이미 누른 제출은 취소하지 않습니다.</p>
+<label for="auto-code">Worklead 자동 지원 전용 연결 코드</label><textarea id="auto-code" rows="3" spellcheck="false" autocomplete="off" placeholder="자동 지원 연결 코드 붙여 넣기"></textarea>
+<label class="consent"><input type="checkbox" id="auto-consent"> 이 탭에서 저장된 기본 자기소개로 조건에 맞는 공고를 개별 확인 없이 지원하도록 허용합니다.</label>
+<button id="auto-connect">자동 지원 탭 연결</button><button id="auto-disconnect" class="secondary">자동 지원 탭 중지</button><p id="auto-status" role="status">자동 지원 연결을 확인하고 있습니다.</p>
 <script type="module" src="popup.js"></script></body></html>

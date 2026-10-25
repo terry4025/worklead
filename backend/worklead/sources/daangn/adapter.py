@@ -201,6 +201,8 @@ class DaangnAdapter(ProfiledSiteAdapter):
 
     def daily_list_requests(self, interval_minutes: int) -> int:
         """List requests per day at this watch interval (feeds + sitemap backstop)."""
+        if self.profile["discovery"]["feed"].get("adaptive"):
+            return self.remaining_list_requests(86400, interval_minutes, startup=False)
         config = self.profile["discovery"]
         tiers = config["feed"]["tier_minutes"]
         anchors = self._anchors()
@@ -211,6 +213,30 @@ class DaangnAdapter(ProfiledSiteAdapter):
         feeds = sum(1440 / max(period, tiers[tier]) for _, _, tier in anchors)
         sitemap = 1440 / max(interval_minutes, int(config["sitemap_min_revisit_minutes"])) * 2  # index + one map
         return math.ceil(feeds + sitemap)
+
+    def remaining_list_requests(self, seconds: float, interval_minutes: int, *, startup: bool = True) -> int:
+        """Conservative paced-poll reserve including a bounded hot set.
+
+        No assumed HTTP latency discount: retries and actual host limits remain
+        enforced by Fetcher. One initial poll per unit protects startup/catch-up.
+        """
+        config = self.profile["discovery"]
+        feed = config["feed"]
+        adaptive = feed.get("adaptive")
+        if not adaptive:
+            return math.ceil(self.daily_list_requests(interval_minutes) * seconds / 86400)
+        minutes = max(0, seconds) / 60
+        periods = [max(interval_minutes, int(feed["tier_minutes"][tier])) for _, _, tier in self._anchors()]
+        hot = max(interval_minutes, int(adaptive["hot_minutes"]))
+        # The hot set may change over time. Reserve the highest possible
+        # additional volume for its bounded size, independent of today's rank.
+        base = sum(math.ceil(minutes / period) for period in periods)
+        # A rotating hot set may overlap ordinary polls differently each day.
+        # Reserve its entire rolling allowance rather than subtracting a
+        # fixed set's base volume. The planner shares eight slots per 10 min.
+        priority = min(len(periods), int(adaptive["max_hot_anchors"])) * math.ceil(minutes / hot)
+        sitemap = math.ceil(minutes / max(interval_minutes, int(config["sitemap_min_revisit_minutes"]))) * (1 + int(config.get("reserved_sitemap_count", 1)))
+        return base + priority + sitemap + (len(periods) + min(len(periods), int(adaptive["max_hot_anchors"])) + 2 if startup and seconds > 0 else 0)
 
     def plan_discovery(self, query_groups: list[dict], now: datetime):
         check = check_profile(self.profile)
@@ -229,7 +255,7 @@ class DaangnAdapter(ProfiledSiteAdapter):
         return DiscoveryPlan(
             [sitemap] + feeds,
             "전국 지역 피드·공개 공고 목록", "not_applicable", "지역 피드·공고 목록", 1,
-            [f"전국 {len(feeds)}개 앵커 동네의 공개 지역 피드(기타·가벼운 업무·사무보조·과외 직종, 최근 20건)를 밀집도에 따라 매 감시(약 20~25분)~2시간 간격으로 확인합니다.",
+            [f"전국 {len(feeds)}개 앵커 동네의 공개 지역 피드(기타·가벼운 업무·사무보조·과외 직종, 최근 20건)를 기본 30분~2시간 간격으로 확인하고, 5분마다 확인할 앵커가 있는지 점검합니다.",
              "피드 제목에서 활성 검색어와 명시 동의어로 제작 후보를 고르고, 건당 보수를 먼저, 월급·연봉 공고는 약한 후보로 낮추거나 빼고 상세 본문을 확인합니다.",
              "구체 검색어·약한 제작 요청 후보는 예산 안에서 제한된 수만 순환 확인합니다. 전체 공고의 본문을 검색하지 않습니다.",
              "공개 공고 사이트맵은 하루 두 번 누락 보완용으로 확인합니다. 피드가 덮지 못한 지역과 제목에 관련 표현이 없는 공고는 누락될 수 있고 전체 시장 포괄률은 알 수 없습니다."],

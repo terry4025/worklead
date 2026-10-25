@@ -18,7 +18,7 @@ from .text import any_match, c, find
 from .pay import EXPLICIT_SALARY
 from .types import Ev, Judgement, Risk
 
-RULE_VERSION = "rules-2026.10.12-pay"
+RULE_VERSION = "rules-2026.10.25-delivery"
 
 # ── 요청 유형 ─────────────────────────────────────────────────────────
 SELLER = c(
@@ -44,6 +44,14 @@ BUYER = c(
     # Generic skill/staff recruitment remains ambiguous or employment.
     r"(?:홈페이지|홈피|웹\s*사이트|웹\s*페이지|랜딩\s*페이지|쇼핑몰|자사몰|카페24|프로그램|소프트웨어|앱|어플|매크로)\s*(?:을|를)?\s*(?:제작|개발|구축|수정|리뉴얼)\s*(?:가능(?:하신|한)|할\s*수\s*있는|하실|해\s*주실)\s*(?:분|프리랜서)(?:을|를)?\s*(?:계실까요|있을까요|구합니다|구해요|찾습니다|찾아요|모집합니다)",
     r"(?:홈페이지|홈피|웹\s*사이트|웹\s*페이지|프로그램|소프트웨어|앱)\s*(?:제작|개발|구축|수정)\s*(?:에\s*)?(?:능숙하신|익숙하신|경험\s*있으신)\s*분\s*(?:좀\s*)?도와\s*(?:주실|주세요)",
+    # A named digital deliverable + concrete change + help request. Generic
+    # design/help, operating a shop, teaching and staff recruitment are not
+    # promoted by these expressions; seller/employment precedence still wins.
+    r"(?:홈페이지|홈피|웹\s*(?:사이트|페이지|앱)|웹\s*[&·/]\s*앱|프로그램|소프트웨어|앱|어플)"
+    r"[^.\n]{0,80}?(?:리뉴얼|구현|패키징|오류\s*수정|편집|디자인\s*작업)"
+    r"\s*(?:도|을|를|등을|하는\s*작업을|작업등을|작업을)?\s*(?:해\s*)?(?:도와\s*)?(?:주실|주세요)",
+    r"(?:(?:웹\s*사이트|홈페이지)(?:을|를)?\s*앱으로|앱\s*스토어(?:에)?|플레이\s*스토어(?:에)?)\s*등록"
+    r"\s*(?:을|를|하는\s*작업을|작업을)?\s*(?:해\s*)?(?:도와\s*)?(?:주실|주세요)",
 )
 ONGOING = c(r"유지\s*보수", r"월\s*\d+\s*만\s*원?\s*고정", r"매달|매월|월\s*단위|정기적으로|장기\s*(?:계약|협업)|재계약")
 EMPLOYMENT_STRONG = [*c(r"정규직", r"채용합니다", r"4대\s*보험", r"상근", r"주\s*5\s*일", r"연봉", r"사원\s*모집", r"직원\s*(?:모집|구합니다|채용)"), EXPLICIT_SALARY]

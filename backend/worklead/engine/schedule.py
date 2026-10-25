@@ -15,6 +15,12 @@ def next_due(s, source: Source, kind: str, now: datetime) -> datetime | None:
         return None
     every = timedelta(minutes=source.interval_minutes or 360) if kind == "discovery" else RECHECK_EVERY[kind]
     due = (last.finished_at or last.created_at) + every if last else now
+    if (kind == "discovery" and source.id == "daangn-alba" and last is not None
+            and last.state == "succeeded" and last.started_at is not None):
+        # The adaptive regional planner enforces 10/30/120-minute due times.
+        # Do not add the whole run duration to every five-minute check. Active
+        # work above still prevents overlap; failures/cooldowns stay conservative.
+        due = last.started_at + every
     if (kind == "discovery" and last is not None and last.state == "partial"
             and not last.error_code and (last.result or {}).get("continuation_pending")):
         delay = max(60, int((last.result or {}).get("continuation_delay_seconds", 60)))

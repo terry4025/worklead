@@ -69,6 +69,7 @@ function RunDetails({ run }: { run: RunInfo }) {
     ['watch_detail_requests', '이번 감시 상세 요청', '회'],
     ['watch_refresh_requests', '기존 상세 갱신 요청', '회'],
     ['watch_deferred_details', '다음 감시로 넘긴 후보', '개'],
+    ['backlog_candidates', '저장 목록에서 이어받은 미처리 후보', '개'],
   ] as const).flatMap(([key, label, unit]) => {
     const count = countValue(titleDiscovery?.[key]);
     return count === null ? [] : [`${label} ${formatCount(count)}${unit}`];

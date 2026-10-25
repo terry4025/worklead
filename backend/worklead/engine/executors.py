@@ -20,7 +20,7 @@ from ..services.settings import get_setting, ttl_hours
 from ..sources.base import DiscoverResult, ParseError, PostNotCollectable, PostRef, SourceNotReady, TaskSpec
 from ..sources.profiled import TaskFailed, canonicalize
 from . import runs
-from .freshness import observe_listings, ordered_candidates, prioritize_feed_tasks, watch_reserve
+from .freshness import SAVED_SCOPE, append_saved_candidates, observe_listings, ordered_candidates, prioritize_feed_tasks, saved_candidates, watch_reserve
 from .events import emit, notify
 from .http import PolicyStop, RunHalt
 from .pipeline import apply_analysis, ingest, record_path
@@ -306,6 +306,9 @@ def _current_cycle(s, source_id: str, unit_keys: set[str], *, revisit: bool = Fa
 def _discovery_page(app: AppContext, adapter: Any, spec: TaskSpec, fetcher: Any,
                     task_id: str) -> tuple[DiscoverResult, int, bool]:
     """Snapshot page identities before fetching details so a moving list cannot drop work."""
+    if spec.region_scope == SAVED_SCOPE and getattr(adapter, "profile", {}).get("discovery", {}).get("saved_candidate_limit"):
+        with app.db.session() as s:
+            return saved_candidates(s, adapter, spec.query, app.clock()), 0, False
     if not getattr(adapter, "persist_discovery_pages", False):
         return adapter.discover(spec, fetcher), 0, False
     with app.db.session() as s:
@@ -350,7 +353,7 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
             _set_health(app, source_id, "unknown", exc.message, exc.code)
             raise Halt("failed", exc.code, exc.message) from exc
         with app.db.session() as s:
-            plan = prioritize_feed_tasks(s, adapter, plan, now)
+            plan = append_saved_candidates(s, adapter, prioritize_feed_tasks(s, adapter, plan, now), now)
             existing_units = {u.unit_key: u for u in s.scalars(select(CoverageUnit).where(CoverageUnit.source_id == source_id))}
             revisit = any(t.min_revisit_minutes for t in plan.tasks)
             if revisit:
@@ -393,7 +396,8 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
             # 공정 순환: 가장 오래 방문하지 않은 단위부터 (미방문 우선)
             fresh = [t for t in plan.tasks if _unit_key(t.region_scope, t.query_group) not in have]
             adaptive = getattr(adapter, "profile", {}).get("discovery", {}).get("feed", {}).get("adaptive")
-            fresh.sort(key=lambda t: (existing_units[_unit_key(t.region_scope, t.query_group)].last_visited_at is not None,
+            fresh.sort(key=lambda t: (t.region_scope == SAVED_SCOPE,
+                                     existing_units[_unit_key(t.region_scope, t.query_group)].last_visited_at is not None,
                                      t.min_revisit_minutes if adaptive else 0,
                                      existing_units[_unit_key(t.region_scope, t.query_group)].last_visited_at or now, _unit_key(t.region_scope, t.query_group)))
             base_order = (s.scalar(select(func.max(CollectionTask.order_no)).where(CollectionTask.run_id == run.id)) or 0) + 1
@@ -519,7 +523,7 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
                         scope.bump("parse_failures")
                 task_label = scope.label
                 scope.detail_progress = {"done": start_index, "total": found}
-                incremental = bool(watch_detail_limit and result.listed_refs)
+                incremental = bool(watch_detail_limit and (result.listed_refs or result.metadata.get("saved_candidate_backlog")))
                 candidates = (ordered_candidates(app, source_id, result) if incremental else
                               [("core", ref, False) for ref in result.refs[start_index:]])
                 scope.detail_progress["total"] = len(candidates) + start_index

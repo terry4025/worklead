@@ -197,7 +197,13 @@ class DaangnAdapter(ProfiledSiteAdapter):
 
     @property
     def max_tasks_per_run(self) -> int:
-        return len(self._anchors()) + 1  # every due feed and the sitemap fit one watch
+        return len(self._anchors()) + 2  # due feeds, sitemap and saved candidates
+
+    def saved_candidate_kind(self, title: str, query: str | None):
+        keywords = _discovery_keywords(query)
+        specific = [word for word in keywords if len(word) >= 2 and word not in _GENERIC_QUERY_TERMS]
+        core, explore, _ = _title_match(title, keywords, specific, re.compile(self.profile["discovery"]["title_pattern"], re.I))
+        return "core" if core else "exploration" if explore else None
 
     def daily_list_requests(self, interval_minutes: int) -> int:
         """List requests per day at this watch interval (feeds + sitemap backstop)."""

@@ -6,7 +6,7 @@ from sqlalchemy import select
 from tests.test_daangn import NOW
 from tests.test_daangn_feed import site, collect, lists
 from worklead.engine.freshness import prioritize_feed_tasks
-from worklead.models import CollectionTask, Run, new_id
+from worklead.models import CollectionTask, Lead, Run, new_id
 from worklead.sources.daangn import create
 
 
@@ -106,4 +106,36 @@ def test_stale_candidate_history_is_not_promoted(tmp_path):
             state="done", result_count=999, checkpoint={"new_core_candidates": 50}, updated_at=NOW - timedelta(days=31)))
         s.flush()
         assert all(t.min_revisit_minutes != 10 for t in prioritize_feed_tasks(s, adapter, plan(adapter), NOW).tasks)
+    ctx.db.dispose()
+
+
+def test_classified_delivery_history_outranks_false_positive_title_programs(tmp_path):
+    posts = [("proven000001", "프로그램 제작 의뢰", "PER_CASE", False, 1)]
+    ctx, c, _, _ = site(tmp_path, [[28, "제작 의뢰", "A"], [500, "일반 활동 프로그램", "A"]], {28: posts})
+    first = collect(ctx, c)
+    adapter = ctx.adapters["daangn-alba"]
+    with ctx.db.session() as s:
+        # A large number of title hits is not a substitute for a classified buyer.
+        s.add(CollectionTask(id=new_id("task"), run_id=first.id, source_id=adapter.source_id,
+            task_key="many-false-titles", query_group="q", region_scope="feed-500", scan_cycle=100,
+            state="done", result_count=1000, checkpoint={"new_core_candidates": 1000}, updated_at=NOW))
+        s.flush()
+        chosen = prioritize_feed_tasks(s, adapter, plan(adapter), NOW + timedelta(minutes=30))
+        assert {t.region_scope for t in chosen.tasks if t.min_revisit_minutes == 10} == {"feed-28"}
+        assert any("원문 분석에서 확인한 제작 구매 수요" in note for note in chosen.notes)
+    ctx.db.dispose()
+
+
+def test_same_classified_lead_only_credits_its_first_feed(tmp_path):
+    posts = [("proven000002", "프로그램 제작 의뢰", "PER_CASE", False, 1)]
+    ctx, c, _, _ = site(tmp_path, [[28, "첫 관찰", "A"], [500, "겹치는 지역", "A"]], {28: posts, 500: posts})
+    collect(ctx, c)
+    adapter = ctx.adapters["daangn-alba"]
+    with ctx.db.session() as s:
+        chosen = prioritize_feed_tasks(s, adapter, plan(adapter), NOW + timedelta(minutes=30))
+        assert sum(t.min_revisit_minutes == 10 for t in chosen.tasks) == 1
+        for lead in s.scalars(select(Lead)): lead.user_mark = "dismissed"
+        s.flush()
+        chosen = prioritize_feed_tasks(s, adapter, plan(adapter), NOW + timedelta(days=31))
+        assert all(t.min_revisit_minutes != 10 for t in chosen.tasks)
     ctx.db.dispose()

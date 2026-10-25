@@ -79,6 +79,8 @@
     }
   },
   "discovery": {
+    "saved_candidate_limit": 40,
+    "saved_candidate_max_hours": 168,
     "strategy": "public_sitemap",
     "index_url": "https://jobs.daangn.com/sitemap.xml",
     "sitemap_min_revisit_minutes": 720,

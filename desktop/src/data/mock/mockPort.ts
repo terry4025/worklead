@@ -140,6 +140,7 @@ export class MockPort implements WorkleadPort {
     autoApplyStatus: () => this.delay(() => this.autoApplyStatus),
     autoApplyStart: () => this.delay(() => { throw new PortError({ kind: 'api', code: 'demo_only', message: '데모에서는 자동 지원 연결이나 실제 제출을 실행하지 않습니다.' }); }),
     autoApplyStop: () => this.delay(() => this.autoApplyStatus),
+    autoApplyForget: () => this.delay(() => this.autoApplyStatus),
     messagesChromeStart: () => this.delay(() => {
       this.messageStatus = { ...this.messageStatus, provider: 'chrome', enabled: true, state: 'starting', unread_count: null, last_observed_at: null, needs_user_action: true, browser_open: false, message: '데모에서는 크롬 확장 연결과 실제 메시지 관찰을 하지 않습니다.' };
       return { connection: { url: 'http://127.0.0.1:0', token: 'demo-only-not-a-real-connection' }, status: this.messageStatus, extension_directory: '데모에서는 확장 폴더를 준비하지 않습니다.' };
@@ -173,6 +174,7 @@ export class MockPort implements WorkleadPort {
     }),
   };
   private autoApplyStatus: AutoApplyStatus = {
+    remembers_connection: false, paired: false,
     enabled: false, state: 'stopped', min_score: 50, daily_limit: 20, today_submitted: 0, today_reserved: 0,
     held: 0, uncertain: 0, last_connected_at: null, error_code: null, message: '자동 지원이 중지되어 있습니다.', attempts: [],
   };

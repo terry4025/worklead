@@ -41,7 +41,10 @@
   };
   async function inspect(expected = null) {
     const account_hash = await account();
-    if (!account_hash) return { state: 'held', reason_code: 'login_required' };
+    if (!account_hash) {
+      const signedOut = [...document.querySelectorAll('button,a')].some(el => visible(el) && label(el) === '로그인');
+      return { state: 'held', reason_code: signedOut ? 'login_required' : 'ui_unrecognized' };
+    }
     if (!expected) return { state: 'account', account_hash };
     if (id() !== expected.job_id) return { state: 'held', reason_code: 'navigation_failed', account_hash };
     const main = document.querySelector('main');

@@ -161,8 +161,17 @@ class AutoApplyRuntime:
             return self._status_in(s)
 
     def start(self, body: AutoApplyStartIn):
+        if body.remember_connection:
+            from .auto_pairing import runtime as pairing_runtime
+            return pairing_runtime(self.app).start(body)
+        # Explicitly opting out must not leave a previous remembered grant armed.
+        if self.app._jobs_auto_pairing_runtime is not None:
+            self.app._jobs_auto_pairing_runtime.disable()
+        return self._start_session(body)
+
+    def _start_session(self, body: AutoApplyStartIn, *, pair_state=None):
         from .auto_apply_bridge import BridgeServer, Handler
-        self.stop()
+        self.shutdown()
         with self._lock:
             if self._thread and self._thread.is_alive():
                 raise ApplicationError(409, "auto_apply_stopping", "이전 연결을 정리 중입니다. 잠시 후 다시 시작하세요")
@@ -176,7 +185,8 @@ class AutoApplyRuntime:
                 else: s.add(AppSetting(key="job_auto_apply", value=values))
                 self._journal_keys()
             self._stop.clear()
-            self._account = self._profile = None
+            self._account = pair_state["account"] if pair_state else None
+            self._profile = pair_state["profile"] if pair_state else None
             self._leases.clear()
             self._receipts.clear()
             self._connected = None
@@ -187,7 +197,8 @@ class AutoApplyRuntime:
             self._token = secrets.token_urlsafe(32)
             self._url = f"http://127.0.0.1:{self._server.server_port}"
             self._status = AutoApplyStatus(enabled=True, state="waiting", min_score=body.min_score, daily_limit=body.daily_limit,
-                message="자동 지원 전용 크롬 연결을 기다립니다. 재시작 시 다시 연결해야 합니다")
+                remembers_connection=bool(pair_state), paired=bool(pair_state and pair_state["account"]),
+                message="저장한 크롬 연결의 자동 복귀를 기다립니다" if pair_state else "자동 지원 전용 크롬 연결을 기다립니다. 재시작 시 다시 연결해야 합니다")
             self._thread = threading.Thread(target=self._run, daemon=True, name="jobs-auto-apply")
             self._thread.start()
             return {"connection": {"url": self._url, "token": self._token}, "status": self.status()}
@@ -207,6 +218,28 @@ class AutoApplyRuntime:
             return bool(self._token and not self._stop.is_set() and hmac.compare_digest(header.encode(), f"Bearer {self._token}".encode()))
 
     def stop(self):
+        pair = self.app._jobs_auto_pairing_runtime
+        try:
+            if pair is not None: pair.disable()
+        except ApplicationError:
+            self.shutdown()
+            raise
+        return self.shutdown()
+
+    def forget(self):
+        from .auto_pairing import runtime as pairing_runtime
+        pair = pairing_runtime(self.app)
+        # Shut off the live capability even if Windows rejects credential removal.
+        self.shutdown()
+        pair.disable()
+        pair.forget()
+        pair.close()
+        with self._lock:
+            self._status.remembers_connection = self._status.paired = False
+        return self.status()
+
+    def shutdown(self):
+        """Process shutdown clears live authority but preserves explicit resume intent."""
         self._stop.set()
         with self._lock:
             self._token, self._url = "", ""
@@ -224,12 +257,14 @@ class AutoApplyRuntime:
         if not self._status.enabled or self._stop.is_set() or self._status.state == "paused":
             raise ApplicationError(409, "auto_apply_stopped", "자동 지원이 중지되었습니다")
         if self._generation != self.app.db.gate.generation:
-            self._receipts.clear()
-            self._status.state, self._status.error_code = "paused", "database_restored"
+            self._pause_session("database_restored")
+            if self.app._jobs_auto_pairing_runtime is not None:
+                self.app._jobs_auto_pairing_runtime.disable("database_restored")
             raise ApplicationError(409, "database_restored", "복원 후에는 크롬을 다시 연결하세요")
         if self._account is not None and self._account != body.account_hash:
-            self._receipts.clear()
-            self._status.state, self._status.error_code = "paused", "account_changed"
+            self._pause_session("account_changed")
+            if self.app._jobs_auto_pairing_runtime is not None:
+                self.app._jobs_auto_pairing_runtime.disable("account_changed")
             raise ApplicationError(409, "account_changed", "로그인 계정이 바뀌어 중지되었습니다")
         self._account = body.account_hash
         self._connected = self.monotonic()
@@ -312,10 +347,19 @@ class AutoApplyRuntime:
                 row.state, row.reason_code, row.finished_at = "already_applied", "already_applied", self.app.clock()
                 return {"status": row.state}
             reason = self._eligible(s, row, visible_form=body.outcome == "ready" and body.evidence == "application_form")
-            if body.outcome == "ready" and self._profile is not None and self._profile != body.profile_hash: reason = "profile_changed"
+            if body.outcome == "ready" and self._profile is not None and self._profile != body.profile_hash:
+                reason = "profile_changed"
+                if self._status.remembers_connection:
+                    self.app._jobs_auto_pairing_runtime.disable("profile_changed")
+                    self._pause_session("profile_changed")
             if reason:
                 row.state, row.reason_code, row.finished_at = "held", reason, self.app.clock()
             elif body.outcome == "ready" and body.reason_code == "ready":
+                if self._status.remembers_connection:
+                    try: self.app._jobs_auto_pairing_runtime.bind_profile(body.profile_hash)
+                    except ApplicationError:
+                        self._pause_session("profile_changed")
+                        raise
                 self._profile = body.profile_hash
                 row.state, row.reason_code = "ready", "ready"
                 receipt = secrets.token_urlsafe(32)
@@ -402,12 +446,20 @@ class AutoApplyRuntime:
         with self._lock:
             if not self._status.enabled or self._stop.is_set():
                 raise ApplicationError(409, "auto_apply_stopped", "자동 지원이 중지되었습니다")
+            self._pause_session(body.reason)
+            if self.app._jobs_auto_pairing_runtime is not None:
+                self.app._jobs_auto_pairing_runtime.disable(body.reason)
+            self._recover()
+        return {"status": "paused"}
+
+    def _pause_session(self, reason):
+        with self._lock:
             self._receipts.clear()
             self._leases.clear()
-            self._recover()
-            self._status.state, self._status.error_code = "paused", body.reason
-            self._status.message = "로그인 상태가 바뀌어 중지했습니다. 확인 후 새 코드로 연결하세요"
-        return {"status": "paused"}
+            # Callers may be inside a write transaction. Recovery is deferred to
+            # expiry/shutdown instead of opening a nested SQLite write session.
+            self._status.state, self._status.error_code = "paused", reason
+            self._status.message = "계정·소개 또는 데이터 상태가 바뀌어 중지했습니다. 확인 후 다시 시작하세요"
 
 
 def runtime(app):

@@ -15,7 +15,7 @@ const ports: MockPort[] = [];
 const now = new Date('2026-10-25T05:00:00Z');
 afterEach(() => { cleanup(); clients.splice(0).forEach((c) => c.clear()); ports.splice(0).forEach((p) => p.dispose()); vi.restoreAllMocks(); Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal'); });
 function status(patch: Partial<AutoApplyStatus> = {}): AutoApplyStatus {
-  return { enabled: false, state: 'stopped', min_score: 50, daily_limit: 20, today_submitted: 0, today_reserved: 0, held: 0, uncertain: 0, last_connected_at: null, error_code: null, message: '자동 지원을 시작하지 않았습니다.', attempts: [], ...patch };
+  return { enabled: false, remembers_connection: false, paired: false, state: 'stopped', min_score: 50, daily_limit: 20, today_submitted: 0, today_reserved: 0, held: 0, uncertain: 0, last_connected_at: null, error_code: null, message: '자동 지원을 시작하지 않았습니다.', attempts: [], ...patch };
 }
 function harness(initial = status(), mode: 'live' | 'demo' = 'live') {
   const port = new MockPort({ scenario: 'normal', latency: [0, 0] }); ports.push(port);
@@ -52,7 +52,7 @@ it('50점부터 포함하는 기본 정책은 자동 시작하지 않고 명시�
   expect(screen.getByText(/49점은 제외하고 50점부터/)).toBeTruthy();
   fireEvent.click(screen.getByRole('button', { name: '기준에 맞는 공고 자동 지원 시작' }));
   await screen.findByText('크롬 자동 지원 탭 연결 대기');
-  expect(start).toHaveBeenCalledWith({ confirm: true, min_score: 50, daily_limit: 20 });
+  expect(start).toHaveBeenCalledWith({ confirm: true, min_score: 50, daily_limit: 20, remember_connection: true });
   expect(screen.queryByText('크롬 연결됨 · 대상 공고 대기')).toBeNull();
   expect(view.container.innerHTML).not.toContain(secret);
   expect(JSON.stringify(h.qc.getQueryCache().getAll().map((q) => q.state.data))).not.toContain(secret);
@@ -134,4 +134,41 @@ it('당근 자동 수집만 5분을 선택할 수 있고 다른 사이트 주기
   expect(within(other).queryByRole('option', { name: '5분마다' })).toBeNull();
   fireEvent.change(within(daangn).getByRole('combobox', { name: '수집 주기' }), { target: { value: '5' } });
   await waitFor(() => expect(update).toHaveBeenCalledWith('daangn-alba', { intervalMinutes: 5 }));
+});
+
+
+it('저장된 연결 재개는 새 코드 없이 대기하며 연결됨이나 제출 완료로 표시하지 않는다', async () => {
+  const h = harness(status({ remembers_connection: true, paired: true }));
+  const start = vi.spyOn(h.port.jobs, 'autoApplyStart').mockResolvedValue({ connection: null, extension_directory: 'synthetic-extension-directory', status: status({ enabled: true, remembers_connection: true, paired: true, state: 'waiting' }) });
+  const copy = vi.spyOn(external, 'copyText');
+  render(h.panel, { wrapper: h.wrapper });
+  await waitFor(() => expect(screen.getByRole('button', { name: '기준에 맞는 공고 자동 지원 시작' })).toHaveProperty('disabled', false));
+  fireEvent.click(screen.getByRole('button', { name: '기준에 맞는 공고 자동 지원 시작' }));
+  await screen.findByText('저장된 크롬 연결 자동 복구 중');
+  expect(start).toHaveBeenCalledWith({ confirm: true, min_score: 50, daily_limit: 20, remember_connection: true });
+  expect(screen.queryByRole('button', { name: '자동 지원 연결코드 복사' })).toBeNull();
+  expect(screen.queryByText('크롬 연결됨 · 대상 공고 대기')).toBeNull();
+  expect(screen.getByText('크롬에서 받은 작업 요청이 아직 없습니다.')).toBeTruthy();
+  expect(copy).not.toHaveBeenCalled();
+});
+
+it('저장 연결 해제는 별도 API로 연결을 폐기하고 자동 지원을 시작하지 않는다', async () => {
+  const h = harness(status({ remembers_connection: true, paired: true }));
+  const forget = vi.spyOn(h.port.jobs, 'autoApplyForget').mockResolvedValue(status());
+  const start = vi.spyOn(h.port.jobs, 'autoApplyStart');
+  render(h.panel, { wrapper: h.wrapper });
+  fireEvent.click(await screen.findByRole('button', { name: '저장 연결 해제' }));
+  await waitFor(() => expect(forget).toHaveBeenCalledOnce());
+  await waitFor(() => expect(screen.queryByRole('button', { name: '저장 연결 해제' })).toBeNull());
+  expect(start).not.toHaveBeenCalled();
+});
+
+it('자동 연결을 기억하지 않는 선택은 시작 요청에도 반영된다', async () => {
+  const h = harness();
+  const start = vi.spyOn(h.port.jobs, 'autoApplyStart').mockResolvedValue({ connection: null, extension_directory: '', status: status({ enabled: true, state: 'waiting' }) });
+  render(h.panel, { wrapper: h.wrapper });
+  await screen.findByRole('button', { name: '기준에 맞는 공고 자동 지원 시작' });
+  fireEvent.click(screen.getByRole('checkbox', { name: '다음 실행부터 자동 연결·지원 재개' }));
+  fireEvent.click(screen.getByRole('button', { name: '기준에 맞는 공고 자동 지원 시작' }));
+  await waitFor(() => expect(start).toHaveBeenCalledWith({ confirm: true, min_score: 50, daily_limit: 20, remember_connection: false }));
 });

@@ -27,6 +27,15 @@ def router():
     @routes.post("/stop", response_model=AutoApplyStatus)
     def stop(request: Request, response: Response):
         response.headers["Cache-Control"] = "no-store"
-        return runtime(request.app.state.ctx).stop()
+        app = request.app.state.ctx
+        with app.ai_control_lock:
+            return runtime(app).stop()
+
+    @routes.post("/forget", response_model=AutoApplyStatus)
+    def forget(request: Request, response: Response):
+        response.headers["Cache-Control"] = "no-store"
+        app = request.app.state.ctx
+        with app.ai_control_lock:
+            return runtime(app).forget()
 
     return routes

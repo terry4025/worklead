@@ -72,6 +72,8 @@ export interface JobAutoApplyAttempt {
 }
 export interface JobAutoApplyStatus {
   enabled: boolean;
+  remembers_connection: boolean;
+  paired: boolean;
   state: 'stopped' | 'waiting' | 'connected' | 'paused';
   min_score: number;
   daily_limit: number;
@@ -85,7 +87,7 @@ export interface JobAutoApplyStatus {
   attempts: JobAutoApplyAttempt[];
 }
 export interface JobAutoApplyStart {
-  connection: { url: string; token: string };
+  connection: { url: string; token: string } | null;
   status: JobAutoApplyStatus;
   extension_directory: string;
 }
@@ -288,8 +290,9 @@ export function createClient(source: ConnectionSource, fetchImpl: typeof fetch =
     jobMessagesChromeStart: (captureVisibleChat = false) => request<JobChromeMessageConnection>('POST', '/v1/jobs/messages/chrome/start', { body: { confirm: true, ...(captureVisibleChat ? { capture_visible_chat: true } : {}) } }),
     jobMessagesInbox: () => request<JobChatView>('GET', '/v1/jobs/messages/inbox'),
     jobAutoApplyStatus: () => request<JobAutoApplyStatus>('GET', '/v1/jobs/auto-apply/status'),
-    jobAutoApplyStart: (body: { confirm: true; min_score: number; daily_limit: number }) => request<JobAutoApplyStart>('POST', '/v1/jobs/auto-apply/start', { body }),
+    jobAutoApplyStart: (body: { confirm: true; min_score: number; daily_limit: number; remember_connection?: boolean }) => request<JobAutoApplyStart>('POST', '/v1/jobs/auto-apply/start', { body }),
     jobAutoApplyStop: () => request<JobAutoApplyStatus>('POST', '/v1/jobs/auto-apply/stop'),
+    jobAutoApplyForget: () => request<JobAutoApplyStatus>('POST', '/v1/jobs/auto-apply/forget'),
     cafeStatus: () => request<Schemas['CafeSnapshot']>('GET', '/v1/cafe/status'),
     cafeComments: () => request<Schemas['CafeCommentList']>('GET', '/v1/cafe/comments'),
     cafeCommentUpdate: (id: string, body: Schemas['CafeCommentPatch']) => request<Schemas['CafeCommentOut']>('PATCH', `/v1/cafe/comments/${enc(id)}`, { body }),

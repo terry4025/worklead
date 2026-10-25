@@ -32,6 +32,15 @@ function harness({ selected = true, extraOutside = false, path = '/job-posts/tes
   return { call, identity, window, context, counts: () => ({ opens, submits }) };
 }
 
+test('a missing account menu is uncertain until an explicit visible login control appears', async () => {
+  const h = harness();
+  h.window.document.querySelector('header').innerHTML = '';
+  assert.equal((await h.call('inspect')).reason_code, 'ui_unrecognized');
+  h.window.document.querySelector('header').innerHTML = '<a href="/login">로그인</a>';
+  assert.equal((await h.call('inspect')).reason_code, 'login_required');
+  assert.deepEqual(h.counts(), { opens: 0, submits: 0 });
+});
+
 test('synthetic existing default intro uses two separate clicks and returns only hashes, then official cancel state', async () => {
   const h = harness();
   const expected = await h.identity();

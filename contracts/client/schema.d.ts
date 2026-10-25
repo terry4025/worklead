@@ -534,6 +534,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/jobs/auto-apply/forget": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Forget */
+        post: operations["forget_v1_jobs_auto_apply_forget_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/health": {
         parameters: {
             query?: never;
@@ -1318,6 +1335,11 @@ export interface components {
              */
             confirm: true;
             /**
+             * Remember Connection
+             * @default false
+             */
+            remember_connection: boolean;
+            /**
              * Min Score
              * @default 50
              */
@@ -1330,7 +1352,7 @@ export interface components {
         };
         /** AutoApplyStartOut */
         AutoApplyStartOut: {
-            connection: components["schemas"]["AutoConnection"];
+            connection: components["schemas"]["AutoConnection"] | null;
             status: components["schemas"]["AutoApplyStatus"];
             /** Extension Directory */
             extension_directory: string;
@@ -1342,6 +1364,16 @@ export interface components {
              * @default false
              */
             enabled: boolean;
+            /**
+             * Remembers Connection
+             * @default false
+             */
+            remembers_connection: boolean;
+            /**
+             * Paired
+             * @default false
+             */
+            paired: boolean;
             /**
              * State
              * @default stopped
@@ -4463,6 +4495,26 @@ export interface operations {
         };
     };
     stop_v1_jobs_auto_apply_stop_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutoApplyStatus"];
+                };
+            };
+        };
+    };
+    forget_v1_jobs_auto_apply_forget_post: {
         parameters: {
             query?: never;
             header?: never;

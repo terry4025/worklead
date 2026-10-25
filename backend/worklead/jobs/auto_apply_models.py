@@ -10,6 +10,7 @@ class StrictModel(BaseModel):
 
 class AutoApplyStartIn(StrictModel):
     confirm: Literal[True]
+    remember_connection: bool = False
     min_score: StrictInt = Field(default=50, ge=0, le=100)
     daily_limit: StrictInt = Field(default=20, ge=1, le=200)
 
@@ -26,6 +27,8 @@ class AutoAttemptOut(BaseModel):
 
 class AutoApplyStatus(BaseModel):
     enabled: bool = False
+    remembers_connection: bool = False
+    paired: bool = False
     state: Literal["stopped", "waiting", "connected", "paused"] = "stopped"
     min_score: int = 50
     daily_limit: int = 20
@@ -45,7 +48,7 @@ class AutoConnection(StrictModel):
 
 
 class AutoApplyStartOut(BaseModel):
-    connection: AutoConnection
+    connection: AutoConnection | None
     status: AutoApplyStatus
     extension_directory: str
 

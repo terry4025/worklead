@@ -1,5 +1,7 @@
 {
   "enabled": false,
+  "remembers_connection": false,
+  "paired": false,
   "state": "stopped",
   "min_score": 50,
   "daily_limit": 20,

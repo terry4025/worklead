@@ -25,8 +25,9 @@ export interface ApplicationList {
 
 export interface JobsPort {
   autoApplyStatus(): Promise<AutoApplyStatus>;
-  autoApplyStart(body: { confirm: true; min_score: number; daily_limit: number }): Promise<AutoApplyStart>;
+  autoApplyStart(body: { confirm: true; min_score: number; daily_limit: number; remember_connection?: boolean }): Promise<AutoApplyStart>;
   autoApplyStop(): Promise<AutoApplyStatus>;
+  autoApplyForget(): Promise<AutoApplyStatus>;
   applications(limit?: number): Promise<ApplicationList>;
   application(leadId: string): Promise<ApplicationEntry>;
   prepare(leadId: string): Promise<ApplicationEntry>;

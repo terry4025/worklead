@@ -6,6 +6,11 @@
       "title": "Confirm",
       "type": "boolean"
     },
+    "remember_connection": {
+      "default": false,
+      "title": "Remember Connection",
+      "type": "boolean"
+    },
     "min_score": {
       "default": 50,
       "maximum": 100,

@@ -9,6 +9,8 @@ async function refresh() {
   status.textContent = connectionStatus?.message || '연결하지 않았습니다.';
   const { autoStatus } = await chrome.storage.session.get('autoStatus');
   document.getElementById('auto-status').textContent = autoStatus?.message || '자동 지원을 연결하지 않았습니다.';
+  const { autoPair } = await chrome.storage.local.get('autoPair');
+  document.getElementById('auto-resume').hidden = !autoPair;
 }
 
 connect.addEventListener('click', async () => {
@@ -34,7 +36,7 @@ document.getElementById('disconnect').addEventListener('click', async () => {
   code.value = '';
   await refresh();
 });
-chrome.storage.onChanged.addListener((_, area) => { if (area === 'session') void refresh(); });
+chrome.storage.onChanged.addListener((_, area) => { if (area === 'session' || area === 'local') void refresh(); });
 void refresh();
 
 const autoCode = document.getElementById('auto-code');
@@ -59,4 +61,10 @@ document.getElementById('auto-disconnect').addEventListener('click', async () =>
   await chrome.runtime.sendMessage({ type: 'auto-disconnect' });
   autoCode.value = ''; autoConsent.checked = false;
   await refresh();
+});
+document.getElementById('auto-resume').addEventListener('click', async () => {
+  const button = document.getElementById('auto-resume');
+  button.disabled = true;
+  try { await chrome.runtime.sendMessage({ type: 'auto-resume' }); await refresh(); }
+  finally { button.disabled = false; }
 });

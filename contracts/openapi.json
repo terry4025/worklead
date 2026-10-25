@@ -1180,6 +1180,27 @@
         }
       }
     },
+    "/v1/jobs/auto-apply/forget": {
+      "post": {
+        "tags": [
+          "job-auto-apply"
+        ],
+        "summary": "Forget",
+        "operationId": "forget_v1_jobs_auto_apply_forget_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutoApplyStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/health": {
       "get": {
         "tags": [
@@ -6168,6 +6189,11 @@
             "const": true,
             "title": "Confirm"
           },
+          "remember_connection": {
+            "type": "boolean",
+            "title": "Remember Connection",
+            "default": false
+          },
           "min_score": {
             "type": "integer",
             "maximum": 100.0,
@@ -6193,7 +6219,14 @@
       "AutoApplyStartOut": {
         "properties": {
           "connection": {
-            "$ref": "#/components/schemas/AutoConnection"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AutoConnection"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "status": {
             "$ref": "#/components/schemas/AutoApplyStatus"
@@ -6216,6 +6249,16 @@
           "enabled": {
             "type": "boolean",
             "title": "Enabled",
+            "default": false
+          },
+          "remembers_connection": {
+            "type": "boolean",
+            "title": "Remembers Connection",
+            "default": false
+          },
+          "paired": {
+            "type": "boolean",
+            "title": "Paired",
             "default": false
           },
           "state": {

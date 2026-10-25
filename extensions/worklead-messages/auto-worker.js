@@ -1,8 +1,10 @@
 import { connectionFrom, isJobPage } from './protocol.js';
 import { AUTO_ALARM, JOBS_PERMISSION, jobId, validJob, hashShape } from './auto-protocol.js';
+import { createReconnect, isPairCode, PAIR_ALARM } from './reconnect.js';
 
 let busy = false;
 let nextPoll = 0;
+let reconnectNeeded = false;
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 function bounded(promise, milliseconds = 8000) {
   let timer;
@@ -18,19 +20,23 @@ async function post(c, path, body) {
   const timer = setTimeout(() => controller.abort(), 2500);
   try {
     const response = await fetch(c.url + path, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + c.token }, body: JSON.stringify(body), signal: controller.signal, credentials: 'omit', redirect: 'error', cache: 'no-store' });
-    if (!response.ok) throw new Error('not_accepted');
+    if (!response.ok) { if (response.status === 401 || response.status === 403) reconnectNeeded = true; throw new Error('not_accepted'); }
     return await response.json();
-  } finally { clearTimeout(timer); }
+  } catch (error) { if (error.message !== 'not_accepted') reconnectNeeded = true; throw error; }
+  finally { clearTimeout(timer); }
 }
 async function ui(c, operation, expected = null) {
   return bounded(readUi(c, operation, expected));
 }
 async function readUi(c, operation, expected) {
   if (!await alive(c)) throw new Error('stopped');
-  const tab = await chrome.tabs.get(c.tabId);
+  return readTab(c.tabId, operation, expected);
+}
+async function readTab(tabId, operation = 'inspect', expected = null) {
+  const tab = await chrome.tabs.get(tabId);
   if (!isJobPage(tab.url)) throw new Error('wrong_tab');
-  await chrome.scripting.executeScript({ target: { tabId: c.tabId, allFrames: false }, files: ['auto-content.js'], world: 'ISOLATED' });
-  const result = await chrome.scripting.executeScript({ target: { tabId: c.tabId, allFrames: false }, world: 'ISOLATED', func: (op, data) => globalThis.__workleadAutoUi(op, data), args: [operation, expected] });
+  await chrome.scripting.executeScript({ target: { tabId, allFrames: false }, files: ['auto-content.js'], world: 'ISOLATED' });
+  const result = await chrome.scripting.executeScript({ target: { tabId, allFrames: false }, world: 'ISOLATED', func: (op, data) => globalThis.__workleadAutoUi(op, data), args: [operation, expected] });
   if (result.length !== 1 || !result[0].result) throw new Error('unrecognized');
   return result[0].result;
 }
@@ -74,13 +80,15 @@ async function configure(message, sender) {
   if (!await chrome.permissions.contains({ origins: ['http://127.0.0.1/*', JOBS_PERMISSION] })) throw new Error('permission_required');
   // Do not navigate the unread-monitoring tab. Its purpose remains read-only.
   if ((await chrome.storage.session.get('bridge')).bridge?.tabId === tab.id) throw new Error('separate_tab_required');
-  await clear();
+  if (chrome.storage.local) await reconnect.forget();
+  else await clear();
+  if (isPairCode(value)) return reconnect.initial(value, tab.id);
   await chrome.storage.session.set({ autoBridge: { ...value, tabId: tab.id, ready: false } });
   try {
     const c = await config();
     const result = await ui(c, 'inspect');
     if (result.state !== 'account' || !hashShape(result.account_hash)) throw new Error('login_required');
-    await chrome.storage.session.set({ autoBridge: { ...c, ready: true } });
+    await chrome.storage.session.set({ autoBridge: { ...c, ready: true, account_hash: result.account_hash } });
   } catch (error) { await clear(); throw error; }
   // Pairing tests the purpose-specific endpoint before issuing any click.
   await setStatus('자동 지원 전용 탭을 연결했습니다. Worklead의 50점 이상 후보를 기다립니다.');
@@ -89,6 +97,28 @@ async function configure(message, sender) {
   void tick();
   return { ok: true };
 }
+
+const reconnect = createReconnect({
+  readAccount: tabId => bounded(readTab(tabId)),
+  clearSession: clear,
+  status: setStatus,
+  async connected(connection, tabId, account_hash, current) {
+    if (!current()) throw new Error('cancelled');
+    // Rotating a connection never resumes an old permit or either application click.
+    const previous = await config();
+    if (previous?.token !== connection.token || previous?.url !== connection.url) await chrome.storage.session.remove('autoPending');
+    if (!current()) throw new Error('cancelled');
+    await chrome.storage.session.set({ autoBridge: { ...connection, tabId, account_hash, ready: true } });
+    if (!current()) {
+      if ((await config())?.token === connection.token) await chrome.storage.session.remove('autoBridge');
+      throw new Error('cancelled');
+    }
+    await chrome.alarms.create(AUTO_ALARM, { periodInMinutes: 0.5 });
+    // A 401 immediately after resume must not turn into an unpaced handshake loop.
+    if (!previous) nextPoll = 0;
+    void tick();
+  },
+});
 
 function pendingValid(p, c) {
   return p && validJob(p.job) && p.tab_id === c.tabId && p.connection_url === c.url &&
@@ -101,8 +131,8 @@ function pendingValid(p, c) {
 
 async function pauseIdentity(c, reason) {
   try { await post(c, '/pause', { reason }); } catch {}
-  await clear();
-  await setStatus('당근 로그인 상태가 바뀌어 연결을 해제했습니다. 계정을 확인한 뒤 새 코드로 연결하세요.');
+  if (chrome.storage.local) await reconnect.pause('당근 로그인 상태가 바뀌어 자동 지원을 중지했습니다. 처음 연결한 계정으로 로그인하고 Worklead에서 자동 지원을 다시 시작한 뒤 저장한 연결 재개를 누르세요.');
+  else { await clear(); await setStatus('당근 로그인 상태가 바뀌어 연결을 해제했습니다. 계정을 확인한 뒤 새 코드로 연결하세요.'); }
 }
 
 async function recover(c, p) {
@@ -168,7 +198,11 @@ async function tick() {
       return;
     }
     const account = await ui(c, 'inspect');
-    if (account.state !== 'account' || !hashShape(account.account_hash)) throw new Error('login_required');
+    if (account.state !== 'account' || !hashShape(account.account_hash)) {
+      if (account.reason_code === 'login_required') { await pauseIdentity(c, 'login_required'); return; }
+      throw new Error('identity_not_ready');
+    }
+    if (c.account_hash && account.account_hash !== c.account_hash) { await pauseIdentity(c, 'account_changed'); return; }
     const next = await post(c, '/next', { account_hash: account.account_hash });
     if (!next.job) { await setStatus('연결 중 · 기준 점수 이상의 새 지원 대상을 기다립니다.'); return; }
     if (!validJob(next.job)) throw new Error('invalid_job');
@@ -228,17 +262,28 @@ async function tick() {
   } finally {
     if (!keepRecovery) await chrome.storage.session.remove('autoPending');
     busy = false;
+    if (reconnectNeeded && chrome.storage.local) { reconnectNeeded = false; void reconnect.resume({ force: true }); }
   }
 }
 
 chrome.runtime.onMessage.addListener((message, sender, respond) => {
   const popup = !sender.tab && sender.url === chrome.runtime.getURL('popup.html');
   if (message?.type === 'auto-connect' && popup) { configure(message, sender).then(respond, () => respond({ ok: false, message: '로그인된 별도 당근 탭·권한·자동 지원 연결 코드를 확인하세요. 메시지 감시 탭은 함께 쓰지 않습니다.' })); return true; }
-  if (message?.type === 'auto-disconnect' && popup) { clear().then(() => respond({ ok: true })); return true; }
+  if (message?.type === 'auto-disconnect' && popup) { (chrome.storage.local ? reconnect.forget() : clear()).then(() => respond({ ok: true })); return true; }
+  if (message?.type === 'auto-resume' && popup) { reconnect.resume({ manual: true }).then(respond); return true; }
   if (message?.type === 'auto-tick' && sender.frameId === 0 && isJobPage(sender.url)) {
     void config().then(c => { if (c?.tabId === sender.tab?.id) return tick(); });
   }
   return false;
 });
-chrome.alarms.onAlarm.addListener(alarm => { if (alarm.name === AUTO_ALARM) void tick(); });
-chrome.tabs.onRemoved.addListener(id => { void config().then(c => { if (c?.tabId === id) return clear(); }); });
+chrome.alarms.onAlarm.addListener(alarm => { if (alarm.name === AUTO_ALARM) void tick(); if (alarm.name === PAIR_ALARM && chrome.storage.local) void reconnect.resume(); });
+chrome.tabs.onRemoved.addListener((id, info) => {
+  void (async () => {
+    if (chrome.storage.local && await reconnect.tabClosed(id, info?.isWindowClosing === true)) return;
+    const c = await config(); if (c?.tabId === id) await clear();
+  })();
+});
+chrome.runtime.onStartup?.addListener(() => { if (chrome.storage.local) void reconnect.boot(); });
+chrome.runtime.onInstalled?.addListener(() => { if (chrome.storage.local) void reconnect.boot(); });
+// MV3 service workers can resume without onStartup (for example an alarm wake).
+if (chrome.storage.local) void reconnect.boot();

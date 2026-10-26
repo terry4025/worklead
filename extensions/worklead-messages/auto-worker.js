@@ -1,4 +1,5 @@
 import { connectionFrom, isJobPage } from './protocol.js';
+import { connectionError, ping } from './connection-errors.js';
 import { AUTO_ALARM, JOBS_PERMISSION, jobId, validJob, hashShape } from './auto-protocol.js';
 import { createReconnect, isPairCode, PAIR_ALARM } from './reconnect.js';
 
@@ -74,15 +75,16 @@ async function clear() {
 async function configure(message, sender) {
   if (sender.tab || sender.url !== chrome.runtime.getURL('popup.html') || message.confirm !== true) throw new Error('popup_required');
   if (busy) throw new Error('busy');
-  const value = connectionFrom(message.code);
+  const value = connectionFrom(message.code, 'auto_apply');
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab || !Number.isInteger(tab.id) || !isJobPage(tab.url)) throw new Error('jobs_tab_required');
   if (!await chrome.permissions.contains({ origins: ['http://127.0.0.1/*', JOBS_PERMISSION] })) throw new Error('permission_required');
   // Do not navigate the unread-monitoring tab. Its purpose remains read-only.
   if ((await chrome.storage.session.get('bridge')).bridge?.tabId === tab.id) throw new Error('separate_tab_required');
+  if (isPairCode(value)) return reconnect.initial(value, tab.id);
+  await ping(value, 'auto_apply');
   if (chrome.storage.local) await reconnect.forget();
   else await clear();
-  if (isPairCode(value)) return reconnect.initial(value, tab.id);
   await chrome.storage.session.set({ autoBridge: { ...value, tabId: tab.id, ready: false } });
   try {
     const c = await config();
@@ -99,6 +101,7 @@ async function configure(message, sender) {
 }
 
 const reconnect = createReconnect({
+  validateConnection: c => ping(c, 'auto_apply'),
   readAccount: tabId => bounded(readTab(tabId)),
   clearSession: clear,
   status: setStatus,
@@ -268,7 +271,7 @@ async function tick() {
 
 chrome.runtime.onMessage.addListener((message, sender, respond) => {
   const popup = !sender.tab && sender.url === chrome.runtime.getURL('popup.html');
-  if (message?.type === 'auto-connect' && popup) { configure(message, sender).then(respond, () => respond({ ok: false, message: '로그인된 별도 당근 탭·권한·자동 지원 연결 코드를 확인하세요. 메시지 감시 탭은 함께 쓰지 않습니다.' })); return true; }
+  if (message?.type === 'auto-connect' && popup) { configure(message, sender).then(respond, async error => { const message = connectionError(error, 'auto_apply'); await setStatus(message); respond({ok:false,message}); }); return true; }
   if (message?.type === 'auto-disconnect' && popup) { (chrome.storage.local ? reconnect.forget() : clear()).then(() => respond({ ok: true })); return true; }
   if (message?.type === 'auto-resume' && popup) { reconnect.resume({ manual: true }).then(respond); return true; }
   if (message?.type === 'auto-tick' && sender.frameId === 0 && isJobPage(sender.url)) {

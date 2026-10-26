@@ -53,6 +53,7 @@ async function harness(outcome = 'success') {
     assert.equal(options.headers.Authorization, 'Bearer ' + pair.token);
     assert.ok(!JSON.stringify(body).includes(pair.token));
     let result;
+    if (path === '/ping') result = {purpose:'auto_apply',version:1};
     if (path === '/next') result = { job: requests.filter(x => x.path === '/next').length === 1 ? job : null };
     if (path === '/review') { result = { status: body.outcome, ...(body.outcome === 'ready' ? { receipt_token: 'r'.repeat(43) } : {}) }; if (body.outcome !== 'ready') resolveResult(); }
     if (path === '/permit') {

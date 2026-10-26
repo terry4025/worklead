@@ -1097,6 +1097,27 @@
         }
       }
     },
+    "/v1/jobs/messages/chrome/forget": {
+      "post": {
+        "tags": [
+          "job-messages"
+        ],
+        "summary": "Forget",
+        "operationId": "forget_v1_jobs_messages_chrome_forget_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/jobs/auto-apply/status": {
       "get": {
         "tags": [
@@ -6444,6 +6465,18 @@
           "token": {
             "type": "string",
             "title": "Token"
+          },
+          "purpose": {
+            "type": "string",
+            "const": "auto_apply",
+            "title": "Purpose",
+            "default": "auto_apply"
+          },
+          "version": {
+            "type": "integer",
+            "const": 1,
+            "title": "Version",
+            "default": 1
           }
         },
         "additionalProperties": false,
@@ -8077,7 +8110,18 @@
       "ChromeStart": {
         "properties": {
           "connection": {
-            "$ref": "#/components/schemas/ChromeConnection"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChromeConnection"
+              },
+              {
+                "$ref": "#/components/schemas/RememberedChromeConnection"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connection"
           },
           "status": {
             "$ref": "#/components/schemas/MessageStatus"
@@ -8105,6 +8149,11 @@
           "capture_visible_chat": {
             "type": "boolean",
             "title": "Capture Visible Chat",
+            "default": false
+          },
+          "remember_connection": {
+            "type": "boolean",
+            "title": "Remember Connection",
             "default": false
           }
         },
@@ -10099,6 +10148,16 @@
             "title": "Enabled",
             "default": false
           },
+          "remembers_connection": {
+            "type": "boolean",
+            "title": "Remembers Connection",
+            "default": false
+          },
+          "paired": {
+            "type": "boolean",
+            "title": "Paired",
+            "default": false
+          },
           "state": {
             "type": "string",
             "enum": [
@@ -11556,6 +11615,37 @@
           "related_lead"
         ],
         "title": "RelationUpdateOut"
+      },
+      "RememberedChromeConnection": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "purpose": {
+            "type": "string",
+            "const": "messages",
+            "title": "Purpose"
+          },
+          "version": {
+            "type": "integer",
+            "const": 1,
+            "title": "Version"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "url",
+          "token",
+          "purpose",
+          "version"
+        ],
+        "title": "RememberedChromeConnection"
       },
       "Research": {
         "properties": {

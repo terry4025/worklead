@@ -483,6 +483,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/jobs/messages/chrome/forget": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Forget */
+        post: operations["forget_v1_jobs_messages_chrome_forget_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/jobs/auto-apply/status": {
         parameters: {
             query?: never;
@@ -1458,6 +1475,18 @@ export interface components {
             url: string;
             /** Token */
             token: string;
+            /**
+             * Purpose
+             * @default auto_apply
+             * @constant
+             */
+            purpose: "auto_apply";
+            /**
+             * Version
+             * @default 1
+             * @constant
+             */
+            version: 1;
         };
         /** BackupInspection */
         BackupInspection: {
@@ -2010,7 +2039,8 @@ export interface components {
         };
         /** ChromeStart */
         ChromeStart: {
-            connection: components["schemas"]["ChromeConnection"];
+            /** Connection */
+            connection: components["schemas"]["ChromeConnection"] | components["schemas"]["RememberedChromeConnection"] | null;
             status: components["schemas"]["MessageStatus"];
             /** Extension Directory */
             extension_directory: string;
@@ -2027,6 +2057,11 @@ export interface components {
              * @default false
              */
             capture_visible_chat: boolean;
+            /**
+             * Remember Connection
+             * @default false
+             */
+            remember_connection: boolean;
         };
         /** CollaborationAssessed */
         CollaborationAssessed: {
@@ -2649,6 +2684,16 @@ export interface components {
              */
             enabled: boolean;
             /**
+             * Remembers Connection
+             * @default false
+             */
+            remembers_connection: boolean;
+            /**
+             * Paired
+             * @default false
+             */
+            paired: boolean;
+            /**
              * State
              * @default stopped
              * @enum {string}
@@ -3142,6 +3187,23 @@ export interface components {
         RelationUpdateOut: {
             lead: components["schemas"]["LeadDetail"];
             related_lead: components["schemas"]["LeadDetail"];
+        };
+        /** RememberedChromeConnection */
+        RememberedChromeConnection: {
+            /** Url */
+            url: string;
+            /** Token */
+            token: string;
+            /**
+             * Purpose
+             * @constant
+             */
+            purpose: "messages";
+            /**
+             * Version
+             * @constant
+             */
+            version: 1;
         };
         /** Research */
         Research: {
@@ -4422,6 +4484,26 @@ export interface operations {
         };
     };
     stop_v1_jobs_messages_chrome_stop_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageStatus"];
+                };
+            };
+        };
+    };
+    forget_v1_jobs_messages_chrome_forget_post: {
         parameters: {
             query?: never;
             header?: never;

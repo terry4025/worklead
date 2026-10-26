@@ -412,3 +412,17 @@ def test_already_applied_after_bound_intro_does_not_require_opening_intro(app):
         assert result.json() == {"status": "already_applied"}
         assert bridge.status().today_reserved == 0
     finally: client.close()
+
+
+def test_connection_ping_is_purpose_scoped_authenticated_and_does_not_claim(app):
+    add(app)
+    bridge, client, connection = connect(app)
+    try:
+        response = client.post('/ping', json={})
+        assert response.status_code == 200 and response.json() == {'purpose': 'auto_apply', 'version': 1}
+        assert bridge.status().state == 'waiting' and bridge.status().attempts == []
+        assert client.post('/ping', json={'extra': True}).status_code == 422
+        assert client.post('/ping', json={}, headers={'Authorization': 'Bearer stale'}).status_code == 401
+        assert client.post('/ping', json={}, headers={'Origin': 'https://jobs.daangn.com'}).status_code == 403
+    finally:
+        client.close()

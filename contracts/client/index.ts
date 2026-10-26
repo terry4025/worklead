@@ -33,6 +33,8 @@ export interface JobApplicationList {
 export interface JobMessageWatchStatus {
   provider?: 'chrome' | 'edge';
   enabled: boolean;
+  remembers_connection?: boolean;
+  paired?: boolean;
   state: 'stopped' | 'starting' | 'login_required' | 'watching' | 'surface_unrecognized' | 'error';
   unread_count: number | null;
   last_observed_at: string | null;
@@ -47,7 +49,7 @@ export interface JobMessageWatchStatus {
   needs_user_action: boolean;
 }
 export interface JobChromeMessageConnection {
-  connection: { url: string; token: string };
+  connection: { url: string; token: string; purpose?: 'messages'; version?: 1 } | null;
   status: JobMessageWatchStatus;
   extension_directory: string;
 }
@@ -87,7 +89,7 @@ export interface JobAutoApplyStatus {
   attempts: JobAutoApplyAttempt[];
 }
 export interface JobAutoApplyStart {
-  connection: { url: string; token: string } | null;
+  connection: { url: string; token: string; purpose?: 'auto_apply'; version?: 1 } | null;
   status: JobAutoApplyStatus;
   extension_directory: string;
 }
@@ -287,7 +289,8 @@ export function createClient(source: ConnectionSource, fetchImpl: typeof fetch =
     jobMessagesStatus: () => request<JobMessageWatchStatus>('GET', '/v1/jobs/messages/status'),
     jobMessagesStart: () => request<JobMessageWatchStatus>('POST', '/v1/jobs/messages/start', { body: { confirm: true } }),
     jobMessagesStop: () => request<JobMessageWatchStatus>('POST', '/v1/jobs/messages/stop'),
-    jobMessagesChromeStart: (captureVisibleChat = false) => request<JobChromeMessageConnection>('POST', '/v1/jobs/messages/chrome/start', { body: { confirm: true, ...(captureVisibleChat ? { capture_visible_chat: true } : {}) } }),
+    jobMessagesChromeStart: (captureVisibleChat = false, rememberConnection = false) => request<JobChromeMessageConnection>('POST', '/v1/jobs/messages/chrome/start', { body: { confirm: true, ...(captureVisibleChat ? { capture_visible_chat: true } : {}), ...(rememberConnection ? { remember_connection: true } : {}) } }),
+    jobMessagesChromeForget: () => request<JobMessageWatchStatus>('POST', '/v1/jobs/messages/chrome/forget'),
     jobMessagesInbox: () => request<JobChatView>('GET', '/v1/jobs/messages/inbox'),
     jobAutoApplyStatus: () => request<JobAutoApplyStatus>('GET', '/v1/jobs/auto-apply/status'),
     jobAutoApplyStart: (body: { confirm: true; min_score: number; daily_limit: number; remember_connection?: boolean }) => request<JobAutoApplyStart>('POST', '/v1/jobs/auto-apply/start', { body }),

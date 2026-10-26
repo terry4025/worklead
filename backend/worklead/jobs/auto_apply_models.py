@@ -45,6 +45,8 @@ class AutoApplyStatus(BaseModel):
 class AutoConnection(StrictModel):
     url: str
     token: str = Field(repr=False)
+    purpose: Literal["auto_apply"] = "auto_apply"
+    version: Literal[1] = 1
 
 
 class AutoApplyStartOut(BaseModel):

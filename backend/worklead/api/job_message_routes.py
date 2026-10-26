@@ -37,6 +37,8 @@ def router():
         with ctx.ai_control_lock:
             if ctx._jobs_chrome_runtime is not None and ctx._jobs_chrome_runtime.status().enabled:
                 raise ApplicationError(409, "message_watch_active", "크롬 감시를 먼저 중지한 뒤 Edge를 연결하세요")
+            if ctx._jobs_message_pairing_runtime is not None:
+                ctx._jobs_message_pairing_runtime.disable()
             ctx.jobs_message_provider = "edge"
             return runtime(ctx).start()
 

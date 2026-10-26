@@ -28,6 +28,8 @@ POLL_SECONDS = 2
 class MessageStatus(BaseModel):
     provider: Literal["edge", "chrome"] = "edge"
     enabled: bool = False
+    remembers_connection: bool = False
+    paired: bool = False
     state: Literal["stopped", "starting", "login_required", "watching", "surface_unrecognized", "error"] = "stopped"
     unread_count: int | None = None
     last_observed_at: datetime | None = None

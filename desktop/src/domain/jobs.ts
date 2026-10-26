@@ -35,7 +35,8 @@ export interface JobsPort {
   messagesStatus(): Promise<MessageWatchStatus>;
   messagesStart(): Promise<MessageWatchStatus>;
   messagesStop(): Promise<MessageWatchStatus>;
-  messagesChromeStart(captureVisibleChat?: boolean): Promise<ChromeMessageConnection>;
+  messagesChromeStart(captureVisibleChat?: boolean, rememberConnection?: boolean): Promise<ChromeMessageConnection>;
+  messagesChromeForget(): Promise<MessageWatchStatus>;
   messagesInbox(): Promise<import('@contracts/index').JobChatView>;
 }
 
@@ -45,6 +46,8 @@ import type { JobAutoApplyStatus as AutoApplyStatus, JobAutoApplyStart as AutoAp
 export interface MessageWatchStatus {
   provider?: 'chrome' | 'edge';
   enabled: boolean;
+  remembers_connection?: boolean;
+  paired?: boolean;
   state: 'stopped' | 'starting' | 'login_required' | 'watching' | 'surface_unrecognized' | 'error';
   unread_count: number | null;
   last_observed_at: string | null;
@@ -60,7 +63,7 @@ export interface MessageWatchStatus {
 }
 
 export interface ChromeMessageConnection {
-  connection: { url: string; token: string };
+  connection: { url: string; token: string; purpose?: 'messages'; version?: 1 } | null;
   status: MessageWatchStatus;
   extension_directory: string;
 }

@@ -2,11 +2,12 @@
 import json
 
 from .applications import ApplicationError
-from .auto_apply_models import IdentityIn, NextIn, PauseIn, ReconcileIn, ResultIn, ReviewIn
+from .auto_apply_models import IdentityIn, NextIn, PauseIn, ReconcileIn, ResultIn, ReviewIn, StrictModel
 from .chrome_bridge import EXTENSION_ORIGIN, _BridgeServer, _Handler, _unique_object
 
 BridgeServer = _BridgeServer
 MODELS = {"/next": NextIn, "/review": ReviewIn, "/permit": IdentityIn, "/result": ResultIn, "/reconcile": ReconcileIn, "/pause": PauseIn}
+MODELS["/ping"] = StrictModel
 
 
 class Handler(_Handler):
@@ -64,7 +65,7 @@ class Handler(_Handler):
             self._reply(422, {"error": "invalid_request"}, cors=True)
             return
         try:
-            result = getattr(runtime, self.path[1:])(body)
+            result = {"purpose": "auto_apply", "version": 1} if self.path == "/ping" else getattr(runtime, self.path[1:])(body)
         except ApplicationError as exc:
             self._reply(exc.status, {"error": exc.code}, cors=True)
         except Exception:

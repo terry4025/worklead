@@ -185,6 +185,7 @@ test('real worker wires startup/alarm/401 recovery and popup-only forget without
   h.chrome.scripting = { executeScript: async input => { if (input.files) return [{ frameId: 0 }]; if (input.args) { operations.push(input.args[0]); return [{ result: { state: 'account', account_hash: account } }]; } return [{ result: null }]; } };
   let nextCalls = 0;
   globalThis.fetch = async (url, init) => {
+    if (new URL(url).pathname === '/ping') return {ok:true,json:async()=>({purpose:'auto_apply',version:1})};
     if (new URL(url).pathname === '/next') { nextCalls++; return { ok: false, status: 401 }; }
     return previousFetch(url, init);
   };

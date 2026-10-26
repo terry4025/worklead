@@ -35,6 +35,16 @@
           "title": "Enabled",
           "type": "boolean"
         },
+        "remembers_connection": {
+          "default": false,
+          "title": "Remembers Connection",
+          "type": "boolean"
+        },
+        "paired": {
+          "default": false,
+          "title": "Paired",
+          "type": "boolean"
+        },
         "state": {
           "default": "stopped",
           "enum": [
@@ -136,11 +146,53 @@
       },
       "title": "MessageStatus",
       "type": "object"
+    },
+    "RememberedChromeConnection": {
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "title": "Url",
+          "type": "string"
+        },
+        "token": {
+          "title": "Token",
+          "type": "string"
+        },
+        "purpose": {
+          "const": "messages",
+          "title": "Purpose",
+          "type": "string"
+        },
+        "version": {
+          "const": 1,
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "url",
+        "token",
+        "purpose",
+        "version"
+      ],
+      "title": "RememberedChromeConnection",
+      "type": "object"
     }
   },
   "properties": {
     "connection": {
-      "$ref": "#/$defs/ChromeConnection"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ChromeConnection"
+        },
+        {
+          "$ref": "#/$defs/RememberedChromeConnection"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Connection"
     },
     "status": {
       "$ref": "#/$defs/MessageStatus"

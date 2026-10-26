@@ -1,70 +1,53 @@
 import { connectionFrom } from './protocol.js';
 import { JOBS_PERMISSION } from './auto-protocol.js';
-const code = document.getElementById('code');
-const status = document.getElementById('status');
-const connect = document.getElementById('connect');
-
+import { connectionError } from './connection-errors.js';
+document.getElementById('extension-version').textContent='연결 확장 '+chrome.runtime.getManifest().version;
+const busy={messages:false,auto_apply:false},errors={messages:null,auto_apply:null};
+const status=document.getElementById('status'),autoStatus=document.getElementById('auto-status');
+const code=document.getElementById('code'),autoCode=document.getElementById('auto-code');
+let revision=0;
 async function refresh() {
-  const { connectionStatus } = await chrome.storage.session.get('connectionStatus');
-  status.textContent = connectionStatus?.message || '연결하지 않았습니다.';
-  const { autoStatus } = await chrome.storage.session.get('autoStatus');
-  document.getElementById('auto-status').textContent = autoStatus?.message || '자동 지원을 연결하지 않았습니다.';
-  const { autoPair } = await chrome.storage.local.get('autoPair');
-  document.getElementById('auto-resume').hidden = !autoPair;
+  const version=++revision;
+  const a=await chrome.storage.session.get('connectionStatus');
+  const b=await chrome.storage.session.get('autoStatus');
+  const p=await chrome.storage.local.get('autoPair');
+  const m=await chrome.storage.local.get('messagePair');
+  if(version!==revision)return;
+  if(!busy.messages&&!errors.messages)status.textContent=a.connectionStatus?.message||'메시지 감시를 연결하지 않았습니다.';
+  if(!busy.auto_apply&&!errors.auto_apply)autoStatus.textContent=b.autoStatus?.message||'자동 지원을 연결하지 않았습니다.';
+  document.getElementById('auto-resume').hidden=!p.autoPair;
+  document.getElementById('message-resume').hidden=!m.messagePair;
 }
-
-connect.addEventListener('click', async () => {
+async function connect(purpose) {
+  const auto=purpose==='auto_apply',field=auto?autoCode:code,out=auto?autoStatus:status,button=document.getElementById(auto?'auto-connect':'connect');
+  errors[purpose]=null;busy[purpose]=true;button.disabled=true;
   try {
-    connectionFrom(code.value);
-    // Permission grant is a user gesture in Chrome, never granted by Worklead.
-    if (!await chrome.permissions.request({ origins: ['http://127.0.0.1/*'] })) {
-      status.textContent = '연결 권한을 허용하지 않아 감시를 시작하지 않았습니다.';
-      return;
-    }
-    connect.disabled = true;
-    const result = await chrome.runtime.sendMessage({ type: 'connect', code: code.value, capture_visible_chat: document.getElementById('chat-consent').checked });
-    code.value = '';  // Do not leave the local key in the popup DOM.
-    if (!result?.ok) throw new Error(result?.message || '연결하지 못했습니다.');
-    await refresh();
-  } catch (error) {
-    status.textContent = error.message;
-  } finally { connect.disabled = false; }
-});
-
-document.getElementById('disconnect').addEventListener('click', async () => {
-  await chrome.runtime.sendMessage({ type: 'disconnect' });
-  code.value = '';
-  await refresh();
-});
-chrome.storage.onChanged.addListener((_, area) => { if (area === 'session' || area === 'local') void refresh(); });
+    if(auto&&!document.getElementById('auto-consent').checked) {errors[purpose]='저장된 기본 자기소개의 자동 제출 범위를 확인해 주세요.';return;}
+    connectionFrom(field.value,purpose);
+    if(!await chrome.permissions.request({origins:['http://127.0.0.1/*',JOBS_PERMISSION]}))throw new Error('permission_required');
+    const result=await chrome.runtime.sendMessage({type:auto?'auto-connect':'connect',code:field.value,...(auto?{confirm:true}:{capture_visible_chat:document.getElementById('chat-consent').checked})});
+    field.value='';
+    if(!result?.ok){errors[purpose]=result?.message||connectionError('app_unavailable',purpose);return;}
+    if(auto)document.getElementById('auto-consent').checked=false;
+  }catch(error){errors[purpose]=connectionError(error,purpose);}
+  finally{busy[purpose]=false;button.disabled=false;if(errors[purpose])out.textContent=errors[purpose];else await refresh();}
+}
+document.getElementById('connect').addEventListener('click',()=>connect('messages'));
+document.getElementById('auto-connect').addEventListener('click',()=>connect('auto_apply'));
+for(const purpose of ['messages','auto_apply']) {
+  const auto=purpose==='auto_apply',out=auto?autoStatus:status,field=auto?autoCode:code;
+  document.getElementById(auto?'auto-disconnect':'disconnect').addEventListener('click',async()=>{
+    errors[purpose]=null;busy[purpose]=true;
+    try{const result=await chrome.runtime.sendMessage({type:auto?'auto-disconnect':'disconnect'});field.value='';if(!result?.ok)errors[purpose]=connectionError('app_unavailable',purpose);}
+    catch(error){errors[purpose]=connectionError(error,purpose);}
+    finally{busy[purpose]=false;if(errors[purpose])out.textContent=errors[purpose];else await refresh();}
+  });
+  document.getElementById(auto?'auto-resume':'message-resume').addEventListener('click',async()=>{
+    const button=document.getElementById(auto?'auto-resume':'message-resume');button.disabled=true;errors[purpose]=null;busy[purpose]=true;
+    try{await chrome.runtime.sendMessage({type:auto?'auto-resume':'message-resume'});}
+    catch(error){errors[purpose]=connectionError(error,purpose);}
+    finally{busy[purpose]=false;button.disabled=false;if(errors[purpose])out.textContent=errors[purpose];else await refresh();}
+  });
+}
+chrome.storage.onChanged.addListener((_,area)=>{if(area==='session'||area==='local')void refresh();});
 void refresh();
-
-const autoCode = document.getElementById('auto-code');
-const autoConsent = document.getElementById('auto-consent');
-const autoConnect = document.getElementById('auto-connect');
-const autoStatus = document.getElementById('auto-status');
-autoConnect.addEventListener('click', async () => {
-  try {
-    if (!autoConsent.checked) { autoStatus.textContent = '저장된 기본 자기소개의 자동 제출 범위를 확인해 주세요.'; return; }
-    connectionFrom(autoCode.value);
-    if (!await chrome.permissions.request({ origins: ['http://127.0.0.1/*', JOBS_PERMISSION] })) { autoStatus.textContent = '당근 탭·이 PC 연결 권한을 허용하지 않아 시작하지 않았습니다.'; return; }
-    autoConnect.disabled = true;
-    const result = await chrome.runtime.sendMessage({ type: 'auto-connect', code: autoCode.value, confirm: true });
-    autoCode.value = '';
-    autoConsent.checked = false;
-    if (!result?.ok) throw new Error(result?.message || '자동 지원을 연결하지 못했습니다.');
-    await refresh();
-  } catch { autoStatus.textContent = '별도 당근 탭·권한·자동 지원 연결 코드를 확인하세요.'; }
-  finally { autoConnect.disabled = false; }
-});
-document.getElementById('auto-disconnect').addEventListener('click', async () => {
-  await chrome.runtime.sendMessage({ type: 'auto-disconnect' });
-  autoCode.value = ''; autoConsent.checked = false;
-  await refresh();
-});
-document.getElementById('auto-resume').addEventListener('click', async () => {
-  const button = document.getElementById('auto-resume');
-  button.disabled = true;
-  try { await chrome.runtime.sendMessage({ type: 'auto-resume' }); await refresh(); }
-  finally { button.disabled = false; }
-});

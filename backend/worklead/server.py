@@ -272,6 +272,8 @@ def serve(argv: list[str] | None = None) -> int:
         if not cfg.demo:
             from .jobs.auto_pairing import boot as boot_auto_pairing
             boot_auto_pairing(ctx)
+            from .jobs.message_pairing import boot as boot_message_pairing
+            boot_message_pairing(ctx)
         app = create_app(ctx, workers_running=lambda: all(t.is_alive() for t in workers.threads))
         server = uvicorn.Server(uvicorn.Config(app, log_config=None, access_log=False, lifespan="off", timeout_graceful_shutdown=5,
                                              loop="worklead.server:local_loop_factory" if sys.platform == "win32" else "auto"))
@@ -311,7 +313,9 @@ def serve(argv: list[str] | None = None) -> int:
             if ctx._jobs_auto_pairing_runtime is not None:
                 ctx._jobs_auto_pairing_runtime.close()
             if ctx._jobs_chrome_runtime is not None:
-                ctx._jobs_chrome_runtime.stop()
+                ctx._jobs_chrome_runtime.shutdown()
+            if ctx._jobs_message_pairing_runtime is not None:
+                ctx._jobs_message_pairing_runtime.close()
             if ctx._jobs_message_runtime is not None:
                 ctx._jobs_message_runtime.stop()
             if ctx._cafe_runtime is not None:

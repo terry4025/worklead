@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 FILES = ('manifest.json', 'protocol.js', 'content.js', 'worker.js', 'popup.html', 'popup.css', 'popup.js',
-         'auto-protocol.js', 'auto-content.js', 'auto-worker.js', 'chat-content.js', 'reconnect.js')
+         'auto-protocol.js', 'auto-content.js', 'auto-worker.js', 'chat-content.js', 'reconnect.js', 'identity.js', 'connection-errors.js')
 
 
 def prepare_extension_directory(data_dir: Path) -> str:

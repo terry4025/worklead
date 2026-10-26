@@ -31,6 +31,7 @@ class Observation(BaseModel):
     state: Literal["watching", "login_required", "surface_unrecognized"]
     unread_count: StrictInt | None = Field(ge=0, le=9_999_999)
     sequence: StrictInt = Field(ge=1, le=9_007_199_254_740_991)
+    account_hash: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
 
     @model_validator(mode="after")
     def coherent(self):
@@ -95,7 +96,7 @@ class _Handler(BaseHTTPRequestHandler):
 
     def _scope(self):
         runtime = self.server.runtime
-        if self.path not in ("/observe", "/chat"):
+        if self.path not in ("/observe", "/chat", "/ping"):
             self._reply(404, {"error": "not_found"})
             return False
         if len(self.headers.get_all("Host", [])) != 1 or self.headers.get("Host") != f"127.0.0.1:{self.server.server_port}":
@@ -167,13 +168,24 @@ class _Handler(BaseHTTPRequestHandler):
             raw = self.rfile.read(length)
             if len(raw) != length:
                 raise ValueError("incomplete body")
-            model = ChatObservation if self.path == "/chat" else Observation
-            observation = model.model_validate(json.loads(raw, object_pairs_hook=_unique_object))
+            value = json.loads(raw, object_pairs_hook=_unique_object)
+            if self.path == "/ping":
+                if value != {}: raise ValueError("empty ping required")
+                observation = None
+            else:
+                model = ChatObservation if self.path == "/chat" else Observation
+                observation = model.model_validate(value)
         except (ValueError, TypeError, UnicodeError, OSError, TimeoutError):
             self._reply(422, {"error": "invalid_observation"}, cors=True)
             return
         try:
-            result = runtime.observe_chat(observation) if self.path == "/chat" else runtime.observe(observation)
+            # A reconnect can rotate the capability while this request reads
+            # its body. Recheck it under the observation/rotation lock.
+            with runtime._lock:
+                if not runtime.authorized(authorization):
+                    raise ApplicationError(401, "unauthorized", "크롬 연결 권한이 만료되었습니다")
+                result = ({"purpose": "messages", "version": 1} if self.path == "/ping" else
+                    runtime.observe_chat(observation) if self.path == "/chat" else runtime.observe(observation))
         except ApplicationError as exc:
             self._reply(exc.status, {"error": exc.code}, cors=True)
         except Exception:
@@ -203,6 +215,7 @@ class ChromeBridgeRuntime:
         self._chat_sequence = 0
         self._chat_heartbeat = None
         self._chat_capture = False
+        self._bound_account = None
 
     def _update(self, **changes):
         self._status = self._status.model_copy(update=changes)
@@ -225,7 +238,15 @@ class ChromeBridgeRuntime:
         with self._lock:
             return bool(self._token and not self._stop.is_set() and hmac.compare_digest(authorization.encode(), f"Bearer {self._token}".encode()))
 
-    def start(self, *, capture_visible_chat=False):
+    def start(self, *, capture_visible_chat=False, remember_connection=False):
+        if remember_connection:
+            from .message_pairing import runtime as pairing_runtime
+            return pairing_runtime(self.app).start(capture_visible_chat=capture_visible_chat)
+        pair = self.app._jobs_message_pairing_runtime
+        if pair is not None: pair.disable()
+        return self._start_session(capture_visible_chat=capture_visible_chat)
+
+    def _start_session(self, *, capture_visible_chat=False, pair_state=None):
         with self._lock:
             if self._thread and self._thread.is_alive():
                 if self._stop.is_set():
@@ -241,14 +262,36 @@ class ChromeBridgeRuntime:
             self._generation = self.app.db.gate.generation
             self._heartbeat = None  # Installation/pairing can precede the first observation.
             self._chat_capture = capture_visible_chat
+            self._bound_account = pair_state["account"] if pair_state else None
             self._chat = ChatView(enabled=capture_visible_chat, state="waiting" if capture_visible_chat else "off")
             self._chat_account, self._chat_sequence, self._chat_heartbeat = None, 0, None
             self._status = MessageStatus(provider="chrome", enabled=True, state="starting", needs_user_action=True,
+                                         remembers_connection=bool(pair_state), paired=bool(pair_state and pair_state["account"]),
                                          captures_message_body=capture_visible_chat,
                                          message="크롬 확장 연결 대기 중입니다. 선택한 당근 탭을 연결하세요")
             self._thread = threading.Thread(target=self._run, name="jobs-chrome-bridge", daemon=True)
             self._thread.start()
             return {"connection": {"url": self._url, "token": self._token}, "status": self.status()}
+
+    def _resume_session(self, account_hash):
+        """Rotate an authenticated companion without losing its unread baseline."""
+        with self._lock:
+            if not self._status.enabled or self._stop.is_set():
+                raise ApplicationError(409, "message_watch_stopped", "메시지 감시가 중지되었습니다")
+            if self._generation != self.app.db.gate.generation:
+                self._pause_persistent("database_restored")
+                raise ApplicationError(409, "database_restored", "복원 후 메시지 연결을 다시 준비하세요")
+            if self._bound_account and self._bound_account != account_hash:
+                self._pause_persistent("account_changed")
+                raise ApplicationError(409, "account_changed", "로그인 계정이 바뀌어 메시지 자동 연결을 중지했습니다")
+            self._expire()
+            self._token = secrets.token_urlsafe(32)
+            self._bound_account = account_hash
+            self._sequence, self._last_observation = 0, None
+            self._chat_account, self._chat_sequence, self._chat_heartbeat = None, 0, None
+            self._chat = ChatView(enabled=self._chat_capture, state="waiting" if self._chat_capture else "off")
+            self._update(paired=True)
+            return {"url": self._url, "token": self._token}
 
     def _run(self):
         server = self._server
@@ -286,14 +329,9 @@ class ChromeBridgeRuntime:
                 raise ApplicationError(409, "database_restored", "복원 후 새 코드로 다시 연결하세요")
             if observation.sequence <= self._chat_sequence:
                 raise ApplicationError(409, "stale_sequence", "지난 채팅 관찰입니다")
-            if observation.state == "login_required" or (self._chat_account and self._chat_account != observation.account_hash):
+            if observation.state == "login_required" or (self._chat_account and self._chat_account != observation.account_hash) or (self._bound_account and self._bound_account != observation.account_hash):
                 state = "login_required" if observation.state == "login_required" else "account_changed"
-                self._chat_capture = False
-                self._chat = ChatView(state=state)
-                self._previous = self._gap_previous = None
-                self._update(enabled=False, state="login_required" if state == "login_required" else "error",
-                    captures_message_body=False, unread_count=None, needs_user_action=True,
-                    message="당근 로그인 계정이 바뀌어 보이는 채팅 표시를 지웠습니다. 새 코드로 다시 연결하세요")
+                self._pause_persistent(state)
                 return {"accepted": False, "reconnect_required": True}
             lead_id = lead_title = None
             if observation.job_id:
@@ -319,6 +357,25 @@ class ChromeBridgeRuntime:
         with self._lock:
             if self._stop.is_set() or not self._status.enabled:
                 raise ApplicationError(503, "bridge_stopped", "크롬 연결이 중지되었습니다")
+            if self._status.remembers_connection:
+                if self._generation != self.app.db.gate.generation:
+                    self._pause_persistent("database_restored")
+                    raise ApplicationError(409, "database_restored", "복원 후 메시지 연결을 다시 준비하세요")
+                if observation.state == "login_required":
+                    self._pause_persistent("login_required")
+                    return {"accepted": False, "reconnect_required": True}
+                if not observation.account_hash:
+                    raise ApplicationError(422, "account_unverified", "연결한 계정 표식을 확인하지 못했습니다")
+                if self._bound_account != observation.account_hash:
+                    self._pause_persistent("account_changed")
+                    return {"accepted": False, "reconnect_required": True}
+            elif self._chat_capture and (observation.state == "login_required" or
+                    self._chat_account and observation.account_hash and self._chat_account != observation.account_hash):
+                # A count-only update must also revoke a previously captured
+                # body when the tab reports login or identity loss.
+                reason = "login_required" if observation.state == "login_required" else "account_changed"
+                self._pause_persistent(reason)
+                return {"accepted": False, "reconnect_required": True}
             self._expire()
             value = observation.model_dump()
             if observation.sequence == self._sequence and value == self._last_observation:
@@ -370,7 +427,40 @@ class ChromeBridgeRuntime:
             self.app.hub.notify()
         return {"accepted": True, "duplicate": False}
 
+    def _pause_session(self, reason):
+        with self._lock:
+            self._chat_capture = False
+            self._chat = ChatView(state="login_required" if reason == "login_required" else "account_changed" if reason == "account_changed" else "off")
+            self._previous = self._gap_previous = None
+            self._update(enabled=False, state="login_required" if reason == "login_required" else "error", error_code=reason,
+                captures_message_body=False, unread_count=None, last_observed_at=None, browser_open=False, needs_user_action=True,
+                message="계정·로그인 또는 데이터 상태가 바뀌어 메시지 자동 연결을 중지했습니다. 확인 후 다시 시작하세요")
+
+    def _pause_persistent(self, reason):
+        self._pause_session(reason)
+        if self.app._jobs_message_pairing_runtime is not None:
+            self.app._jobs_message_pairing_runtime.disable(reason)
+
     def stop(self):
+        try:
+            if self.app._jobs_message_pairing_runtime is not None:
+                self.app._jobs_message_pairing_runtime.disable()
+        except ApplicationError:
+            self.shutdown()
+            raise
+        return self.shutdown()
+
+    def forget(self):
+        from .message_pairing import runtime as pairing_runtime
+        pair = pairing_runtime(self.app)
+        self.shutdown()
+        pair.disable()
+        pair.forget()
+        pair.close()
+        self._update(remembers_connection=False, paired=False)
+        return self.status()
+
+    def shutdown(self):
         self._stop.set()
         with self._lock:
             self._token, self._url, self._previous = "", "", None

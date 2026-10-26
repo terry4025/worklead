@@ -141,6 +141,7 @@ export class MockPort implements WorkleadPort {
     autoApplyStart: () => this.delay(() => { throw new PortError({ kind: 'api', code: 'demo_only', message: '데모에서는 자동 지원 연결이나 실제 제출을 실행하지 않습니다.' }); }),
     autoApplyStop: () => this.delay(() => this.autoApplyStatus),
     autoApplyForget: () => this.delay(() => this.autoApplyStatus),
+    messagesChromeForget: () => this.delay(() => this.messageStatus),
     messagesChromeStart: () => this.delay(() => {
       this.messageStatus = { ...this.messageStatus, provider: 'chrome', enabled: true, state: 'starting', unread_count: null, last_observed_at: null, needs_user_action: true, browser_open: false, message: '데모에서는 크롬 확장 연결과 실제 메시지 관찰을 하지 않습니다.' };
       return { connection: { url: 'http://127.0.0.1:0', token: 'demo-only-not-a-real-connection' }, status: this.messageStatus, extension_directory: '데모에서는 확장 폴더를 준비하지 않습니다.' };

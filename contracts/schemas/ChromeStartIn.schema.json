@@ -10,6 +10,11 @@
       "default": false,
       "title": "Capture Visible Chat",
       "type": "boolean"
+    },
+    "remember_connection": {
+      "default": false,
+      "title": "Remember Connection",
+      "type": "boolean"
     }
   },
   "required": [

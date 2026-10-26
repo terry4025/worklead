@@ -6357,6 +6357,34 @@
             },
             "type": "array",
             "title": "Attempts"
+          },
+          "queue_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Queue Reason"
+          },
+          "needs_user_action": {
+            "type": "boolean",
+            "title": "Needs User Action",
+            "default": false
+          },
+          "retry_waiting": {
+            "type": "integer",
+            "title": "Retry Waiting",
+            "default": 0
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/AutoCandidateOut"
+            },
+            "type": "array",
+            "title": "Candidates"
           }
         },
         "type": "object",
@@ -6416,6 +6444,23 @@
               }
             ],
             "title": "Finished At"
+          },
+          "retry_count": {
+            "type": "integer",
+            "title": "Retry Count",
+            "default": 0
+          },
+          "retry_after": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retry After"
           }
         },
         "type": "object",
@@ -6429,6 +6474,115 @@
           "finished_at"
         ],
         "title": "AutoAttemptOut"
+      },
+      "AutoCandidateOut": {
+        "properties": {
+          "lead_id": {
+            "type": "string",
+            "title": "Lead Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "source_refresh",
+              "rejected",
+              "form_review",
+              "permit_issued",
+              "submitted",
+              "already_applied",
+              "retry_wait",
+              "held",
+              "uncertain"
+            ],
+            "title": "Stage"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Code"
+          },
+          "retry_count": {
+            "type": "integer",
+            "title": "Retry Count",
+            "default": 0
+          },
+          "retry_after": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retry After"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "refresh_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refresh State"
+          },
+          "refresh_error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refresh Error Code"
+          },
+          "last_checked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Checked At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lead_id",
+          "title",
+          "stage"
+        ],
+        "title": "AutoCandidateOut"
       },
       "AutoCollect": {
         "properties": {

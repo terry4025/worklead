@@ -73,7 +73,7 @@ export function MessageConnectionPanel({ onSettings, now }: { onSettings: () => 
       {status?.remembers_connection ? <Button size="sm" busy={forget.isPending} disabled={chrome.isPending || action.isPending} onClick={() => { chrome.reset(); action.reset(); forget.mutate(); }}>저장한 메시지 연결 해제</Button> : null}
     </div>
     <label className="field-hint"><input type="checkbox" checked={remember} disabled={chrome.isPending || status?.enabled || forget.isPending} onChange={e => setRemember(e.target.checked)} /> 메시지 감시도 다음 실행부터 자동 연결</label>
-    <p className="field-hint">최초 한 번 확장 0.5.0의 메시지 표시 감시에 연결하면 앱·크롬 재시작 뒤 같은 계정으로 복구합니다. 자동 지원 연결과는 별도이며, 감시 중지는 다음 실행에도 유지합니다.</p>
+    <p className="field-hint">최초 한 번 확장 0.6.0의 메시지 표시 감시에 연결하면 앱·크롬 재시작 뒤 같은 계정으로 복구합니다. 자동 지원 연결과는 별도이며, 감시 중지는 다음 실행에도 유지합니다.</p>
     <label className="field-hint"><input type="checkbox" checked={captureChat} disabled={chrome.isPending || status?.enabled} onChange={e => setCaptureChat(e.target.checked)} /> 보이는 채팅 내용도 Worklead에서 보기</label>
     <p className="field-hint">켜고 크롬으로 연결하면 선택한 탭에 보이는 채팅 내용을 이 PC에서 일시 표시합니다. 확장 팝업에서도 같은 항목을 선택하세요. 앱 종료·연결 중지·로그인 변경 시 내용을 지우며 파일·DB·AI로 보내지 않습니다.</p>
     {codeReady ? <div className="chrome-connection-code">

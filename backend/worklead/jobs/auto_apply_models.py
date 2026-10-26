@@ -23,6 +23,22 @@ class AutoAttemptOut(BaseModel):
     reason_code: str | None
     created_at: datetime
     finished_at: datetime | None
+    retry_count: int = 0
+    retry_after: datetime | None = None
+
+
+class AutoCandidateOut(BaseModel):
+    lead_id: str
+    title: str
+    stage: Literal["queued", "source_refresh", "rejected", "form_review", "permit_issued", "submitted",
+        "already_applied", "retry_wait", "held", "uncertain"]
+    reason_code: str | None = None
+    retry_count: int = 0
+    retry_after: datetime | None = None
+    updated_at: datetime | None = None
+    refresh_state: str | None = None
+    refresh_error_code: str | None = None
+    last_checked_at: datetime | None = None
 
 
 class AutoApplyStatus(BaseModel):
@@ -40,6 +56,10 @@ class AutoApplyStatus(BaseModel):
     error_code: str | None = None
     message: str = "자동 지원이 꺼져 있습니다"
     attempts: list[AutoAttemptOut] = Field(default_factory=list)
+    queue_reason: str | None = None
+    needs_user_action: bool = False
+    retry_waiting: int = 0
+    candidates: list[AutoCandidateOut] = Field(default_factory=list)
 
 
 class AutoConnection(StrictModel):
@@ -67,7 +87,7 @@ class IdentityIn(NextIn):
 
 ReasonCode = Literal["ready", "already_applied", "questions_required", "profile_changed", "condition_conflict",
     "login_required", "account_changed", "closed", "ui_unrecognized", "navigation_failed",
-    "submission_unconfirmed", "submitted", "cancelled"]
+    "submission_unconfirmed", "submitted", "cancelled", "browser_timeout", "connection_ended"]
 
 
 class ReviewIn(IdentityIn):

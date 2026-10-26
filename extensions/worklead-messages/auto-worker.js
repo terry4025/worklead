@@ -13,6 +13,24 @@ function bounded(promise, milliseconds = 8000) {
     .finally(() => clearTimeout(timer));
 }
 const setStatus = message => chrome.storage.session.set({ autoStatus: { message, observedAt: Date.now() } });
+const queueMessages = {
+  stopped: 'Worklead에서 자동 지원이 중지되어 있습니다.',
+  paused: '자동 지원이 일시 중지되었습니다. Worklead에서 확인이 필요한 이유를 확인하세요.',
+  connection_wait: '자동 지원 전용 탭 연결을 기다립니다.',
+  connection_stale: 'Worklead와의 작업 응답이 늦습니다. 연결 상태를 확인하세요.',
+  daily_limit: '오늘 제출 상한에 도달했습니다. 다음 허용 시간을 기다립니다.',
+  processing: '이전 공고의 양식 또는 제출 결과를 확인 중입니다.',
+  source_permission_unverified: '당근 수집 허용 상태를 확인하기 전까지 지원을 기다립니다.',
+  source_refresh: '저장 공고의 현재 원문·보수·모집 상태를 재확인하고 있습니다.',
+  retry_wait: '제출 전 일시 실패의 재시도 시간을 기다립니다. Worklead에서 예정 시각을 확인하세요.',
+  no_candidates: '연결 중 · 현재 조건에 맞는 미지원 공고가 없습니다.',
+  ready: '조건에 맞는 공고의 작업 배정을 기다립니다.',
+};
+function queueMessage(next) {
+  const reason = next?.reason_code || next?.queue_reason;
+  const message = queueMessages[reason];
+  return typeof message === 'string' ? message : reason ? '연결 중 · Worklead에서 지원 대기 사유를 확인하세요.' : '연결 중 · 기준 점수 이상의 새 지원 대상을 기다립니다.';
+}
 async function config() { return (await bounded(chrome.storage.session.get('autoBridge'))).autoBridge; }
 async function alive(c) { const current = await config(); return current?.token === c.token && current.tabId === c.tabId; }
 async function post(c, path, body) {
@@ -48,6 +66,7 @@ async function waitUi(c, expected, states, timeout = 10000) {
     result = await ui(c, 'inspect', expected);
     if (states.includes(result.state)) return result;
     if (result.reason_code === 'login_required' || result.reason_code === 'account_changed') return result;
+    if (result.state === 'held' && ['questions_required', 'profile_changed', 'condition_conflict', 'closed'].includes(result.reason_code)) return result;
     await sleep(400);
   } while (Date.now() < until);
   return result;
@@ -145,10 +164,11 @@ async function recover(c, p) {
     return;
   }
   if (p.phase === 'opening') {
-    // No permit was requested. A restarted worker must not resume either click.
-    try { await post(c, '/review', { ...p.identity, outcome: 'held', reason_code: 'cancelled' }); } catch {}
+    // A permit is requested only AFTER the durable phase changes to permitting.
+    // Report interruption to Worklead; only its journal/permit checks may retry.
+    try { await post(c, '/review', { ...p.identity, outcome: 'held', reason_code: 'connection_ended' }); } catch {}
     await chrome.storage.session.remove('autoPending');
-    await setStatus('중단된 양식 확인을 보류했습니다. 같은 지원을 다시 누르지 않습니다.');
+    await setStatus('중단된 양식 확인을 Worklead에 보고했습니다. 제출 전 기록과 재시도 조건을 다시 확인합니다.');
     return;
   }
   if (Date.now() < p.next_check_at) return;
@@ -192,6 +212,7 @@ async function tick() {
   if (!c || !c.ready) { busy = false; return; }
   let identity = null;
   let permitted = false;
+  let permitBoundary = false;
   let keepRecovery = false;
   try {
     const leftover = (await chrome.storage.session.get('autoPending')).autoPending;
@@ -207,7 +228,7 @@ async function tick() {
     }
     if (c.account_hash && account.account_hash !== c.account_hash) { await pauseIdentity(c, 'account_changed'); return; }
     const next = await post(c, '/next', { account_hash: account.account_hash });
-    if (!next.job) { await setStatus('연결 중 · 기준 점수 이상의 새 지원 대상을 기다립니다.'); return; }
+    if (!next.job) { await setStatus(queueMessage(next)); return; }
     if (!validJob(next.job)) throw new Error('invalid_job');
     const job = next.job;
     const expected = { job_id: jobId(job.url), title: job.title, account_hash: account.account_hash };
@@ -216,7 +237,8 @@ async function tick() {
       next_check_at: 0, tab_id: c.tabId, connection_url: c.url };
     await savePending(c, pending);
     if (!await alive(c)) return;
-    await bounded(chrome.tabs.update(c.tabId, { url: job.url }));
+    try { await bounded(chrome.tabs.update(c.tabId, { url: job.url })); }
+    catch (error) { throw new Error(error?.message === 'browser_timeout' ? 'browser_timeout' : 'navigation_failed'); }
     let view = await waitUi(c, expected, ['openable', 'ready', 'already_applied']);
     if (view.account_hash && view.account_hash !== expected.account_hash) view = { state: 'held', reason_code: 'account_changed' };
     if (view.state === 'already_applied') { await post(c, '/review', { ...identity, outcome: 'already_applied', reason_code: 'already_applied' }); return; }
@@ -234,6 +256,9 @@ async function tick() {
     if (review.status !== 'ready' || !/^[A-Za-z0-9_-]{32,128}$/.test(review.receipt_token)) return;
     // Persist the separate read-only receipt BEFORE requesting any final permit.
     pending = { ...pending, identity, phase: 'permitting', receipt_token: review.receipt_token, next_check_at: Date.now() + 5000 };
+    // A lost storage acknowledgement may already have persisted this phase.
+    // Never send another review after crossing into permit preparation.
+    permitBoundary = true;
     await savePending(c, pending);
     keepRecovery = true;
     // Use request-start time so a slow permit response cannot extend its lifetime.
@@ -255,13 +280,14 @@ async function tick() {
       await post(c, '/result', { ...identity, outcome: 'uncertain', reason_code: 'submission_unconfirmed', evidence: null });
       await setStatus('지원 결과 미확인 · 자동으로 다시 누르지 않습니다.');
     }
-  } catch {
-    if (identity && (!keepRecovery || permitted)) {
+  } catch (error) {
+    const transient = !permitBoundary && !keepRecovery && ['navigation_failed', 'browser_timeout'].includes(error?.message) ? error.message : null;
+    if (identity && (!permitBoundary || permitted)) {
       try {
-        await post(c, permitted ? '/result' : '/review', { ...identity, outcome: permitted ? 'uncertain' : 'held', reason_code: permitted ? 'submission_unconfirmed' : 'ui_unrecognized', ...(permitted ? { evidence: null } : {}) });
+        await post(c, permitted ? '/result' : '/review', { ...identity, outcome: permitted ? 'uncertain' : 'held', reason_code: permitted ? 'submission_unconfirmed' : transient || 'ui_unrecognized', ...(permitted ? { evidence: null } : {}) });
       } catch {}
     }
-    await setStatus(keepRecovery ? '연결 응답이 끊겨 완료 표시를 자동 대조합니다. 제출 버튼은 다시 누르지 않습니다.' : '자동 지원 연결·화면을 확인하세요. 불확실한 제출은 재시도하지 않습니다.');
+    await setStatus(keepRecovery ? '연결 응답이 끊겨 완료 표시를 자동 대조합니다. 제출 버튼은 다시 누르지 않습니다.' : transient ? '제출 허가 전 일시 오류를 Worklead에 보고했습니다. 저장된 기록과 조건으로 재시도 가능 여부를 확인합니다.' : '자동 지원 연결·화면을 확인하세요. 불확실한 제출은 재시도하지 않습니다.');
   } finally {
     if (!keepRecovery) await chrome.storage.session.remove('autoPending');
     busy = false;

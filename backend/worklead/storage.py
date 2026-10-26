@@ -99,6 +99,8 @@ def validate_database(db_path: Path) -> tuple[str, int]:
                 raise ValueError("Worklead 필수 테이블이 없는 백업입니다")
             columns = {r[1] for r in conn.execute(f'PRAGMA table_info("{name}")')}
             required = set(table.columns.keys())
+            if name == "job_auto_attempts" and rev == "0008_job_auto_attempts":
+                required -= {"retry_count", "retry_after"}
             if name == "duplicate_links" and rev in {"0001", "0002_detail_fetch_states", "0003_native_notifications"}:
                 required -= {"dismissed", "revision"}
             if name == "collection_tasks" and rev in {"0001", "0002_detail_fetch_states", "0003_native_notifications", "0004_relation_decisions"}:

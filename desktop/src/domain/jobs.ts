@@ -40,7 +40,7 @@ export interface JobsPort {
   messagesInbox(): Promise<import('@contracts/index').JobChatView>;
 }
 
-export type { JobAutoApplyStatus as AutoApplyStatus, JobAutoApplyStart as AutoApplyStart, JobAutoApplyAttempt as AutoApplyAttempt } from '@contracts/index';
+export type { JobAutoApplyStatus as AutoApplyStatus, JobAutoApplyStart as AutoApplyStart, JobAutoApplyAttempt as AutoApplyAttempt, JobAutoApplyCandidate as AutoApplyCandidate } from '@contracts/index';
 import type { JobAutoApplyStatus as AutoApplyStatus, JobAutoApplyStart as AutoApplyStart } from '@contracts/index';
 
 export interface MessageWatchStatus {

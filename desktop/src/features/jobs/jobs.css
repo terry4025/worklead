@@ -47,6 +47,12 @@
 .auto-apply-metrics div { padding: 12px; background: var(--surface-2); border-radius: var(--radius); }
 .auto-apply-metrics dt { color: var(--text-3); font-size: var(--fs-xs); }
 .auto-apply-metrics dd { margin: 6px 0 0; font-weight: 700; }
+.auto-apply-metrics > div:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.auto-apply-queue { padding: 12px 14px; margin: 0 0 12px; border: 1px solid var(--accent-line); border-radius: var(--radius); background: var(--accent-weak); font-size: var(--fs-sm); }
+.auto-apply-queue.needs-action { border-color: var(--warn); color: var(--warn); background: var(--surface-2); }
+.auto-apply-queue p { margin: 6px 0 0; }
+.auto-apply-candidates { max-height: 360px; }
+.auto-apply-retry { font-variant-numeric: tabular-nums; }
 .auto-apply-results h3 { margin: 18px 0 12px; font-size: var(--fs-sm); }
 .auto-apply-attempts { list-style: none; padding: 0; margin: 0; max-height: 340px; overflow-y: auto; }
 .auto-apply-attempts li { padding: 10px 0; border-top: 1px solid var(--line); }

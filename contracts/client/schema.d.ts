@@ -1438,6 +1438,20 @@ export interface components {
             message: string;
             /** Attempts */
             attempts?: components["schemas"]["AutoAttemptOut"][];
+            /** Queue Reason */
+            queue_reason?: string | null;
+            /**
+             * Needs User Action
+             * @default false
+             */
+            needs_user_action: boolean;
+            /**
+             * Retry Waiting
+             * @default 0
+             */
+            retry_waiting: number;
+            /** Candidates */
+            candidates?: components["schemas"]["AutoCandidateOut"][];
         };
         /** AutoAttemptOut */
         AutoAttemptOut: {
@@ -1461,6 +1475,42 @@ export interface components {
             created_at: string;
             /** Finished At */
             finished_at: string | null;
+            /**
+             * Retry Count
+             * @default 0
+             */
+            retry_count: number;
+            /** Retry After */
+            retry_after?: string | null;
+        };
+        /** AutoCandidateOut */
+        AutoCandidateOut: {
+            /** Lead Id */
+            lead_id: string;
+            /** Title */
+            title: string;
+            /**
+             * Stage
+             * @enum {string}
+             */
+            stage: "queued" | "source_refresh" | "rejected" | "form_review" | "permit_issued" | "submitted" | "already_applied" | "retry_wait" | "held" | "uncertain";
+            /** Reason Code */
+            reason_code?: string | null;
+            /**
+             * Retry Count
+             * @default 0
+             */
+            retry_count: number;
+            /** Retry After */
+            retry_after?: string | null;
+            /** Updated At */
+            updated_at?: string | null;
+            /** Refresh State */
+            refresh_state?: string | null;
+            /** Refresh Error Code */
+            refresh_error_code?: string | null;
+            /** Last Checked At */
+            last_checked_at?: string | null;
         };
         /** AutoCollect */
         AutoCollect: {

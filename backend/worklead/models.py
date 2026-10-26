@@ -610,6 +610,8 @@ class JobAutoAttempt(Base):
     expires_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
     permitted_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
     finished_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    retry_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    retry_after: Mapped[datetime | None] = mapped_column(UTCDateTime)
     __table_args__ = (Index("ix_auto_attempt_created", "created_at"),)
 
 

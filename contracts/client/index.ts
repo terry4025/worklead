@@ -71,6 +71,20 @@ export interface JobAutoApplyAttempt {
   reason_code: string | null;
   created_at: string;
   finished_at: string | null;
+  retry_count?: number;
+  retry_after?: string | null;
+}
+export interface JobAutoApplyCandidate {
+  lead_id: string;
+  title: string;
+  stage: 'queued' | 'source_refresh' | 'rejected' | 'form_review' | 'permit_issued' | 'submitted' | 'already_applied' | 'retry_wait' | 'held' | 'uncertain';
+  reason_code: string | null;
+  retry_count?: number;
+  retry_after?: string | null;
+  updated_at?: string | null;
+  refresh_state?: string | null;
+  refresh_error_code?: string | null;
+  last_checked_at?: string | null;
 }
 export interface JobAutoApplyStatus {
   enabled: boolean;
@@ -87,6 +101,10 @@ export interface JobAutoApplyStatus {
   error_code: string | null;
   message: string;
   attempts: JobAutoApplyAttempt[];
+  queue_reason?: string | null;
+  needs_user_action?: boolean;
+  retry_waiting?: number;
+  candidates?: JobAutoApplyCandidate[];
 }
 export interface JobAutoApplyStart {
   connection: { url: string; token: string; purpose?: 'auto_apply'; version?: 1 } | null;

@@ -172,3 +172,75 @@ it('자동 연결을 기억하지 않는 선택은 시작 요청에도 반영된
   fireEvent.click(screen.getByRole('button', { name: '기준에 맞는 공고 자동 지원 시작' }));
   await waitFor(() => expect(start).toHaveBeenCalledWith({ confirm: true, min_score: 50, daily_limit: 20, remember_connection: false }));
 });
+
+it('연결 미응답은 이전 connected 상태나 처리 기록이 있어도 경고하고 자동 지원을 다시 시작하지 않는다', async () => {
+  const h = harness(status({ enabled: true, remembers_connection: true, paired: true, state: 'connected',
+    queue_reason: 'connection_stale', needs_user_action: true, retry_waiting: 1,
+    attempts: [{ id: 'old_claim', lead_id: 'old_lead', title: '이전 처리 공고', state: 'claimed', reason_code: null, created_at: now.toISOString(), finished_at: null }] }));
+  const start = vi.spyOn(h.port.jobs, 'autoApplyStart');
+  render(h.panel, { wrapper: h.wrapper });
+  expect((await screen.findByText('자동 지원 연결·상태 확인 필요')).closest('.status')?.className).toContain('status-warn');
+  expect(within(screen.getByRole('alert')).getByText('크롬 응답이 끊겼습니다')).toBeTruthy();
+  expect(screen.queryByText('자동 지원 처리 중')).toBeNull();
+  expect(screen.queryByText('크롬 연결됨 · 대상 공고 대기')).toBeNull();
+  expect(screen.getByRole('button', { name: '저장된 연결로 자동 지원 재개' })).toHaveProperty('disabled', false);
+  expect(start).not.toHaveBeenCalled();
+});
+
+it('후보 없음·확장 연결 대기·상태 조회 실패를 구분해 보여 준다', async () => {
+  const h = harness(status({ enabled: true, state: 'connected', queue_reason: 'no_candidates', candidates: [], retry_waiting: 0 }));
+  render(h.panel, { wrapper: h.wrapper });
+  await screen.findByText('지금 지원 가능한 공고가 없습니다');
+  expect(screen.queryByText('확장 연결을 기다립니다')).toBeNull();
+  await act(async () => { h.qc.setQueryData(autoApplyKey, status({ enabled: true, state: 'waiting', queue_reason: 'connection_wait' })); });
+  expect(screen.getByText('확장 연결을 기다립니다')).toBeTruthy();
+  expect(screen.queryByText('지금 지원 가능한 공고가 없습니다')).toBeNull();
+  h.query.mockRejectedValue(new Error('status failed'));
+  await act(async () => { await h.qc.invalidateQueries({ queryKey: autoApplyKey }); });
+  await screen.findByText('지원 대기 상태 미확인');
+  expect(screen.queryByText('확장 연결을 기다립니다')).toBeNull();
+  expect(screen.getByText('마지막으로 확인한 상태')).toBeTruthy();
+});
+
+it('공고별 재확인·재시도 대기·영구 보류·허가·완료를 구분하고 재시도 시각을 표시한다', async () => {
+  const retryAt = '2026-10-25T05:05:00Z';
+  const checkedAt = '2026-10-23T05:00:00Z';
+  const h = harness(status({ enabled: true, state: 'connected', queue_reason: 'source_refresh', retry_waiting: 1,
+    candidates: [
+      { lead_id: 'queued', title: '대기 공고', stage: 'queued', reason_code: null },
+      { lead_id: 'refresh', title: '오래된 원문 공고', stage: 'source_refresh', reason_code: 'refresh_failed', refresh_state: 'failed', refresh_error_code: 'unknown-private-error', last_checked_at: checkedAt },
+      { lead_id: 'retry', title: '탭 오류 공고', stage: 'retry_wait', reason_code: 'browser_timeout', retry_count: 1, retry_after: retryAt },
+      { lead_id: 'held', title: '확인 질문 공고', stage: 'held', reason_code: 'questions_required' },
+      { lead_id: 'limit', title: '재시도 소진 공고', stage: 'held', reason_code: 'retry_exhausted', retry_count: 3 },
+      { lead_id: 'permit', title: '제출 허가 공고', stage: 'permit_issued', reason_code: null },
+      { lead_id: 'submitted', title: '완료 공고', stage: 'submitted', reason_code: null },
+      { lead_id: 'uncertain', title: '미확인 공고', stage: 'uncertain', reason_code: 'submission_unconfirmed' },
+    ] }));
+  const view = render(h.panel, { wrapper: h.wrapper });
+  const list = await screen.findByRole('region', { name: '공고별 진행 상태' });
+  for (const label of ['지원 후보 대기', '원문 상태 재확인', '일시 실패 · 재시도 대기', '제출 허가 · 결과 확인 중', '제출 확인', '결과 미확인 · 재제출 중지']) expect(within(list).getByText(label)).toBeTruthy();
+  expect(within(list).getByText('원문 재확인 실패 · 수집 상태 확인 필요')).toBeTruthy();
+  expect(within(list).getByText('추가 질문이나 동의 항목 확인 필요')).toBeTruthy();
+  expect(within(list).getByText('자동 재시도 3회 상한 도달')).toBeTruthy();
+  expect(within(list).getAllByText('이 공고는 자동 재시도하지 않습니다.')).toHaveLength(2);
+  expect(within(list).getByText(/재시도 1 \/ 3회/)).toBeTruthy();
+  expect(within(list).getByText(/다음 재시도/)).toBeTruthy();
+  expect(view.container.querySelector(`time[datetime="${retryAt}"]`)).toBeTruthy();
+  expect(view.container.querySelector(`time[datetime="${checkedAt}"]`)).toBeTruthy();
+  expect(view.container.innerHTML).not.toContain('unknown-private-error');
+  expect(screen.getByText(/1분·5분·15분 간격으로 최대 3회/)).toBeTruthy();
+  expect(within(list).queryByRole('button', { name: /^(재시도|지금 재시도|다시 지원)$/ })).toBeNull();
+  fireEvent.click(within(list).getByRole('button', { name: '탭 오류 공고' }));
+  expect(h.open).toHaveBeenCalledWith('retry');
+});
+
+it('알 수 없는 대기 사유는 원문 코드를 노출하거나 정상 실행으로 추정하지 않는다', async () => {
+  const h = harness(status({ enabled: true, state: 'waiting', queue_reason: 'unexpected-private-code' }));
+  const view = render(h.panel, { wrapper: h.wrapper });
+  await screen.findByText('지원 대기 사유를 확인해야 합니다');
+  expect(view.container.innerHTML).not.toContain('unexpected-private-code');
+  expect(screen.queryByText('자동 지원 처리 중')).toBeNull();
+  await act(async () => { h.qc.setQueryData(autoApplyKey, status({ enabled: true, state: 'connected', needs_user_action: true, queue_reason: 'source_permission_unverified' })); });
+  expect(within(screen.getByRole('alert')).getByText(/수집 설정에서 당근 소스의 허용 상태/)).toBeTruthy();
+  expect(screen.queryByText(/당근 전용 탭·확장 연결을 확인하세요/)).toBeNull();
+});

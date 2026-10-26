@@ -94,6 +94,35 @@
           },
           "title": "Attempts",
           "type": "array"
+        },
+        "queue_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Queue Reason"
+        },
+        "needs_user_action": {
+          "default": false,
+          "title": "Needs User Action",
+          "type": "boolean"
+        },
+        "retry_waiting": {
+          "default": 0,
+          "title": "Retry Waiting",
+          "type": "integer"
+        },
+        "candidates": {
+          "items": {
+            "$ref": "#/$defs/AutoCandidateOut"
+          },
+          "title": "Candidates",
+          "type": "array"
         }
       },
       "title": "AutoApplyStatus",
@@ -153,6 +182,24 @@
             }
           ],
           "title": "Finished At"
+        },
+        "retry_count": {
+          "default": 0,
+          "title": "Retry Count",
+          "type": "integer"
+        },
+        "retry_after": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retry After"
         }
       },
       "required": [
@@ -165,6 +212,121 @@
         "finished_at"
       ],
       "title": "AutoAttemptOut",
+      "type": "object"
+    },
+    "AutoCandidateOut": {
+      "properties": {
+        "lead_id": {
+          "title": "Lead Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "queued",
+            "source_refresh",
+            "rejected",
+            "form_review",
+            "permit_issued",
+            "submitted",
+            "already_applied",
+            "retry_wait",
+            "held",
+            "uncertain"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason Code"
+        },
+        "retry_count": {
+          "default": 0,
+          "title": "Retry Count",
+          "type": "integer"
+        },
+        "retry_after": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retry After"
+        },
+        "updated_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Updated At"
+        },
+        "refresh_state": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Refresh State"
+        },
+        "refresh_error_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Refresh Error Code"
+        },
+        "last_checked_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Checked At"
+        }
+      },
+      "required": [
+        "lead_id",
+        "title",
+        "stage"
+      ],
+      "title": "AutoCandidateOut",
       "type": "object"
     },
     "AutoConnection": {

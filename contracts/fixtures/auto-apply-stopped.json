@@ -12,5 +12,9 @@
   "last_connected_at": null,
   "error_code": null,
   "message": "자동 지원이 꺼져 있습니다",
-  "attempts": []
+  "attempts": [],
+  "queue_reason": "stopped",
+  "needs_user_action": false,
+  "retry_waiting": 0,
+  "candidates": []
 }

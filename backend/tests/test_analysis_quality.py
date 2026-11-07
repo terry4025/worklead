@@ -52,17 +52,36 @@ def test_compatible_or_incomplete_prices_do_not_invent_a_conflict(source, body_p
     assert a.pay.raw == source
 
 
-@pytest.mark.parametrize("source", ["시급 2만원", "일급 15만원", "월급 400만원", "연봉 4200만원"])
+# 2026-11-07: a remote development request with a time wage goes to review
+# (caution + time_pay penalty, never auto-apply); the wage is never overridden.
+@pytest.mark.parametrize("source", ["시급 2만원", "일급 15만원", "월급 400만원"])
 def test_body_project_amount_never_overrides_a_source_wage(source):
     a = check("홈페이지 제작 의뢰합니다. 전 과정 비대면 진행.\n예산 80만원", parse_pay(source))
-    assert a.recommendation == "excluded"
+    assert a.recommendation == "needs_review"
     assert a.pay.raw == source
+    assert any("표기" in r.text and r.tone == "caution" for r in a.reasons)
+    assert any(f.key == "time_pay" for f in a.factors)
+
+
+def test_body_project_amount_never_overrides_a_source_annual_salary():
+    a = check("홈페이지 제작 의뢰합니다. 전 과정 비대면 진행.\n예산 80만원", parse_pay("연봉 4200만원"))
+    assert a.recommendation == "excluded"
+    assert a.pay.raw == "연봉 4200만원"
     assert any("지급" in r.text for r in a.reasons)
 
 
-@pytest.mark.parametrize("body_pay", ["시급 2만원", "일급 15만원", "월급 400만원"])
-def test_price_conflict_never_reincludes_a_body_wage(body_pay):
+@pytest.mark.parametrize("body_pay", ["일급 15만원", "월급 400만원"])
+def test_price_conflict_never_hides_a_body_wage(body_pay):
     a = check(f"홈페이지 제작 의뢰합니다. 전 과정 비대면 진행.\n{body_pay}", parse_pay("건당 80만원"))
+    assert a.recommendation == "needs_review"
+    assert a.pay.unit == "project" and a.pay.min == 800_000
+    assert any("표기" in r.text and r.tone == "caution" for r in a.reasons)
+    assert any(f.key == "time_pay" for f in a.factors)  # never auto-applies despite project display
+
+
+def test_price_conflict_never_reincludes_a_body_hourly_wage():
+    # A body hourly wage reads as staff hiring and stays excluded.
+    a = check("홈페이지 제작 의뢰합니다. 전 과정 비대면 진행.\n시급 2만원", parse_pay("건당 80만원"))
     assert a.recommendation == "excluded"
     assert a.pay.unit == "project" and a.pay.min == 800_000
 

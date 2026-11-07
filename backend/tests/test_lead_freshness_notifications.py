@@ -8,6 +8,7 @@ from sqlalchemy import select
 
 from worklead.analysis.types import DateInfo, PayInfo
 from worklead.engine.pipeline import ingest
+from worklead.jobs.auto_apply import condition
 from worklead.models import EventOutbox, Lead, SourceRecord
 from worklead.services import native_notifications as native
 from worklead.services.settings import put_setting
@@ -71,13 +72,25 @@ def test_review_freshness_requires_valid_precise_publication(ctx, age, precision
     ({"source_status": "closed"}, "site"),
     ({"source_status": "unknown"}, "site"),
     ({"published": DateInfo()}, "site"),
-    ({"pay": PayInfo(raw="시급 15,000원", unit="hour", min=15_000, max=15_000)}, "site"),
     ({"title": "홈페이지 제작해 드립니다", "body": "홈페이지 제작해 드립니다. 고객님 문의 주세요."}, "site"),
     ({}, "manual"),
 ])
-def test_closed_unknown_employment_seller_or_manual_are_not_new_review_alerts(ctx, changes, source_kind):
+def test_closed_unknown_seller_or_manual_are_not_new_review_alerts(ctx, changes, source_kind):
     save(ctx, post(**changes), source_kind=source_kind)
     assert not any(row.payload["kind"] == "new_review_lead" for row in alerts(ctx))
+
+
+def test_non_onsite_buyer_request_with_hourly_pay_is_a_review_alert(ctx):
+    # 2026-11-07: a development buyer request (not onsite) posted with 시급 is a
+    # review lead with a caution, so it now raises a review alert; it never auto-applies.
+    result = save(ctx, post(pay=PayInfo(raw="시급 15,000원", unit="hour", min=15_000, max=15_000)))
+    assert result.recommendation == "needs_review"
+    with ctx.db.session() as s:
+        lead = s.get(Lead, result.lead_id)
+        assert lead.pay_unit == "hour" and lead.work_mode != "onsite"
+        assert any("시급 표기" in reason["text"] for reason in lead.reasons)
+        assert condition(s, lead, NOW, 0, queue=True) == "condition_changed"
+    assert [row.payload["kind"] for row in alerts(ctx)] == ["new_review_lead"]
 
 
 def test_review_and_recommended_toggles_are_independent(ctx):

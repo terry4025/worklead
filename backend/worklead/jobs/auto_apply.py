@@ -70,7 +70,10 @@ def condition(s, lead, now, min_score, *, queue=False, visible_form=False):
     # An open form must not replace a fresh public detail check: old terms/pay
     # may have changed even when the same title and application button remain.
     current = analyze(post, profile, now, ttl_hours(s), feedback_map(s, lead.id))
+    # A time wage anywhere (metadata, body or title) keeps the lead in manual review even
+    # when the displayed unit is per project: auto-apply stays per-project only.
     if (current.recommendation == "excluded" or not current.dev_relevant or current.pay.unit != "project"
+            or any(f.key == "time_pay" for f in current.factors)
             or current.total is None or (not queue and current.total < min_score)):
         return "condition_changed"
     if profile.min_contract is not None and rec.pay_min is not None and rec.pay_min < profile.min_contract:

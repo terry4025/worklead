@@ -18,7 +18,7 @@ from .text import any_match, c, find
 from .pay import EXPLICIT_SALARY
 from .types import Ev, Judgement, Risk
 
-RULE_VERSION = "rules-2026.10.25-fit2"
+RULE_VERSION = "rules-2026.11.07-remote-time-pay"
 
 # ── 요청 유형 ─────────────────────────────────────────────────────────
 SELLER = c(

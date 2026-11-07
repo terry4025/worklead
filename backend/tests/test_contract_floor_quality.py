@@ -93,10 +93,21 @@ def test_disabled_floor_does_not_disable_low_pay_priority(floor, pay):
     assert not any("최소 계약금액" in r.text for r in a.reasons)
 
 
+@pytest.mark.parametrize("pay", [parse_pay("시급 2만원"), parse_pay("일급 15만원"), parse_pay("월급 400만원")])
+def test_remote_time_wage_review_does_not_add_contract_floor_negotiation(pay):
+    # 2026-11-07: remote dev request with a time wage → review with a caution and a
+    # time_pay penalty (never auto-apply). A wage is not a contract amount, so the
+    # minimum-contract caution must not appear.
+    a = check(pay)
+    assert a.recommendation == "needs_review"
+    assert any(r.tone == "caution" and "표기" in r.text for r in a.reasons)
+    assert any(f.key == "time_pay" for f in a.factors)
+    assert not any("최소 계약금액" in r.text for r in a.reasons)
+    assert not any("최소 계약금액" in question for question in a.questions)
+    assert (a.pay.raw, a.pay.min, a.pay.max, a.pay.unit) == (pay.raw, pay.min, pay.max, pay.unit)
+
+
 @pytest.mark.parametrize(("pay", "body"), [
-    (parse_pay("시급 2만원"), BODY),
-    (parse_pay("일급 15만원"), BODY),
-    (parse_pay("월급 400만원"), BODY),
     (parse_pay("건당 60만원"), BODY + " 시급 2만원."),
     (parse_pay("건당 60만원"), BODY + " 알바 구합니다."),
     (parse_pay("건당 협의"), "홈페이지 담당 직원 모집. 전 과정 비대면 진행."),

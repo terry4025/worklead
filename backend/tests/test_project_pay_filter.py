@@ -8,6 +8,7 @@ from worklead.analysis.pay import parse_pay
 from worklead.analysis.service import analyze
 from worklead.analysis.types import PostInput, Profile
 from worklead.engine.pipeline import apply_analysis, ingest
+from worklead.jobs.auto_apply import condition
 from worklead.models import Lead, SourceRecord
 from worklead.sources.base import ParsedPost
 
@@ -20,17 +21,36 @@ def analysis(body, pay_hint=None, feedback=None, title="홈페이지 제작 의�
     return analyze(post, Profile(services=["website"]), NOW, feedback=feedback)
 
 
-@pytest.mark.parametrize("pay", ["시급 2만원", "일급 15만원", "주급 50만원", "월급 400만원", "연봉 4200만원"])
-def test_wages_in_source_metadata_are_excluded_even_for_remote_buyers(pay):
+# 2026-11-07: remote development requests with hour/day/week/month pay go to
+# manual review with a caution and a time_pay penalty; they never auto-apply.
+@pytest.mark.parametrize("pay", ["시급 2만원", "일급 15만원", "주급 50만원", "월급 400만원"])
+def test_wages_in_source_metadata_go_to_review_for_remote_buyers(pay):
     a = analysis("홈페이지 제작 의뢰합니다. 전 과정 비대면 진행.", parse_pay(pay),
                  {"remote": "confirmed", "real_request": "yes"})
-    assert a.recommendation == "excluded"
+    assert a.recommendation == "needs_review"
     assert a.pay.raw == pay
+    assert any("표기" in r.text and r.tone == "caution" for r in a.reasons)
+    assert any(f.key == "time_pay" for f in a.factors)
 
 
-@pytest.mark.parametrize("pay", ["시급 2만원", "일급 15만원", "월급 400만원", "월급 협의", "월 단위 정산, 금액 협의", "프로젝트 20,000원/시간"])
+def test_annual_salary_in_source_metadata_stays_excluded_for_remote_buyers():
+    a = analysis("홈페이지 제작 의뢰합니다. 전 과정 비대면 진행.", parse_pay("연봉 4200만원"),
+                 {"remote": "confirmed", "real_request": "yes"})
+    assert a.recommendation == "excluded"
+    assert a.pay.raw == "연봉 4200만원"
+
+
+@pytest.mark.parametrize("pay", ["일급 15만원", "월급 400만원", "월급 협의", "월 단위 정산, 금액 협의", "프로젝트 20,000원/시간"])
 def test_wage_alternative_in_body_cannot_be_hidden_by_project_metadata(pay):
     a = analysis(f"홈페이지 제작 의뢰합니다. 전 과정 비대면 진행.\n예산 100만원\n{pay}", parse_pay("건당 100만원"))
+    assert a.pay.unit == "project"  # source display is preserved
+    assert a.recommendation == "needs_review"
+    assert any("표기" in r.text and r.tone == "caution" for r in a.reasons)
+    assert any(f.key == "time_pay" for f in a.factors)  # never auto-applies despite project display
+
+
+def test_hourly_wage_in_body_reads_as_hiring_and_stays_excluded():
+    a = analysis("홈페이지 제작 의뢰합니다. 전 과정 비대면 진행.\n예산 100만원\n시급 2만원", parse_pay("건당 100만원"))
     assert a.pay.unit == "project"  # source display is preserved
     assert a.recommendation == "excluded"
     assert any("지급" in r.text for r in a.reasons)
@@ -87,8 +107,11 @@ def test_wage_refetch_and_reanalysis_preserve_user_state(tmp_path):
     with ctx.db.session() as s:
         ingest(s, "daangn-alba", p, parser_version="test", now=NOW)
         lead, rec = s.get(Lead, first.lead_id), s.get(SourceRecord, first.record_id)
-        assert lead.recommendation == "excluded" and lead.pay_unit == "month"
+        # Remote buyer request with a monthly wage: manual review, never auto-apply.
+        assert lead.recommendation == "needs_review" and lead.pay_unit == "month"
         apply_analysis(s, lead, rec, now=NOW)
-        assert lead.recommendation == "excluded" and rec.pay_raw == "월급 400만원"
+        assert lead.recommendation == "needs_review" and rec.pay_raw == "월급 400만원"
+        assert any("표기" in r["text"] for r in lead.reasons)
+        assert condition(s, lead, NOW, 0, queue=True) == "condition_changed"
         assert (lead.memo, lead.user_mark, lead.sales_stage, lead.draft_text, lead.draft_edited) == (
             "견적 메모", "interested", "contacted", "수동 초안", True)

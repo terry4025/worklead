@@ -23,6 +23,8 @@ WEIGHTS = {
     "scope_clarity": ("범위 명확성", 10),
 }
 RISK_PENALTY_EACH = 15
+# 시간 단위 보수로 올라온 재택 개발 의뢰의 우선순위 감점. 건당 의뢰보다 뒤에 오도록 하는 정렬용 값.
+TIME_PAY_REVIEW_PENALTY = 10
 
 CATEGORY_LABEL = {
     "website": "웹사이트",
@@ -362,6 +364,20 @@ def analyze(
         total = max(0, total + (pay_factor.score or 0))
     unknown = sum(1 for f in factors if f.score is None)
 
+    # Source metadata can contain wages absent from the body; a body wage also counts.
+    time_unit = pay.unit if pay.unit in TIME_PAY_LABELS else time_pay_unit(pay.raw or "") or time_pay_unit(body) or time_pay_unit(title)
+    # 2026-11-07 사용자 결정: 당근은 글쓴이가 보수 유형을 고르게 해서 짧은 개발 의뢰도 시급·월급으로 올라온다.
+    # 재택 가능한 개발 구매 의뢰는 시간 단위 보수여도 제외하지 않고 감점·확인 표시와 함께 검토에 올린다.
+    # 자동 지원은 계속 건당 보수만 대상이다 (jobs.auto_apply.condition).
+    # 연봉은 정의상 고용 조건이라 제외를 유지한다.
+    time_pay_review = (time_unit in ("hour", "day", "week", "month") and dev
+                       and intent.value in ("buyer_project", "buyer_ongoing") and work.value != "onsite")
+    if time_pay_review and time_unit:
+        factors.append(Factor("time_pay", "시간 단위 보수 감점", 0, -TIME_PAY_REVIEW_PENALTY,
+                              f"{TIME_PAY_LABELS[time_unit]} 표기 · 실제 작업 단위와 총액을 확인하기 전까지 감점"))
+        if total is not None:
+            total = max(0, total - TIME_PAY_REVIEW_PENALTY)
+
     # ── 적격성 → 추천 ────────────────────────────────────────────────
     status = post.source_status
     access_ok = post.access_status == "accessible"
@@ -378,11 +394,12 @@ def analyze(
         exclude.append("공개 수집 허용 불가·미확인 공고")
     if rules.salary_evidence(title, body) or rules.salary_evidence("", pay.raw or ""):
         exclude.append("급여·salary 지급 — 건당 프리랜서 의뢰 아님")
-    # Only deliverable/project payments are eligible. Source metadata can
-    # contain wages absent from the body; a conflicting body wage also fails.
-    time_unit = pay.unit if pay.unit in TIME_PAY_LABELS else time_pay_unit(pay.raw or "") or time_pay_unit(body) or time_pay_unit(title)
-    if time_unit:
+    # Deliverable/project payments are eligible; time wages only for remote
+    # development requests, which go to review (time_pay_review above).
+    if time_unit and not time_pay_review:
         exclude.append(f"{TIME_PAY_LABELS[time_unit]} 지급 — 건당 프리랜서 의뢰 아님")
+    elif time_unit:
+        review.insert(0, f"{TIME_PAY_LABELS[time_unit]} 표기 — 실제 작업 단위·총액 확인")
     elif pay.unit != "project":
         exclude.append("건당·프로젝트 지급 미확인")
     if intent.value == "seller_service":

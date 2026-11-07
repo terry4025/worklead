@@ -158,7 +158,17 @@ def test_corpus_contains_human_labels_and_service_boundaries() -> None:
         assert case["expected_min_score"] == (50 if case["expected_target_buyer"] else None)
 
 
-@pytest.mark.parametrize("case", CASES, ids=lambda case: case["id"])
+# The app packaging / store publication rule was withdrawn on 2026-11-07: it made
+# "패키징해 주실 분은 이미 계약했습니다. 앱 테스트 후기 남겨주실 분" an auto-apply
+# candidate. Its positives stay as strict xfail so a redesign must turn them green.
+PUBLICATION_WITHDRAWN = pytest.mark.xfail(strict=True, reason="앱 패키징·스토어 등록 규칙 철회 (2026-11-07), 2단계에서 재설계")
+PUBLICATION_POSITIVE_IDS = {"app_packaging", "app_store", "app_existing_store", "app_existing_packaging"}
+
+
+@pytest.mark.parametrize("case", [
+    pytest.param(case, id=case["id"], marks=PUBLICATION_WITHDRAWN if case["id"] in PUBLICATION_POSITIVE_IDS else ())
+    for case in CASES
+])
 def test_full_text_target_buyer_label(case: dict, rows_by_id: dict[str, dict]) -> None:
     row = rows_by_id[case["id"]]
     assert row["candidate"] == case["expected_target_buyer"], row
@@ -257,6 +267,7 @@ PUBLICATION_POLARITY_CASES = [
     ("store-bare-body-refusal", "기존 앱 플레이스토어 등록 의뢰", "등록 요청은 안 합니다.", False),
     ("store-bare-next-sentence-refusal", "기존 앱 플레이스토어 등록 의뢰", "이번에는 포장 작업입니다. 등록 의뢰하지 않습니다.", False),
     ("store-operation-denied", "기존 앱 플레이스토어 등록 의뢰", "플레이스토어 등록은 안 합니다.", False),
+    ("package-already-contracted", "앱 테스트", "웹사이트를 앱으로 패키징해 주실 분은 이미 계약했습니다. 앱 설치하고 테스트 후기 남겨주실 분 구해요.", False),
     ("package-positive", "홈페이지 앱 패키징 의뢰", "홈페이지 앱 패키징 의뢰합니다.", True),
     ("package-positive-help", "앱 작업 도움 요청", "기존 웹사이트의 앱 패키징을 도와주실 분을 찾습니다.", True),
     ("package-positive-change", "홈페이지 앱 패키징 의뢰", "홈페이지를 앱으로 패키징해주실 분을 찾습니다.", True),
@@ -271,8 +282,7 @@ PUBLICATION_POLARITY_CASES = [
 
 @pytest.mark.parametrize(
     "case_id,title,body,expected_candidate",
-    PUBLICATION_POLARITY_CASES,
-    ids=[case[0] for case in PUBLICATION_POLARITY_CASES],
+    [pytest.param(*case, id=case[0], marks=PUBLICATION_WITHDRAWN if case[3] else ()) for case in PUBLICATION_POLARITY_CASES],
 )
 def test_publication_polarity_blocks_even_previously_scored_auto_apply_candidate(
     ctx, case_id: str, title: str, body: str, expected_candidate: bool,

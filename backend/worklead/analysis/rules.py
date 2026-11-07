@@ -18,7 +18,7 @@ from .text import any_match, c, find
 from .pay import EXPLICIT_SALARY
 from .types import Ev, Judgement, Risk
 
-RULE_VERSION = "rules-2026.10.27-app-publication"
+RULE_VERSION = "rules-2026.10.25-fit2"
 
 # ── 요청 유형 ─────────────────────────────────────────────────────────
 SELLER = c(
@@ -137,53 +137,6 @@ SOFTWARE_CHANGE_REQUEST = re.compile(
     r"|만들어\s*(?:주실|주세요|주시|줄))"
     r"(?!\s*(?:가|는|은|이)?\s*(?:아니|아닌|아닙|아님|없))"
 )
-# Packaging a website as an app and publishing an existing app are software
-# deliveries. Keep these scoped to an explicit software object plus a request;
-# bare packaging, app installation and member registration are not development.
-APP_PUBLICATION_REQUEST = re.compile(
-    r"(?:(?:홈페이지|웹\s*(?:사이트|페이지))(?:의|을|를)?\s*앱(?:으로)?\s*패키징"
-    r"(?:(?:하여|해서)?\s*(?:앱\s*스토어|플레이\s*스토어)(?:에)?\s*등록)?"
-    r"|(?:기존|완성된|개발된)\s*(?:앱|어플(?:리케이션)?|애플리케이션)(?:의|을|를)?\s*"
-    r"(?:앱\s*스토어|플레이\s*스토어)(?:에)?\s*(?:등록|출시))"
-    r"\s*(?:을|를|하는\s*작업을|작업을|작업)?\s*"
-    r"(?:의뢰|외주|요청|부탁|(?:해\s*)?(?:도와\s*)?(?:주실|주세요|주시|줄))"
-)
-APP_PUBLICATION_NEGATION = re.compile(
-    r"^\s*(?:은|는|을|를|도|가|이)?\s*"
-    r"(?:(?:하|드리|맡기|진행하|받)(?:지|지는|진)\s*(?:않|안|못)"
-    r"|(?:안|못)\s*(?:합|하|해|할|드리|맡기|진행)"
-    r"|(?:할|드릴|맡길)\s*(?:생각|계획|의사|필요|수)(?:은|는|가|이)?\s*없"
-    r"|(?:필요|생각|계획|의사)(?:은|는|가|이)?\s*없"
-    r"|분(?:은|는|이|도)?\s*(?:필요(?:가|는|은)?\s*)?없"
-    r"|아니|아닌|아닙|아님|없|불필요|취소|제외)"
-)
-APP_PUBLICATION_REFUSAL = re.compile(
-    r"(?:(?:홈페이지|웹\s*(?:사이트|페이지))(?:의|을|를)?\s*앱(?:으로)?\s*패키징"
-    r"|(?:앱|어플(?:리케이션)?|애플리케이션)\s*패키징"
-    r"|(?:앱\s*스토어|플레이\s*스토어)(?:에)?\s*(?:등록|출시)"
-    r"|(?:^|(?<=[.!?\n]))\s*(?:등록|패키징))"
-    r"\s*(?:을|를)?\s*(?:의뢰|외주|요청|부탁)?"
-    + APP_PUBLICATION_NEGATION.pattern[1:]
-)
-
-
-def app_publication_requested(title: str, body: str) -> bool:
-    """A body refusal must not be revived by its shorter positive title.
-
-    Check each request locally so that refusing physical packaging or one app
-    operation does not erase a separate, affirmative software delivery.
-    """
-    body_requests = list(APP_PUBLICATION_REQUEST.finditer(body))
-    if body_requests:
-        return any(not APP_PUBLICATION_NEGATION.search(body[match.end():]) for match in body_requests)
-    if APP_PUBLICATION_REFUSAL.search(body):
-        return False
-    return any(
-        not APP_PUBLICATION_NEGATION.search(title[match.end():])
-        for match in APP_PUBLICATION_REQUEST.finditer(title)
-    )
-
-
 ADVICE_REQUEST = c(
     r"수정\s*방향\s*(?:을|를)?\s*(?:제시|알려|조언)",
     r"(?:첨삭|조언|피드백)\s*(?:을|를|만|도)?\s*(?:요청|부탁|구합니다|구해요|해\s*주실|해\s*주세요)",
@@ -363,8 +316,7 @@ def classify_scope(title: str, body: str) -> Judgement:
 
 def classify_categories(title: str, body: str) -> tuple[list[str], bool]:
     text = f"{title}\n{body}"
-    app_publication = app_publication_requested(title, body)
-    has_verb = bool(DEV_VERB.search(text) or BUYER[0].search(text) or app_publication)
+    has_verb = bool(DEV_VERB.search(text) or BUYER[0].search(text))
     out: list[str] = []
     for cid, pats, inherently_dev in CATEGORY_RULES:
         if any_match(pats, text) and (inherently_dev or has_verb or cid == "data"):
@@ -377,8 +329,6 @@ def classify_categories(title: str, body: str) -> tuple[list[str], bool]:
     repair = BUYER[0].search(text)
     if not out and repair:
         out.append("website" if re.search(r"홈페이지|홈피|웹|워드프레스", repair.group()) else "software")
-    if app_publication and "software" not in out:
-        out.append("software")
     # '엑셀 데이터 정리' 는 데이터 정리이지 VBA 개발이 아니다
     if "vba" in out and not re.search(r"VBA|vba|매크로|자동", text):
         out.remove("vba")

@@ -327,3 +327,34 @@ def test_current_stream_feed_matches_legacy():
     assert [r.source_post_id for r in current.refs] == [r.source_post_id for r in legacy.refs]
     assert [r.source_post_id for r in current.exploration_refs] == [r.source_post_id for r in legacy.exploration_refs]
     assert [r.priority for r in current.refs] == [r.priority for r in legacy.refs]
+
+
+from tests.test_daangn_serialized import tsr_script
+from worklead.sources.daangn.adapter import _Document, _salary_type
+
+LABELS = {"PER_CASE": "건당 50,000원", "HOURLY": "시급 12,000원", "MONTHLY": "월급 2,500,000원"}
+
+
+@pytest.mark.parametrize(("post", "kind"), [
+    ({"salaryType": "HOURLY", "stringifiedSalary": "건당 1원"}, "HOURLY"),
+    ({"stringifiedSalary": "건당 50,000원"}, "PER_CASE"),
+    ({"stringifiedSalary": " 월급 2,500,000원"}, "MONTHLY"),
+    ({"stringifiedSalary": "협의"}, None),
+    ({}, None),
+])
+def test_salary_type_prefers_field_then_visible_label(post, kind):
+    assert _salary_type(post) == kind
+
+
+def test_current_feed_without_salary_type_uses_visible_label():
+    store = _Document(feed(28, POSTS)).store()
+    for node in store.values():
+        if isinstance(node, dict) and node.get("__typename") == "JobPost":
+            node["stringifiedSalary"] = LABELS[node.pop("salaryType")]
+    adapter = create()
+    found = adapter.discover(feed_task(adapter), Static(f"<html><body>{tsr_script(store)}</body></html>"))
+    assert [r.source_post_id for r in found.refs] == ["feedcore0001", "feedcore0002"]
+    assert [r.source_post_id for r in found.exploration_refs] == ["feedjobs0003", "feedexpl0005"]
+    assert [r.priority for r in found.refs] == [1, 0]
+    meta = found.metadata
+    assert (meta["employment_exploration_filtered"], meta["employment_core_demoted"]) == (1, 1)

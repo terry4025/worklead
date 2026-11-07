@@ -251,6 +251,18 @@ def _title_match(title: str, keywords: list[str], specific_keywords: list[str], 
     return core, explore, False
 
 
+# Feed cards dropped salaryType on 2026-11-04; the visible label still says it.
+_SALARY_LABELS = (("건당", "PER_CASE"), ("시급", "HOURLY"), ("일급", "DAILY"),
+                  ("주급", "WEEKLY"), ("월급", "MONTHLY"), ("연봉", "YEARLY"))
+
+
+def _salary_type(post: dict) -> str | None:
+    if post.get("salaryType"):
+        return post["salaryType"]
+    label = normalize_text(str(post.get("stringifiedSalary") or ""))
+    return next((kind for prefix, kind in _SALARY_LABELS if label.startswith(prefix)), None)
+
+
 def _post_slug(title: str) -> str:
     """Public detail slug; matched all 782 installed detail URLs on 2026-10-17."""
     return re.sub(r"[^0-9a-z가-힣]+", "-", title.lower()).strip("-")
@@ -455,7 +467,7 @@ class DaangnAdapter(ProfiledSiteAdapter):
             at, _ = parse_iso(post.get("publishedAt"))
             if at:
                 published.append(at)
-            salary = post.get("salaryType")
+            salary = _salary_type(post)
             ref = PostRef(url, public_id, title, at, priority=1 if salary == "PER_CASE" else 0)
             listed.append(ref)
             if post.get("closed") is True:

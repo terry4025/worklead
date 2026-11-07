@@ -180,6 +180,7 @@ def test_adapter_through_collection_worker_and_dedup(tmp_path):
     source = next(row for row in c.get('/v1/sources').json()['items'] if row['id'] == 'daangn-alba')
     assert source['coverage']['unit_label'] == '지역 피드·공고 목록'
     assert source['coverage']['next_up'] == '전국 공개 공고 목록 · 웹사이트·프로그램·자동화 관련 공고'
+    assert _source_issues(ctx) == []
     ctx.db.dispose()
 
 
@@ -302,3 +303,39 @@ def test_current_stream_with_code_is_not_guessed():
     broken = as_tsr(markup("detail")).replace("relayRecords:$R[7]=", "relayRecords:$R[7]=alert(1),x:")
     with pytest.raises(ParseError):
         create().parse(PostRef(URL), response(broken), NOW)
+
+from sqlalchemy import select
+from worklead.models import EventOutbox
+
+
+def _source_issues(ctx):
+    with ctx.db.session() as s:
+        return [row.payload for row in s.scalars(select(EventOutbox).where(EventOutbox.type == "notification.created"))
+                if row.payload.get("kind") == "source_issue"]
+
+
+def test_structure_change_alerts_once_per_day(tmp_path):
+    adapter = sitemap_only()
+    ctx = make_ctx(tmp_path, adapters={adapter.source_id: adapter})
+    urls = [URL.replace("fixture00001", f"fixture0000{i}") for i in range(1, 4)]
+    jobs = f"<urlset {NS}>" + "".join(f"<url><loc>{u}</loc></url>" for u in urls) + "</urlset>"
+
+    def handler(request):
+        if request.url.path == "/robots.txt":
+            return httpx.Response(200, text="User-agent: *\nAllow: /\n")
+        if request.url.path == "/sitemap.xml":
+            return httpx.Response(200, text=INDEX)
+        if request.url.path.startswith("/sitemaps/"):
+            return httpx.Response(200, text=jobs)
+        return httpx.Response(200, text="<html><body><h1>새 화면</h1></body></html>")
+
+    ctx.transport = httpx.MockTransport(handler)
+    c = client_for(ctx)
+    c.patch("/v1/sources/daangn-alba", json={"policy": {"status": "restricted", "basis": "합성 표본 테스트"}})
+    c.patch("/v1/settings", json={"query_groups": [{"id": "dev", "label": "개발", "enabled": True, "keywords": ["프로그램"]}]})
+    for _ in range(2):
+        c.post("/v1/runs", json={"kind": "discovery", "source_id": "daangn-alba"})
+        Worker(ctx, "test", runs.COLLECTION_KINDS).run_once()
+    notes = _source_issues(ctx)
+    assert len(notes) == 1 and "구조" in notes[0]["title"]
+    ctx.db.dispose()

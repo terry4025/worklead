@@ -245,6 +245,25 @@ def _set_health(app: AppContext, source_id: str, status: str, message: str | Non
             emit(s, "source.health_changed", {"source_id": source_id, "health": status, "code": code})
 
 
+STRUCTURE_ALERT_MIN_PARSE_FAILURES = 3
+
+
+def _alert_structure_change(app: AppContext, source_id: str, counts: dict) -> None:
+    """More parse failures than parsed pages means the site layout changed; say so once a day."""
+    failures = int(counts.get("parse_failures", 0))
+    if failures < STRUCTURE_ALERT_MIN_PARSE_FAILURES or failures <= int(counts.get("details_fetched", 0)):
+        return
+    now = app.clock()
+    with app.db.session() as s:
+        source = s.get(Source, source_id)
+        if source is None:
+            return
+        notify(s, "source_issue", f"{source.name}: 페이지 구조가 바뀌어 공고를 읽지 못합니다 (해석 실패 {failures}건)",
+               dedupe_key=f"notify:source:{source_id}:structure:{now.date().isoformat()}",
+               source_id=source_id, now=now)
+    app.hub.notify()
+
+
 # ── 신규 탐색 ───────────────────────────────────────────────────────
 
 
@@ -736,6 +755,7 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
     message = f"작업 {failed}건 실패, 요청·해석 오류 {detail_errors}건 — 다음 탐색에서 다시 확인" if has_errors else None
     skip_note = f"숨김·삭제 또는 공개 수집 허용 불가·미확인 공고 {skipped}건은 본문을 저장하지 않았습니다" if skipped else None
     _set_health(app, run.source_id or "", "degraded" if has_errors else "ok", message or skip_note)
+    _alert_structure_change(app, run.source_id or "", scope.counts)
     note = None
     if plan_info.get("region_list_status") not in ("verified", "not_applicable") or (plan_info.get("target_units_covered") or 0) < (plan_info.get("target_units_total") or 0):
         note = "탐색 범위가 전국 전체로 확인되지 않았습니다 (부분 탐색)"

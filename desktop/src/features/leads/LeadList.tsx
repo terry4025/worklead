@@ -134,16 +134,18 @@ export function LeadList({
       {sections.map(({ def, q }) => {
         const items = (q.data?.pages ?? []).flatMap((p) => p.items);
         const count = counts?.[def.queue];
+        const empty = items.length === 0 && !q.isPending;
         return (
-          <section key={def.queue} className="list-section" aria-label={def.title}>
+          <section key={def.queue} className={`list-section${empty ? ' is-empty' : ''}`} aria-label={def.title}>
             {view.sections.length > 1 ? (
               <div className="section-head" role="presentation">
                 <span className="section-title">{def.title}</span>
                 <span className="section-count num">{count ?? items.length}</span>
-                <span className="section-hint">{def.hint}</span>
+                {/* 빈 구획은 별도 행 없이 머리줄 한 줄로 알린다 */}
+                <span className="section-hint">{empty ? `지금 조건에 맞는 ${def.title} 없음` : def.hint}</span>
               </div>
             ) : null}
-            {items.length === 0 && !q.isPending ? <div className="section-empty">{def.title} 없음</div> : null}
+            {empty && view.sections.length === 1 ? <div className="section-empty">{def.title} 없음</div> : null}
             {items.map((lead) => (
               <LeadRow
                 key={lead.id}

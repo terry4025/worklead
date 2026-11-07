@@ -81,12 +81,13 @@ export function TopBar({
         ) : null}
       </div>
 
-      <button type="button" className="run-summary" onClick={onCollection} title={cov.title}>
+      <button type="button" className="run-summary" onClick={onCollection} title={running?.progress.label ? `${running.progress.label}\n${cov.title}` : cov.title}>
         {running ? (
           <>
             <span className="run-pulse" aria-hidden="true" />
             <span>
-              {runningSource ? `${runningSource} · ` : ''}{runKindLabel[running.kind]} {running.state === 'queued' ? '대기' : '진행 중'} {running.progress.label ? `· ${running.progress.label}` : ''} ·{' '}
+              {/* 진행 문구의 검색어 설명은 길어서 지역 이름만 보이고 전체 문구는 툴팁에 둔다 */}
+              {runningSource ? `${runningSource} · ` : ''}{runKindLabel[running.kind]} {running.state === 'queued' ? '대기' : '진행 중'} {running.progress.label ? `· ${running.progress.label.split(' · ')[0]}` : ''} ·{' '}
               <span className="num">
                 {running.progress.done}/{running.progress.total ?? '?'}
               </span>

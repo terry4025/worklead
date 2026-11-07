@@ -19,12 +19,16 @@ import './jobs.css';
 
 const applicationKey = ['jobs', 'applications'] as const;
 
+const HOLDS_SHOWN = 3;
+
 export function HoldReasons({ entry }: { entry: ApplicationEntry }) {
+  const holds = entry.hold_reasons.map((reason, i) => <li key={`${reason.code}-${i}`}>{reason.message}</li>);
   return <div className="application-assessment">
     <StatusMark tone={entry.hold_reasons.length || !entry.candidate ? 'warn' : 'muted'}>
       {!entry.candidate ? '준비 대상 아님' : entry.hold_reasons.length ? '조건 확인 후 검토' : '초안 준비 가능'}
     </StatusMark>
-    {entry.hold_reasons.length ? <ul className="application-holds">{entry.hold_reasons.map((reason, i) => <li key={`${reason.code}-${i}`}>{reason.message}</li>)}</ul> : null}
+    {holds.length ? <ul className="application-holds">{holds.slice(0, HOLDS_SHOWN)}</ul> : null}
+    {holds.length > HOLDS_SHOWN ? <details className="application-holds-more"><summary>나머지 확인 사항 {holds.length - HOLDS_SHOWN}개</summary><ul className="application-holds">{holds.slice(HOLDS_SHOWN)}</ul></details> : null}
     {entry.questions.length ? <details className="application-questions"><summary>원문에서 확인할 질문 {entry.questions.length}개</summary><ul>{entry.questions.map((question, i) => <li key={i}>{question}</li>)}</ul></details> : null}
   </div>;
 }

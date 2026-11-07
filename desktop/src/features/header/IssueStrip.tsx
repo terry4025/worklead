@@ -76,7 +76,9 @@ export function deriveIssues({
   if (last && last.counts.aiFailures > 0) {
     out.push({ key: `ai-${last.id}`, tone: 'warn', text: `AI 분석 실패 ${last.counts.aiFailures}건 — 규칙 기반 판정·근거로 표시 중` });
   }
-  if (last && last.state === 'succeeded' && last.counts.created === 0 && last.counts.detailsFetched === 0 && mode) {
+  // 요청 없이 끝난 실행(확인할 지역 없음)이나 새 탐색이 진행 중일 때의 지난 결과는 알리지 않는다
+  const discovering = runs.some((r) => r.kind === 'discovery' && (r.state === 'running' || r.state === 'queued'));
+  if (last && last.state === 'succeeded' && last.counts.created === 0 && last.counts.detailsFetched === 0 && last.counts.requests > 0 && !discovering && mode) {
     out.push({ key: `empty-${last.id}`, tone: 'good', text: `최근 탐색 정상 완료 — 새 글 0건 (요청 ${last.counts.requests}회, 오류 없음)` });
   }
   return out;

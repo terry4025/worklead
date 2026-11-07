@@ -5,6 +5,7 @@ import { intentShortLabel } from '../../domain/labels';
 import type { LeadSummary, QueueId } from '../../domain/model';
 import { intentTone, recruitDisplay, remoteCaveats, remoteClass, remoteDisplay } from '../../domain/present';
 import { inQueue } from '../../domain/queues';
+import { postAge } from '../../domain/freshness';
 import { StatusMark } from '../../ui/StatusMark';
 import { LeadTiming } from './LeadTiming';
 
@@ -48,7 +49,7 @@ export const LeadRow = memo(function LeadRow({
       role="option"
       id={`lead-row-${lead.id}`}
       aria-selected={selected}
-      className={`row${selected ? ' is-selected' : ''}${moved ? ' is-moved' : ''}`}
+      className={`row${selected ? ' is-selected' : ''}${moved ? ' is-moved' : ''}${postAge(lead, now) === 'stale' ? ' is-stale' : ''}`}
       onClick={() => onSelect(lead.id)}
       onDoubleClick={() => onOpen(lead.id)}
     >

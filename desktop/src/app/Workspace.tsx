@@ -331,9 +331,9 @@ export function Workspace() {
       <main className={`work${showDetail ? ' has-detail' : ''}${!wide && overlayOpen ? ' is-overlay' : ''}`} style={wide ? ({ '--list-w': `${listPct}%` } as React.CSSProperties) : undefined}>
         <div className="pane-list" role="tabpanel" aria-label={viewDef.label}>
           {live.newLeads > 0 || live.listStale ? (
-            <div className="new-banner" role="status">
+            <div className={`new-banner${live.newLeads > 0 ? ' has-new' : ''}`} role="status">
               <span>{live.newLeads > 0 ? `새 리드 ${live.newLeads}건 · 목록 자동 반영 중` : '새 결과 자동 반영 · 오류 시 자동 재시도'}</span>
-              <Button size="sm" variant="primary" icon={<RefreshCw size={13} />} onClick={refreshAll}>
+              <Button size="sm" variant={live.newLeads > 0 ? 'primary' : 'ghost'} icon={<RefreshCw size={13} />} onClick={refreshAll}>
                 다시 불러오기
               </Button>
             </div>

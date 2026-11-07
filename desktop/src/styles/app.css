@@ -300,8 +300,12 @@
 .filterbar .select select {
   border-color: transparent;
   background-color: transparent;
+  background-position: right 8px center;
   color: var(--text-2);
   padding-left: 8px;
+  padding-right: 24px;
+  /* 가장 긴 선택지가 아니라 현재 값 너비만 차지해 필터가 한 줄에 들어가게 한다 */
+  field-sizing: content;
 }
 .filterbar .select select:hover {
   background-color: var(--surface);
@@ -510,15 +514,25 @@
   background: var(--accent);
 }
 
+/* 자동 갱신 대기는 조용히, 새 리드 도착만 강조한다 */
 .new-banner {
   flex: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 6px 12px;
+  padding: 4px 8px 4px 12px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+}
+.new-banner.has-new {
+  padding-top: 6px;
+  padding-bottom: 6px;
   background: var(--accent-weak);
-  border-bottom: 1px solid var(--accent-line);
+  border-bottom-color: var(--accent-line);
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--text);
 }
@@ -714,6 +728,19 @@
 .cell-warn {
   color: var(--warn);
 }
+/* 모집·재택 보조 설명은 말줄임 대신 두 줄까지 보인다 */
+.c-recruit .cell-sub,
+.c-remote .cell-sub {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
+  line-height: 1.4;
+}
+.row.is-stale .row-title-text {
+  color: var(--text-2);
+  font-weight: 560;
+}
 .pay-missing {
   color: var(--text-3);
   font-style: italic;
@@ -811,6 +838,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.list-section.is-empty .section-hint {
+  opacity: 1;
 }
 .section-empty {
   padding: 10px 12px 10px 72px;
@@ -1938,6 +1968,10 @@ input[aria-invalid='true'] {
   line-height: 1.6;
 }
 .lead-timing-detail { margin: 8px 0 12px; font-size: 12px; }
+/* 게시 경과가 판단의 첫 기준: 24시간 이내는 강조, 3일이 지나면 흐리게 */
+.lead-posted.age-fresh { color: var(--good); font-weight: 650; }
+.lead-posted.age-recent { color: var(--text-2); font-weight: 560; }
+.lead-posted.age-stale { color: var(--text-3); }
 .fresh-review-note { padding: 10px 20px; color: var(--text-3); font-size: 12px; line-height: 1.6; border-bottom: 1px solid var(--line); }
 .freshness-metrics { padding: 8px 20px; background: var(--surface); color: var(--text-2); font-size: var(--fs-xs); border-bottom: 1px solid var(--line); }
 .freshness-metrics-grid { display: flex; flex-wrap: wrap; gap: 12px 32px; padding-top: 8px; }

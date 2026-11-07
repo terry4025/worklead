@@ -315,3 +315,15 @@ def test_interrupted_leftovers_do_not_hold_due_fast_units(tmp_path):
         assert _current_cycle(s, "daangn-alba", keys) == 5  # untiered sources still finish the cycle first
         assert _current_cycle(s, "daangn-alba", keys, revisit=True) == 6
     ctx.db.dispose()
+
+from tests.test_daangn_serialized import as_tsr
+
+
+def test_current_stream_feed_matches_legacy():
+    adapter = create()
+    legacy = adapter.discover(feed_task(adapter), Static(feed(28, POSTS)))
+    adapter = create()
+    current = adapter.discover(feed_task(adapter), Static(as_tsr(feed(28, POSTS))))
+    assert [r.source_post_id for r in current.refs] == [r.source_post_id for r in legacy.refs]
+    assert [r.source_post_id for r in current.exploration_refs] == [r.source_post_id for r in legacy.exploration_refs]
+    assert [r.priority for r in current.refs] == [r.priority for r in legacy.refs]

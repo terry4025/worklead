@@ -272,3 +272,33 @@ def test_scheduled_nationwide_scan_adds_new_post_without_duplicate(tmp_path, mon
     assert len(c.get('/v1/leads', params={'queue': 'all'}).json()['items']) == 2
     assert schedule_due(ctx) == []
     ctx.db.dispose()
+
+from tests.test_daangn_serialized import as_tsr
+
+
+def _fields(post):
+    return (post.title, post.body, post.pay.min, post.pay.unit, post.published.at,
+            post.source_status, post.workplace_raw, post.source_post_id)
+
+
+def test_current_stream_detail_matches_legacy_fields():
+    legacy = create().parse(PostRef(URL, "fixture00001"), response(markup("detail")), NOW)
+    current = create().parse(PostRef(URL, "fixture00001"), response(as_tsr(markup("detail"))), NOW)
+    assert _fields(current) == _fields(legacy)
+
+
+@pytest.mark.parametrize(("mutate", "code"), [
+    (lambda d: d["job"].update(hidden=True), "hidden_or_deleted"),
+    (lambda d: d["user"].update(webCrawlNotAllowed=True), "collection_disallowed"),
+    (lambda d: d["user"].pop("webCrawlNotAllowed"), "collection_permission_unknown"),
+])
+def test_current_stream_keeps_collection_permission_gate(mutate, code):
+    with pytest.raises(PostNotCollectable) as caught:
+        create().parse(PostRef(URL), response(as_tsr(changed(markup("detail"), mutate))), NOW)
+    assert caught.value.code == code
+
+
+def test_current_stream_with_code_is_not_guessed():
+    broken = as_tsr(markup("detail")).replace("relayRecords:$R[7]=", "relayRecords:$R[7]=alert(1),x:")
+    with pytest.raises(ParseError):
+        create().parse(PostRef(URL), response(broken), NOW)

@@ -2,8 +2,10 @@
 
 Region feeds (/s?regionId=, first 20 only) were verified on 2026-10-17;
 the web client fixes regionRange and pages only through GraphQL.
+Since 2026-11-04 the relay records arrive in TanStack Start stream parts
+instead of window.__RELAY_STORE__ (see serialized.py); the DOM is unchanged.
 
-Only the downloaded document is parsed. Embedded JSON is decoded as data,
+Only the downloaded document is parsed. Embedded data is decoded as data,
 never evaluated; no GraphQL, login session or pagination API is requested.
 """
 from __future__ import annotations
@@ -22,6 +24,7 @@ from ...engine.http import FetchResult, Fetcher
 from ..base import DiscoverResult, DiscoveryPlan, ParsedPost, ParseError, PostNotCollectable, PostRef, SourceNotReady, TaskSpec
 from ..htmlparse import collect, normalize_text, parse_iso
 from ..profiled import ProfiledSiteAdapter, TaskFailed, canonicalize, check_profile
+from .serialized import SerializedError, relay_records
 
 
 # Explicit technical variants, not fuzzy matches or unrestricted expansion.
@@ -142,6 +145,7 @@ def _discovery_keywords(query: str | None) -> list[str]:
 class _Document(HTMLParser):
     def __init__(self, markup: str):
         super().__init__(convert_charrefs=True)
+        self.markup = markup
         self.scripts: list[str] = []
         self.titles: list[str] = []
         self.bodies: list[str] = []
@@ -187,6 +191,10 @@ class _Document(HTMLParser):
                 continue
             if isinstance(data, dict) and isinstance(data.get("client:root"), dict):
                 return data
+        try:
+            return relay_records(self.markup)
+        except SerializedError:
+            pass
         raise ParseError("공개 HTML의 공고 데이터를 읽을 수 없습니다 (구조 변경 가능성)")
 
 

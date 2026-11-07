@@ -17,9 +17,11 @@ async function harness(outcome = 'success') {
   const listeners = [];
   const requests = [], clicks = [], navigations = [], injected = [], alarms = [];
   const alarmListeners = [];
+  const alarmState = new Map();
   let stage = 'home', liveUrl = 'https://jobs.daangn.com/';
   const account = 'a'.repeat(64), profile = 'b'.repeat(64);
   let visibleAccount = account;
+  let cleanupFailed = false;
   let resolveResult;
   const settled = new Promise(resolve => { resolveResult = resolve; });
   const mockChrome = {
@@ -29,7 +31,10 @@ async function harness(outcome = 'success') {
         Object.assign(memory, values);
         if (outcome === 'lost_phase_ack' && values.autoPending?.phase === 'permitting') { resolveResult(); throw new Error('browser_timeout'); }
       },
-      async remove(keys) { for (const key of [].concat(keys)) delete memory[key]; },
+      async remove(keys) {
+        if (outcome === 'cleanup_failed' && keys === 'autoPending' && memory.autoPending && !cleanupFailed) { cleanupFailed = true; throw new Error('storage_failed'); }
+        for (const key of [].concat(keys)) delete memory[key];
+      },
     } },
     permissions: { contains: async () => true },
     tabs: { query: async () => [{ id: 7, url: liveUrl }], get: async () => ({ id: 7, url: liveUrl }), update: async (id, { url }) => { assert.equal(id, 7); navigations.push(url); if (outcome === 'navigation_failed') throw new Error('tab_channel_closed'); liveUrl = url; stage = 'detail'; }, onRemoved: { addListener() {} } },
@@ -47,7 +52,7 @@ async function harness(outcome = 'success') {
       if (outcome === 'recovery_login') return [{ result: { state: 'held', reason_code: 'login_required' } }];
       return [{ result: { state, account_hash: visibleAccount, profile_hash: profile, ...(outcome === 'questions' ? { reason_code: 'questions_required' } : {}) } }];
     } },
-    alarms: { clear: async () => true, create: async (...args) => alarms.push(args), onAlarm: { addListener: fn => alarmListeners.push(fn) } },
+    alarms: { get: async name => alarmState.get(name), clear: async name => alarmState.delete(name), create: async (name, props) => { alarms.push([name, props]); alarmState.set(name, props); }, onAlarm: { addListener: fn => alarmListeners.push(fn) } },
   };
   const original = { chrome: globalThis.chrome, fetch: globalThis.fetch };
   globalThis.chrome = mockChrome;
@@ -175,6 +180,22 @@ test('pre-permit interrupted review is held without resuming either click', asyn
     assert.equal(h.requests[0].body.reason_code, 'connection_ended');
     assert.equal(h.memory.autoPending, undefined);
   } finally { h.restore(); }
+});
+
+test('a failed pending cleanup releases single flight and recovers the receipt without another permit or click', async () => {
+  const h = await harness('cleanup_failed'), now = Date.now;
+  try {
+    assert.equal((await h.dispatch({ type: 'auto-connect', code: JSON.stringify(pair), confirm: true }, h.popup)).ok, true);
+    await h.settled; await new Promise(resolve => setTimeout(resolve, 30));
+    assert.equal(h.memory.autoPending.phase, 'clicked');
+    assert.match(h.memory.autoStatus.message, /정리하지 못/);
+    Date.now = () => now() + 6000;
+    await h.wake();
+    assert.equal(h.requests.filter(r => r.path === '/permit').length, 1);
+    assert.equal(h.requests.filter(r => r.path === '/reconcile').length, 1);
+    assert.deepEqual(h.clicks, ['open', 'submit']);
+    assert.equal(h.memory.autoPending, undefined);
+  } finally { Date.now = now; h.restore(); }
 });
 
 async function settle(h, timeout = 2500) {

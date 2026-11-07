@@ -98,6 +98,64 @@ def test_slug_matches_public_detail_urls():
     assert _post_slug("Ai프로그램 활용잘하시는분") == "ai프로그램-활용잘하시는분"
 
 
+@pytest.mark.parametrize("title,keywords", [
+    ("React 화면 수정 요청이 아닙니다", ["홈페이지"]),
+    ("React 화면 수정 요청은 안 합니다", ["홈페이지"]),
+    ("React 화면 수정 요청하지 않습니다", ["홈페이지"]),
+    ("React 코드 수정 의뢰는 없습니다", ["홈페이지"]),
+    ("React 화면 수정 부탁드리는 게 아닙니다", ["홈페이지"]),
+    ("서버 배포 요청이 아닙니다", ["프로그램"]),
+    ("서버 배포 요청은 안 합니다", ["프로그램"]),
+    ("서버 배포 요청하지 않습니다", ["프로그램"]),
+    ("서버 배포 의뢰 대신 포장 작업", ["프로그램"]),
+    ("기존 앱 플레이스토어 등록 요청이 아닙니다", ["앱"]),
+    ("기존 앱 플레이스토어 등록 요청은 안 합니다", ["앱"]),
+    ("기존 앱 플레이스토어 등록 요청하지 않습니다", ["앱"]),
+    ("앱스토어 등록 부탁은 불필요합니다", ["앱"]),
+])
+def test_specialized_title_requests_do_not_promote_negated_operations(title, keywords):
+    assert create().saved_candidate_kind(title, json.dumps(keywords, ensure_ascii=False)) is None
+
+
+@pytest.mark.parametrize("title,keywords,expected", [
+    ("React 화면 수정 도와주세요", ["홈페이지"], "core"),
+    ("HTML/CSS 코드 수정 요청", ["홈페이지"], "core"),
+    ("React 코드 수정 요청", ["엑셀"], None),
+    ("React 코드 수정 요청", [], None),
+    ("React 코드 수정 요청", ["앱"], None),
+    ("AI 에이전트 만들어주세요 (React 코드는 참고만)", ["홈페이지"], None),
+    ("챗봇 만들어주세요 React 코드는 참고만", ["홈페이지"], None),
+    ("AI 에이전트 만들어주세요 (React 코드는 참고만)", ["AI 에이전트"], "core"),
+    ("AI 에이전트 만들어주세요 React 화면 수정 도와주세요", ["홈페이지"], "core"),
+    ("React 화면 수정 요청은 아닙니다. AI 에이전트 만들어주세요", ["홈페이지"], None),
+    ("React 화면 수정 요청은 아닙니다. HTML 코드 수정 요청", ["홈페이지"], "core"),
+    ("서버 배포 요청이 아닙니다. 서버 배포 의뢰", ["프로그램"], "core"),
+    ("서버 배포 도와주세요", ["프로그램"], "core"),
+    ("서버 배포 도와주세요", ["엑셀"], None),
+    ("서버 배포 도와주세요", ["홈페이지"], None),
+])
+def test_semantic_title_scope_requires_the_requested_technology_and_object(title, keywords, expected):
+    assert create().saved_candidate_kind(title, json.dumps(keywords, ensure_ascii=False)) == expected
+
+
+def test_disabled_web_queries_cannot_be_reintroduced_by_semantic_feed_matching():
+    adapter = create()
+    adapter.profile["discovery"]["feed"]["anchors"] = [[28, "신당동", "A"]]
+    plan = adapter.plan_discovery([
+        {"id": "web", "enabled": False, "keywords": ["홈페이지", "AI 에이전트"]},
+        {"id": "excel", "enabled": True, "keywords": ["엑셀"]},
+    ], NOW)
+    task = next(task for task in plan.tasks if task.region_scope == "feed-28")
+    found = adapter.discover(task, Static(feed(28, [
+        ("reactdemo001", "React 화면 수정 도와주세요", "PER_CASE", False, 1),
+        ("agentdemo001", "AI 에이전트 만들어주세요 React 코드는 참고만", "PER_CASE", False, 2),
+        ("exceldemo001", "엑셀 매크로 제작 의뢰", "PER_CASE", False, 3),
+    ])))
+    assert [ref.source_post_id for ref in found.refs] == ["exceldemo001"]
+    assert found.exploration_refs == []
+    assert len(found.listed_refs) == 3  # public observations remain independently measurable
+
+
 def test_plan_tiers_and_daily_list_requests():
     adapter = create()
     adapter.profile["discovery"]["feed"].pop("adaptive")

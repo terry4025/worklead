@@ -96,7 +96,7 @@
     return { state: 'held', reason_code: result.reason_code || 'ui_unrecognized' };
   }
   globalThis.__workleadAutoUi = run;
-  if (!globalThis.__workleadAutoTicker) {
+  if (!globalThis.__workleadManagedDriver && !globalThis.__workleadAutoTicker) {
     globalThis.__workleadAutoTicker = setInterval(() => chrome.runtime.sendMessage({ type: 'auto-tick' }).catch(() => {}), 2000);
   }
 })();

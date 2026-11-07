@@ -66,6 +66,36 @@ _SOFTWARE_DELIVERY_REQUEST = re.compile(
     + _SOFTWARE_TARGET,
     re.I,
 )
+# Explicit publishing/integration help is a deliverable even when no word
+# "개발" appears. Do not infer these from bare app/technology/store mentions.
+_SPECIALIZED_DELIVERY_REQUEST = re.compile(
+    r"(?:(?:앱\s*스토어|플레이\s*스토어)(?:에)?\s*등록"
+    r"|(?:구글\s*(?:스프레드시트|시트)|스프레드시트)(?:의|을|를)?\s*연동"
+    r"|서버(?:의|을|를|에)?\s*배포)"
+    r"\s*(?:을|를|좀)?\s*(?:의뢰|외주|요청|부탁|해\s*주실|해\s*주세요|도와\s*(?:주실|주세요))",
+    re.I,
+)
+_SERVER_DEPLOYMENT_REQUEST = re.compile(
+    r"서버(?:의|을|를|에)?\s*배포\s*(?:을|를|좀)?\s*"
+    r"(?:의뢰|외주|요청|부탁|해\s*주실|해\s*주세요|도와\s*(?:주실|주세요))",
+    re.I,
+)
+_NEGATED_REQUEST_SUFFIX = re.compile(
+    r"\s*(?:(?:이|가|은|는|을|를|도)\s*)?"
+    r"(?:아니|아닌|아닙|아님|없|불필요|대신|필요\s*없|"
+    r"안\s*(?:하|해|합|한|할)|(?:하|해|드리|맡기|진행하|진행해)지\s*(?:않|마)|"
+    r"(?:게|것(?:이|은)?)\s*(?:아니|아닌|아닙|아님)|"
+    r"드리(?:는|려는)\s*(?:게|것(?:이|은)?)\s*(?:아니|아닌|아닙|아님))",
+    re.I,
+)
+
+
+def _positive_requests(pattern: re.Pattern, title: str) -> list[re.Match]:
+    """Keep each requested operation and its trailing negation in one clause."""
+    return [match for match in pattern.finditer(title)
+            if not _NEGATED_REQUEST_SUFFIX.match(title, match.end())]
+
+
 _PHYSICAL_WORK_TITLE = re.compile(
     r"팬케이크|반찬|도시락|요리|음식|아이들?\s*(?:저녁|식사)|목공|가구|용달|짐\s*옮기|물류|포장|배송"
     r"|(?:입주|이사|가정집|사무실|매장|건물)\s*청소|청소\s*(?:용역|대행|외주)"
@@ -77,6 +107,19 @@ _DEVELOPMENT_TECHNOLOGY = re.compile(
 _SOFTWARE_OBJECT = re.compile(
     r"코드|화면|컴포넌트|프론트엔드|백엔드|웹\s*(?:페이지|앱)|\b(?:UI|API|component|screen|page|code|script)\b",
     re.I,
+)
+# These titles are not useful probes of body-only software demand. Keep the
+# audit narrower than a general job crawl; its results still pass normal body
+# analysis and never become application candidates from their title alone.
+_AUDIT_EMPLOYMENT_TITLE = re.compile(
+    r"서빙|주방|설거지|배달|배송|택배|물류|포장|청소|가사|돌봄|간병|요양|경비|전단|캐셔"
+    r"|생산직|공사현장|상하차|일용직|홀\s*(?:직원|알바)|매장\s*(?:직원|알바|관리)"
+    r"|정규직|계약직|직원\s*(?:모집|구함|구합니다)|아르바이트|시급|월급|연봉"
+    r"|고수익|계정\s*(?:대여|판매)|명의\s*(?:대여|판매)|리뷰\s*(?:작성|알바)|물품\s*제작|민원"
+)
+_AUDIT_REQUEST_TITLE = re.compile(
+    r"도와\s*(?:주실|줄|주세요)|도움|전문가"
+    r"|(?:간단한|작은|짧은)\s*(?:일|작업)|(?:작업|업무).{0,12}(?:부탁|요청|가능|구함|구해|구합니다|하실)"
 )
 
 
@@ -172,7 +215,23 @@ def _title_match(title: str, keywords: list[str], specific_keywords: list[str], 
     """(core, explore, physical_filtered) for one public listing title."""
     normalized = re.sub(r"\s+", "", title).casefold()
     query_match = any(word in normalized or (word == "앱" and any(alias in normalized for alias in ("어플리케이션", "애플리케이션", "어플"))) for word in keywords)
-    core = bool(title_pattern.search(title) or _SOFTWARE_DELIVERY_REQUEST.search(title)) and query_match
+    software_requests = _positive_requests(_SOFTWARE_DELIVERY_REQUEST, title)
+    software_delivery = bool(software_requests)
+    specialized_delivery = bool(_positive_requests(_SPECIALIZED_DELIVERY_REQUEST, title))
+    # A concrete React/HTML/CSS screen change is in an enabled website scope;
+    # server deployment belongs to an enabled software scope. This does not
+    # make an Excel-only query discover unrelated app/web jobs, and requires
+    # the full object + change + request signal before a semantic match.
+    web_scope = any(word in keywords for word in ("홈페이지", "웹사이트", "웹페이지", "웹개발", "웹제작"))
+    software_scope = any(word in keywords for word in ("프로그램", "소프트웨어", "파이썬", "python"))
+    # The technology and object must belong to the very operation requested.
+    # A chatbot order followed by an unrelated React/code note is not a web
+    # request and must not override a disabled chatbot query.
+    web_change = any(_DEVELOPMENT_TECHNOLOGY.search(match.group()) and _SOFTWARE_OBJECT.search(match.group())
+                     for match in software_requests)
+    scoped_match = bool(web_scope and web_change or software_scope and _positive_requests(_SERVER_DEPLOYMENT_REQUEST, title))
+    query_match = query_match or scoped_match
+    core = bool(title_pattern.search(title) or software_delivery or specialized_delivery) and query_match
     explore = not core and query_match and (
         any(word in normalized for word in specific_keywords) or bool(_WEAK_CREATION_REQUEST.search(title))
     )
@@ -204,6 +263,22 @@ class DaangnAdapter(ProfiledSiteAdapter):
         specific = [word for word in keywords if len(word) >= 2 and word not in _GENERIC_QUERY_TERMS]
         core, explore, _ = _title_match(title, keywords, specific, re.compile(self.profile["discovery"]["title_pattern"], re.I))
         return "core" if core else "exploration" if explore else None
+
+    def title_audit_candidate(self, title: str, query: str | None = None) -> bool:
+        """Weak request worth a bounded body probe, never a positive match."""
+        if query is not None:
+            keywords = set(_discovery_keywords(query))
+            # An explicitly narrow search (e.g. Excel only) must stay narrow.
+            # Audit is a backstop for a broad software search, not an override
+            # of disabled groups or a way to revive unselected title matches.
+            if sum(bool(keywords.intersection(aliases)) for aliases in _TITLE_ALIASES) < 2:
+                return False
+        return (4 <= len(title) <= 200 and not _PHYSICAL_WORK_TITLE.search(title)
+                and not _AUDIT_EMPLOYMENT_TITLE.search(title)
+                and not re.search(self.profile["discovery"]["title_pattern"], title, re.I)
+                and not re.search(_SOFTWARE_TARGET, title, re.I)
+                and not _DEVELOPMENT_TECHNOLOGY.search(title)
+                and bool(_AUDIT_REQUEST_TITLE.search(title) or _WEAK_CREATION_REQUEST.search(title)))
 
     def daily_list_requests(self, interval_minutes: int) -> int:
         """List requests per day at this watch interval (feeds + sitemap backstop)."""
@@ -291,6 +366,7 @@ class DaangnAdapter(ProfiledSiteAdapter):
         listed = {}
         invalid_urls = 0
         non_software_exploration_filtered = 0
+        audit = {}
         for sitemap in maps:
             for entry in _sitemap(fetcher, sitemap, "urlset"):
                 url = (entry.findtext("{*}loc") or "").strip()
@@ -313,17 +389,22 @@ class DaangnAdapter(ProfiledSiteAdapter):
                     candidate = (modified.timestamp() if modified else 0, ref, core)
                     if post_id not in candidates or (candidate[0], core) > (candidates[post_id][0], candidates[post_id][2]):
                         candidates[post_id] = candidate
+                elif self.profile["discovery"].get("title_audit_requests_per_watch", 0) and self.title_audit_candidate(title, task.query):
+                    audit[post_id] = ref
         if invalid_urls and not listed:
             raise ParseError("사이트맵에 예상과 다른 공고 주소만 있습니다")
         ordered = sorted(candidates.values(), key=lambda x: (-x[0], x[1].url))
         refs = [ref for _, ref, core in ordered if core]
         exploration_refs = [ref for _, ref, core in ordered if not core]
+        audit = {key: ref for key, ref in audit.items() if key not in candidates}
+        exploration_refs.extend(audit.values())
         return DiscoverResult(refs, None, {
             "scope": "nationwide_public_sitemaps", "sitemaps": len(maps),
             "listed_urls": len(listed), "title_candidates": len(refs),
             "core_candidates": len(refs), "exploration_candidates": len(exploration_refs),
             "non_software_exploration_filtered": non_software_exploration_filtered,
             "invalid_urls": invalid_urls,
+            "title_audit_ids": sorted(audit), "title_audit_candidates": len(audit),
             "filter_basis": "제목의 제작 관련 표현 + 활성 검색어·명시 동의어, 이후 상세 본문 확인",
             "exploration_filter_basis": "활성 구체 검색어·약한 제작 요청 제목을 제한 순환 확인. 전체 본문 검색 아님",
         }, exploration_refs, list(listed.values()))
@@ -351,6 +432,7 @@ class DaangnAdapter(ProfiledSiteAdapter):
         specific_keywords = [word for word in keywords if len(word) >= 2 and word not in _GENERIC_QUERY_TERMS]
         title_pattern = re.compile(config["title_pattern"], re.I)
         listed, refs, exploration_refs, published = [], [], [], []
+        audit_ids = []
         physical_filtered = employment_filtered = employment_demoted = closed = 0
         for edge_key in edges["__refs"]:
             card = _node(store, (store.get(edge_key) or {}).get("node"))
@@ -379,6 +461,11 @@ class DaangnAdapter(ProfiledSiteAdapter):
                 employment_filtered += explore
                 employment_demoted += core
                 core, explore = False, core
+            if (not core and not explore and salary == "PER_CASE"
+                    and config.get("title_audit_requests_per_watch", 0)
+                    and self.title_audit_candidate(title, task.query)):
+                explore = True
+                audit_ids.append(public_id)
             (refs if core else exploration_refs if explore else []).append(ref)
         return DiscoverResult(refs, None, {
             "scope": "region_feed", "region_id": region, "listed_urls": len(listed),
@@ -387,6 +474,8 @@ class DaangnAdapter(ProfiledSiteAdapter):
             "core_candidates": len(refs), "exploration_candidates": len(exploration_refs),
             "closed_listings": closed, "non_software_exploration_filtered": physical_filtered,
             "employment_exploration_filtered": employment_filtered, "employment_core_demoted": employment_demoted,
+            "title_audit_ids": audit_ids, "title_audit_candidates": len(audit_ids),
+            "feed_saturated": len(listed) >= 20,
             "filter_basis": "지역 피드 제목의 제작 관련 표현 + 활성 검색어·명시 동의어, 건당 보수 우선, 이후 상세 본문 확인",
         }, exploration_refs, listed)
 

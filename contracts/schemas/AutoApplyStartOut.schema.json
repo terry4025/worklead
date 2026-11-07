@@ -2,6 +2,32 @@
   "$defs": {
     "AutoApplyStatus": {
       "properties": {
+        "provider": {
+          "default": "chrome",
+          "enum": [
+            "chrome",
+            "managed_edge"
+          ],
+          "title": "Provider",
+          "type": "string"
+        },
+        "setup_stage": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Setup Stage"
+        },
+        "browser_open": {
+          "default": false,
+          "title": "Browser Open",
+          "type": "boolean"
+        },
         "enabled": {
           "default": false,
           "title": "Enabled",

@@ -48,6 +48,7 @@ export class LivePort implements WorkleadPort {
   readonly mode = 'live' as const;
   readonly jobs: WorkleadPort['jobs'] = {
     autoApplyStatus: () => wrap(this.client.jobAutoApplyStatus()),
+    autoApplySetup: (body) => wrap(this.client.jobAutoApplySetup(body)),
     autoApplyStart: (body) => wrap(this.client.jobAutoApplyStart(body)),
     autoApplyStop: () => wrap(this.client.jobAutoApplyStop()),
     autoApplyForget: () => wrap(this.client.jobAutoApplyForget()),

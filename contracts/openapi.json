@@ -1139,6 +1139,47 @@
         }
       }
     },
+    "/v1/jobs/auto-apply/setup": {
+      "post": {
+        "tags": [
+          "job-auto-apply"
+        ],
+        "summary": "Setup",
+        "operationId": "setup_v1_jobs_auto_apply_setup_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AutoApplyStartIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutoApplyStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/jobs/auto-apply/start": {
       "post": {
         "tags": [
@@ -6267,6 +6308,31 @@
       },
       "AutoApplyStatus": {
         "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "chrome",
+              "managed_edge"
+            ],
+            "title": "Provider",
+            "default": "chrome"
+          },
+          "setup_stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Setup Stage"
+          },
+          "browser_open": {
+            "type": "boolean",
+            "title": "Browser Open",
+            "default": false
+          },
           "enabled": {
             "type": "boolean",
             "title": "Enabled",

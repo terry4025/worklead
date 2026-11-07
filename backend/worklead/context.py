@@ -39,6 +39,7 @@ class AppContext:
     _jobs_chrome_runtime: object | None = field(default=None, init=False, repr=False)
     _jobs_auto_apply_runtime: object | None = field(default=None, init=False, repr=False)
     _jobs_auto_pairing_runtime: object | None = field(default=None, init=False, repr=False)
+    _jobs_managed_auto_runtime: object | None = field(default=None, init=False, repr=False)
     auto_pair_store: object | None = field(default=None, repr=False)
     _jobs_message_pairing_runtime: object | None = field(default=None, init=False, repr=False)
     message_pair_store: object | None = field(default=None, repr=False)

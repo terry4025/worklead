@@ -15,13 +15,14 @@ function fixture(options = {}) {
   const local = options.pair === false ? {} : { autoPair: { ...remembered, ...options.pair } };
   const session = options.tab === false ? {} : { autoPairTab: { tabId: 7 } };
   const requests = [], connections = [], statuses = [], created = [], removed = [], access = [], alarms = [];
+  const alarmState = new Map();
   const tabs = new Map(options.tab === false ? [] : [[7, { id: 7, url: 'https://jobs.daangn.com/', status: 'complete' }]]);
   let visible = account, fail = false, delayHello = null, delayResume = null, rejectProof = false;
   const store = memory => ({ async get(key) { return { [key]: memory[key] }; }, async set(values) { Object.assign(memory, values); }, async remove(key) { for (const k of [].concat(key)) delete memory[k]; } });
   const chrome = {
     storage: { local: { ...store(local), async setAccessLevel(value) { access.push(value); } }, session: store(session) },
     permissions: { contains: async () => true },
-    alarms: { create: async (...args) => alarms.push(args), clear: async () => true },
+    alarms: { get: async name => alarmState.get(name), create: async (name, props) => { alarms.push([name, props]); alarmState.set(name, props); }, clear: async name => alarmState.delete(name) },
     tabs: { async get(id) { if (!tabs.has(id)) throw new Error('closed'); return tabs.get(id); },
       async create(value) { const tab = { id: 7 + created.length + 1, status: 'complete', ...value }; created.push(value); tabs.set(tab.id, tab); return tab; },
       async remove(id) { removed.push(id); tabs.delete(id); } },
@@ -48,11 +49,11 @@ function fixture(options = {}) {
   };
   const callbacks = {
     readAccount: async () => visible ? { state: 'account', account_hash: visible } : { state: 'held', reason_code: 'login_required' },
-    connected: async (c, id, identity, current) => { if (!current()) return; connections.push({ c, id, identity }); session.autoBridge = { ...c, tabId: id, ready: true }; },
+    connected: async (c, id, identity, current) => { if (!current()) return; connections.push({ c, id, identity }); session.autoBridge = { ...c, tabId: id, account_hash: identity, ready: true }; },
     clearSession: async () => { delete session.autoBridge; delete session.autoPending; }, status: async s => statuses.push(s),
   };
   const reconnect = createReconnect(callbacks);
-  return { local, session, requests, connections, statuses, created, removed, access, alarms, chrome, reconnect, callbacks,
+  return { local, session, requests, connections, statuses, created, removed, access, alarms, alarmState, chrome, reconnect, callbacks,
     account: value => { visible = value; }, offline: () => { fail = true; }, badProof: () => { rejectProof = true; },
     holdHello() { let release; delayHello = new Promise(r => { release = r; }); return release; },
     holdResume() { let release; delayResume = new Promise(r => { release = r; }); return release; },
@@ -104,6 +105,96 @@ test('app restart can replace an apparently-ready but dead ephemeral connection'
   const h = fixture(); h.session.autoBridge = { ...ephemeral, ready: true, tabId: 7 };
   try { assert.equal((await h.reconnect.resume({ force: true })).ok, true); assert.equal(h.requests.length, 2); assert.equal(h.connections.length, 1); }
   finally { h.restore(); }
+});
+
+test('a ready session is checked and restores work scheduling without rotating its pending receipt', async () => {
+  const h = fixture(), resumed = [], checked = [];
+  h.session.autoBridge = { ...ephemeral, ready: true, tabId: 7, account_hash: account };
+  h.session.autoPending = { phase: 'permitting', receipt_token: 'r'.repeat(43) };
+  const pending = h.session.autoPending;
+  const controller = createReconnect({ ...h.callbacks,
+    validateConnection: async c => checked.push(c),
+    resumeConnected: async (...args) => resumed.push(args),
+  });
+  try {
+    await controller.boot();
+    assert.equal(checked.length, 1); assert.equal(resumed.length, 1);
+    assert.equal(resumed[0][1], 7); assert.equal(resumed[0][2], account);
+    assert.equal(h.session.autoPending, pending);
+    assert.equal(h.requests.length, 0); assert.equal(h.connections.length, 0);
+  } finally { h.restore(); }
+});
+
+test('an expired ready session automatically exchanges the remembered grant after its failed ping', async () => {
+  const h = fixture(), resumed = [], checked = [];
+  h.session.autoBridge = { ...ephemeral, token: 'old'.repeat(15), ready: true, tabId: 7, account_hash: account };
+  const controller = createReconnect({ ...h.callbacks,
+    validateConnection: async c => { checked.push(c.token); if (c.token !== ephemeral.token) throw new Error('expired_code'); },
+    resumeConnected: async c => resumed.push(c),
+  });
+  try {
+    assert.equal((await controller.resume()).ok, true);
+    assert.equal(checked.length, 2); assert.equal(resumed.length, 0);
+    assert.equal(h.requests.length, 2); assert.equal(h.connections.length, 1);
+    assert.equal(h.session.autoBridge.token, ephemeral.token);
+  } finally { h.restore(); }
+});
+
+for (const changed of ['account', 'tab', 'stopped']) test('ready state cannot bypass ' + changed + ' revalidation', async () => {
+  const h = fixture(), checked = [], resumed = [];
+  h.session.autoBridge = { ...ephemeral, ready: true, tabId: 7, account_hash: account };
+  if (changed === 'account') h.account('c'.repeat(64));
+  if (changed === 'tab') h.chrome.tabs.get = async id => ({ id, url: 'https://example.org/', status: 'complete' });
+  if (changed === 'stopped') h.local.autoPair.enabled = false;
+  const controller = createReconnect({ ...h.callbacks, validateConnection: async c => checked.push(c), resumeConnected: async c => resumed.push(c) });
+  try {
+    assert.equal((await controller.resume()).ok, false);
+    assert.equal(checked.length, 0); assert.equal(resumed.length, 0);
+    assert.equal(h.requests.length, 0); assert.equal(h.local.autoPair.enabled, false);
+  } finally { h.restore(); }
+});
+
+test('disconnect during a ready-session ping prevents later scheduling and handshake', async () => {
+  const h = fixture(), resumed = [];
+  h.session.autoBridge = { ...ephemeral, ready: true, tabId: 7, account_hash: account };
+  let started = false, release;
+  const gate = new Promise(resolve => { release = resolve; });
+  const controller = createReconnect({ ...h.callbacks,
+    validateConnection: async () => { started = true; await gate; },
+    resumeConnected: async c => resumed.push(c),
+  });
+  try {
+    const pending = controller.resume(); await until(() => started);
+    await controller.forget(); release(); await pending;
+    assert.equal(resumed.length, 0); assert.equal(h.requests.length, 0);
+    assert.equal(h.session.autoBridge, undefined); assert.equal(h.local.autoPair, undefined);
+  } finally { h.restore(); }
+});
+
+test('repeated boot preserves the reconnect alarm deadline and stopped grants create no alarms', async () => {
+  const h = fixture();
+  try {
+    await h.reconnect.boot(); await h.reconnect.boot(); await h.reconnect.boot();
+    assert.equal(h.alarms.filter(a => a[0] === PAIR_ALARM).length, 1);
+    await h.reconnect.pause('stopped');
+    const creates = h.alarms.length;
+    await h.reconnect.boot();
+    assert.equal(h.alarms.length, creates); assert.equal(h.alarmState.size, 0);
+  } finally { h.restore(); }
+});
+
+test('stop wins over a reconnect alarm creation that completes late', async () => {
+  const h = fixture(); let started = false, release;
+  const gate = new Promise(resolve => { release = resolve; });
+  const create = h.chrome.alarms.create;
+  h.chrome.alarms.create = async (...args) => { started = true; await gate; return create(...args); };
+  try {
+    const boot = h.reconnect.boot(); await until(() => started);
+    const stopped = h.reconnect.forget(); await until(() => h.local.autoPair === undefined);
+    release(); await stopped; await boot;
+    assert.equal(h.alarmState.size, 0); assert.equal(h.requests.length, 0);
+    assert.equal(h.connections.length, 0);
+  } finally { release(); h.restore(); }
 });
 
 test('a loaded page with an unhydrated account menu retries without disabling the remembered grant', async () => {
@@ -202,4 +293,65 @@ test('real worker wires startup/alarm/401 recovery and popup-only forget without
     const count = h.requests.length; startup[0](); installed[0](); alarmListeners[0]({ name: PAIR_ALARM }); await pause(20);
     assert.equal(h.requests.length, count);
   } finally { h.restore(); }
+});
+
+for (const phase of [null, 'permitting', 'clicked']) test('worker boot restores a healthy ready session and its missing work alarm: ' + phase, async () => {
+  const h = fixture(), paths = [], operations = [];
+  const savedJob = { attempt_id: 'auto_restart', lead_id: 'lead_restart', title: '페이지 제작',
+    url: 'https://jobs.daangn.com/job-posts/페이지-제작-abcdefghijkl', lease_token: 'l'.repeat(43) };
+  h.session.autoBridge = { ...ephemeral, ready: true, tabId: 7, account_hash: account };
+  if (phase) {
+    h.session.autoPending = { job: savedJob,
+      identity: { attempt_id: savedJob.attempt_id, lease_token: savedJob.lease_token, account_hash: account, profile_hash: 'b'.repeat(64) },
+      phase, receipt_token: 'r'.repeat(43), checks: 0, created_at: Date.now(), next_check_at: 0,
+      tab_id: 7, connection_url: ephemeral.url };
+    h.chrome.tabs.get = async id => ({ id, url: savedJob.url, status: 'complete' });
+  }
+  h.chrome.runtime = { getURL: name => 'chrome-extension://fixture/' + name,
+    onMessage: { addListener() {} }, onStartup: { addListener() {} }, onInstalled: { addListener() {} } };
+  h.chrome.tabs.onRemoved = { addListener() {} };
+  h.chrome.alarms.onAlarm = { addListener() {} };
+  h.chrome.scripting = { executeScript: async input => {
+    if (input.files) return [{ frameId: 0 }];
+    const [operation, expected] = input.args; operations.push(operation);
+    return [{ result: { state: expected ? 'already_applied' : 'account', account_hash: account } }];
+  } };
+  globalThis.fetch = async (url, init) => {
+    assert.equal(new URL(url).origin, ephemeral.url);
+    assert.equal(init.headers.Authorization, 'Bearer ' + ephemeral.token);
+    const path = new URL(url).pathname; paths.push(path);
+    assert.ok(['/ping', '/next', '/reconcile'].includes(path), 'restoring a session must never grant or submit');
+    return { ok: true, json: async () => path === '/ping' ? { purpose: 'auto_apply', version: 1 } : path === '/next' ? { job: null } : { status: 'submitted' } };
+  };
+  try {
+    await import('../worklead-messages/auto-worker.js?ready-restart=' + Math.random());
+    await until(() => paths.includes(phase ? '/reconcile' : '/next'));
+    await until(() => phase ? h.session.autoPending === undefined : !!h.session.autoStatus);
+    assert.deepEqual(paths, ['/ping', phase ? '/reconcile' : '/next']);
+    assert.ok(h.alarms.some(a => a[0] === 'worklead-auto-apply'));
+    assert.ok(operations.every(op => op === 'inspect'));
+    assert.equal(h.session.autoBridge.token, ephemeral.token);
+    assert.equal(h.requests.length, 0); assert.equal(h.created.length, 0);
+  } finally { h.restore(); }
+});
+
+test('late auto work-alarm creation cannot undo stop or start a queued application', async () => {
+  const h = fixture(), paths = [], listeners = [];
+  let started = false, release;
+  const gate = new Promise(resolve => { release = resolve; }), create = h.chrome.alarms.create;
+  h.session.autoBridge = { ...ephemeral, ready: true, tabId: 7, account_hash: account };
+  h.chrome.alarms.create = async (name, props) => { if (name === 'worklead-auto-apply') { started = true; await gate; } return create(name, props); };
+  h.chrome.runtime = { getURL: name => 'chrome-extension://fixture/' + name, onMessage: { addListener: fn => listeners.push(fn) } };
+  h.chrome.tabs.onRemoved = { addListener() {} }; h.chrome.alarms.onAlarm = { addListener() {} };
+  h.chrome.scripting = { executeScript: async input => input.files ? [{ frameId: 0 }] : [{ result: { state: 'account', account_hash: account } }] };
+  globalThis.fetch = async url => { const path = new URL(url).pathname; paths.push(path); assert.equal(path, '/ping'); return { ok: true, json: async () => ({ purpose: 'auto_apply', version: 1 }) }; };
+  try {
+    await import('../worklead-messages/auto-worker.js?late-work-alarm=' + Math.random());
+    await until(() => started);
+    const stopped = new Promise(resolve => listeners.some(fn => fn({ type: 'auto-disconnect' }, popup, resolve) === true));
+    await until(() => h.session.autoBridge === undefined);
+    release(); assert.equal((await stopped).ok, true); await pause(20);
+    assert.equal(h.alarmState.size, 0); assert.equal(h.local.autoPair, undefined);
+    assert.deepEqual(paths, ['/ping']); assert.equal(h.created.length, 0);
+  } finally { release(); h.restore(); }
 });

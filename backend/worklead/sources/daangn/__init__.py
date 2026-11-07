@@ -15,6 +15,6 @@ def create() -> ProfiledSiteAdapter:
         load_profile(PROFILE_PATH),
         name="당근알바",
         scope_note="전국 앵커 지역 피드(첫 20건) + 하루 두 번 공개 공고 목록 · 활성 검색어·동의어로 제목 후보 선별 · 건당 보수 우선 · 본문 전수 검색 아님",
-        adapter_version="0.8.2",
+        adapter_version="0.8.3",
         parser_version="daangn-0.2.0",
     )

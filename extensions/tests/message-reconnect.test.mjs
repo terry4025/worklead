@@ -10,9 +10,11 @@ const popup={url:'chrome-extension://fixture/popup.html'};
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 async function until(fn){for(let i=0;i<300;i++){if(fn())return;await wait(5);}throw new Error('fixture timed out');}
 const store=memory=>({get:async key=>({[key]:memory[key]}),set:async data=>Object.assign(memory,data),remove:async keys=>{for(const k of [].concat(keys))delete memory[k];}});
-async function fixture({saved=false,capture=false}={}) {
+async function fixture({saved=false,capture=false,ready=false,samplerGate=null}={}) {
   const local=saved?{messagePair:{url:MESSAGE_PAIR_URL,token,account_hash:account,enabled:true,capture_visible_chat:capture}}:{};
-  const session={},requests=[],injected=[],created=[],listeners=[],updated=[],removed=[],startup=[],installed=[],alarms=[],access=[];
+  const session=ready?{messagePairTab:{tabId:7},bridge:{...ephemeral,tabId:7,account_hash:account,ready:true,sequence:17,chatSequence:9,captureChat:capture}}:{};
+  const requests=[],injected=[],created=[],listeners=[],updated=[],removed=[],startup=[],installed=[],alarms=[],scheduled=[],access=[];
+  const alarmState=new Map();
   const tabs=new Map([[7,{id:7,url:'https://jobs.daangn.com/',status:'complete'}]]);
   let visible=account,pingStatus=200,observeStatus=200,observeError='unauthorized',nonce='b'.repeat(64),offline=false,observeGate=null,connection={...ephemeral};
   const original={chrome:globalThis.chrome,fetch:globalThis.fetch,crypto:globalThis.crypto};
@@ -20,8 +22,8 @@ async function fixture({saved=false,capture=false}={}) {
   globalThis.chrome={storage:{local:{...store(local),setAccessLevel:async value=>access.push(value)},session:store(session),onChanged:{addListener(){}}},permissions:{contains:async()=>true},
     runtime:{getURL:x=>'chrome-extension://fixture/'+x,onMessage:{addListener:fn=>listeners.push(fn)},onStartup:{addListener:fn=>startup.push(fn)},onInstalled:{addListener:fn=>installed.push(fn)}},
     tabs:{query:async()=>[tabs.get(7)],get:async id=>{if(!tabs.has(id))throw new Error('closed');return tabs.get(id);},create:async props=>{const tab={id:100+created.length,status:'complete',...props};created.push(tab);tabs.set(tab.id,tab);return tab;},remove:async id=>tabs.delete(id),sendMessage:async()=>{},onRemoved:{addListener:fn=>removed.push(fn)},onUpdated:{addListener:fn=>updated.push(fn)}},
-    alarms:{create:async()=>{},clear:async()=>true,onAlarm:{addListener:fn=>alarms.push(fn)}},
-    scripting:{executeScript:async input=>{injected.push(input);if(input.files)return [{frameId:0}];if(input.func?.toString().includes('__workleadMessageInspect'))return [{result:visible?{state:'account',account_hash:visible,sample:{state:'watching',unread_count:0}}:{state:'held',reason_code:'login_required'}}];return [{result:null}];}}
+    alarms:{get:async name=>alarmState.get(name),create:async(name,props)=>{scheduled.push([name,props]);alarmState.set(name,props);},clear:async name=>alarmState.delete(name),onAlarm:{addListener:fn=>alarms.push(fn)}},
+    scripting:{executeScript:async input=>{injected.push(input);if(input.files){if(input.files.includes('content.js')&&samplerGate)await samplerGate;return [{frameId:0}];}if(input.func?.toString().includes('__workleadMessageInspect'))return [{result:visible?{state:'account',account_hash:visible,sample:{state:'watching',unread_count:0}}:{state:'held',reason_code:'login_required'}}];return [{result:null}];}}
   };
   globalThis.fetch=async(url,init)=>{
     requests.push({url,init,body:JSON.parse(init.body)});if(offline)throw new Error('offline');
@@ -39,7 +41,7 @@ async function fixture({saved=false,capture=false}={}) {
   };
   await import('../worklead-messages/worker.js?m2='+Math.random());
   const dispatch=(message,sender=popup)=>new Promise(resolve=>{if(!listeners.some(fn=>fn(message,sender,resolve)===true))resolve(undefined);});
-  return {local,session,requests,injected,created,listeners,updated,removed,startup,installed,alarms,access,tabs,dispatch,
+  return {local,session,requests,injected,created,listeners,updated,removed,startup,installed,alarms,scheduled,alarmState,access,tabs,dispatch,
     account:v=>visible=v,ping:v=>pingStatus=v,observe:(v,error='unauthorized')=>{observeStatus=v;observeError=error;},offline:()=>offline=true,
     restart:()=>connection={url:'http://127.0.0.1:44449',token:'z'.repeat(43)},
     holdObserve(){let release;observeGate=new Promise(r=>release=r);return release;},
@@ -101,6 +103,67 @@ test('remembered message startup creates one inactive owned tab and restores onl
     assert.equal(h.session.bridge.captureChat,false);assert.ok(!h.injected.some(x=>x.files?.includes('chat-content.js')));
     for(const fn of h.startup)fn();for(const fn of h.installed)fn();for(const fn of h.alarms)fn({name:MESSAGE_PAIR_ALARM});await wait(20);assert.equal(h.created.length,1);
   }finally{h.restore();}
+});
+
+for(const capture of [false,true])test('healthy remembered message boot restores samplers without resetting sequences or capture consent: '+capture,async()=>{
+  const h=await fixture({saved:true,ready:true,capture});try{
+    await until(()=>h.scheduled.some(x=>x[0]==='worklead-message-sampler'));
+    assert.equal(h.created.length,0);assert.equal(h.session.bridge.sequence,17);assert.equal(h.session.bridge.chatSequence,9);
+    assert.equal(h.session.bridge.captureChat,capture);
+    assert.equal(h.injected.some(x=>x.files?.includes('chat-content.js')),capture);
+    assert.deepEqual(h.requests.map(x=>new URL(x.url).pathname),['/ping']);
+    await h.dispatch({type:'unread-sample',sample:{state:'watching',unread_count:1}},{tab:{id:7},frameId:0,url:'https://jobs.daangn.com/'});
+    const observations=h.requests.filter(x=>new URL(x.url).pathname==='/observe');
+    assert.equal(observations.length,1);assert.equal(observations[0].body.sequence,18);
+    assert.equal(h.session.bridge.chatSequence,9);assert.equal(h.local.messagePair.capture_visible_chat,capture);
+  }finally{h.restore();}
+});
+
+test('stop during ready-message sampler restoration cannot resurrect its bridge or capture',async()=>{
+  let release;const gate=new Promise(resolve=>release=resolve);
+  const h=await fixture({saved:true,ready:true,capture:true,samplerGate:gate});try{
+    await until(()=>h.injected.some(x=>x.files?.includes('content.js')));
+    const stopped=h.dispatch({type:'disconnect'});
+    await until(()=>h.session.bridge===undefined);release();
+    assert.equal((await stopped).ok,true);await wait(20);
+    assert.equal(h.session.bridge,undefined);assert.equal(h.local.messagePair,undefined);
+    assert.ok(!h.injected.some(x=>x.files?.includes('chat-content.js')));
+    assert.ok(!h.scheduled.some(x=>x[0]==='worklead-message-sampler'));
+    assert.deepEqual(h.requests.map(x=>new URL(x.url).pathname),['/ping']);
+  }finally{release();h.restore();}
+});
+
+test('pair heartbeats preserve sampler deadlines and do not repeatedly inject or reopen chat',async()=>{
+  const h=await fixture({saved:true,ready:true,capture:true});try{
+    await until(()=>h.alarmState.has('worklead-message-sampler'));
+    const count=h.injected.filter(x=>x.files?.includes('content.js')).length;
+    const scheduled=h.scheduled.length;
+    for(let i=0;i<3;i++){
+      const pings=h.requests.filter(x=>new URL(x.url).pathname==='/ping').length;
+      for(const fn of h.alarms)fn({name:MESSAGE_PAIR_ALARM});
+      await until(()=>h.requests.filter(x=>new URL(x.url).pathname==='/ping').length>pings);await wait(10);
+    }
+    assert.equal(h.injected.filter(x=>x.files?.includes('content.js')).length,count);
+    assert.equal(h.scheduled.length,scheduled);
+    h.alarmState.delete('worklead-message-sampler');
+    for(const fn of h.alarms)fn({name:MESSAGE_PAIR_ALARM});
+    await until(()=>h.alarmState.has('worklead-message-sampler'));
+    assert.equal(h.injected.filter(x=>x.files?.includes('content.js')).length,count+1);
+    assert.equal(h.session.bridge.sequence,17);assert.equal(h.session.bridge.chatSequence,9);
+  }finally{h.restore();}
+});
+
+test('late message sampler-alarm creation is cleared after a concurrent stop',async()=>{
+  const h=await fixture(),create=globalThis.chrome.alarms.create;
+  let started=false,release;const gate=new Promise(resolve=>release=resolve);
+  globalThis.chrome.alarms.create=async(name,props)=>{if(name==='worklead-message-sampler'){started=true;await gate;}return create(name,props);};
+  try{
+    const connected=h.dispatch({type:'connect',code:JSON.stringify(code),capture_visible_chat:true});
+    await until(()=>started);
+    const stopped=h.dispatch({type:'disconnect'});await until(()=>h.session.bridge===undefined);
+    release();assert.equal((await stopped).ok,true);assert.equal((await connected).ok,false);await wait(20);
+    assert.equal(h.alarmState.size,0);assert.equal(h.local.messagePair,undefined);assert.equal(h.session.bridge,undefined);
+  }finally{release();h.restore();}
 });
 
 test('message page reload reinjects selected tab samplers without a new code',async()=>{

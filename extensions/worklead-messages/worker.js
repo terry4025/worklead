@@ -4,9 +4,10 @@ import { createReconnect, MESSAGE_PAIR_URL, MESSAGE_PAIR_ALARM } from './reconne
 import { hashShape, JOBS_PERMISSION } from './auto-protocol.js';
 import './auto-worker.js';
 
-let work = Promise.resolve(), epoch = 0;
+let work = Promise.resolve(), samplerWork = Promise.resolve(), epoch = 0;
 const SAMPLER_ALARM = 'worklead-message-sampler';
 const serialized = operation => { const result = work.then(operation); work = result.catch(() => {}); return result; };
+const changeSampler = operation => { const result = samplerWork.then(operation); samplerWork = result.catch(() => {}); return result; };
 const setStatus = message => chrome.storage.session.set({ connectionStatus: { state:'waiting', message, observedAt:Date.now() } });
 const config = async () => (await chrome.storage.session.get('bridge')).bridge;
 const current = async c => { const live=await config(); return live?.token===c.token && live?.url===c.url && live?.tabId===c.tabId; };
@@ -24,8 +25,10 @@ async function clearSession() {
   epoch++;
   const previous=await config();
   await chrome.storage.session.remove(['bridge']);
-  await chrome.alarms.clear(SAMPLER_ALARM);
-  if(previous) { try { await chrome.tabs.sendMessage(previous.tabId,{type:'stop-unread-sampler'}); } catch {} }
+  await changeSampler(async()=>{
+    await chrome.alarms.clear(SAMPLER_ALARM);
+    if(previous) { try { await chrome.tabs.sendMessage(previous.tabId,{type:'stop-unread-sampler'}); } catch {} }
+  });
 }
 async function post(c,path,body) {
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),3000);
@@ -37,17 +40,25 @@ async function post(c,path,body) {
   } catch(error) { if(['expired_code','wrong_code_purpose','permission_required','capture_not_enabled','message_watch_stopped','auto_apply_stopped','account_changed','login_required','pairing_busy'].includes(error.message))throw error;throw new Error('app_unavailable'); }
   finally{clearTimeout(timer);}
 }
-async function inject(c,active=()=>true) {
-  if(!active() || !await current(c))throw new Error('cancelled');
+function inject(c,active=()=>true,onlyIfMissing=false) { return changeSampler(async()=>{
+  const captured=epoch;
+  const valid=async()=>active() && captured===epoch && await current(c);
+  if(!await valid())throw new Error('cancelled');
+  if(onlyIfMissing && await chrome.alarms.get(SAMPLER_ALARM))return;
   await bounded(chrome.scripting.executeScript({target:{tabId:c.tabId,allFrames:false},files:['content.js'],world:'ISOLATED'}));
-  if(!active() || !await current(c))throw new Error('cancelled');
+  if(!await valid())throw new Error('cancelled');
   if(c.captureChat) {
     await bounded(chrome.scripting.executeScript({target:{tabId:c.tabId,allFrames:false},files:['chat-content.js'],world:'ISOLATED'}));
-    if(!active() || !await current(c))throw new Error('cancelled');
+    if(!await valid())throw new Error('cancelled');
     await bounded(chrome.scripting.executeScript({target:{tabId:c.tabId,allFrames:false},world:'ISOLATED',func:()=>globalThis.__workleadOpenChatPanel?.()}));
   }
-  await chrome.alarms.create(SAMPLER_ALARM,{periodInMinutes:0.5});
-}
+  if(!await valid())throw new Error('cancelled');
+  if(!await chrome.alarms.get(SAMPLER_ALARM)) {
+    if(!await valid())throw new Error('cancelled');
+    await chrome.alarms.create(SAMPLER_ALARM,{periodInMinutes:0.5});
+  }
+  if(!await valid())throw new Error('cancelled');
+}); }
 async function install(connection,tabId,account_hash,active=()=>true,pair={}) {
   const captured=epoch;
   const alive=()=>active() && captured===epoch;
@@ -69,7 +80,14 @@ async function install(connection,tabId,account_hash,active=()=>true,pair={}) {
   await inject(c,alive);
   await chrome.storage.session.set({connectionStatus:{state:'connected',message:'Worklead가 현재 로그인·미읽음 상태를 확인했습니다.',observedAt:Date.now()}});
 }
-const reconnect=createReconnect({readAccount:identity,connected:install,clearSession,status:setStatus,validateConnection:c=>ping(c,'messages'),options:{purpose:'messages'}});
+const reconnect=createReconnect({readAccount:identity,connected:install,clearSession,status:setStatus,validateConnection:c=>ping(c,'messages'),options:{purpose:'messages'},
+  async resumeConnected(c,tabId,account_hash,active) {
+    const captured=epoch;
+    // A healthy process connection keeps its monotonic observation sequences
+    // and existing capture opt-in while replacing lost samplers/work alarms.
+    await inject(c,()=>active() && captured===epoch,true);
+  },
+});
 async function configure(message,sender) {
   const captured=++epoch,active=()=>captured===epoch;
   if(sender.tab||sender.url!==chrome.runtime.getURL('popup.html'))throw new Error('popup_required');

@@ -58,7 +58,7 @@ export async function resumeHandshake(pair, account_hash, current = () => true, 
   return connection;
 }
 
-export function createReconnect({ readAccount, connected, clearSession, status, validateConnection = async () => {}, options = {} }) {
+export function createReconnect({ readAccount, connected, resumeConnected = async () => {}, clearSession, status, validateConnection = async () => {}, options = {} }) {
   const message = options.purpose === 'messages';
   const pairUrl = message ? MESSAGE_PAIR_URL : PAIR_URL;
   const prefix = message ? 'worklead-message-pair-v1' : PREFIX;
@@ -73,7 +73,7 @@ export function createReconnect({ readAccount, connected, clearSession, status, 
     return keys(p, 'account_hash,capture_visible_chat,enabled,token,url') && p.url === pairUrl && hashShape(p.account_hash) &&
       typeof p.enabled === 'boolean' && typeof p.capture_visible_chat === 'boolean' && /^[A-Za-z0-9_-]{32,128}$/.test(p.token);
   };
-  let epoch = 0, running = null, failures = 0, retryAt = 0, writes = Promise.resolve();
+  let epoch = 0, running = null, failures = 0, retryAt = 0, writes = Promise.resolve(), alarmWrites = Promise.resolve();
   let secured = null;
   const secure = () => secured ||= chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' });
   const mutate = (operation, captured = null) => {
@@ -83,6 +83,15 @@ export function createReconnect({ readAccount, connected, clearSession, status, 
   const remember = (pair, captured) => mutate(() => chrome.storage.local.set({ [storageKey]: pair }), captured);
   const saved = async () => { await secure(); const value = (await chrome.storage.local.get(storageKey))[storageKey]; return validPair(value) ? value : null; };
   const current = captured => captured === epoch;
+  const changeAlarm = operation => { const result = alarmWrites.then(operation); alarmWrites = result.catch(() => {}); return result; };
+  const schedule = captured => changeAlarm(async () => {
+    if (!current(captured)) return;
+    if (!await chrome.alarms.get(alarm)) {
+      if (!current(captured)) return;
+      await chrome.alarms.create(alarm, { periodInMinutes: 0.5 });
+    }
+    if (!current(captured)) await chrome.alarms.clear(alarm);
+  });
   async function disarm({ forget = false, message = null } = {}) {
     epoch++; retryAt = 0; failures = 0;
     // Serialized credential writes make a disconnect win over a late handshake.
@@ -91,7 +100,7 @@ export function createReconnect({ readAccount, connected, clearSession, status, 
       else { const pair = await saved(); if (pair) await chrome.storage.local.set({ [storageKey]: { ...pair, enabled: false } }); }
     });
     await clearSession();
-    await chrome.alarms.clear(alarm);
+    await changeAlarm(() => chrome.alarms.clear(alarm));
     if (message) await status(message);
   }
   async function initial(pair, tabId, extra = {}) {
@@ -116,7 +125,8 @@ export function createReconnect({ readAccount, connected, clearSession, status, 
       if (active()) await mutate(() => previous ? chrome.storage.local.set({ [storageKey]: previous }) : chrome.storage.local.remove(storageKey), captured);
       throw error;
     }
-    await chrome.alarms.create(alarm, { periodInMinutes: 0.5 });
+    await schedule(captured);
+    if (!active()) throw new Error('cancelled');
     retryAt = 0; failures = 0;
     await status(label + ' 연결을 기억했습니다. Worklead·크롬 재시작 후 같은 계정으로 자동 연결합니다.');
     return { ok: true };
@@ -135,7 +145,6 @@ export function createReconnect({ readAccount, connected, clearSession, status, 
       if (!pair || (!pair.enabled && !manual) || !active()) return { ok: false };
       if (!await chrome.permissions.contains({ origins: ['http://127.0.0.1/*', JOBS_PERMISSION] })) throw new Error('permission_required');
       const session = await chrome.storage.session.get(bridgeKey);
-      if (session[bridgeKey]?.ready && !force && !manual) return { ok: true };
       let savedTab = (await chrome.storage.session.get(tabKey))[tabKey];
       let tab = null;
       if (savedTab && Number.isInteger(savedTab.tabId)) {
@@ -171,6 +180,20 @@ export function createReconnect({ readAccount, connected, clearSession, status, 
         await disarm({ message: account?.state === 'account' ? '당근 계정이 달라 자동 연결을 중지했습니다. 처음 연결한 계정으로 로그인한 뒤 저장한 연결 재개를 누르세요.' : '당근 로그인을 확인하지 못해 자동 연결을 중지했습니다. 전용 탭에 로그인한 뒤 저장한 연결 재개를 누르세요.' });
         return { ok: false };
       }
+      const existing = session[bridgeKey];
+      if (existing?.ready && existing.tabId === tab.id && existing.account_hash === pair.account_hash && !force && !manual) {
+        // storage.session outlives an MV3 worker. Its ready flag does not prove
+        // that the app still runs, nor that Chrome preserved the work alarm.
+        let live = false;
+        try { await validateConnection(existing); live = true; } catch {}
+        if (!active()) return { ok: false };
+        if (live) {
+          await resumeConnected(existing, tab.id, account.account_hash, active, pair);
+          if (!active()) return { ok: false };
+          failures = 0; retryAt = 0;
+          return { ok: true };
+        }
+      }
       const connection = await exchangePair(pair, account.account_hash, active);
       if (!active()) return { ok: false };
       await validateConnection(connection);
@@ -179,7 +202,8 @@ export function createReconnect({ readAccount, connected, clearSession, status, 
       if (!active()) return { ok: false };
       await connected(connection, tab.id, account.account_hash, active, pair);
       if (!active()) return { ok: false };
-      await chrome.alarms.create(alarm, { periodInMinutes: 0.5 });
+      await schedule(captured);
+      if (!active()) return { ok: false };
       failures = 0; retryAt = 0;
       await status('저장한 계정으로 ' + label + '를 다시 연결했습니다.');
       return { ok: true };
@@ -187,7 +211,8 @@ export function createReconnect({ readAccount, connected, clearSession, status, 
       if (active()) {
         failures = Math.min(failures + 1, 4);
         retryAt = Date.now() + Math.min(30000 * 2 ** (failures - 1), 240000);
-        await chrome.alarms.create(alarm, { periodInMinutes: 0.5 });
+        await schedule(captured);
+        if (!active()) return { ok: false };
         await status(connectionError(error, message ? 'messages' : 'auto_apply') + ' 저장한 연결로 다시 시도합니다.');
       }
       return { ok: false };
@@ -205,5 +230,5 @@ export function createReconnect({ readAccount, connected, clearSession, status, 
     return true;
   }
   return { initial, resume: run, forget: () => disarm({ forget: true }), pause: message => disarm({ message }), tabClosed,
-    async boot() { try { await secure(); await chrome.alarms.create(alarm, { periodInMinutes: 0.5 }); await run(); } catch {} } };
+    async boot() { try { const captured = epoch; const pair = await saved(); if (!pair?.enabled || !current(captured)) return; await schedule(captured); if (current(captured)) await run(); } catch {} } };
 }

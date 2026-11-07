@@ -78,22 +78,31 @@ class MessageBrowser:
         self.blocked = False
 
     def open(self):
+        from .browser_profile import ProfileLease
         from playwright.sync_api import sync_playwright
-        self.driver = sync_playwright().start()
-        self.profile.mkdir(parents=True, exist_ok=True)
-        options = {"channel": "msedge", "headless": False}
-        if os.name == "nt":
-            for base in (os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)"), os.environ.get("ProgramFiles", r"C:\Program Files")):
-                path = Path(base) / "Microsoft/Edge/Application/msedge.exe"
-                if path.is_file():
-                    options["executable_path"] = str(path)
-                    break
-        self.context = self.driver.chromium.launch_persistent_context(str(self.profile), **options)
-        self.context.set_default_timeout(1500)
-        self.context.route("**/*", self._guard)
-        self.page = self.context.pages[0] if self.context.pages else self.context.new_page()
-        self.page.on("response", self._response)
-        self.page.goto(HOME, wait_until="domcontentloaded", timeout=25000)
+        self.close()
+        lease = ProfileLease(self.profile)
+        if not lease.acquire():
+            raise RuntimeError("jobs_browser_busy")
+        self._profile_lease = lease
+        try:
+            self.driver = sync_playwright().start()
+            options = {"channel": "msedge", "headless": False}
+            if os.name == "nt":
+                for base in (os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)"), os.environ.get("ProgramFiles", r"C:\Program Files")):
+                    path = Path(base) / "Microsoft/Edge/Application/msedge.exe"
+                    if path.is_file():
+                        options["executable_path"] = str(path)
+                        break
+            self.context = self.driver.chromium.launch_persistent_context(str(self.profile), **options)
+            self.context.set_default_timeout(1500)
+            self.context.route("**/*", self._guard)
+            self.page = self.context.pages[0] if self.context.pages else self.context.new_page()
+            self.page.on("response", self._response)
+            self.page.goto(HOME, wait_until="domcontentloaded", timeout=25000)
+        except Exception:
+            self.close()
+            raise
 
     def _guard(self, route):
         req = route.request
@@ -136,9 +145,15 @@ class MessageBrowser:
             if self.context:
                 self.context.close()
         finally:
-            if self.driver:
-                self.driver.stop()
-            self.context = self.page = self.driver = None
+            try:
+                if self.driver:
+                    self.driver.stop()
+            finally:
+                self.context = self.page = self.driver = None
+                lease = getattr(self, "_profile_lease", None)
+                self._profile_lease = None
+                if lease is not None:
+                    lease.release()
 
 
 class MessageRuntime:

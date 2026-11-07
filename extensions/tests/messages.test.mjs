@@ -47,7 +47,7 @@ test('worker binds one selected top-level jobs tab; never forwards content-suppl
     permissions:{contains:async()=>true},
     tabs:{query:async()=>[{id:7,url:'https://jobs.daangn.com/'}],get:async()=>({id:7,url:'https://jobs.daangn.com/'}),sendMessage:async()=>{},onRemoved:{addListener(){}}},
     scripting:{executeScript:async value=>{injected.push(value);return value.files?[{frameId:0}]:[{result:{state:'account',account_hash:'b'.repeat(64),sample:{state:'watching',unread_count:0}}}];}},
-    alarms:{onAlarm:{addListener(){}},clear:async()=>true,create:async()=>{}},
+    alarms:{onAlarm:{addListener(){}},get:async()=>undefined,clear:async()=>true,create:async()=>{}},
   };
   const originalFetch=globalThis.fetch;
   globalThis.fetch=async(url,options)=>{fetches.push({url,options});return {ok:true,json:async()=>new URL(url).pathname==='/ping'?{purpose:'messages',version:1}:{accepted:true}};};

@@ -1,4 +1,7 @@
 {
+  "provider": "chrome",
+  "setup_stage": null,
+  "browser_open": false,
   "enabled": false,
   "remembers_connection": false,
   "paired": false,

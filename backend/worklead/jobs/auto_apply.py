@@ -12,13 +12,13 @@ import time
 from datetime import timedelta, timezone
 from urllib.parse import unquote, urlsplit
 
-from sqlalchemy import func, select, text
+from sqlalchemy import func, or_, select, text
 
 from ..analysis.service import analyze
 from ..db import MaintenanceBusy
 from ..engine.events import emit
 from ..engine.pipeline import feedback_map, post_input_from_record
-from ..models import AppSetting, DetailFetchState, JobAutoAttempt, Lead, LeadActivity, Run, SourcePolicy, SourceRecord, new_id
+from ..models import AppSetting, DetailFetchState, JobAutoAttempt, Lead, LeadActivity, Run, Source, SourcePolicy, SourceRecord, new_id
 from ..services.settings import get_profile, ttl_hours
 from .applications import ApplicationError
 from .auto_apply_models import AutoApplyStartIn, AutoApplyStatus, AutoAttemptOut, AutoCandidateOut
@@ -31,6 +31,8 @@ RETRY_DELAYS = (60, 300, 900)
 TRANSIENT_REASONS = frozenset(("navigation_failed", "browser_timeout", "connection_ended", "lease_expired"))
 DIAGNOSTIC_LIMIT = 100
 DIAGNOSTIC_SECONDS = 15
+PREPARE_SECONDS = 30
+PREPARE_LIMIT = 100
 
 
 def job_identity(rec):
@@ -94,6 +96,8 @@ class AutoApplyRuntime:
         self._generation = app.db.gate.generation
         self._connected = None
         self._refresh_after = 0
+        self._prepare_after = 0
+        self._prepare_offset = 0
         self._started = None
         self._diagnostic_cache = None
         self._journal = app.config.data_dir / "auto-apply-submit.journal"
@@ -329,6 +333,8 @@ class AutoApplyRuntime:
             self._started = self.monotonic()
             self._diagnostic_cache = None
             self._refresh_after = 0
+            self._prepare_after = 0
+            self._prepare_offset = 0
             self._generation = self.app.db.gate.generation
             self._server = BridgeServer(("127.0.0.1", 0), Handler)
             self._server.runtime = self
@@ -345,6 +351,17 @@ class AutoApplyRuntime:
         server = self._server
         try:
             while not self._stop.is_set():
+                try:
+                    self.prepare_candidates()
+                except MaintenanceBusy:
+                    pass  # A restore owns the database; retry on the next bounded tick.
+                except Exception:
+                    # Preparing a public recheck must not kill the capability listener
+                    # or expose a record, journal path or database exception.
+                    with self._lock:
+                        if self._status.enabled and self._status.state != "paused":
+                            self._status.error_code = "candidate_prepare_failed"
+                            self._status.message = "지원 후보의 원문 준비를 다시 시도합니다"
                 server.handle_request()
         except (OSError, ValueError):
             pass
@@ -436,16 +453,76 @@ class AutoApplyRuntime:
         from ..sources.base import PostRef
         detail = s.get(DetailFetchState, (rec.source_id, _ref_key(PostRef(rec.original_url, rec.source_post_id))))
         if detail and ((detail.retry_at and detail.retry_at > self.app.clock()) or detail.outcome in ("collection_disallowed", "collection_permission_unknown")):
-            return
-        if self.monotonic() < self._refresh_after: return
+            return False
+        if self.monotonic() < self._refresh_after: return False
         from ..engine.runs import enqueue, RunConflict
         try:
             _, created = enqueue(s, "recheck_stale", source_id=lead.source_id, lead_id=lead.id,
                 trigger="schedule", idempotency_key=f"auto-refresh:{lead.id}:{int(self.app.clock().timestamp() // 3600)}")
             if created: self._refresh_after = self.monotonic()+60
         except RunConflict:
-            pass
+            return False
         self._diagnostic_cache = None
+        return created
+
+    def prepare_candidates(self):
+        """Prepare stale public records without a Chrome request or submission lease.
+
+        A remembered, active user grant is required. The normal collector still
+        owns network access and host budgets; this only enqueues one bounded,
+        idempotent recheck through its existing queue.
+        """
+        created = 0
+        with self._lock:
+            if (self._stop.is_set() or not self._status.enabled or not self._status.remembers_connection
+                    or self._status.state == "paused" or self.monotonic() < self._prepare_after):
+                return 0
+            self._prepare_after = self.monotonic() + PREPARE_SECONDS
+            with self.app.db.gate.operation():
+                if self._generation != self.app.db.gate.generation:
+                    self._pause_session("database_restored")
+                    if self.app._jobs_auto_pairing_runtime is not None:
+                        self.app._jobs_auto_pairing_runtime.disable("database_restored")
+                    return 0
+                with self.app.db.session() as s:
+                    policy = s.get(SourcePolicy, "daangn-alba")
+                    source = s.get(Source, "daangn-alba")
+                    if (not policy or policy.status != "allowed" or not source
+                            or not source.auto_collect_enabled or source.stopped_reason):
+                        return 0
+                    now = self.app.clock()
+                    due = select(JobAutoAttempt.lead_id).where(JobAutoAttempt.state == "held",
+                        JobAutoAttempt.retry_after <= now, JobAutoAttempt.permitted_at.is_(None),
+                        JobAutoAttempt.reason_code.in_(TRANSIENT_REASONS),
+                        JobAutoAttempt.retry_count < len(RETRY_DELAYS))
+                    candidates = list(s.scalars(select(Lead).join(SourceRecord, SourceRecord.id == Lead.primary_record_id).where(
+                        Lead.source_id == "daangn-alba", Lead.priority_total >= self._status.min_score,
+                        Lead.recommendation.in_(("recommended", "needs_review")), Lead.source_status == "open",
+                        Lead.sales_stage.in_(("new", "reviewing")), Lead.access_status == "accessible",
+                        Lead.demand_intent.in_(("buyer_project", "buyer_ongoing")), Lead.engagement_type == "project",
+                        Lead.pay_unit == "project", or_(Lead.user_mark.is_(None), Lead.user_mark != "dismissed"),
+                        SourceRecord.source_status == "open", SourceRecord.access_status == "accessible",
+                        or_(SourceRecord.last_checked_at.is_(None), SourceRecord.last_checked_at < now - timedelta(hours=ttl_hours(s)),
+                            SourceRecord.last_checked_at > now),
+                        (~Lead.id.in_(select(JobAutoAttempt.lead_id))) | Lead.id.in_(due))
+                        .order_by(Lead.published_at.desc(), Lead.first_seen_at.desc(), Lead.id)
+                        .offset(self._prepare_offset).limit(PREPARE_LIMIT)))
+                    # Rotate bounded pages so old candidates cannot be starved by
+                    # a page full of detail backoffs or profile conflicts.
+                    self._prepare_offset = self._prepare_offset + len(candidates) if len(candidates) == PREPARE_LIMIT else 0
+                    journal = self._journal_keys()
+                    for lead in candidates:
+                        if self._stop.is_set(): break
+                        rec = s.get(SourceRecord, lead.primary_record_id)
+                        if rec is None or job_identity(rec) in journal or condition(s, lead, now, self._status.min_score, queue=True):
+                            continue
+                        if self._request_refresh(s, lead, rec):
+                            created = 1
+                            break
+                if self._status.error_code == "candidate_prepare_failed":
+                    self._status.error_code = None
+        if created: self.app.hub.notify()
+        return created
 
     def next(self, body):
         with self._lock, self.app.db.session() as s:

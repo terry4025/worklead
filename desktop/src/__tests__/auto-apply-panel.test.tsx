@@ -26,6 +26,12 @@ function harness(initial = status(), mode: 'live' | 'demo' = 'live') {
   return { port, qc, query, wrapper, open, panel: <AutoApplyPanel now={now} onOpenLead={open} /> };
 }
 
+async function openManualConnection() {
+  const summary = await screen.findByText('크롬 확장 수동 연결');
+  fireEvent.click(summary);
+  expect(summary.closest('details')).toHaveProperty('open', true);
+}
+
 it('연결 복구로 대조한 완료는 재제출 없이 확인한 기록으로 표시한다', async () => {
   const h = harness(status({ enabled: true, state: 'connected', today_submitted: 1,
     attempts: [{ id: 'auto_recovered', lead_id: 'lead_recovered', title: '복구한 공고', state: 'submitted', reason_code: 'completion_reconciled', created_at: now.toISOString(), finished_at: now.toISOString() }] }));
@@ -47,6 +53,7 @@ it('50점부터 포함하는 기본 정책은 자동 시작하지 않고 명시�
   const storage = JSON.stringify({ ...localStorage });
   const view = render(h.panel, { wrapper: h.wrapper });
   await screen.findByText('자동 지원 중지');
+  await openManualConnection();
   expect(start).not.toHaveBeenCalled();
   expect(screen.getByLabelText('자동 지원 최소 점수')).toHaveProperty('value', '50');
   expect(screen.getByText(/49점은 제외하고 50점부터/)).toBeTruthy();
@@ -70,6 +77,7 @@ it('점수·제출상한 입력은 범위를 검사하고 상태 폴링으로 �
   const h = harness();
   render(h.panel, { wrapper: h.wrapper });
   await screen.findByText('자동 지원 중지');
+  await openManualConnection();
   const score = screen.getByLabelText('자동 지원 최소 점수');
   const limit = screen.getByLabelText('자동 지원 하루 제출 상한');
   const start = screen.getByRole('button', { name: '기준에 맞는 공고 자동 지원 시작' });
@@ -104,7 +112,7 @@ it('데모는 자동 지원 연결과 실제 제출을 시작할 수 없다', as
   const start = vi.spyOn(h.port.jobs, 'autoApplyStart');
   render(h.panel, { wrapper: h.wrapper });
   await screen.findByText('자동 지원 중지');
-  expect(screen.getByRole('button', { name: '기준에 맞는 공고 자동 지원 시작' })).toHaveProperty('disabled', true);
+  expect(screen.getByRole('button', { name: '설정 없이 자동 지원 시작' })).toHaveProperty('disabled', true);
   expect(start).not.toHaveBeenCalled();
 });
 
@@ -142,6 +150,7 @@ it('저장된 연결 재개는 새 코드 없이 대기하며 연결됨이나 �
   const start = vi.spyOn(h.port.jobs, 'autoApplyStart').mockResolvedValue({ connection: null, extension_directory: 'synthetic-extension-directory', status: status({ enabled: true, remembers_connection: true, paired: true, state: 'waiting' }) });
   const copy = vi.spyOn(external, 'copyText');
   render(h.panel, { wrapper: h.wrapper });
+  await openManualConnection();
   await waitFor(() => expect(screen.getByRole('button', { name: '기준에 맞는 공고 자동 지원 시작' })).toHaveProperty('disabled', false));
   fireEvent.click(screen.getByRole('button', { name: '기준에 맞는 공고 자동 지원 시작' }));
   await screen.findByText('저장된 크롬 연결 자동 복구 중');
@@ -167,6 +176,7 @@ it('자동 연결을 기억하지 않는 선택은 시작 요청에도 반영된
   const h = harness();
   const start = vi.spyOn(h.port.jobs, 'autoApplyStart').mockResolvedValue({ connection: null, extension_directory: '', status: status({ enabled: true, state: 'waiting' }) });
   render(h.panel, { wrapper: h.wrapper });
+  await openManualConnection();
   await screen.findByRole('button', { name: '기준에 맞는 공고 자동 지원 시작' });
   fireEvent.click(screen.getByRole('checkbox', { name: '다음 실행부터 자동 연결·지원 재개' }));
   fireEvent.click(screen.getByRole('button', { name: '기준에 맞는 공고 자동 지원 시작' }));
@@ -183,6 +193,7 @@ it('연결 미응답은 이전 connected 상태나 처리 기록이 있어도 �
   expect(within(screen.getByRole('alert')).getByText('크롬 응답이 끊겼습니다')).toBeTruthy();
   expect(screen.queryByText('자동 지원 처리 중')).toBeNull();
   expect(screen.queryByText('크롬 연결됨 · 대상 공고 대기')).toBeNull();
+  await openManualConnection();
   expect(screen.getByRole('button', { name: '저장된 연결로 자동 지원 재개' })).toHaveProperty('disabled', false);
   expect(start).not.toHaveBeenCalled();
 });
@@ -243,4 +254,72 @@ it('알 수 없는 대기 사유는 원문 코드를 노출하거나 정상 실�
   await act(async () => { h.qc.setQueryData(autoApplyKey, status({ enabled: true, state: 'connected', needs_user_action: true, queue_reason: 'source_permission_unverified' })); });
   expect(within(screen.getByRole('alert')).getByText(/수집 설정에서 당근 소스의 허용 상태/)).toBeTruthy();
   expect(screen.queryByText(/당근 전용 탭·확장 연결을 확인하세요/)).toBeNull();
+});
+
+it('자동 설정은 화면을 열기만 해서는 등록하지 않고 시작 시 전용 창을 준비하며 로그인 대기를 완료로 표시하지 않는다', async () => {
+  const h = harness();
+  const setup = vi.spyOn(h.port.jobs, 'autoApplySetup').mockResolvedValue(status({
+    provider: 'managed_edge', enabled: true, remembers_connection: true, state: 'waiting', setup_stage: 'login_required',
+    browser_open: true, needs_user_action: true, queue_reason: 'login_required', message: '전용 당근 창에서 로그인해 주세요.',
+  }));
+  const manual = vi.spyOn(h.port.jobs, 'autoApplyStart');
+  const copy = vi.spyOn(external, 'copyText');
+  render(h.panel, { wrapper: h.wrapper });
+  const button = await screen.findByRole('button', { name: '설정 없이 자동 지원 시작' });
+  await waitFor(() => expect(button).toHaveProperty('disabled', false));
+  expect(setup).not.toHaveBeenCalled();
+  expect(screen.getByText('크롬 확장 수동 연결').closest('details')).toHaveProperty('open', false);
+  fireEvent.click(button);
+  await screen.findByText('당근 로그인 필요');
+  expect(within(screen.getByRole('alert')).getByText('당근 로그인을 기다립니다')).toBeTruthy();
+  expect(screen.getByText(/자동으로 열린 당근 창에서 로그인하면/)).toBeTruthy();
+  expect(setup).toHaveBeenCalledWith({ confirm: true, min_score: 50, daily_limit: 20 });
+  expect(screen.getByText('자동 지원 전용 당근 창이 열려 있습니다.')).toBeTruthy();
+  expect(screen.getByText('자동 지원 창의 첫 작업 응답을 기다립니다.')).toBeTruthy();
+  expect(screen.queryByText('크롬 확장 수동 연결')).toBeNull();
+  expect(screen.queryByRole('button', { name: '자동 지원 연결코드 복사' })).toBeNull();
+  expect(screen.queryByText('자동 연결됨 · 대상 공고 대기')).toBeNull();
+  expect(manual).not.toHaveBeenCalled();
+  expect(copy).not.toHaveBeenCalled();
+});
+
+it('관리되는 연결은 첫 작업 응답 뒤 실행 상태를 표시하고 중지한 뒤 자동 재등록하지 않는다', async () => {
+  const h = harness(status({ provider: 'managed_edge', setup_stage: 'ready', browser_open: true,
+    enabled: true, remembers_connection: true, paired: true, state: 'connected', needs_user_action: false,
+    last_connected_at: now.toISOString(), queue_reason: 'no_candidates' }));
+  const setup = vi.spyOn(h.port.jobs, 'autoApplySetup');
+  const stop = vi.spyOn(h.port.jobs, 'autoApplyStop').mockResolvedValue(status({ provider: 'managed_edge' }));
+  render(h.panel, { wrapper: h.wrapper });
+  await screen.findByText('자동 연결됨 · 대상 공고 대기');
+  expect(screen.getByRole('button', { name: '자동 연결·지원 재개' })).toHaveProperty('disabled', true);
+  expect(screen.getByText(/최근 자동 지원 창 응답/)).toBeTruthy();
+  fireEvent.click(screen.getByRole('button', { name: '자동 지원 중지' }));
+  await waitFor(() => expect(stop).toHaveBeenCalledOnce());
+  await screen.findByRole('button', { name: '설정 없이 자동 지원 시작' });
+  expect(screen.queryByText('자동 연결됨 · 대상 공고 대기')).toBeNull();
+  expect(setup).not.toHaveBeenCalled();
+});
+
+it('자동 설정 실패는 재등록 실패를 알리고 연결 완료로 추정하지 않는다', async () => {
+  const h = harness();
+  const setup = vi.spyOn(h.port.jobs, 'autoApplySetup').mockRejectedValue(new Error('setup failed'));
+  render(h.panel, { wrapper: h.wrapper });
+  const button = await screen.findByRole('button', { name: '설정 없이 자동 지원 시작' });
+  await waitFor(() => expect(button).toHaveProperty('disabled', false));
+  fireEvent.click(button);
+  await screen.findByText('자동 지원을 등록하지 못했습니다. 현재 상태를 확인한 뒤 다시 시도하세요.');
+  expect(setup).toHaveBeenCalledOnce();
+  expect(screen.queryByText('자동 연결됨 · 대상 공고 대기')).toBeNull();
+});
+
+it('자동 설정 API는 로컬 인증 연결에 등록 조건만 전달한다', async () => {
+  const calls: { url: string; init?: RequestInit }[] = [];
+  const client = createClient({ baseUrl: 'http://127.0.0.1:43000', token: 'synthetic-local-token' }, async (url, init) => {
+    calls.push({ url: String(url), init }); return Response.json(status({ provider: 'managed_edge' }));
+  });
+  await client.jobAutoApplySetup({ confirm: true, min_score: 50, daily_limit: 20 });
+  expect(calls).toHaveLength(1);
+  expect(calls[0]?.url).toBe('http://127.0.0.1:43000/v1/jobs/auto-apply/setup');
+  expect(JSON.parse(calls[0]!.init!.body as string)).toEqual({ confirm: true, min_score: 50, daily_limit: 20 });
+  expect(new Headers(calls[0]?.init?.headers).get('Authorization')).toBe('Bearer synthetic-local-token');
 });

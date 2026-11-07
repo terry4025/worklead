@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Any
 
-from sqlalchemy import and_, exists, or_, select, update
+from sqlalchemy import and_, exists, or_, select, text, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, aliased
 
@@ -95,17 +95,27 @@ def enqueue(
     return run, True
 
 
-def claim_next(db: Database, owner: str, kinds: tuple[str, ...], lease_s: int) -> Run | None:
+def claim_next(db: Database, owner: str, kinds: tuple[str, ...], lease_s: int, *,
+               source_ids: tuple[str, ...] | None = None,
+               exclude_source_ids: tuple[str, ...] = ()) -> Run | None:
     now = utcnow()
     with db.session() as s:
+        # Different hosts may collect independently. Serialize the short claim
+        # transaction so two owners cannot start separate runs for one source.
+        s.execute(text("BEGIN IMMEDIATE"))
         cooldown = aliased(Run)
-        candidate = s.scalar(
-            select(Run.id)
+        collecting = aliased(Run)
+        query = (select(Run.id)
             .where(Run.state == "queued", Run.kind.in_(kinds), or_(Run.retry_after.is_(None), Run.retry_after <= now))
             .where(~exists(select(cooldown.id).where(cooldown.source_id == Run.source_id, cooldown.retry_after > now)))
-            .order_by(Run.created_at)
-            .limit(1)
-        )
+            .where(or_(~Run.kind.in_(COLLECTION_KINDS), Run.source_id.is_(None),
+                ~exists(select(collecting.id).where(collecting.source_id == Run.source_id,
+                    collecting.kind.in_(COLLECTION_KINDS), collecting.state == "running")))))
+        if source_ids is not None:
+            query = query.where(Run.source_id.in_(source_ids))
+        if exclude_source_ids:
+            query = query.where(or_(Run.source_id.is_(None), ~Run.source_id.in_(exclude_source_ids)))
+        candidate = s.scalar(query.order_by(Run.created_at, Run.id).limit(1))
         if candidate is None:
             return None
         res = s.execute(

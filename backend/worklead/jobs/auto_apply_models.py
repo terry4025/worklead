@@ -42,6 +42,9 @@ class AutoCandidateOut(BaseModel):
 
 
 class AutoApplyStatus(BaseModel):
+    provider: Literal["chrome", "managed_edge"] = "chrome"
+    setup_stage: str | None = None
+    browser_open: bool = False
     enabled: bool = False
     remembers_connection: bool = False
     paired: bool = False

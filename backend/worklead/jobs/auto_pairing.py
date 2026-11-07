@@ -8,6 +8,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import re
 import secrets
 import threading
 import time
@@ -149,7 +150,11 @@ class PairingRuntime:
         # holding the session lock: authenticated stop/start take the other order.
         return self._session
 
-    def start(self, body):
+    def start(self, body, *, managed=False):
+        if managed:
+            # The in-process browser needs no extension enrollment listener.
+            # Retire previously issued Chrome reconnect sessions before switching.
+            self.close()
         with self._lock:
             state = self._read()
             created = state is None
@@ -158,11 +163,12 @@ class PairingRuntime:
                     "profile": None, "min_score": body.min_score, "daily_limit": body.daily_limit, "paused": None}
             else:
                 state = {**state, "desired": True, "paused": None, "min_score": body.min_score, "daily_limit": body.daily_limit}
-            self._listen()
+            if not managed:
+                self._listen()
             self._write(state)
             # An authenticated explicit start may recover an unpaired first code;
             # status/boot/handshakes never reveal the durable secret.
-            connection = {"url": f"http://127.0.0.1:{self._server.server_port}", "token": state["token"]} if created or not state["account"] else None
+            connection = {"url": f"http://127.0.0.1:{self._server.server_port}", "token": state["token"]} if not managed and (created or not state["account"]) else None
         auto = self._auto()
         try:
             auto._start_session(body, pair_state=state)
@@ -171,7 +177,7 @@ class PairingRuntime:
             raise
         return {"connection": connection, "status": auto.status()}
 
-    def boot(self):
+    def boot(self, *, managed=False):
         from .auto_apply_models import AutoApplyStartIn
         with self._lock:
             state = self._read()
@@ -184,13 +190,31 @@ class PairingRuntime:
                 auto._status.state, auto._status.error_code = "paused", state["paused"]
                 auto._status.message = "계정·소개 또는 데이터 상태가 바뀌어 자동 연결이 중지되었습니다"
             if not state["desired"] or state["paused"]: return False
-            self._listen()
+            if not managed:
+                self._listen()
         try:
             self._auto()._start_session(AutoApplyStartIn(confirm=True, min_score=state["min_score"], daily_limit=state["daily_limit"]), pair_state=state)
         except Exception:
             self.disable()
             raise
         return True
+
+    def bind_account(self, account_hash):
+        """Bind a verified identity from the app-owned isolated browser world."""
+        from .auto_apply_models import NextIn
+        if not isinstance(account_hash, str) or not re.fullmatch(r"[a-f0-9]{64}", account_hash):
+            raise ApplicationError(422, "identity_invalid", "로그인 계정을 확인하지 못했습니다")
+        with self.app.db.gate.operation(), self._lock:
+            state = self._active()
+            auto = self._auto()
+            auto._check(NextIn(account_hash=account_hash))
+            if state["account"] and state["account"] != account_hash:
+                self.disable("account_changed")
+                auto._pause_session("account_changed")
+                raise ApplicationError(409, "account_changed", "연결한 당근 계정이 바뀌어 자동 지원을 중지했습니다")
+            if not state["account"]:
+                self._write({**state, "account": account_hash})
+            auto._status.paired = True
 
     def _active(self):
         state = self._read()

@@ -270,7 +270,7 @@ def serve(argv: list[str] | None = None) -> int:
         if cfg.run_worker and not cfg.demo:
             ctx.cafe_runtime.start()
         if not cfg.demo:
-            from .jobs.auto_pairing import boot as boot_auto_pairing
+            from .jobs.managed_setup import boot as boot_auto_pairing
             boot_auto_pairing(ctx)
             from .jobs.message_pairing import boot as boot_message_pairing
             boot_message_pairing(ctx)
@@ -310,6 +310,8 @@ def serve(argv: list[str] | None = None) -> int:
             workers.stop()
             if ctx._jobs_auto_apply_runtime is not None:
                 ctx._jobs_auto_apply_runtime.shutdown()
+            if ctx._jobs_managed_auto_runtime is not None:
+                ctx._jobs_managed_auto_runtime.shutdown()
             if ctx._jobs_auto_pairing_runtime is not None:
                 ctx._jobs_auto_pairing_runtime.close()
             if ctx._jobs_chrome_runtime is not None:

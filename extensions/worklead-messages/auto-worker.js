@@ -6,6 +6,8 @@ import { createReconnect, isPairCode, PAIR_ALARM } from './reconnect.js';
 let busy = false;
 let nextPoll = 0;
 let reconnectNeeded = false;
+let alarmWork = Promise.resolve();
+const changeAlarm = operation => { const result = alarmWork.then(operation); alarmWork = result.catch(() => {}); return result; };
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 function bounded(promise, milliseconds = 8000) {
   let timer;
@@ -32,7 +34,17 @@ function queueMessage(next) {
   return typeof message === 'string' ? message : reason ? '연결 중 · Worklead에서 지원 대기 사유를 확인하세요.' : '연결 중 · 기준 점수 이상의 새 지원 대상을 기다립니다.';
 }
 async function config() { return (await bounded(chrome.storage.session.get('autoBridge'))).autoBridge; }
-async function alive(c) { const current = await config(); return current?.token === c.token && current.tabId === c.tabId; }
+async function alive(c) { const current = await config(); return current?.token === c.token && current.url === c.url && current.tabId === c.tabId; }
+async function ensureAlarm(c, active = () => true) {
+  await changeAlarm(async () => {
+    if (!c || !active() || !await alive(c)) throw new Error('cancelled');
+    if (!await chrome.alarms.get(AUTO_ALARM)) {
+      if (!active() || !await alive(c)) throw new Error('cancelled');
+      await chrome.alarms.create(AUTO_ALARM, { periodInMinutes: 0.5 });
+    }
+    if (!active() || !await alive(c)) { await chrome.alarms.clear(AUTO_ALARM); throw new Error('cancelled'); }
+  });
+}
 async function post(c, path, body) {
   if (!['/next', '/review', '/permit', '/result', '/reconcile', '/pause'].includes(path) || !await alive(c)) throw new Error('stopped');
   const controller = new AbortController();
@@ -79,7 +91,7 @@ async function savePending(c, pending) {
 async function clear() {
   const previous = await config();
   await chrome.storage.session.remove(['autoBridge', 'autoPending']);
-  await chrome.alarms.clear(AUTO_ALARM);
+  await changeAlarm(() => chrome.alarms.clear(AUTO_ALARM));
   if (previous) {
     try {
       const tab = await chrome.tabs.get(previous.tabId);
@@ -113,7 +125,7 @@ async function configure(message, sender) {
   } catch (error) { await clear(); throw error; }
   // Pairing tests the purpose-specific endpoint before issuing any click.
   await setStatus('자동 지원 전용 탭을 연결했습니다. Worklead의 50점 이상 후보를 기다립니다.');
-  await chrome.alarms.create(AUTO_ALARM, { periodInMinutes: 0.5 });
+  await ensureAlarm(await config());
   nextPoll = 0;
   void tick();
   return { ok: true };
@@ -124,6 +136,13 @@ const reconnect = createReconnect({
   readAccount: tabId => bounded(readTab(tabId)),
   clearSession: clear,
   status: setStatus,
+  async resumeConnected(connection, tabId, account_hash, current) {
+    if (!current() || !await alive({ ...connection, tabId })) return;
+    // Restore scheduling without replacing the session or its read-only
+    // pending receipt. Reconciliation must retain its at-most-once boundary.
+    await ensureAlarm({ ...connection, tabId }, current);
+    if (current()) void tick();
+  },
   async connected(connection, tabId, account_hash, current) {
     if (!current()) throw new Error('cancelled');
     // Rotating a connection never resumes an old permit or either application click.
@@ -135,7 +154,7 @@ const reconnect = createReconnect({
       if ((await config())?.token === connection.token) await chrome.storage.session.remove('autoBridge');
       throw new Error('cancelled');
     }
-    await chrome.alarms.create(AUTO_ALARM, { periodInMinutes: 0.5 });
+    await ensureAlarm({ ...connection, tabId }, current);
     // A 401 immediately after resume must not turn into an unpaced handshake loop.
     if (!previous) nextPoll = 0;
     void tick();
@@ -289,9 +308,16 @@ async function tick() {
     }
     await setStatus(keepRecovery ? '연결 응답이 끊겨 완료 표시를 자동 대조합니다. 제출 버튼은 다시 누르지 않습니다.' : transient ? '제출 허가 전 일시 오류를 Worklead에 보고했습니다. 저장된 기록과 조건으로 재시도 가능 여부를 확인합니다.' : '자동 지원 연결·화면을 확인하세요. 불확실한 제출은 재시도하지 않습니다.');
   } finally {
-    if (!keepRecovery) await chrome.storage.session.remove('autoPending');
-    busy = false;
-    if (reconnectNeeded && chrome.storage.local) { reconnectNeeded = false; void reconnect.resume({ force: true }); }
+    try {
+      if (!keepRecovery) await chrome.storage.session.remove('autoPending');
+    } catch {
+      // The retained receipt remains read-only recovery data. A failed cleanup
+      // must not wedge the worker's single-flight guard until Chrome restarts.
+      await setStatus('지원 작업 기록을 정리하지 못했습니다. 남은 기록은 완료 상태만 다시 대조합니다.');
+    } finally {
+      busy = false;
+      if (reconnectNeeded && chrome.storage.local) { reconnectNeeded = false; void reconnect.resume({ force: true }); }
+    }
   }
 }
 

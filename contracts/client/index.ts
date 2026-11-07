@@ -87,6 +87,9 @@ export interface JobAutoApplyCandidate {
   last_checked_at?: string | null;
 }
 export interface JobAutoApplyStatus {
+  provider?: 'chrome' | 'managed_edge';
+  setup_stage?: string | null;
+  browser_open?: boolean;
   enabled: boolean;
   remembers_connection: boolean;
   paired: boolean;
@@ -311,6 +314,7 @@ export function createClient(source: ConnectionSource, fetchImpl: typeof fetch =
     jobMessagesChromeForget: () => request<JobMessageWatchStatus>('POST', '/v1/jobs/messages/chrome/forget'),
     jobMessagesInbox: () => request<JobChatView>('GET', '/v1/jobs/messages/inbox'),
     jobAutoApplyStatus: () => request<JobAutoApplyStatus>('GET', '/v1/jobs/auto-apply/status'),
+    jobAutoApplySetup: (body: { confirm: true; min_score: number; daily_limit: number }) => request<JobAutoApplyStatus>('POST', '/v1/jobs/auto-apply/setup', { body }),
     jobAutoApplyStart: (body: { confirm: true; min_score: number; daily_limit: number; remember_connection?: boolean }) => request<JobAutoApplyStart>('POST', '/v1/jobs/auto-apply/start', { body }),
     jobAutoApplyStop: () => request<JobAutoApplyStatus>('POST', '/v1/jobs/auto-apply/stop'),
     jobAutoApplyForget: () => request<JobAutoApplyStatus>('POST', '/v1/jobs/auto-apply/forget'),

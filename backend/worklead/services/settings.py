@@ -88,6 +88,8 @@ DEFAULT_PROFILE: dict[str, Any] = {
     "weekly_hours": None,
     "onsite": "no",
     "allow_short_term_employment": False,
+    "business_registered": False,
+    "tax_invoice": False,
 }
 
 
@@ -168,6 +170,8 @@ def get_profile(s: Session) -> Profile:
         weekly_hours=data["weekly_hours"],
         onsite=data["onsite"],
         allow_short_term_employment=bool(data.get("allow_short_term_employment", False)),
+        business_registered=bool(data["business_registered"]),
+        tax_invoice=bool(data["tax_invoice"]),
         version=row.version,
     )
 

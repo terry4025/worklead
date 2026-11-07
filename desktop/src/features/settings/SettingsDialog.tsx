@@ -211,7 +211,17 @@ export function SettingsDialog({
               <span className="field-label">제외 업무 (쉼표로 구분)</span>
               <input value={d.profile.excludedWork} placeholder="예: 쇼핑몰, 게임" onChange={(e) => set((x) => void (x.profile.excludedWork = e.target.value))} />
             </label>
-            <p className="muted">리드 대상: 건당·프로젝트 지급이 확인되는 프리랜서 제작 의뢰. 시급·일급·주급·월급과 인력 채용, 지급 방식 미확인 글은 제외합니다.</p>
+            <label className="toggle">
+              <input type="checkbox" checked={d.profile.businessRegistered} onChange={(e) => set((x) => void (x.profile.businessRegistered = e.target.checked))} />
+              <span>사업자 등록 완료</span>
+            </label>
+            <p className="field-hint">사업자 등록이 필요한 공고도 자동 지원 후보로 봅니다.</p>
+            <label className="toggle">
+              <input type="checkbox" checked={d.profile.taxInvoice} onChange={(e) => set((x) => void (x.profile.taxInvoice = e.target.checked))} />
+              <span>세금계산서 발행 가능</span>
+            </label>
+            <p className="field-hint">세금계산서 발행을 요구하는 공고도 자동 지원 후보로 봅니다.</p>
+            <p className="muted">리드 대상: 건당·프로젝트 지급이 확인되는 프리랜서 제작 의뢰. 시급·일급·주급·월급으로 올라온 재택 개발 의뢰는 감점 후 확인 필요로 보이며 자동 지원에서는 빠집니다. 연봉과 인력 채용, 지급 방식 미확인 글은 제외합니다.</p>
           </fieldset>
 
           <fieldset>

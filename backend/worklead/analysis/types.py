@@ -106,6 +106,8 @@ class Profile:
     weekly_hours: int | None = None
     onsite: Literal["no", "first_meeting", "yes"] = "no"
     allow_short_term_employment: bool = False  # Legacy API field; project-only eligibility takes precedence.
+    business_registered: bool = False
+    tax_invoice: bool = False
     version: int = 1
 
 

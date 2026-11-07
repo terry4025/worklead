@@ -458,6 +458,14 @@ def analyze(
         review.append("진행 방식(대면 여부) 미확인")
     if scope.value == "regional_restriction":
         review.append("지원 지역 제한 — 자격 확인")
+    needs = rules.business_requirements(body)
+    met: list[str] = []
+    for key, ok, label, missing in (
+        ("business", profile.business_registered, "사업자 요구 — 등록 완료", "사업자 등록 요구 — 내 프로필은 미등록"),
+        ("tax_invoice", profile.tax_invoice, "세금계산서 요구 — 발행 가능", "세금계산서 발행 요구 — 내 프로필은 발행 불가"),
+    ):
+        if key in needs:
+            (met if ok else review).append(label if ok else missing)
 
     if exclude:
         recommendation = "excluded"
@@ -468,7 +476,8 @@ def analyze(
     else:
         recommendation = "recommended"
 
-    positives: list[str] = []
+    # Profile-satisfied requirements lead the positives so the 3-reason cap keeps them.
+    positives: list[str] = list(met)
     if intent.value in ("buyer_project", "buyer_ongoing") and intent.basis in ("explicit", "user_confirmed"):
         positives.append("지속 의뢰 명시" if intent.value == "buyer_ongoing" else "구매 의뢰 명시")
     if work.value == "fully_remote" and work.basis in ("explicit", "user_confirmed"):

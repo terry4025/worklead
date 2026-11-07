@@ -14,6 +14,7 @@ from urllib.parse import unquote, urlsplit
 
 from sqlalchemy import func, or_, select, text
 
+from ..analysis.rules import business_requirements
 from ..analysis.service import analyze
 from ..db import MaintenanceBusy
 from ..engine.events import emit
@@ -78,7 +79,8 @@ def condition(s, lead, now, min_score, *, queue=False, visible_form=False):
         return "condition_changed"
     if profile.min_contract is not None and rec.pay_min is not None and rec.pay_min < profile.min_contract:
         return "condition_conflict"
-    if re.search(r"(?:사업자(?:등록|등록증)?|세금\s*계산서).{0,16}(?:필수|반드시|가능한\s*분|가능하신\s*분|가능해야|발행\s*요청)", rec.body_text):
+    needs = business_requirements(rec.body_text)
+    if ("business" in needs and not profile.business_registered) or ("tax_invoice" in needs and not profile.tax_invoice):
         return "condition_conflict"
     return None
 

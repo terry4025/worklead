@@ -18,7 +18,18 @@ from .text import any_match, c, find
 from .pay import EXPLICIT_SALARY
 from .types import Ev, Judgement, Risk
 
-RULE_VERSION = "rules-2026.11.07-remote-time-pay"
+RULE_VERSION = "rules-2026.11.07-business-profile"
+
+# ── 사업자·세금계산서 요구 ────────────────────────────────────────────
+_NEED = r"([^.\n]{0,16}?)(?:필수|반드시|있으신\s*분|소지|가능한\s*분|가능하신\s*분|가능해야|발행\s*요청)(?!\s*(?:아니|아님|아닙))"
+BUSINESS_NEEDS = {"business": re.compile(r"사업자(?:\s*등록증?)?" + _NEED), "tax_invoice": re.compile(r"세금\s*계산서" + _NEED)}
+NOT_NEEDED = re.compile(r"없|무관|안\s*해도|않")
+
+
+def business_requirements(text: str) -> set[str]:
+    """Required items among {"business", "tax_invoice"}; a negation/waiver inside the span cancels it."""
+    return {k for k, p in BUSINESS_NEEDS.items() if any(not NOT_NEEDED.search(m[1]) for m in p.finditer(text or ""))}
+
 
 # ── 요청 유형 ─────────────────────────────────────────────────────────
 SELLER = c(

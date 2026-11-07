@@ -256,6 +256,16 @@
         "allow_short_term_employment": {
           "title": "Allow Short Term Employment",
           "type": "boolean"
+        },
+        "business_registered": {
+          "default": false,
+          "title": "Business Registered",
+          "type": "boolean"
+        },
+        "tax_invoice": {
+          "default": false,
+          "title": "Tax Invoice",
+          "type": "boolean"
         }
       },
       "required": [

@@ -116,6 +116,8 @@ const DEFAULT_SETTINGS: SettingsView = {
     weeklyHours: null,
     onsite: 'no',
     allowShortTermEmployment: true,
+    businessRegistered: false,
+    taxInvoice: false,
   },
   recheck: { ttlHours: 24 },
   notifications: { newRecommended: true, newReview: true, meaningfulChange: true, sourceIssue: true, quietHours: { enabled: true, start: '22:00', end: '08:00' } },

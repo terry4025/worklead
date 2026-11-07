@@ -517,6 +517,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/jobs/auto-apply/setup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Setup */
+        post: operations["setup_v1_jobs_auto_apply_setup_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/jobs/auto-apply/start": {
         parameters: {
             query?: never;
@@ -1376,6 +1393,19 @@ export interface components {
         };
         /** AutoApplyStatus */
         AutoApplyStatus: {
+            /**
+             * Provider
+             * @default chrome
+             * @enum {string}
+             */
+            provider: "chrome" | "managed_edge";
+            /** Setup Stage */
+            setup_stage?: string | null;
+            /**
+             * Browser Open
+             * @default false
+             */
+            browser_open: boolean;
             /**
              * Enabled
              * @default false
@@ -3044,6 +3074,16 @@ export interface components {
             onsite: "no" | "first_meeting" | "yes";
             /** Allow Short Term Employment */
             allow_short_term_employment: boolean;
+            /**
+             * Business Registered
+             * @default false
+             */
+            business_registered: boolean;
+            /**
+             * Tax Invoice
+             * @default false
+             */
+            tax_invoice: boolean;
         };
         /** ProfitScenario */
         ProfitScenario: {
@@ -4589,6 +4629,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AutoApplyStatus"];
+                };
+            };
+        };
+    };
+    setup_v1_jobs_auto_apply_setup_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AutoApplyStartIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutoApplyStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

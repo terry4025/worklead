@@ -801,6 +801,8 @@ class ProfileSettings(Model):
     weekly_hours: int | None = Field(ge=0, le=168)
     onsite: Literal["no", "first_meeting", "yes"]
     allow_short_term_employment: bool
+    business_registered: bool = False
+    tax_invoice: bool = False
 
 
 class QuietHours(Model):

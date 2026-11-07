@@ -11244,6 +11244,16 @@
           "allow_short_term_employment": {
             "type": "boolean",
             "title": "Allow Short Term Employment"
+          },
+          "business_registered": {
+            "type": "boolean",
+            "title": "Business Registered",
+            "default": false
+          },
+          "tax_invoice": {
+            "type": "boolean",
+            "title": "Tax Invoice",
+            "default": false
           }
         },
         "additionalProperties": false,
@@ -13206,7 +13216,8 @@
     "securitySchemes": {
       "bearer": {
         "type": "http",
-        "scheme": "bearer"
+        "scheme": "bearer",
+        "description": "실행마다 바뀌는 토큰 (Tauri 브리지로 전달)"
       }
     }
   },
@@ -13215,7 +13226,8 @@
       "url": "http://127.0.0.1:{port}",
       "variables": {
         "port": {
-          "default": "0"
+          "default": "0",
+          "description": "실행마다 바뀌는 임의 포트"
         }
       }
     }

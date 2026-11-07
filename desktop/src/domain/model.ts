@@ -411,6 +411,8 @@ export interface SettingsView {
     weeklyHours: number | null;
     onsite: 'no' | 'first_meeting' | 'yes';
     allowShortTermEmployment: boolean;
+    businessRegistered: boolean;
+    taxInvoice: boolean;
   };
   recheck: { ttlHours: number };
   notifications: {

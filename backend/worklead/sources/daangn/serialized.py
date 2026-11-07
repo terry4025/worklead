@@ -141,7 +141,7 @@ def relay_records(markup: str) -> dict:
             continue
         try:
             tree = _Reader(script, router.end(), slots).value()
-        except (IndexError, ValueError, RecursionError) as exc:
+        except (IndexError, ValueError, OverflowError, RecursionError) as exc:
             raise SerializedError("TanStack 스트림 데이터를 해석할 수 없습니다") from exc
         records = _find_key(tree, "relayRecords")
         if isinstance(records, dict) and isinstance(records.get("client:root"), dict):

@@ -81,3 +81,8 @@ def test_missing_stream_or_root_is_an_error():
         relay_records("<html><body><h1>새 화면</h1></body></html>")
     with pytest.raises(SerializedError):
         relay_records(tsr_script({"job": {"title": "x"}}))
+
+
+def test_out_of_range_code_point_is_a_serialized_error():
+    with pytest.raises(SerializedError):
+        relay_records(wrap('relayRecords:$R[1]={"client:root":{},x:"\\u{FFFFFFFFFFFFFFFFFFFF}"}'))

@@ -339,3 +339,16 @@ def test_structure_change_alerts_once_per_day(tmp_path):
     notes = _source_issues(ctx)
     assert len(notes) == 1 and "구조" in notes[0]["title"]
     ctx.db.dispose()
+
+
+def test_structure_alert_threshold_and_daily_dedupe(tmp_path):
+    from worklead.engine.executors import _alert_structure_change
+
+    ctx = make_ctx(tmp_path)
+    _alert_structure_change(ctx, "daangn-alba", {"parse_failures": 2, "details_fetched": 0})
+    _alert_structure_change(ctx, "daangn-alba", {"parse_failures": 3, "details_fetched": 3})
+    assert _source_issues(ctx) == []
+    _alert_structure_change(ctx, "daangn-alba", {"parse_failures": 5, "details_fetched": 0})
+    _alert_structure_change(ctx, "daangn-alba", {"parse_failures": 5, "details_fetched": 0})
+    assert len(_source_issues(ctx)) == 1
+    ctx.db.dispose()

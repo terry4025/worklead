@@ -8,7 +8,7 @@ import json
 from datetime import date, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import Select, and_, case, func, not_, or_, select, tuple_
+from sqlalchemy import Select, and_, case, func, not_, or_, select
 from sqlalchemy.orm import Session
 
 from ..api import schemas as S
@@ -360,12 +360,14 @@ def summaries(s: Session, leads: list[Lead]) -> list[S.LeadSummary]:
 
 
 def _listed_times(s: Session, recs: list[SourceRecord]) -> dict[tuple[str, str], datetime]:
-    keys = {(rec.source_id, rec.source_post_id) for rec in recs if rec.source_post_id}
-    if not keys:
-        return {}
-    return {(source_id, post_id): first for source_id, post_id, first in s.execute(
+    # One query per source with a plain IN: a row-value IN made SQLite scan the whole source (~1.5 s per call).
+    posts: dict[str, set[str]] = {}
+    for rec in recs:
+        if rec.source_post_id:
+            posts.setdefault(rec.source_id, set()).add(rec.source_post_id)
+    return {(source_id, post_id): first for source_id, ids in posts.items() for _, post_id, first in s.execute(
         select(DiscoveryListing.source_id, DiscoveryListing.source_post_id, func.min(DiscoveryListing.first_listed_at))
-        .where(tuple_(DiscoveryListing.source_id, DiscoveryListing.source_post_id).in_(keys))
+        .where(DiscoveryListing.source_id == source_id, DiscoveryListing.source_post_id.in_(ids))
         .group_by(DiscoveryListing.source_id, DiscoveryListing.source_post_id))}
 
 

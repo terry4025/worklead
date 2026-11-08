@@ -4,7 +4,8 @@
   const norm = value => (value || '').replace(/\s+/g, ' ').trim();
   const visible = el => !!el && el.getClientRects().length > 0 && getComputedStyle(el).display !== 'none' && getComputedStyle(el).visibility !== 'hidden';
   const label = el => norm(el.getAttribute('aria-label') || el.textContent);
-  const buttons = root => [...root.querySelectorAll('button, a[role="button"]')].filter(visible);
+  // Daangn renders some actions as plain links (지원하기 → <a href=".../apply">); labels are still matched exactly.
+  const buttons = root => [...root.querySelectorAll('button, a[role="button"], a[href]')].filter(visible);
   const exact = (root, text) => buttons(root).filter(el => label(el) === text && !el.disabled && el.getAttribute('aria-disabled') !== 'true');
   const interactionSnapshot = () => {
     const main = document.querySelector('main');

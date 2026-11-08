@@ -10,15 +10,18 @@ const { JSDOM } = require('jsdom');
 const script = await readFile(new URL('../worklead-messages/auto-content.js', import.meta.url), 'utf8');
 const title = '합성 웹 개발 공고';
 const intro = '합성 기본 자기소개';
-function harness({ selected = true, extraOutside = false, path = '/job-posts/test-123456789abc' } = {}) {
-  const dom = new JSDOM(`<header><button aria-label="합성 프로필 메뉴"><img src="/synthetic-avatar.png"></button></header><main><h1>${title}</h1><section id="application-region"><button id="open">지원하기</button></section></main>`, { url: `https://jobs.daangn.com${path}` });
+function harness({ selected = true, extraOutside = false, path = '/job-posts/test-123456789abc', link = false } = {}) {
+  // Live Daangn (2026-11) renders the first 지원하기 as a link to /apply, not a button.
+  const opener = link ? '<a id="open" class="seed-action-button" href="/job-posts/test-123456789abc/apply">지원하기</a>' : '<button id="open">지원하기</button>';
+  const dom = new JSDOM(`<header><button aria-label="합성 프로필 메뉴"><img src="/synthetic-avatar.png"></button></header><main><h1>${title}</h1><section id="application-region">${opener}</section></main>`, { url: `https://jobs.daangn.com${path}` });
   const { window } = dom;
   window.HTMLElement.prototype.getClientRects = function () { return [{}]; };
   const intervals = [];
   const context = createContext({ document: window.document, location: window.location, getComputedStyle: window.getComputedStyle.bind(window), crypto: webcrypto, TextEncoder, chrome: { runtime: { sendMessage: async () => {} } }, setInterval: fn => intervals.push(fn), Date });
   let opens = 0, submits = 0;
   const region = window.document.querySelector('#application-region');
-  window.document.querySelector('#open').addEventListener('click', () => {
+  window.document.querySelector('#open').addEventListener('click', event => {
+    event.preventDefault();
     opens++;
     region.innerHTML = `<div role="dialog"><div id="intro-card"><h2>제출할 자기소개를 확인하세요</h2><button ${selected ? 'aria-selected="true"' : ''}>기본</button><button>추가</button><textarea>${intro}</textarea><button id="final">지원하기</button></div>${extraOutside ? '<label>근무 가능 요일<input required></label>' : ''}</div>`;
     window.document.querySelector('#final').addEventListener('click', () => {
@@ -58,6 +61,15 @@ test('synthetic existing default intro uses two separate clicks and returns only
   assert.deepEqual(h.counts(), { opens: 1, submits: 1 });
   assert.notEqual((await h.call('submit', submit)).state, 'clicked');
   assert.deepEqual(h.counts(), { opens: 1, submits: 1 });
+});
+
+test('the live link-style 지원하기 opener is recognized and opened, and the panel still needs its own submit click', async () => {
+  const h = harness({ link: true });
+  const expected = await h.identity();
+  assert.equal((await h.call('inspect', expected)).state, 'openable');
+  assert.equal((await h.call('open', expected)).state, 'opened');
+  assert.equal((await h.call('inspect', expected)).state, 'ready');
+  assert.deepEqual(h.counts(), { opens: 1, submits: 0 });
 });
 
 test('different job or account cannot open or submit, and expired permit cannot click', async () => {

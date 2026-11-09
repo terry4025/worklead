@@ -3,7 +3,7 @@ import json
 
 from worklead.sources.daangn import create
 
-QUERY = json.dumps(["엑셀", "프로그램"], ensure_ascii=False)
+QUERY = json.dumps(["엑셀", "프로그램", "구글시트", "스프레드시트"], ensure_ascii=False)
 
 
 def kind(title):
@@ -15,6 +15,10 @@ def test_google_sheets_and_arduino_requests_reach_detail_check():
     assert kind("스프레드시트 자동 정리 만들어주실 분") == "core"
     assert kind("코딩 아두이노 오류 봐주실분 구합니다") == "core"
     assert kind("간단한 코딩 해주실 분") == "core"
+
+
+def test_excel_only_query_stays_narrow():
+    assert create().saved_candidate_kind("구글시트로 가계부 같은거 만들기", json.dumps(["엑셀"], ensure_ascii=False)) is None
 
 
 def test_coding_teacher_titles_stay_out():

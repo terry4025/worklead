@@ -26,7 +26,7 @@ DEFAULT_QUERY_GROUPS: dict[str, Any] = {
             "id": "automation",
             "label": "자동화 수요",
             "enabled": True,
-            "keywords": ["엑셀", "VBA", "매크로", "자동화", "업무툴", "데이터 정리", "보고서 자동화", "API 연동"],
+            "keywords": ["엑셀", "VBA", "매크로", "자동화", "업무툴", "데이터 정리", "보고서 자동화", "API 연동", "구글시트", "스프레드시트"],
         },
         {
             "id": "buyer_intent",

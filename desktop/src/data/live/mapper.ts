@@ -269,6 +269,8 @@ export function mapSettings(x: C.SettingsOut): SettingsView {
       allowShortTermEmployment: x.profile.allow_short_term_employment,
       businessRegistered: x.profile.business_registered ?? false,
       taxInvoice: x.profile.tax_invoice ?? false,
+      portfolioUrl: x.profile.portfolio_url ?? 'https://www.seyj.kr/',
+      priceAnchorNote: x.profile.price_anchor_note ?? '',
     },
     recheck: { ttlHours: x.recheck.ttl_hours ?? 24 },
     notifications: {
@@ -314,6 +316,8 @@ export function settingsPatchToContract(p: Parameters<import('../port').Worklead
       allow_short_term_employment: p.profile.allowShortTermEmployment,
       business_registered: p.profile.businessRegistered,
       tax_invoice: p.profile.taxInvoice,
+      portfolio_url: p.profile.portfolioUrl,
+      price_anchor_note: p.profile.priceAnchorNote,
     };
   if (p.recheck) out.recheck = { ttl_hours: p.recheck.ttlHours };
   if (p.notifications)

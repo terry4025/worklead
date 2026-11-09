@@ -118,6 +118,8 @@ const DEFAULT_SETTINGS: SettingsView = {
     allowShortTermEmployment: true,
     businessRegistered: false,
     taxInvoice: false,
+    portfolioUrl: 'https://www.seyj.kr/',
+    priceAnchorNote: '',
   },
   recheck: { ttlHours: 24 },
   notifications: { newRecommended: true, newReview: true, meaningfulChange: true, sourceIssue: true, quietHours: { enabled: true, start: '22:00', end: '08:00' } },

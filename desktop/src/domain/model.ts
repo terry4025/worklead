@@ -413,6 +413,8 @@ export interface SettingsView {
     allowShortTermEmployment: boolean;
     businessRegistered: boolean;
     taxInvoice: boolean;
+    portfolioUrl: string;
+    priceAnchorNote: string;
   };
   recheck: { ttlHours: number };
   notifications: {
@@ -431,8 +433,8 @@ export interface SettingsView {
     dailyCostCap: number | null;
     keyConfigured: boolean | null;
     providerAvailable: boolean;
-    provider: 'openai';
-    model: 'gpt-4.1-mini-2025-04-14';
+    provider: 'openai' | 'exaone';
+    model: 'gpt-4.1-mini-2025-04-14' | 'k-exaone_v2.5';
     usdToKrwRate: number | null;
     maxOutputTokens: number;
     pricingConfirmed: boolean;

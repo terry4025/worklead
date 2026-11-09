@@ -20,7 +20,7 @@ from ..services.settings import get_setting, ttl_hours
 from ..sources.base import DiscoverResult, ParseError, PostNotCollectable, PostRef, SourceNotReady, TaskSpec
 from ..sources.profiled import TaskFailed, canonicalize
 from . import runs
-from .freshness import SAVED_SCOPE, append_saved_candidates, observe_listings, ordered_candidates, prioritize_feed_tasks, saved_candidates, watch_reserve
+from .freshness import SAVED_SCOPE, append_saved_candidates, catch_up_after_gap, observe_listings, ordered_candidates, prioritize_feed_tasks, saved_candidates, watch_reserve
 from .events import emit, notify
 from .http import PolicyStop, RunHalt
 from .pipeline import apply_analysis, ingest, record_path
@@ -381,7 +381,7 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
             _set_health(app, source_id, "unknown", exc.message, exc.code)
             raise Halt("failed", exc.code, exc.message) from exc
         with app.db.session() as s:
-            plan = append_saved_candidates(s, adapter, prioritize_feed_tasks(s, adapter, plan, now), now)
+            plan = append_saved_candidates(s, adapter, prioritize_feed_tasks(s, adapter, catch_up_after_gap(s, source_id, plan, now), now), now)
             existing_units = {u.unit_key: u for u in s.scalars(select(CoverageUnit).where(CoverageUnit.source_id == source_id))}
             revisit = any(t.min_revisit_minutes for t in plan.tasks)
             if revisit:

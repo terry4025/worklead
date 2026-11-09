@@ -313,3 +313,17 @@ def watch_reserve(session, app, source_id, adapter):
             break
     interval = max(30, source.interval_minutes or 30) * 60
     return max(0, math.ceil((tomorrow - now).total_seconds() / interval) - 1) * (maps + 1)
+
+
+GAP_CATCH_UP_MINUTES = 60
+
+
+def catch_up_after_gap(session, source_id, plan, now):
+    """A 60+ minute pause means the feeds' latest-20 window lost posts; the sitemap still lists them."""
+    last = session.scalar(select(func.max(Run.finished_at)).where(
+        Run.source_id == source_id, Run.kind == "discovery", Run.finished_at.is_not(None)))
+    if last is None or now - last <= timedelta(minutes=GAP_CATCH_UP_MINUTES):
+        return plan
+    plan.tasks = [replace(t, min_revisit_minutes=0) if t.region_scope == "nationwide-sitemap" else t for t in plan.tasks]
+    plan.notes.append(f"수집이 {int((now - last).total_seconds() // 60)}분 멈췄다가 다시 시작해 전국 공고 목록을 바로 확인합니다.")
+    return plan

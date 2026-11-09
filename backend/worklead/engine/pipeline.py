@@ -586,5 +586,11 @@ def _analysis_payload(ra: RuleAnalysis, ai_payload: dict[str, Any]) -> dict[str,
 def generate_draft(s: Session, lead: Lead, now: datetime) -> str:
     rec = s.get(SourceRecord, lead.primary_record_id)
     assert rec is not None
+    from ..analysis import writer
+    if writer.application_text_required(s):
+        # Same tailored text the auto-apply would send; until it is ready, the rule template stays.
+        row = writer.application_draft(s, lead, rec, get_profile(s))
+        if row.status == "ready" and row.text:
+            return row.text
     ra = analyze(post_input_from_record(rec, "site"), get_profile(s), now, ttl_hours(s), feedback_map(s, lead.id))
     return inquiry_draft(rec.title, ra)

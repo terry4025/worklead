@@ -23,10 +23,14 @@ RETRY_MINUTES = (2, 5, 10)
 MAX_ATTEMPTS = len(RETRY_MINUTES) + 1
 BANNED = ("보장", "100%", "무조건", "반드시 해결", "최고", "완벽", "확실히", "틀림없")
 APPLICATION_RULES = ("[지원 문구 구성] 요청 핵심을 다시 짚는 첫 문장 → 할 수 있는 범위(프로필 기술 소개에 있는 사실만) → "
-                     "리스크나 확인할 점 1개(있을 때만) → 질문 1~2개 → 사업자·세금계산서는 프로필 값 그대로 한 문장 → 마지막 줄 포트폴리오 링크. "
+                     "리스크나 확인할 점 1개(있을 때만) → 질문 1~2개. 사업자·세금계산서 문장과 포트폴리오 줄은 코드가 붙이므로 쓰지 않는다. "
                      "가격·기간은 쓰지 않는다. 공고에 없는 숫자를 만들지 않는다. 연락처와 다른 링크를 쓰지 않는다. 300~900자.")
 _NUMBER = re.compile(r"\d[\d,.]*")
-_URL = re.compile(r"https?://[^\s)>\]]+")
+_URL = re.compile(r"https?://[^\s)>\]가-힣]+")
+# Bare domains (no scheme), e.g. www.example.com, open.kakao.com/o/x. Cut at Hangul like _URL.
+_DOMAIN = re.compile(r"www\.[^\s)>\]가-힣]+|(?<![a-z0-9-])[a-z0-9-]+\.(?:com|kr|net|io|me|co|org|so|ly|link|page|app|dev)"
+                     r"(?![a-z0-9-])[^\s)>\]가-힣]*", re.IGNORECASE)
+_BUSINESS_WORDS = ("사업자", "계산서")
 _PHONE = re.compile(r"01[016789][-\s]?\d{3,4}[-\s]?\d{4}|(?<!\d)0\d{1,2}[-\s]\d{3,4}[-\s]\d{4}")
 _EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
 _SAYS_REGISTERED = re.compile(r"사업자\s*(?:등록\s*)?(?:을\s*)?(?:완료|마쳤|보유|있습니다|있어요)")
@@ -65,13 +69,30 @@ def _clean(text: str) -> str:
     return text.replace("\ufeff", "").replace("\u200b", "").replace("\r\n", "\n").replace("\r", "\n").strip()
 
 
+def _host(url: str) -> str:
+    host = re.sub(r"^https?://", "", url.strip().lower()).split("/")[0].rstrip(".,")
+    return host.removeprefix("www.")
+
+
+def business_sentence(profile) -> str:
+    """The only business/tax-invoice claim an application may carry, built from settings (R14)."""
+    if not profile.business_registered:
+        return ""
+    return "사업자 등록을 마쳤고 세금계산서 발행도 가능합니다." if profile.tax_invoice else "사업자 등록을 마쳤습니다."
+
+
 def common_checks(text: str, *, source: str, profile, extra_numbers: frozenset[str] = frozenset()) -> None:
-    if not re.search("[가-힣]", text):
+    no_urls = _URL.sub(" ", text)
+    hangul, latin = len(re.findall("[가-힣]", no_urls)), len(re.findall("[A-Za-z]", no_urls))
+    if hangul == 0 or hangul < latin:  # Hangul must be at least half of the letters
         _fail("한국어 문구가 아닙니다")
     if any(word in text for word in BANNED):
         _fail("과장·보장 표현이 있습니다")
     portfolio = profile.portfolio_url.strip().rstrip("/")
     if any(url.rstrip(".,").rstrip("/") != portfolio for url in _URL.findall(text)):
+        _fail("포트폴리오 외 링크가 있습니다")
+    host = _host(portfolio)
+    if any(_host(d) != host for d in _DOMAIN.findall(no_urls)):
         _fail("포트폴리오 외 링크가 있습니다")
     if _PHONE.search(text) or _EMAIL.search(text):
         _fail("연락처가 있습니다")
@@ -91,6 +112,10 @@ def common_checks(text: str, *, source: str, profile, extra_numbers: frozenset[s
 
 def validate_application(text: str, *, source: str, profile) -> str:
     text = _clean(text)
+    if any(word in re.sub(r"\s+", "", text) for word in _BUSINESS_WORDS):
+        _fail("사업자·세금계산서 문장은 코드가 붙입니다")
+    if sentence := business_sentence(profile):
+        text = f"{text}\n\n{sentence}"
     portfolio = profile.portfolio_url.strip()
     if portfolio and portfolio not in text:
         text = f"{text}\n\n포트폴리오: {portfolio}"
@@ -172,6 +197,8 @@ def run_draft(app, draft_id: str, produce: Callable) -> None:
             _gate_notice(app, exc.code)
             raise Paused(exc.code) from None
         text, failure = None, exc.code
+    except Exception:  # noqa: BLE001 - a broken draft must not block the queue; the text is never logged
+        text, failure = None, "internal_error"
     now = app.clock()
     with app.db.session() as s:
         row = s.get(AiDraft, draft_id)

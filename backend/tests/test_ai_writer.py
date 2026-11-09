@@ -9,6 +9,7 @@ from tests.test_source_fields import NOW
 from worklead.analysis.assist import take_call
 from worklead.analysis.provider import AIFailure
 from worklead.analysis.types import Profile
+from worklead.analysis import writer
 from worklead.analysis.writer import (MAX_ATTEMPTS, application_draft, application_step, draft_key, text_hash,
                                       validate_application)
 from worklead.engine.pipeline import generate_draft
@@ -19,7 +20,7 @@ P = Profile(skills="React와 Python으로 홈페이지와 자동화를 2년간 �
 SRC = "홈페이지 제작 의뢰\n홈페이지 제작 의뢰합니다. 원격으로 진행합니다. 건당 100만원"
 GOOD = ("홈페이지 제작을 원격으로 맡기실 분을 찾고 계신 것으로 이해했습니다. React와 Python으로 홈페이지와 자동화를 만들어 왔고, "
         "필요한 화면과 기능부터 같이 정리해 드리겠습니다. 지금은 어떤 방식으로 소개 페이지를 운영하고 계신지, "
-        "가장 불편한 점이 무엇인지 알려 주시면 범위를 잡아 보겠습니다. 사업자 등록을 마쳤고 세금계산서 발행도 가능합니다.")
+        "가장 불편한 점이 무엇인지 알려 주시면 범위를 잡아 보겠습니다.")
 
 
 def test_portfolio_is_appended_and_hash_matches_js_norm():
@@ -35,18 +36,36 @@ def test_invisible_characters_are_removed():
 
 @pytest.mark.parametrize("bad", [
     GOOD + " 결과는 100% 보장합니다.", GOOD + " 3일이면 끝납니다.", GOOD + " 010-1234-5678로 연락 주세요.",
-    GOOD + " 참고: https://example.com", "Short english text only"])
+    GOOD + " 참고: https://example.com", "Short english text only",
+    GOOD + " www.example.com", GOOD + " open.kakao.com/o/abcdef 로 문의 주세요",
+    "가 I guarantee the best result for your homepage project, delivered fast and perfectly every single time."])
 def test_unsafe_text_is_rejected(bad):
     with pytest.raises(AIFailure):
         validate_application(bad, source=SRC, profile=P)
 
 
-def test_business_claims_must_match_profile():
-    unregistered = replace(P, business_registered=False, tax_invoice=False)
-    with pytest.raises(AIFailure):
-        validate_application(GOOD, source=SRC, profile=unregistered)
-    with pytest.raises(AIFailure):
-        validate_application(GOOD.replace("사업자 등록을 마쳤고", "사업자등록 전이라"), source=SRC, profile=P)
+@pytest.mark.parametrize("claim", ["사업자등록이 되어 있습니다.", "개인사업자입니다.", "세금계산서 발행이 가능합니다.",
+                                   "세금계산서 발급 가능합니다.", "사업자 등록은 아직 하지 않았습니다.", "세금 계산 서 드립니다."])
+def test_model_written_business_claims_are_rejected(claim):
+    for profile in (P, replace(P, business_registered=False, tax_invoice=False)):
+        with pytest.raises(AIFailure):
+            validate_application(f"{GOOD} {claim}", source=SRC, profile=profile)
+
+
+@pytest.mark.parametrize("registered,tax,sentence", [
+    (True, True, "사업자 등록을 마쳤고 세금계산서 발행도 가능합니다."), (True, False, "사업자 등록을 마쳤습니다."),
+    (False, True, None), (False, False, None)])
+def test_canonical_business_sentence_follows_profile(registered, tax, sentence):
+    text = validate_application(GOOD, source=SRC, profile=replace(P, business_registered=registered, tax_invoice=tax))
+    expected = GOOD + (f"\n\n{sentence}" if sentence else "") + "\n\n포트폴리오: https://www.seyj.kr/"
+    assert text == expected
+
+
+@pytest.mark.parametrize("mention", ["작업 사례는 https://www.seyj.kr/에서 보실 수 있습니다.",
+                                     "작업 사례는 www.seyj.kr 에 정리해 두었습니다."])
+def test_portfolio_mentions_are_allowed(mention):
+    text = validate_application(f"{GOOD} {mention}", source=SRC, profile=P)
+    assert mention in text
 
 
 def test_profile_change_invalidates_draft_key(tmp_path):
@@ -137,3 +156,27 @@ def test_portfolio_change_invalidates_draft_key(tmp_path):
         rec = s.get(SourceRecord, s.get(Lead, lead_id).primary_record_id)
         assert draft_key("application", rec, P) != draft_key("application", rec, replace(P, portfolio_url="https://a.example/"))
         assert draft_key("application", rec, P) != draft_key("application", rec, replace(P, price_anchor_note="건당 50만원"))
+
+
+def test_internal_error_counts_as_attempt_and_does_not_block_queue(tmp_path, monkeypatch):
+    ctx = ex_ctx(tmp_path, lambda r: exaone_json({"text": GOOD}))
+    broken = make_draft(ctx, seed(ctx, "1").lead_id)
+    healthy_lead = seed(ctx, "2").lead_id
+    healthy = make_draft(ctx, healthy_lead)
+    real = writer.generate_application
+
+    def produce(app, lead_id):
+        if lead_id != healthy_lead:
+            raise RuntimeError("boom")
+        return real(app, lead_id)
+
+    monkeypatch.setattr(writer, "generate_application", produce)
+    clock = [NOW]
+    ctx.clock = lambda: clock[0]
+    for minutes in (0, 2, 5, 10):
+        clock[0] += timedelta(minutes=minutes)
+        application_step(ctx)
+    with ctx.db.session() as s:
+        row = s.get(AiDraft, broken)
+        assert row.status == "failed" and row.attempts == MAX_ATTEMPTS and row.failure_code == "internal_error"
+        assert s.get(AiDraft, healthy).status == "ready"

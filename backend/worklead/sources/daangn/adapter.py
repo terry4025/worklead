@@ -31,9 +31,9 @@ from .serialized import SerializedError, relay_records
 # Expansion starts from enabled query terms; an Excel-only query stays scoped.
 _TITLE_ALIASES = (
     ("홈페이지", "홈피", "웹사이트", "웹페이지", "웹개발", "웹제작", "웹서비스", "사이트", "website", "webpage", "상세페이지", "상품페이지", "소개페이지"),
-    ("프로그램", "소프트웨어"),
+    ("프로그램", "소프트웨어", "코딩", "아두이노", "arduino"),
     ("파이썬", "python"),
-    ("엑셀", "excel"),
+    ("엑셀", "excel", "구글시트", "스프레드시트", "googlesheet", "googlesheets"),
     ("앱", "어플", "애플리케이션"),
     ("자동화", "rpa"),
     ("ai에이전트", "인공지능에이전트", "aiagent"),
@@ -103,6 +103,8 @@ _PHYSICAL_WORK_TITLE = re.compile(
     r"팬케이크|반찬|도시락|요리|음식|아이들?\s*(?:저녁|식사)|목공|가구|용달|짐\s*옮기|물류|포장|배송"
     r"|(?:입주|이사|가정집|사무실|매장|건물)\s*청소|청소\s*(?:용역|대행|외주)"
 )
+# Coding teachers/tutors are a large share of '코딩' titles; they are not delivery requests.
+_TEACHING_TITLE = re.compile(r"강사|선생님|과외|레슨|수업|강의|튜터")
 _DEVELOPMENT_TECHNOLOGY = re.compile(
     r"(?<![A-Za-z0-9])(?:React|Vue|Angular|Next\.?js|Node\.?js|TypeScript|JavaScript|Python|HTML|CSS)(?![A-Za-z0-9])",
     re.I,
@@ -247,6 +249,8 @@ def _title_match(title: str, keywords: list[str], specific_keywords: list[str], 
     # physical-service requests entering the optional detail queue.
     technical_object = _DEVELOPMENT_TECHNOLOGY.search(title) and _SOFTWARE_OBJECT.search(title)
     if explore and _PHYSICAL_WORK_TITLE.search(title) and not technical_object:
+        return core, False, True
+    if explore and _TEACHING_TITLE.search(title) and not software_delivery:
         return core, False, True
     return core, explore, False
 

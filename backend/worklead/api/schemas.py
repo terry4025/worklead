@@ -937,6 +937,10 @@ class QueryGroup(Model):
     keywords: list[str]
 
 
+class CollectionSettings(Model):
+    prevent_sleep: bool = False
+
+
 class QueryGroups(Model):
     version: int
     groups: list[QueryGroup]
@@ -949,6 +953,7 @@ class SettingsOut(Model):
     ai: AISettings
     retention: dict[Literal["raw_days"], int]
     query_groups: QueryGroups
+    collection: CollectionSettings = CollectionSettings()
 
 
 class SettingsPatch(Model):
@@ -958,6 +963,7 @@ class SettingsPatch(Model):
     ai: AISettingsPatch | None = None
     retention: dict[Literal["raw_days"], int] | None = None
     query_groups: list[QueryGroup] | None = None
+    collection: CollectionSettings | None = None
 
 # ── 가져오기·내보내기·지표·부트스트랩 ─────────────────────────────────
 class ImportIn(Model):

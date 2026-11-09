@@ -151,6 +151,18 @@
       "title": "AISettingsPatch",
       "type": "object"
     },
+    "CollectionSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "prevent_sleep": {
+          "default": false,
+          "title": "Prevent Sleep",
+          "type": "boolean"
+        }
+      },
+      "title": "CollectionSettings",
+      "type": "object"
+    },
     "NotificationSettings": {
       "additionalProperties": false,
       "properties": {
@@ -426,6 +438,17 @@
       ],
       "default": null,
       "title": "Query Groups"
+    },
+    "collection": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CollectionSettings"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     }
   },
   "title": "SettingsPatch",

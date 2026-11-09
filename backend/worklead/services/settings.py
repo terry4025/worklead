@@ -74,6 +74,7 @@ DEFAULTS: dict[str, Any] = {
     },
     "ai_revision": 0,
     "retention": {"raw_days": 30},
+    "collection": {"prevent_sleep": False},
     "query_groups": DEFAULT_QUERY_GROUPS,
     #: 이 seq 이하의 일반 이벤트는 정리됨 → 이보다 앞에서 이어받으려 하면 전체 재조회
     "events_trimmed_through": 0,

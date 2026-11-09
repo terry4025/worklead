@@ -2181,6 +2181,14 @@ export interface components {
              */
             ai_cost_krw: number | null;
         };
+        /** CollectionSettings */
+        CollectionSettings: {
+            /**
+             * Prevent Sleep
+             * @default false
+             */
+            prevent_sleep: boolean;
+        };
         /** Coverage */
         Coverage: {
             /**
@@ -3565,6 +3573,12 @@ export interface components {
                 [key: string]: number;
             };
             query_groups: components["schemas"]["QueryGroups"];
+            /**
+             * @default {
+             *       "prevent_sleep": false
+             *     }
+             */
+            collection: components["schemas"]["CollectionSettings"];
         };
         /** SettingsPatch */
         SettingsPatch: {
@@ -3581,6 +3595,7 @@ export interface components {
             } | null;
             /** Query Groups */
             query_groups?: components["schemas"]["QueryGroup"][] | null;
+            collection?: components["schemas"]["CollectionSettings"] | null;
         };
         /** SourceFreshnessMetrics */
         SourceFreshnessMetrics: {

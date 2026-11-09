@@ -18,6 +18,7 @@ from ..db import MaintenanceBusy
 from ..models import DiscoveryListing, Lead, Run, Snapshot, Source, SourcePolicy, SourceRecord
 from . import events, runs
 from .executors import execute
+from .power import SleepGuard, wanted
 from .schedule import RECHECK_EVERY, next_due, regional_due, scheduler_delay
 
 log = logging.getLogger("worklead.worker")
@@ -146,6 +147,7 @@ class Scheduler(threading.Thread):
         super().__init__(name="scheduler", daemon=True)
         self.app = app
         self._halt = threading.Event()
+        self.sleep_guard = SleepGuard()
 
     def stop(self) -> None:
         self._halt.set()
@@ -157,6 +159,7 @@ class Scheduler(threading.Thread):
                 with self.app.db.gate.operation():
                     runs.recover_expired(self.app.db)
                     schedule_due(self.app)
+                    self.sleep_guard.update(wanted(self.app))
                     housekeeping(self.app)
                     wait_delay = scheduler_delay(self.app)
             except MaintenanceBusy:
@@ -165,6 +168,7 @@ class Scheduler(threading.Thread):
             except Exception:  # noqa: BLE001
                 log.exception("scheduler error")
             self._halt.wait(wait_delay)
+        self.sleep_guard.update(False)
 
 
 class Workers:

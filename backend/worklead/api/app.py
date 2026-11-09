@@ -584,6 +584,7 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
                             database_generation=s.info["database_generation"]),
             retention=settings_svc.get_setting(s, "retention"),
             query_groups=S.QueryGroups(**settings_svc.get_setting(s, "query_groups")),
+            collection=S.CollectionSettings(**settings_svc.get_setting(s, "collection")),
         )
 
     @app.get("/v1/settings", response_model=S.SettingsOut, tags=["settings"], responses=ERRORS)
@@ -642,6 +643,8 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
             if not 1 <= days <= 365:
                 raise ApiError(422, "invalid_retention", "원문 보존 기간은 1~365일 사이여야 합니다")
             settings_svc.put_setting(s, "retention", {"raw_days": days})
+        if body.collection is not None:
+            settings_svc.put_setting(s, "collection", body.collection.model_dump())
         if body.query_groups is not None:
             current = settings_svc.get_setting(s, "query_groups")
             settings_svc.put_setting(s, "query_groups", {"version": int(current.get("version", 1)) + 1, "groups": [g.model_dump() for g in body.query_groups]})

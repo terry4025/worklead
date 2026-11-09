@@ -8493,6 +8493,18 @@
         ],
         "title": "CollectionMetrics"
       },
+      "CollectionSettings": {
+        "properties": {
+          "prevent_sleep": {
+            "type": "boolean",
+            "title": "Prevent Sleep",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "CollectionSettings"
+      },
       "Coverage": {
         "properties": {
           "target_label": {
@@ -12647,6 +12659,12 @@
           },
           "query_groups": {
             "$ref": "#/components/schemas/QueryGroups"
+          },
+          "collection": {
+            "$ref": "#/components/schemas/CollectionSettings",
+            "default": {
+              "prevent_sleep": false
+            }
           }
         },
         "additionalProperties": false,
@@ -12740,6 +12758,16 @@
               }
             ],
             "title": "Query Groups"
+          },
+          "collection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CollectionSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,

@@ -140,11 +140,11 @@ def advance_ai_revision(s: Session, expected: int) -> int:
 
 
 def stop_pending_ai(s: Session) -> list[str]:
-    pending = select(AnalysisResult.id).where(AnalysisResult.engine == "ai:openai", AnalysisResult.status == "pending")
+    pending = select(AnalysisResult.id).where(AnalysisResult.engine.like("ai:%"), AnalysisResult.status == "pending")
     ids = list(s.scalars(select(Lead.id).where(Lead.analysis_id.in_(pending), Lead.analysis_status == "pending")))
     changed = s.execute(update(Lead).where(Lead.analysis_id.in_(pending), Lead.analysis_status == "pending")
                         .values(analysis_status="rules_only").execution_options(synchronize_session=False)).rowcount
-    s.execute(update(AnalysisResult).where(AnalysisResult.engine == "ai:openai", AnalysisResult.status == "pending")
+    s.execute(update(AnalysisResult).where(AnalysisResult.engine.like("ai:%"), AnalysisResult.status == "pending")
               .values(status="rules_only").execution_options(synchronize_session=False))
     return ids if changed else []
 

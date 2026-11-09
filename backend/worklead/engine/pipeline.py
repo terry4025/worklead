@@ -409,11 +409,13 @@ def apply_analysis(
 
     ai_cfg = get_setting(s, "ai")
     deferred = bool(provider is not None and getattr(provider, "requires_deferred", False))
+    exaone = ai_cfg.get("provider") == "exaone"
     ai_on = bool(ai_cfg.get("enabled") and ai_cfg.get("external_transfer_consent") and provider is not None
-                 and (not deferred or (ra.recommendation != "excluded" and ra.pay.unit == "project" and ra.dev_relevant))
-                 and (deferred or provider.available()))
-    engine = f"ai:{provider.engine}" if ai_on and provider else "rules"
-    model = provider.model if ai_on and provider else None
+                 and (not deferred or ai.assist_eligible(ra))
+                 and (deferred or provider.available())
+                 and (not exaone or ai_cfg.get("assist_review")))
+    engine = f"ai:{ai_cfg.get('provider', 'openai') if deferred else provider.engine}" if ai_on and provider else "rules"
+    model = (ai_cfg.get("model") if deferred else provider.model) if ai_on and provider else None
     data = ai.AIInput(ai.mask_personal(rec.title), ai.mask_personal(rec.body_text or ""), ra.categories, ai.mask_personal(ra.summary) if ra.summary else None)
     if deferred and ai_on:
         # Semantic cache excludes keys/consent/cost controls and DB generation.

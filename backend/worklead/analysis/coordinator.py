@@ -6,8 +6,11 @@ network request or ledger transaction runs inside the source write session.
 """
 from __future__ import annotations
 
+import dataclasses
 import hashlib
 import json
+import math
+import time
 from dataclasses import asdict, dataclass, field
 from typing import TYPE_CHECKING, Callable
 
@@ -18,7 +21,8 @@ from ..services.credentials import CredentialError
 from ..services.settings import get_setting
 from .ledger import CostLedger
 from .openai_provider import MODEL, PRICE_DATE, PRICE_VERSION, OpenAIProvider, estimated_cost, prepare_request, price_metadata
-from .provider import AIInput, AIOutput, AIFailure, mask_personal
+from .grounding import INSTRUCTIONS, StructuredAnalysis, grounded_output
+from .provider import AIInput, AIOutput, AIFailure, assist_eligible, mask_personal
 
 if TYPE_CHECKING:
     from ..context import AppContext
@@ -92,10 +96,10 @@ class AnalysisCoordinator:
                 return None
             source = s.get(Source, lead.source_id)
             ra = apply_analysis(s, lead, rec, now=self.app.clock(), provider=self.app.provider, source_kind=source.kind if source else "site")
-            if ra.recommendation == "excluded" or ra.pay.unit != "project" or not ra.dev_relevant:
+            if not assist_eligible(ra):
                 return None
             row = s.get(AnalysisResult, lead.analysis_id)
-            if row is None or row.engine != "ai:openai":
+            if row is None or row.engine != f"ai:{cfg.get('provider', 'openai')}":
                 return None
             data = AIInput(mask_personal(rec.title), mask_personal(rec.body_text or ""),
                            list(ra.categories), mask_personal(ra.summary) if ra.summary else None)
@@ -174,6 +178,22 @@ class AnalysisCoordinator:
         # transmission, so the old pending ticket does not hang indefinitely.
         return self._apply(ticket, None, "stale_result")
 
+    def _analyze_exaone(self, ticket: Ticket, checkpoint: Callable[[], None]) -> bool:
+        from .assist import call_exaone, mask_for_ai
+        with self.app.db.session() as s:
+            if self._current(ticket, s) is None:
+                return self._discard_preflight(ticket)
+        checkpoint()
+        data = dataclasses.replace(ticket.data, title=mask_for_ai(ticket.data.title), body=mask_for_ai(ticket.data.body))
+        start = time.monotonic()
+        try:
+            out, usage = call_exaone(self.app, INSTRUCTIONS, json.dumps(asdict(data), ensure_ascii=False),
+                                     StructuredAnalysis, feature="assist_review", max_tokens=2000)
+            output = grounded_output(out, data, usage, math.ceil((time.monotonic() - start) * 1000))
+        except AIFailure as exc:
+            return self._apply(ticket, None, exc.code)
+        return self._apply(ticket, asdict(output), None)
+
     def analyze_lead(self, lead_id: str, *, retry: bool = False, checkpoint: Callable[[], None] | None = None) -> bool:
         if not getattr(self.app.provider, "requires_deferred", False):
             return False
@@ -182,6 +202,8 @@ class AnalysisCoordinator:
             ticket = self._prepare(lead_id)
             if ticket is None:
                 return False
+            if ticket.config.get("provider") == "exaone":
+                return self._analyze_exaone(ticket, checkpoint)
             claim = None
             sent = False
             try:

@@ -619,10 +619,9 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
                 expected_generation = patch.pop("expected_generation", None)
                 nxt = {**current, **patch}
                 from ..analysis.exaone_provider import MODEL as EXAONE_MODEL
-                if "provider" in patch:
-                    nxt["model"] = EXAONE_MODEL if nxt["provider"] == "exaone" else MODEL
-                    if nxt["provider"] != current.get("provider"):
-                        nxt["enabled"] = False
+                nxt["model"] = EXAONE_MODEL if nxt.get("provider") == "exaone" else MODEL
+                if nxt.get("provider") != current.get("provider"):
+                    nxt["enabled"] = False
                 if nxt.get("enabled") and not nxt.get("external_transfer_consent"):
                     raise ApiError(422, "consent_required", "외부 AI 전송 고지에 동의해야 AI 분석을 켤 수 있습니다")
                 if expected_generation is not None and expected_generation != s.info["database_generation"]:

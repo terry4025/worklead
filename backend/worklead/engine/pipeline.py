@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session
 
 from ..analysis import provider as ai
 from ..analysis.service import analyze, inquiry_draft
-from ..analysis.types import DateInfo, Ev, PayInfo, PostInput, RuleAnalysis
+from ..analysis.types import NON_SCORING_PROFILE_KEYS, DateInfo, Ev, PayInfo, PostInput, Profile, RuleAnalysis
 from ..models import (
     AnalysisResult,
     DiscoveryPath,
@@ -40,6 +40,11 @@ from ..sources.base import ParsedPost
 from .events import emit, notify
 
 log = logging.getLogger("worklead.pipeline")
+
+
+def cache_profile(profile: Profile) -> dict[str, Any]:
+    """Profile as it enters the paid AI cache key. Non-scoring fields stay out so existing keys keep matching."""
+    return {k: v for k, v in asdict(profile).items() if k not in NON_SCORING_PROFILE_KEYS}
 
 MEANINGFUL = ("source_status", "pay", "work_mode", "deadline", "recommendation")
 
@@ -415,7 +420,7 @@ def apply_analysis(
         # A separate coordinator execution guard covers mutable permissions.
         cache_key = hashlib.sha256(json.dumps({"content": rec.content_hash, "input": asdict(data), "engine": engine,
                 "model": model, "rule": ra.rule_version, "prompt": ai.PROMPT_VERSION, "schema": ai.SCHEMA_VERSION,
-                "profile": asdict(profile), "feedback": sorted(fb.items())}, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
+                "profile": cache_profile(profile), "feedback": sorted(fb.items())}, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
     else:
         cache_key = f"{rec.content_hash}:{engine}:{model}:{ra.rule_version}:{ai.PROMPT_VERSION if ai_on else '-'}:{profile.version}:{sorted(fb.items())}"
 

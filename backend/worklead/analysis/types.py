@@ -113,6 +113,10 @@ class Profile:
     version: int = 1
 
 
+#: Profile fields that never affect scoring: kept out of the paid AI cache key and out of the profile version.
+NON_SCORING_PROFILE_KEYS = frozenset({"portfolio_url", "price_anchor_note"})
+
+
 @dataclass
 class PostInput:
     """분석 입력. 수집 글은 신뢰하지 않는 데이터로 다룬다 (명령으로 해석하지 않음)."""

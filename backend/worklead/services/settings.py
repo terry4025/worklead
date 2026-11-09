@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, update
 from sqlalchemy.dialects.sqlite import insert
 
-from ..analysis.types import Profile
+from ..analysis.types import NON_SCORING_PROFILE_KEYS, Profile
 from ..db import utcnow
 from ..models import AppSetting, UserProfile, AnalysisResult, Lead
 
@@ -191,10 +191,13 @@ def get_profile(s: Session) -> Profile:
 def update_profile(s: Session, data: dict[str, Any]) -> bool:
     """변경되면 True (버전 증가 → 분석 캐시 무효화)."""
     row = get_profile_row(s)
-    merged = {**DEFAULT_PROFILE, **(row.data or {}), **data}
-    if merged == {**DEFAULT_PROFILE, **(row.data or {})}:
+    before = {**DEFAULT_PROFILE, **(row.data or {})}
+    merged = {**before, **data}
+    if merged == before:
         return False
     row.data = merged
+    if {k for k in merged if merged[k] != before.get(k)} <= NON_SCORING_PROFILE_KEYS:
+        return False  # saved, but scoring inputs are unchanged: no version bump, no reanalysis
     row.version += 1
     return True
 

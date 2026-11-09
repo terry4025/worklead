@@ -320,6 +320,8 @@ GAP_CATCH_UP_MINUTES = 60
 
 def catch_up_after_gap(session, source_id, plan, now):
     """A 60+ minute pause means the feeds' latest-20 window lost posts; the sitemap still lists them."""
+    if not any(t.region_scope == "nationwide-sitemap" for t in plan.tasks):
+        return plan
     last = session.scalar(select(func.max(Run.finished_at)).where(
         Run.source_id == source_id, Run.kind == "discovery", Run.finished_at.is_not(None)))
     if last is None or now - last <= timedelta(minutes=GAP_CATCH_UP_MINUTES):

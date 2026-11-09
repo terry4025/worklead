@@ -40,3 +40,14 @@ def test_first_run_ever_is_not_a_gap(ctx):
     with ctx.db.session() as s:
         plan = catch_up_after_gap(s, "daangn-alba", plan_for(ctx), NOW)
     assert sitemap_minutes(plan) == 720
+
+
+def test_plan_without_sitemap_gets_no_note(ctx):
+    add_run(ctx, NOW - timedelta(hours=3))
+    plan = plan_for(ctx)
+    plan.tasks = [t for t in plan.tasks if t.region_scope != "nationwide-sitemap"]
+    tasks, notes = list(plan.tasks), list(plan.notes)
+    with ctx.db.session() as s:
+        plan = catch_up_after_gap(s, "daangn-alba", plan, NOW)
+    assert plan.tasks == tasks
+    assert plan.notes == notes

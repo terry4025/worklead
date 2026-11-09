@@ -14,7 +14,7 @@ from urllib.parse import unquote, urlsplit
 
 from sqlalchemy import func, or_, select, text
 
-from ..analysis.recheck import ai_auto_eligible, hard_excluded
+from ..analysis.recheck import SOFT_TEXTS, ai_auto_eligible
 from ..analysis.rules import business_requirements
 from ..analysis.service import analyze
 from ..db import MaintenanceBusy
@@ -75,10 +75,13 @@ def condition(s, lead, now, min_score, *, queue=False, visible_form=False):
     # may have changed even when the same title and application button remain.
     current = analyze(post, profile, now, ttl_hours(s), feedback_map(s, lead.id))
     # A time wage anywhere (metadata, body or title) keeps the lead in manual review even
-    # when the displayed unit is per project: auto-apply stays per-project only.
+    # when the displayed unit is per project: auto-apply stays per-project only, on both paths.
+    # The AI path overrides only the soft exclusions EXAONE rechecked (allow-list); any other
+    # rule exclusion (feedback, risk, excluded work, deletion, seller, ...) still blocks.
     if ai_path:
-        if (hard_excluded([r.__dict__ for r in current.reasons]) or current.pay.unit != "project"
-                or any(f.key == "time_pay" for f in current.factors)):
+        negatives = [r.text for r in current.reasons if r.tone == "negative"]
+        if ((current.recommendation == "excluded" and not all(t in SOFT_TEXTS for t in negatives))
+                or current.pay.unit != "project" or any(f.key == "time_pay" for f in current.factors)):
             return "condition_changed"
     elif (current.recommendation == "excluded" or not current.dev_relevant or current.pay.unit != "project"
             or any(f.key == "time_pay" for f in current.factors)

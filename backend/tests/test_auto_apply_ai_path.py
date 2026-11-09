@@ -1,6 +1,6 @@
 from tests.test_job_auto_apply import NOW, app, add, claimed, connect  # noqa: F401
 from worklead.jobs.auto_apply import condition
-from worklead.models import Lead, SourceRecord
+from worklead.models import Lead, SourceRecord, UserFeedback, new_id
 
 
 def mark_ai(app, lead_id, **over):
@@ -54,4 +54,12 @@ def test_time_wage_in_current_pay_blocks_ai_path(app):
     with app.db.session() as s:
         rec = s.get(SourceRecord, s.get(Lead, lead_id).primary_record_id)
         rec.pay_raw = (rec.pay_raw or "") + " (시급 15,000원)"
+    assert check(app, lead_id) == "condition_changed"
+
+
+def test_user_feedback_not_real_request_blocks_ai_path(app):
+    lead_id = add(app)
+    mark_ai(app, lead_id)
+    with app.db.session() as s:
+        s.add(UserFeedback(id=new_id("fb"), lead_id=lead_id, kind="real_request", value="no", created_at=NOW))
     assert check(app, lead_id) == "condition_changed"

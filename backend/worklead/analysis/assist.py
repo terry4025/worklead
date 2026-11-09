@@ -69,7 +69,8 @@ def call_exaone(app, system: str, user: str, model: type[BaseModel], *, feature:
 
 def default_steps() -> list[Callable]:
     """Priority order: application text > chat reply > quote > recheck. Later tasks append here."""
-    return []
+    from .recheck import recheck_step
+    return [recheck_step]
 
 
 class AssistWorker(threading.Thread):

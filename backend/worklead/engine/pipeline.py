@@ -531,6 +531,8 @@ def apply_analysis(
     lead.pay_unit, lead.pay_min, lead.pay_max = ra.pay.unit, ra.pay.min, ra.pay.max
     _sync_lead_from_record(lead, rec)
     lead.updated_at = now
+    from ..analysis.recheck import keep_promotion
+    keep_promotion(lead, rec)
     return ra
 
 

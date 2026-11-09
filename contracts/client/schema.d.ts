@@ -1192,15 +1192,45 @@ export interface components {
             /**
              * Provider
              * @default openai
-             * @constant
+             * @enum {string}
              */
-            provider: "openai";
+            provider: "openai" | "exaone";
             /**
              * Model
              * @default gpt-4.1-mini-2025-04-14
-             * @constant
+             * @enum {string}
              */
-            model: "gpt-4.1-mini-2025-04-14";
+            model: "gpt-4.1-mini-2025-04-14" | "k-exaone_v2.5";
+            /**
+             * Daily Call Cap
+             * @default 300
+             */
+            daily_call_cap: number;
+            /**
+             * Assist Review
+             * @default false
+             */
+            assist_review: boolean;
+            /**
+             * Assist Recheck
+             * @default false
+             */
+            assist_recheck: boolean;
+            /**
+             * Assist Application
+             * @default false
+             */
+            assist_application: boolean;
+            /**
+             * Assist Chat
+             * @default false
+             */
+            assist_chat: boolean;
+            /**
+             * Assist Quote
+             * @default false
+             */
+            assist_quote: boolean;
             /** Usd To Krw Rate */
             usd_to_krw_rate?: number | null;
             /**
@@ -1240,9 +1270,21 @@ export interface components {
             /** Daily Cost Cap */
             daily_cost_cap?: number | null;
             /** Provider */
-            provider?: "openai" | null;
+            provider?: ("openai" | "exaone") | null;
             /** Model */
-            model?: "gpt-4.1-mini-2025-04-14" | null;
+            model?: ("gpt-4.1-mini-2025-04-14" | "k-exaone_v2.5") | null;
+            /** Daily Call Cap */
+            daily_call_cap?: number | null;
+            /** Assist Review */
+            assist_review?: boolean | null;
+            /** Assist Recheck */
+            assist_recheck?: boolean | null;
+            /** Assist Application */
+            assist_application?: boolean | null;
+            /** Assist Chat */
+            assist_chat?: boolean | null;
+            /** Assist Quote */
+            assist_quote?: boolean | null;
             /** Usd To Krw Rate */
             usd_to_krw_rate?: number | null;
             /** Max Output Tokens */
@@ -1258,14 +1300,14 @@ export interface components {
         AIStatus: {
             /**
              * Provider
-             * @constant
+             * @enum {string}
              */
-            provider: "openai";
+            provider: "openai" | "exaone";
             /**
              * Model
-             * @constant
+             * @enum {string}
              */
-            model: "gpt-4.1-mini-2025-04-14";
+            model: "gpt-4.1-mini-2025-04-14" | "k-exaone_v2.5";
             /** Key Supported */
             key_supported: boolean;
             /** Key Configured */
@@ -1288,6 +1330,8 @@ export interface components {
             pricing_checked_at: string;
             price_metadata: components["schemas"]["AIPriceMetadata"];
             ledger: components["schemas"]["AILedgerStatus"] | null;
+            /** Calls Today */
+            calls_today?: number | null;
         };
         /** Activity */
         Activity: {
@@ -3092,6 +3136,16 @@ export interface components {
              * @default false
              */
             tax_invoice: boolean;
+            /**
+             * Portfolio Url
+             * @default https://www.seyj.kr/
+             */
+            portfolio_url: string;
+            /**
+             * Price Anchor Note
+             * @default
+             */
+            price_anchor_note: string;
         };
         /** ProfitScenario */
         ProfitScenario: {

@@ -61,16 +61,54 @@
       "type": "boolean"
     },
     "provider": {
-      "const": "openai",
       "default": "openai",
+      "enum": [
+        "openai",
+        "exaone"
+      ],
       "title": "Provider",
       "type": "string"
     },
     "model": {
-      "const": "gpt-4.1-mini-2025-04-14",
       "default": "gpt-4.1-mini-2025-04-14",
+      "enum": [
+        "gpt-4.1-mini-2025-04-14",
+        "k-exaone_v2.5"
+      ],
       "title": "Model",
       "type": "string"
+    },
+    "daily_call_cap": {
+      "default": 300,
+      "maximum": 5000,
+      "minimum": 1,
+      "title": "Daily Call Cap",
+      "type": "integer"
+    },
+    "assist_review": {
+      "default": false,
+      "title": "Assist Review",
+      "type": "boolean"
+    },
+    "assist_recheck": {
+      "default": false,
+      "title": "Assist Recheck",
+      "type": "boolean"
+    },
+    "assist_application": {
+      "default": false,
+      "title": "Assist Application",
+      "type": "boolean"
+    },
+    "assist_chat": {
+      "default": false,
+      "title": "Assist Chat",
+      "type": "boolean"
+    },
+    "assist_quote": {
+      "default": false,
+      "title": "Assist Quote",
+      "type": "boolean"
     },
     "usd_to_krw_rate": {
       "anyOf": [

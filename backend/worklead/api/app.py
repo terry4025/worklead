@@ -41,7 +41,7 @@ from ..services import settings as settings_svc
 from ..services import sources as source_svc
 from ..services.credentials import CredentialError, CredentialStatus
 from ..analysis.service import CATEGORY_LABEL as CATEGORIES
-from ..analysis.openai_provider import PRICE_VERSION
+from ..analysis.openai_provider import MODEL, PRICE_VERSION
 from . import schemas as S
 
 log = logging.getLogger("worklead.api")
@@ -563,17 +563,17 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
         return lead_svc.detail(s, lead)
 
     # ── 설정 ────────────────────────────────────────────────────────
-    def credential_status() -> CredentialStatus:
+    def credential_status(provider: str = "openai") -> CredentialStatus:
         if ctx.config.demo:
             return CredentialStatus(False, None, "demo_credential_unsupported")
-        return ctx.credential_store.status(ctx.config.data_dir, "openai")
+        return ctx.credential_store.status(ctx.config.data_dir, provider)
 
     def settings_out(s: Any) -> S.SettingsOut:
         prof = settings_svc.get_profile_row(s)
         data = {**settings_svc.DEFAULT_PROFILE, **(prof.data or {})}
         ai = settings_svc.get_setting(s, "ai")
         ai["pricing_confirmed"] = bool(ai.get("pricing_confirmed") and ai.get("price_version") == PRICE_VERSION)
-        key = credential_status()
+        key = credential_status(ai.get("provider", "openai"))
         return S.SettingsOut(
             profile=S.ProfileSettings(**data),
             recheck=settings_svc.get_setting(s, "recheck"),
@@ -618,6 +618,11 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
                 expected_revision = patch.pop("expected_revision", None)
                 expected_generation = patch.pop("expected_generation", None)
                 nxt = {**current, **patch}
+                from ..analysis.exaone_provider import MODEL as EXAONE_MODEL
+                if "provider" in patch:
+                    nxt["model"] = EXAONE_MODEL if nxt["provider"] == "exaone" else MODEL
+                    if nxt["provider"] != current.get("provider"):
+                        nxt["enabled"] = False
                 if nxt.get("enabled") and not nxt.get("external_transfer_consent"):
                     raise ApiError(422, "consent_required", "외부 AI 전송 고지에 동의해야 AI 분석을 켤 수 있습니다")
                 if expected_generation is not None and expected_generation != s.info["database_generation"]:
@@ -656,7 +661,7 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
 
     def ai_status_out(s: Any) -> S.AIStatus:
         config = settings_svc.get_setting(s, "ai")
-        key = credential_status()
+        key = credential_status(config.get("provider", "openai"))
         error_code = key.error_code
         try:
             status = ctx.ai_coordinator.status()
@@ -666,7 +671,15 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
             status["ledger"] = None
             error_code = "ai_ledger_unavailable"
         reason = error_code
-        if reason is None:
+        calls = None
+        if config.get("provider") == "exaone":
+            from ..analysis.assist import calls_today
+            calls = calls_today(s, ctx.clock())
+            if reason is None:
+                reason = ("disabled" if not config.get("enabled") else "consent_required" if not config.get("external_transfer_consent")
+                          else "not_configured" if key.configured is not True
+                          else "call_cap_reached" if calls >= int(config.get("daily_call_cap") or 300) else None)
+        elif reason is None:
             if not config.get("enabled"):
                 reason = "disabled"
             elif not config.get("external_transfer_consent"):
@@ -683,7 +696,8 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
                     if sum(ledger[k] for k in ("estimated_krw", "reserved_krw", "uncertain_krw")) >= cap:
                         reason = "budget_exhausted"
                         break
-        return S.AIStatus(**status, key_supported=key.supported, key_configured=key.configured,
+        return S.AIStatus(**{**status, "provider": config.get("provider", "openai"), "model": config.get("model")}, calls_today=calls,
+                          key_supported=key.supported, key_configured=key.configured,
                           error_code=error_code, enabled=config["enabled"], ready=reason is None,
                           blocked_reason=reason, settings_revision=settings_svc.get_setting(s, "ai_revision"),
                           database_generation=s.info["database_generation"])
@@ -700,6 +714,7 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
                 raise settings_svc.AISettingsChanged()
             settings_svc.advance_ai_revision(s, body.expected_revision)
             config = settings_svc.get_setting(s, "ai")
+            provider = config.get("provider", "openai")
             settings_svc.put_setting(s, "ai", {**config, "enabled": False})
             for lead_id in settings_svc.stop_pending_ai(s):
                 emit(s, "lead.updated", {"lead_id": lead_id, "changes": ["analysis"]})
@@ -708,9 +723,9 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
             s.commit()
             ctx.hub.notify()
             if key is None:
-                ctx.credential_store.delete_key(ctx.config.data_dir, "openai")
+                ctx.credential_store.delete_key(ctx.config.data_dir, provider)
             else:
-                ctx.credential_store.set_key(ctx.config.data_dir, "openai", key)
+                ctx.credential_store.set_key(ctx.config.data_dir, provider, key)
             return ai_status_out(s)
 
     @app.post("/v1/ai/credentials", response_model=S.AIStatus, tags=["settings"], responses=ERRORS)

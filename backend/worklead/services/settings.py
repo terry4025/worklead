@@ -71,7 +71,14 @@ DEFAULTS: dict[str, Any] = {
         "max_output_tokens": 1024,
         "pricing_confirmed": False,
         "price_version": None,
+        "daily_call_cap": 300,
+        "assist_review": False,
+        "assist_recheck": False,
+        "assist_application": False,
+        "assist_chat": False,
+        "assist_quote": False,
     },
+    "exaone_calls": {"day": None, "count": 0},
     "ai_revision": 0,
     "retention": {"raw_days": 30},
     "collection": {"prevent_sleep": False},
@@ -91,6 +98,8 @@ DEFAULT_PROFILE: dict[str, Any] = {
     "allow_short_term_employment": False,
     "business_registered": False,
     "tax_invoice": False,
+    "portfolio_url": "https://www.seyj.kr/",
+    "price_anchor_note": "",
 }
 
 
@@ -173,6 +182,8 @@ def get_profile(s: Session) -> Profile:
         allow_short_term_employment=bool(data.get("allow_short_term_employment", False)),
         business_registered=bool(data["business_registered"]),
         tax_invoice=bool(data["tax_invoice"]),
+        portfolio_url=data["portfolio_url"] or "",
+        price_anchor_note=data["price_anchor_note"] or "",
         version=row.version,
     )
 

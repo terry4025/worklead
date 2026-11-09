@@ -108,6 +108,8 @@ class Profile:
     allow_short_term_employment: bool = False  # Legacy API field; project-only eligibility takes precedence.
     business_registered: bool = False
     tax_invoice: bool = False
+    portfolio_url: str = "https://www.seyj.kr/"
+    price_anchor_note: str = ""
     version: int = 1
 
 

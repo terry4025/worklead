@@ -19,8 +19,11 @@ def test_google_sheets_and_arduino_requests_reach_detail_check():
 
 def test_coding_teacher_titles_stay_out():
     for title in ("ai 로봇 코딩 강사 모집 초보자 가능", "레고 코딩 학원 아이들을 사랑하는 선생님 구인합니다",
-                  "코딩 선생님 구해요", "ai 활용 바이브코딩 과외 선생님 찾습니다"):
+                  "코딩 선생님 구해요", "ai 활용 바이브코딩 과외 선생님 찾습니다",
+                  "아두이노 코딩 강사 모집", "초등 아두이노 수업 선생님 구해요",
+                  "구글시트 강의 해주실 분", "코딩 도와줄 과외 선생님"):
         assert kind(title) is None, title
+    assert kind("코딩 해외 취업") != "core"
 
 
 def test_existing_core_titles_unchanged():

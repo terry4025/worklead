@@ -105,6 +105,9 @@ _PHYSICAL_WORK_TITLE = re.compile(
 )
 # Coding teachers/tutors are a large share of '코딩' titles; they are not delivery requests.
 _TEACHING_TITLE = re.compile(r"강사|선생님|과외|레슨|수업|강의|튜터")
+# Must stay in sync with the suffix added to profile.json discovery.title_pattern.
+# Core matches from only these terms are dropped for teacher titles.
+_NEW_CORE_TERMS = re.compile(r"구글\s*시트|스프레드\s*시트|아두이노|코딩\s*(?:해\s*주|도와|봐\s*주|요청)")
 _DEVELOPMENT_TECHNOLOGY = re.compile(
     r"(?<![A-Za-z0-9])(?:React|Vue|Angular|Next\.?js|Node\.?js|TypeScript|JavaScript|Python|HTML|CSS)(?![A-Za-z0-9])",
     re.I,
@@ -242,6 +245,9 @@ def _title_match(title: str, keywords: list[str], specific_keywords: list[str], 
     scoped_match = bool(web_scope and web_change or software_scope and _positive_requests(_SERVER_DEPLOYMENT_REQUEST, title))
     query_match = query_match or scoped_match
     core = bool(title_pattern.search(title) or software_delivery or specialized_delivery) and query_match
+    if (core and _TEACHING_TITLE.search(title) and not software_delivery and not specialized_delivery
+            and not title_pattern.search(_NEW_CORE_TERMS.sub(" ", title))):
+        return False, False, True
     explore = not core and query_match and (
         any(word in normalized for word in specific_keywords) or bool(_WEAK_CREATION_REQUEST.search(title))
     )

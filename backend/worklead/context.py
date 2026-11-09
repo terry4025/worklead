@@ -34,6 +34,8 @@ class AppContext:
     ai_transport: httpx.BaseTransport | None = field(default=None, repr=False)
     ai_control_lock: threading.RLock = field(default_factory=threading.RLock, repr=False)
     _ai_coordinator: object | None = field(default=None, init=False, repr=False)
+    _exaone_client: object | None = field(default=None, init=False, repr=False)
+    _assist_worker: object | None = field(default=None, init=False, repr=False)
     _cafe_runtime: object | None = field(default=None, init=False, repr=False)
     _jobs_message_runtime: object | None = field(default=None, init=False, repr=False)
     _jobs_chrome_runtime: object | None = field(default=None, init=False, repr=False)
@@ -57,6 +59,24 @@ class AppContext:
             if self._ai_coordinator is None:
                 self._ai_coordinator = AnalysisCoordinator(self)
             return self._ai_coordinator
+
+    @property
+    def exaone(self):
+        from .analysis.exaone_provider import ExaoneClient
+        with self.ai_control_lock:
+            if self._exaone_client is None:
+                self._exaone_client = ExaoneClient(transport=self.ai_transport)
+            return self._exaone_client
+
+    @property
+    def assist_worker(self):
+        from .analysis.assist import AssistWorker, default_steps
+        with self.ai_control_lock:
+            if self._assist_worker is None:
+                worker = AssistWorker(self)
+                worker.steps = default_steps()
+                self._assist_worker = worker
+            return self._assist_worker
 
     def fetcher_for(self, adapter: object) -> Fetcher:
         kwargs = {}

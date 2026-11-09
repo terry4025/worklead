@@ -269,6 +269,7 @@ def serve(argv: list[str] | None = None) -> int:
         workers.start()
         if cfg.run_worker and not cfg.demo:
             ctx.cafe_runtime.start()
+            ctx.assist_worker.start()
         if not cfg.demo:
             from .jobs.managed_setup import boot as boot_auto_pairing
             boot_auto_pairing(ctx)
@@ -322,6 +323,8 @@ def serve(argv: list[str] | None = None) -> int:
                 ctx._jobs_message_runtime.stop()
             if ctx._cafe_runtime is not None:
                 ctx.cafe_runtime.stop()
+            if ctx._assist_worker is not None:
+                ctx._assist_worker.stop()
             ctx.db.dispose()
         return 0
     finally:

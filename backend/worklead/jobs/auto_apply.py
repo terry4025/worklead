@@ -77,7 +77,8 @@ def condition(s, lead, now, min_score, *, queue=False, visible_form=False):
     # A time wage anywhere (metadata, body or title) keeps the lead in manual review even
     # when the displayed unit is per project: auto-apply stays per-project only.
     if ai_path:
-        if hard_excluded([r.__dict__ for r in current.reasons]) or current.pay.unit != "project":
+        if (hard_excluded([r.__dict__ for r in current.reasons]) or current.pay.unit != "project"
+                or any(f.key == "time_pay" for f in current.factors)):
             return "condition_changed"
     elif (current.recommendation == "excluded" or not current.dev_relevant or current.pay.unit != "project"
             or any(f.key == "time_pay" for f in current.factors)

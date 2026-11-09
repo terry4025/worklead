@@ -44,3 +44,14 @@ def test_low_score_ai_lead_is_offered_by_next(app):
     mark_ai(app, lead_id)
     bridge, client, _ = connect(app)
     assert claimed(client) is not None
+
+
+def test_time_wage_in_current_pay_blocks_ai_path(app):
+    # A wage in the body already reads as staff hiring (hard exclusion). A wage in
+    # the stored pay text keeps pay.unit "project" and yields only the time_pay factor.
+    lead_id = add(app)
+    mark_ai(app, lead_id)
+    with app.db.session() as s:
+        rec = s.get(SourceRecord, s.get(Lead, lead_id).primary_record_id)
+        rec.pay_raw = (rec.pay_raw or "") + " (시급 15,000원)"
+    assert check(app, lead_id) == "condition_changed"

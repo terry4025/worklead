@@ -14,6 +14,7 @@ from urllib.parse import unquote, urlsplit
 
 from sqlalchemy import func, or_, select, text
 
+from ..analysis.recheck import ai_auto_eligible, hard_excluded
 from ..analysis.rules import business_requirements
 from ..analysis.service import analyze
 from ..db import MaintenanceBusy
@@ -50,13 +51,15 @@ def job_identity(rec):
 
 
 def condition(s, lead, now, min_score, *, queue=False, visible_form=False):
-    if (lead.source_id != "daangn-alba" or (lead.priority_total or 0) < min_score
-            or lead.recommendation not in ("recommended", "needs_review")
-            or lead.demand_intent not in ("buyer_project", "buyer_ongoing")
-            or lead.engagement_type != "project" or lead.pay_unit != "project" or lead.sales_stage not in ("new", "reviewing")
-            or lead.user_mark == "dismissed" or lead.source_status != "open" or lead.access_status != "accessible"):
+    rec = s.get(SourceRecord, lead.primary_record_id) if lead.primary_record_id else None
+    ai_path = rec is not None and ai_auto_eligible(lead, rec)
+    if (lead.source_id != "daangn-alba" or lead.recommendation not in ("recommended", "needs_review")
+            or lead.pay_unit != "project" or lead.sales_stage not in ("new", "reviewing")
+            or lead.user_mark == "dismissed" or lead.source_status != "open" or lead.access_status != "accessible"
+            or (not ai_path and ((lead.priority_total or 0) < min_score
+                                 or lead.demand_intent not in ("buyer_project", "buyer_ongoing")
+                                 or lead.engagement_type != "project"))):
         return "condition_changed"
-    rec = s.get(SourceRecord, lead.primary_record_id)
     if not rec or not rec.body_text or rec.source_status != "open" or rec.access_status != "accessible" or not job_identity(rec):
         return "source_unverified"
     if rec.published_precision != "exact" or rec.published_at is None or rec.published_at > now:
@@ -73,7 +76,10 @@ def condition(s, lead, now, min_score, *, queue=False, visible_form=False):
     current = analyze(post, profile, now, ttl_hours(s), feedback_map(s, lead.id))
     # A time wage anywhere (metadata, body or title) keeps the lead in manual review even
     # when the displayed unit is per project: auto-apply stays per-project only.
-    if (current.recommendation == "excluded" or not current.dev_relevant or current.pay.unit != "project"
+    if ai_path:
+        if hard_excluded([r.__dict__ for r in current.reasons]) or current.pay.unit != "project":
+            return "condition_changed"
+    elif (current.recommendation == "excluded" or not current.dev_relevant or current.pay.unit != "project"
             or any(f.key == "time_pay" for f in current.factors)
             or current.total is None or (not queue and current.total < min_score)):
         return "condition_changed"
@@ -212,7 +218,7 @@ class AutoApplyRuntime:
             return [item.model_copy(deep=True) for item in cached[3]]
         # Never scan or analyze the entire national lead store on a two-second poll.
         leads = list(s.scalars(select(Lead).where(Lead.source_id == "daangn-alba",
-            Lead.priority_total >= self._status.min_score, Lead.sales_stage.in_(("new", "reviewing")))
+            or_(Lead.priority_total >= self._status.min_score, Lead.ai_recheck.is_not(None)), Lead.sales_stage.in_(("new", "reviewing")))
             .order_by(Lead.published_at.desc(), Lead.first_seen_at.desc()).limit(DIAGNOSTIC_LIMIT)))
         by_lead = {row.lead_id: row for row in reversed(rows)}
         lead_map = {lead.id: lead for lead in leads}
@@ -501,7 +507,7 @@ class AutoApplyRuntime:
                         JobAutoAttempt.reason_code.in_(TRANSIENT_REASONS),
                         JobAutoAttempt.retry_count < len(RETRY_DELAYS))
                     candidates = list(s.scalars(select(Lead).join(SourceRecord, SourceRecord.id == Lead.primary_record_id).where(
-                        Lead.source_id == "daangn-alba", Lead.priority_total >= self._status.min_score,
+                        Lead.source_id == "daangn-alba", or_(Lead.priority_total >= self._status.min_score, Lead.ai_recheck.is_not(None)),
                         Lead.recommendation.in_(("recommended", "needs_review")), Lead.source_status == "open",
                         Lead.sales_stage.in_(("new", "reviewing")), Lead.access_status == "accessible",
                         Lead.demand_intent.in_(("buyer_project", "buyer_ongoing")), Lead.engagement_type == "project",
@@ -543,7 +549,7 @@ class AutoApplyRuntime:
             known = {row.job_key: row for row in s.scalars(select(JobAutoAttempt))}
             journal = self._journal_keys()
             due = select(JobAutoAttempt.lead_id).where(JobAutoAttempt.state == "held", JobAutoAttempt.retry_after <= self.app.clock())
-            candidates = s.scalars(select(Lead).where(Lead.source_id == "daangn-alba", Lead.priority_total >= self._status.min_score,
+            candidates = s.scalars(select(Lead).where(Lead.source_id == "daangn-alba", or_(Lead.priority_total >= self._status.min_score, Lead.ai_recheck.is_not(None)),
                 Lead.recommendation.in_(("recommended", "needs_review")), Lead.source_status == "open",
                 Lead.sales_stage.in_(("new", "reviewing")),
                 (~Lead.id.in_(select(JobAutoAttempt.lead_id))) | Lead.id.in_(due))

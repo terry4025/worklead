@@ -132,7 +132,9 @@ def recheck_lead(app, lead_id: str) -> dict | None:
         if lead is None or rec is None or rec.content_hash != content_hash:
             return None
         lead.ai_recheck = {**verdict, "content_hash": content_hash, "model": MODEL, "at": now.isoformat()}
-        if verdict.get("promoted"):
+        # Status may change during the call; re-check eligibility before promoting.
+        if (verdict.get("promoted") and lead.recommendation == "excluded" and recheckable(lead.reasons)
+                and lead.source_status == "open"):
             _promote(lead)
             emit(s, "lead.updated", {"lead_id": lead.id, "changes": ["recommendation"]})
             notify(s, "new_review_lead", f"AI 재검토: {lead.title}", dedupe_key=f"notify:ai_recheck:{lead.id}:{content_hash}",

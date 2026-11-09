@@ -79,3 +79,21 @@ def test_recheck_switch_off_sends_nothing(tmp_path):
     ctx = ex_ctx(tmp_path, lambda r: sent.append(1) or exaone_json(verdict().model_dump()), assist_recheck=False)
     lead_id = seed_excluded(ctx)
     assert recheck_lead(ctx, lead_id) is None and not sent
+
+
+def test_hard_reason_added_during_call_blocks_promotion(tmp_path):
+    box = {}
+
+    def handler(request):
+        with box["ctx"].db.session() as s:
+            s.get(Lead, box["lead_id"]).reasons = UNCLEAR + [{"tone": "negative", "text": "모집 마감"}]
+        return exaone_json(verdict().model_dump())
+
+    ctx = box["ctx"] = ex_ctx(tmp_path, handler)
+    lead_id = box["lead_id"] = seed_excluded(ctx)
+    assert recheck_lead(ctx, lead_id)["promoted"]
+    with ctx.db.session() as s:
+        lead = s.get(Lead, lead_id)
+        assert lead.recommendation == "excluded"
+        assert lead.ai_recheck["promoted"] and lead.ai_recheck["content_hash"]
+        assert s.query(EventOutbox).filter(EventOutbox.dedupe_key.like("notify:ai_recheck:%")).count() == 0

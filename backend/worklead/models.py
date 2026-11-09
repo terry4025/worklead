@@ -452,6 +452,7 @@ class Lead(Base):
     draft_generated_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
     draft_edited: Mapped[bool] = mapped_column(Boolean, default=False)
 
+    ai_recheck: Mapped[dict[str, Any] | None] = mapped_column(JSON(none_as_null=True))
     active_job: Mapped[str | None] = mapped_column(String(16))
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, onupdate=utcnow)
@@ -613,6 +614,24 @@ class JobAutoAttempt(Base):
     retry_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     retry_after: Mapped[datetime | None] = mapped_column(UTCDateTime)
     __table_args__ = (Index("ix_auto_attempt_created", "created_at"),)
+
+
+class AiDraft(Base):
+    __tablename__ = "ai_drafts"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    lead_id: Mapped[str] = mapped_column(ForeignKey("leads.id", ondelete="CASCADE"))
+    kind: Mapped[str] = mapped_column(String(16))
+    cache_key: Mapped[str] = mapped_column(String(64))
+    text: Mapped[str | None] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(16))
+    failure_code: Mapped[str | None] = mapped_column(String(64))
+    attempts: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    next_retry_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    used_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+    __table_args__ = (UniqueConstraint("lead_id", "kind", "cache_key", name="uq_ai_draft_key"),
+                      Index("ix_ai_draft_due", "kind", "status", "next_retry_at"))
 
 
 class EventOutbox(Base):

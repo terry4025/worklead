@@ -37,6 +37,9 @@ import type {
  *
  * 메서드 이름·인자는 화면 관점의 요구이며 HTTP 경로와 1:1 대응을 강제하지 않는다.
  */
+/** EXAONE 견적서 초안. 금액·기간 칸은 비어 있다. */
+export interface QuoteDraft { state: 'none' | 'pending' | 'ready' | 'failed'; text: string | null; failureCode: string | null }
+
 export interface WorkleadPort {
   readonly mode: 'demo' | 'live';
   readonly cafe: import('../domain/cafe').CafePort;
@@ -56,6 +59,9 @@ export interface WorkleadPort {
   addOutcome(id: string, input: OutcomeInput): Promise<LeadDetail>;
   /** 문의 초안 생성 요청. 발송 기능은 없다. */
   generateDraft(id: string): Promise<LeadDetail>;
+  /** EXAONE 견적서 초안 요청. 발송 기능은 없다. */
+  requestQuoteDraft(id: string): Promise<QuoteDraft>;
+  quoteDraft(id: string): Promise<QuoteDraft>;
 
   listSources(): Promise<SourceInfo[]>;
   updateSource(

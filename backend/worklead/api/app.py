@@ -31,7 +31,7 @@ from ..db import MaintenanceBusy, utcnow
 from ..engine import runs as runq
 from ..engine.events import emit
 from ..engine.pipeline import apply_analysis, generate_draft
-from ..models import EventOutbox, Lead, LeadActivity, Outcome, Run, Source, SourcePolicy, SourceRecord, UserFeedback, new_id
+from ..models import AiDraft, EventOutbox, Lead, LeadActivity, Outcome, Run, Source, SourcePolicy, SourceRecord, UserFeedback, new_id
 from ..services import leads as lead_svc
 from ..services import relations as relation_svc
 from ..services import backups as backup_svc
@@ -561,6 +561,44 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
         s.add(LeadActivity(id=new_id("act"), lead_id=lead.id, at=now, kind="draft", text="문의 초안 생성"))
         s.flush()
         return lead_svc.detail(s, lead)
+
+    def _quote_row(s: Any, lead_id: str, create: bool):
+        from ..analysis import writer
+        from ..analysis.assist import exaone_settings
+        lead = s.get(Lead, lead_id)
+        rec = s.get(SourceRecord, lead.primary_record_id) if lead and lead.primary_record_id else None
+        if lead is None or rec is None:
+            raise ApiError(404, "not_found", "리드를 찾을 수 없습니다")
+        cfg = exaone_settings(s)
+        if create and (not cfg or not cfg.get("assist_quote")):
+            raise ApiError(409, "assist_disabled", "설정에서 EXAONE 견적서 초안 기능을 켜세요")
+        profile = settings_svc.get_profile(s)
+        if create:
+            return writer.quote_draft(s, lead, rec, profile)
+        key = writer.draft_key("quote", rec, profile)
+        return s.scalar(select(AiDraft).where(AiDraft.lead_id == lead_id, AiDraft.kind == "quote", AiDraft.cache_key == key))
+
+    def _quote_out(row) -> S.QuoteDraftOut:
+        if row is None:
+            return S.QuoteDraftOut(state="none")
+        return S.QuoteDraftOut(state=row.status, text=row.text, failure_code=row.failure_code)
+
+    @app.post("/v1/leads/{lead_id}/quote-draft", response_model=S.QuoteDraftOut, tags=["leads"], responses=ERRORS)
+    def request_quote_draft(lead_id: str, s: Sess) -> S.QuoteDraftOut:
+        """견적서 초안 요청. 금액·기간은 비워 둔다. 발송하지 않는다."""
+        row = _quote_row(s, lead_id, create=True)
+        if row.status == "failed":
+            row.status, row.attempts, row.next_retry_at, row.failure_code = "pending", 0, None, None
+        out = _quote_out(row)
+        s.commit()
+        w = ctx._assist_worker  # never the property: it takes ai_control_lock
+        if w is not None:
+            w.wake()
+        return out
+
+    @app.get("/v1/leads/{lead_id}/quote-draft", response_model=S.QuoteDraftOut, tags=["leads"], responses=ERRORS)
+    def get_quote_draft(lead_id: str, s: Sess) -> S.QuoteDraftOut:
+        return _quote_out(_quote_row(s, lead_id, create=False))
 
     # ── 설정 ────────────────────────────────────────────────────────
     def credential_status(provider: str = "openai") -> CredentialStatus:

@@ -1977,3 +1977,7 @@ input[aria-invalid='true'] {
 .freshness-metrics-grid { display: flex; flex-wrap: wrap; gap: 12px 32px; padding-top: 8px; }
 .freshness-metrics-grid > div { flex: 1 1 260px; }
 .freshness-metrics-grid p { margin: 4px 0; }
+.quote-draft-text {
+  white-space: pre-wrap;
+  font: inherit;
+}

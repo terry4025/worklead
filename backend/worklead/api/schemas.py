@@ -1070,6 +1070,12 @@ class NativeNotificationResultOut(Model):
     state: NativeNotificationState
 
 
+class QuoteDraftOut(Model):
+    state: Literal["none", "pending", "ready", "failed"]
+    text: str | None = None
+    failure_code: str | None = None
+
+
 class CategoryOut(Model):
     id: str
     label: str

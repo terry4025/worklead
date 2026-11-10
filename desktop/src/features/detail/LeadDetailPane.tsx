@@ -18,6 +18,7 @@ import { DraftBox, FeedbackControls, MemoBox, Outcomes, StageSelect } from './Re
 import { SourceText, type Mark } from './SourceText';
 import { RelatedRecordsPanel } from './RelatedRecordsPanel';
 import { AiInterpretationPanel } from './AiInterpretationPanel';
+import { QuoteDraftPanel } from './QuoteDraftPanel';
 import { LeadTiming } from '../leads/LeadTiming';
 import { ApplicationAssessment } from '../jobs/ApplicationWorkspace';
 
@@ -308,6 +309,8 @@ export const LeadDetailPane = forwardRef<
               </div>
               <p className="field-hint">원문에서 지원을 마친 뒤 상단 진행 상태를 ‘연락함’으로 기록하세요. 원문을 열거나 초안을 복사해도 지원 완료로 기록하지 않습니다.</p>
             </section>
+
+            <QuoteDraftPanel key={`quote-${full.id}`} leadId={full.id} />
 
             <AiInterpretationPanel value={full.analysis.aiInterpretation} />
             <section className="d-section" aria-labelledby="sec-cond">

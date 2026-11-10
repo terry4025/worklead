@@ -159,6 +159,9 @@ export class LivePort implements WorkleadPort {
     return mapDetail(await wrap(this.client.draft(id)));
   }
 
+  async requestQuoteDraft(id: string) { const r = await wrap(this.client.requestQuoteDraft(id)); return { state: r.state, text: r.text ?? null, failureCode: r.failure_code ?? null }; }
+  async quoteDraft(id: string) { const r = await wrap(this.client.quoteDraft(id)); return { state: r.state, text: r.text ?? null, failureCode: r.failure_code ?? null }; }
+
   async listSources() {
     return (await wrap(this.client.listSources())).items.map(mapSource);
   }

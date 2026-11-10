@@ -26,7 +26,7 @@ import { intentClass, recruitClass, remoteClass } from '../../domain/present';
 import { inQueue } from '../../domain/queues';
 import { toSummary } from '../../domain/summary';
 import { groupOutcomes, legacyMoneyAmount, salesPeriod } from '../../domain/sales';
-import { PortError, type WorkleadPort } from '../port';
+import { PortError, type QuoteDraft, type WorkleadPort } from '../port';
 import { DEMO_CATEGORIES, buildImportedLead, buildReserveLead } from './fixtures';
 import { buildScenario, type ScenarioId } from './scenarios';
 import { MockCafePort } from './MockCafePort';
@@ -213,6 +213,7 @@ export class MockPort implements WorkleadPort {
   private timers = new Set<ReturnType<typeof setTimeout>>();
   private reserveUsed = false;
   private importSeq = 0;
+  private quoteDrafts = new Map<string, QuoteDraft>();
   readonly scenario: ScenarioId;
   private latency: [number, number];
   private now: () => number;
@@ -403,6 +404,28 @@ export class MockPort implements WorkleadPort {
       this.activity(l, '영업 결과 기록');
       this.emit({ type: 'lead.updated', leadId: id });
       return this.withDerived(l);
+    });
+  }
+
+  requestQuoteDraft(id: string): Promise<QuoteDraft> {
+    return this.delay(() => {
+      this.find(id);
+      const cur = this.quoteDrafts.get(id);
+      if (cur && cur.state !== 'failed') return { ...cur };
+      const next: QuoteDraft = { state: 'pending', text: null, failureCode: null };
+      this.quoteDrafts.set(id, next);
+      return { ...next };
+    });
+  }
+
+  quoteDraft(id: string): Promise<QuoteDraft> {
+    return this.delay(() => {
+      this.find(id);
+      const cur = this.quoteDrafts.get(id);
+      if (!cur) return { state: 'none' as const, text: null, failureCode: null };
+      // 합성 흐름: 요청 뒤 첫 조회는 pending, 다음 조회부터 ready.
+      if (cur.state === 'pending') this.quoteDrafts.set(id, { state: 'ready', text: '견적서 초안\n[금액]', failureCode: null });
+      return { ...cur };
     });
   }
 

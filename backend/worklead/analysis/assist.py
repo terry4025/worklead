@@ -71,8 +71,8 @@ def default_steps() -> list[Callable]:
     """Priority order: application text > chat reply > quote > recheck. Later tasks append here."""
     from .chat_draft import chat_step
     from .recheck import recheck_step
-    from .writer import application_step
-    return [application_step, chat_step, recheck_step]
+    from .writer import application_step, quote_step
+    return [application_step, chat_step, quote_step, recheck_step]
 
 
 class AssistWorker(threading.Thread):

@@ -18,7 +18,7 @@ MODEL = "k-exaone_v2.5"
 MIN_INTERVAL_SECONDS = 1.1
 MAX_RETRIES_429 = 2
 MAX_RESPONSE_BYTES = 512 * 1024
-TIMEOUT = httpx.Timeout(90.0, connect=5.0, write=10.0, pool=5.0)
+TIMEOUT = httpx.Timeout(180.0, connect=5.0, write=10.0, pool=5.0)
 _FENCE = re.compile(r"^```(?:json)?\s*|\s*```$")
 
 

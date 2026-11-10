@@ -195,3 +195,15 @@ def test_mostly_english_body_is_rejected_before_korean_lines_are_appended():
     assert 0.40 < hangul / (hangul + latin) < 0.50
     with pytest.raises(AIFailure, match="한국어"):
         validate_application(body, source=SRC, profile=P)
+
+
+@pytest.mark.parametrize("contact", ["abc＠gmail.com 으로 연락 주세요.", "example . com 참고해 주세요.",
+                                     "０１０-１２３４-５６７８로 연락 주세요."])
+def test_normalized_contacts_and_spaced_dots_are_rejected(contact):
+    with pytest.raises(AIFailure):
+        validate_application(f"{GOOD} {contact}", source=SRC, profile=P)
+
+
+def test_korean_sentences_with_periods_still_pass():
+    text = validate_application(GOOD + " 확인 부탁드립니다. 감사합니다. React 경험이 있습니다. Python도 씁니다.", source=SRC, profile=P)
+    assert text.startswith(GOOD)

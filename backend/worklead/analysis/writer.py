@@ -31,7 +31,7 @@ _URL = re.compile(r"https?://[^\s)>\]가-힣]+")
 # Any bare domain shape (label. ... + 2+ letter TLD), e.g. linktr.ee/x, example.shop. Tech names like Node.js
 # also match: accepted, the step fails safe. ASCII lookbehind, not \w: Hangul right before a domain must not hide it.
 _DOMAIN = re.compile(r"(?<![a-z0-9@-])(?:[a-z0-9-]+\.)+[a-z]{2,}(?:/[^\s)>\]가-힣]*)?", re.IGNORECASE)
-_DOTS = re.compile(r"\s*[\[(]\s*(?:\.|dot)\s*[\])]\s*|\s+dot\s+|[。．｡]", re.IGNORECASE)
+_DOTS = re.compile(r"\s*[\[(]\s*(?:\.|dot)\s*[\])]\s*|\s+dot\s+|[。．｡]|(?<=[A-Za-z0-9])\s+\.\s+(?=[A-Za-z0-9])", re.IGNORECASE)
 _BUSINESS_WORDS = ("사업자", "계산서")
 _PHONE = re.compile(r"01[016789][-\s]?\d{3,4}[-\s]?\d{4}|(?<!\d)0\d{1,2}[-\s]\d{3,4}[-\s]\d{4}")
 _EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
@@ -102,7 +102,7 @@ def common_checks(text: str, *, source: str, profile, extra_numbers: frozenset[s
     host = _host(portfolio)
     if any(_host(d) != host for d in _DOMAIN.findall(_URL.sub(" ", plain))):
         _fail("포트폴리오 외 링크가 있습니다")
-    if _PHONE.search(text) or _EMAIL.search(text):
+    if _PHONE.search(plain) or _EMAIL.search(plain):
         _fail("연락처가 있습니다")
     known = "\n".join((source, profile.skills, profile.price_anchor_note))
     allowed = {n.replace(",", "").rstrip(".") for n in _NUMBER.findall(known)} | set(extra_numbers)

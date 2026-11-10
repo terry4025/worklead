@@ -426,3 +426,12 @@ def test_connection_ping_is_purpose_scoped_authenticated_and_does_not_claim(app)
         assert client.post('/ping', json={}, headers={'Origin': 'https://jobs.daangn.com'}).status_code == 403
     finally:
         client.close()
+
+
+def test_next_job_keeps_the_old_extension_shape_with_assist_off(app):
+    add(app)
+    bridge, client, _ = connect(app)
+    result = client.post("/next", json={"account_hash": ACCOUNT})
+    assert result.status_code == 200, result.text
+    job = json.loads(result.content)["job"]
+    assert sorted(job) == ["attempt_id", "lead_id", "lease_token", "title", "url"]

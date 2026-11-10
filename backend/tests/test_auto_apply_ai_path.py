@@ -1,9 +1,21 @@
+from dataclasses import replace
+
+from tests.exaone_fixtures import EX_CFG
 from tests.test_job_auto_apply import NOW, app, add, claimed, connect  # noqa: F401
+from worklead.analysis.types import Reason
+from worklead.jobs import auto_apply
 from worklead.jobs.auto_apply import condition
 from worklead.models import Lead, SourceRecord, UserFeedback, new_id
+from worklead.services.settings import put_setting
+
+
+def ai_settings(app, **over):
+    with app.db.session() as s:
+        put_setting(s, "ai", {**EX_CFG, "assist_application": False, **over})
 
 
 def mark_ai(app, lead_id, **over):
+    ai_settings(app)
     with app.db.session() as s:
         lead = s.get(Lead, lead_id)
         rec = s.get(SourceRecord, lead.primary_record_id)
@@ -62,4 +74,27 @@ def test_user_feedback_not_real_request_blocks_ai_path(app):
     mark_ai(app, lead_id)
     with app.db.session() as s:
         s.add(UserFeedback(id=new_id("fb"), lead_id=lead_id, kind="real_request", value="no", created_at=NOW))
+    assert check(app, lead_id) == "condition_changed"
+
+
+def test_ai_path_stops_when_recheck_switch_or_exaone_is_off(app):
+    lead_id = add(app)
+    mark_ai(app, lead_id)
+    ai_settings(app, assist_recheck=False)
+    assert check(app, lead_id) == "condition_changed"
+    ai_settings(app, provider="openai")
+    assert check(app, lead_id) == "condition_changed"
+    ai_settings(app)
+    assert check(app, lead_id) is None
+
+
+def test_non_soft_negative_blocks_ai_path_even_when_needs_review(app, monkeypatch):
+    lead_id = add(app)
+    mark_ai(app, lead_id)
+    real = auto_apply.analyze
+
+    def with_negative(*args, **kwargs):
+        out = real(*args, **kwargs)
+        return replace(out, recommendation="needs_review", reasons=[*out.reasons, Reason("negative", "판매 글")])
+    monkeypatch.setattr(auto_apply, "analyze", with_negative)
     assert check(app, lead_id) == "condition_changed"

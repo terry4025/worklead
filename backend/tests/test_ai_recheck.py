@@ -97,3 +97,9 @@ def test_hard_reason_added_during_call_blocks_promotion(tmp_path):
         assert lead.recommendation == "excluded"
         assert lead.ai_recheck["promoted"] and lead.ai_recheck["content_hash"]
         assert s.query(EventOutbox).filter(EventOutbox.dedupe_key.like("notify:ai_recheck:%")).count() == 0
+
+
+def test_one_character_quote_fails_grounding():
+    for field in ("dev_evidence", "intent_evidence", "remote_evidence"):
+        out = judge(verdict(**{field: ["재"]}), SOURCE, "project")
+        assert not out["promoted"] and out["rejected"] == "grounding"

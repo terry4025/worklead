@@ -1,6 +1,6 @@
 from tests.exaone_fixtures import EX_CFG
 from tests.test_auto_pairing import app  # noqa: F401
-from tests.test_job_auto_apply import ACCOUNT, add  # noqa: F401
+from tests.test_job_auto_apply import ACCOUNT, add, claimed, connect  # noqa: F401
 from tests.test_managed_auto import Browser, runner_for
 from worklead.analysis.writer import application_draft, text_hash
 from worklead.jobs.auto_apply import runtime as auto_runtime
@@ -92,6 +92,18 @@ def test_fill_mismatch_never_submits(app):
     assert browser.submits == 0
 
 
+def test_review_with_wrong_tailored_hash_holds_as_ai_text_unavailable(app):
+    enable(app)
+    ready_text(app, add(app), "맞춤 문구입니다.\n\n포트폴리오: https://www.seyj.kr/")
+    bridge, client, _ = connect(app)
+    body = claimed(client)
+    result = client.post("/review", json={**body, "outcome": "ready", "reason_code": "ready", "evidence": "application_form"})
+    assert result.status_code == 200, result.text
+    assert result.json()["status"] == "held"
+    assert bridge.status().attempts[0].reason_code == "ai_text_unavailable"
+    assert bridge.status().state != "paused"
+
+
 def test_edited_post_does_not_reuse_old_text(app):
     enable(app)
     lead_id = add(app)
@@ -129,6 +141,24 @@ def test_switch_turned_off_mid_attempt_refuses_permit(app):
                     put_setting(s, "ai", {**EX_CFG, "assist_application": False})
             return result
     runner, browser = runner_for(app, OffAfterFill())
+    runner._step(browser)
+    assert browser.filled and browser.submits == 0
+    assert auto_runtime(app).status().attempts[0].reason_code == "ai_text_unavailable"
+
+
+def test_post_edited_after_issue_refuses_permit(app):
+    enable(app)
+    lead_id = add(app)
+    ready_text(app, lead_id, "맞춤 문구입니다.\n\n포트폴리오: https://www.seyj.kr/")
+
+    class EditAfterFill(TailoredBrowser):
+        def act(self, operation, expected=None):
+            result = super().act(operation, expected)
+            if operation == "fill":
+                with app.db.session() as s:
+                    s.get(SourceRecord, s.get(Lead, lead_id).primary_record_id).content_hash = "edited"
+            return result
+    runner, browser = runner_for(app, EditAfterFill())
     runner._step(browser)
     assert browser.filled and browser.submits == 0
     assert auto_runtime(app).status().attempts[0].reason_code == "ai_text_unavailable"

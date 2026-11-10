@@ -8,8 +8,13 @@ export function jobId(raw) {
     return decodeURIComponent(url.pathname).match(/^\/job-posts\/(?:[^/?#]+-)?([A-Za-z0-9]{12})(?:\/apply)?\/?$/)?.[1] ?? null;
   } catch { return null; }
 }
+const JOB_KEYS = 'attempt_id,lead_id,lease_token,title,url';
+const TAILORED_KEYS = 'application_text,attempt_id,lead_id,lease_token,text_hash,title,url';
 export function validJob(job) {
-  return job && Object.keys(job).sort().join(',') === 'attempt_id,lead_id,lease_token,title,url' &&
+  const keys = job && Object.keys(job).sort().join(',');
+  // A tailored job (assist_application on) carries the AI text and its hash; the worker holds it without filling.
+  const tailored = keys === TAILORED_KEYS && typeof job.application_text === 'string' && job.application_text.length > 0 && hashShape(job.text_hash);
+  return job && (keys === JOB_KEYS || tailored) &&
     typeof job.attempt_id === 'string' && job.attempt_id.length <= 40 && typeof job.lead_id === 'string' && job.lead_id.length <= 80 &&
     typeof job.title === 'string' && job.title.length > 0 && job.title.length <= 2000 && jobId(job.url) !== null &&
     /^[A-Za-z0-9_-]{32,128}$/.test(job.lease_token);

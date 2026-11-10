@@ -252,6 +252,12 @@ async function tick() {
     const job = next.job;
     const expected = { job_id: jobId(job.url), title: job.title, account_hash: account.account_hash };
     identity = { attempt_id: job.attempt_id, lease_token: job.lease_token, account_hash: account.account_hash, profile_hash: '0'.repeat(64) };
+    if ('application_text' in job) {
+      // The extension never fills the intro, so it cannot submit an AI text: hold before opening anything.
+      await post(c, '/review', { ...identity, outcome: 'held', reason_code: 'ai_text_unavailable' });
+      await setStatus('AI 지원 문구는 이 연결에서 넣을 수 없어 해당 공고를 보류했습니다.');
+      return;
+    }
     let pending = { job, identity, phase: 'opening', receipt_token: null, checks: 0, created_at: Date.now(),
       next_check_at: 0, tab_id: c.tabId, connection_url: c.url };
     await savePending(c, pending);

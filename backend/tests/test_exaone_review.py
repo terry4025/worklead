@@ -50,3 +50,17 @@ def test_stop_pending_ai_covers_exaone(tmp_path):
         assert stop_pending_ai(s) == [lead_id]
     with ctx.db.session() as s:
         assert s.get(Lead, lead_id).analysis_status == "rules_only"
+
+
+def test_review_request_masks_account_numbers(tmp_path):
+    sent = []
+
+    def capture(request):
+        sent.append(request.content.decode("utf-8"))
+        return grounded(request)
+    ctx = ex_ctx(tmp_path, capture)
+    lead_id = seed(ctx, body="홈페이지 제작 의뢰합니다. 계약금은 110-123-456789 계좌로 보내드립니다.").lead_id
+    ctx.ai_coordinator.analyze_lead(lead_id)
+    assert sent
+    body = json.loads(sent[0])["messages"][1]["content"]
+    assert "110-123-456789" not in "".join(sent) and "[계좌번호]" in body

@@ -62,7 +62,8 @@ def recheckable(reasons) -> bool:
 def judge(out: RecheckOut, source: str, pay_unit: str | None) -> dict:
     src = _norm(source)
     quotes = out.dev_evidence + out.intent_evidence + out.remote_evidence
-    if any(not _norm(q) or _norm(q) not in src for q in quotes):
+    # A 1-3 character quote is found in almost any text: it proves nothing, so it fails grounding.
+    if any(len(_norm(q)) < 4 or _norm(q) not in src for q in quotes):
         return {"promoted": False, "auto_eligible": False, "rejected": "grounding"}
     dev = out.is_dev_project and bool(out.dev_evidence)
     buyer = out.intent in ("buyer_project", "buyer_ongoing") and bool(out.intent_evidence)

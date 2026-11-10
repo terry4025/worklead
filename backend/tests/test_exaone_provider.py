@@ -93,3 +93,16 @@ def test_truncated_or_invalid_output_is_rejected():
     with pytest.raises(AIFailure) as exc:
         client.complete("k", "s", "u", Probe)
     assert exc.value.code == "schema_error"
+
+
+@pytest.mark.parametrize("headers,wait", [({"retry-after": "3600"}, 10.0), ({"retry-after": "inf"}, 2.0),
+                                          ({"retry-after": "nan"}, 2.0), ({"retry-after-ms": "99999999"}, 10.0)])
+def test_rate_limit_wait_is_bounded(headers, wait):
+    calls = []
+
+    def handler(request):
+        calls.append(1)
+        return reply("", 429, headers) if len(calls) == 1 else reply('{"ok": true, "note": null}')
+    client, clock = make(handler)
+    assert client.complete("k", "s", "u", Probe)[0].ok
+    assert wait in clock.slept and max(clock.slept) <= 10.0

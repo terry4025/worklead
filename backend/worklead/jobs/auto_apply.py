@@ -15,13 +15,14 @@ from urllib.parse import unquote, urlsplit
 from sqlalchemy import func, or_, select, text
 
 from ..analysis import writer
+from ..analysis.assist import exaone_settings
 from ..analysis.recheck import SOFT_TEXTS, ai_auto_eligible
 from ..analysis.rules import business_requirements
 from ..analysis.service import analyze
 from ..db import MaintenanceBusy
 from ..engine.events import emit
 from ..engine.pipeline import feedback_map, post_input_from_record
-from ..models import AppSetting, DetailFetchState, JobAutoAttempt, Lead, LeadActivity, Run, Source, SourcePolicy, SourceRecord, new_id
+from ..models import AiDraft, AppSetting, DetailFetchState, JobAutoAttempt, Lead, LeadActivity, Run, Source, SourcePolicy, SourceRecord, new_id
 from ..services.settings import get_profile, ttl_hours
 from .applications import ApplicationError
 from .auto_apply_models import AutoApplyStartIn, AutoApplyStatus, AutoAttemptOut, AutoCandidateOut
@@ -53,7 +54,9 @@ def job_identity(rec):
 
 def condition(s, lead, now, min_score, *, queue=False, visible_form=False):
     rec = s.get(SourceRecord, lead.primary_record_id) if lead.primary_record_id else None
-    ai_path = rec is not None and ai_auto_eligible(lead, rec)
+    cfg = exaone_settings(s)
+    # A promotion only drives auto-apply while EXAONE and its recheck switch stay on.
+    ai_path = rec is not None and bool(cfg and cfg.get("assist_recheck")) and ai_auto_eligible(lead, rec)
     if (lead.source_id != "daangn-alba" or lead.recommendation not in ("recommended", "needs_review")
             or lead.pay_unit != "project" or lead.sales_stage not in ("new", "reviewing")
             or lead.user_mark == "dismissed" or lead.source_status != "open" or lead.access_status != "accessible"
@@ -81,7 +84,7 @@ def condition(s, lead, now, min_score, *, queue=False, visible_form=False):
     # rule exclusion (feedback, risk, excluded work, deletion, seller, ...) still blocks.
     if ai_path:
         negatives = [r.text for r in current.reasons if r.tone == "negative"]
-        if ((current.recommendation == "excluded" and not all(t in SOFT_TEXTS for t in negatives))
+        if (not all(t in SOFT_TEXTS for t in negatives)
                 or current.pay.unit != "project" or any(f.key == "time_pay" for f in current.factors)):
             return "condition_changed"
     elif (current.recommendation == "excluded" or not current.dev_relevant or current.pay.unit != "project"
@@ -627,12 +630,22 @@ class AutoApplyRuntime:
                 if reason: continue
                 token = secrets.token_urlsafe(32)
                 self._leases[row.id] = token
+                job = {"attempt_id": row.id, "lead_id": lead.id, "title": lead.title, "url": rec.original_url,
+                       "lease_token": token}
                 if draft is not None:
-                    self._texts[row.id] = writer.text_hash(draft.text)
-                return {"job": {"attempt_id": row.id, "lead_id": lead.id, "title": lead.title, "url": rec.original_url,
-                                "lease_token": token, "application_text": draft.text if draft else None,
-                                "text_hash": self._texts.get(row.id)}}
+                    # Only a tailored job carries the text keys: the extension validates the exact key set.
+                    self._texts[row.id] = job["text_hash"] = writer.text_hash(draft.text)
+                    job["application_text"] = draft.text
+                return {"job": job}
             return self._empty_next(s)
+
+    def _draft_current(self, s, row):
+        lead = s.get(Lead, row.lead_id)
+        rec = s.get(SourceRecord, lead.primary_record_id) if lead and lead.primary_record_id else None
+        if rec is None: return False
+        draft = s.scalar(select(AiDraft).where(AiDraft.lead_id == lead.id, AiDraft.kind == "application",
+            AiDraft.cache_key == writer.draft_key("application", rec, get_profile(s))))
+        return bool(draft and draft.status == "ready" and draft.text and writer.text_hash(draft.text) == self._texts[row.id])
 
     def review(self, body):
         with self._lock, self.app.db.session() as s:
@@ -651,7 +664,7 @@ class AutoApplyRuntime:
                 queue=body.outcome == "held" and body.reason_code in TRANSIENT_REASONS)
             tailored = self._texts.get(row.id)
             if tailored is not None and body.outcome == "ready" and body.profile_hash != tailored:
-                reason = reason or "profile_changed"
+                reason = reason or "ai_text_unavailable"
             if tailored is None and body.outcome == "ready" and self._profile is not None and self._profile != body.profile_hash:
                 reason = "profile_changed"
                 if self._status.remembers_connection:
@@ -688,6 +701,8 @@ class AutoApplyRuntime:
             reason = self._eligible(s, row)
             if not reason and (row.id in self._texts) != writer.application_text_required(s):
                 reason = "ai_text_unavailable"  # assist_application switched after this job was issued
+            if not reason and row.id in self._texts and not self._draft_current(s, row):
+                reason = "ai_text_unavailable"  # post or profile changed: the issued text is no longer the ready draft
             state = self._status_in(s)
             if reason or state.today_submitted + state.today_reserved >= state.daily_limit:
                 self._finish(s, row, reason or "daily_limit")

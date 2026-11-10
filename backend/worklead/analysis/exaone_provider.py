@@ -30,12 +30,15 @@ def strict_schema(model: type[BaseModel]) -> dict:
 
 
 def _retry_after(headers: httpx.Headers) -> float:
+    # The server value is untrusted: cap the wait so one reply cannot stall the worker.
     try:
         if "retry-after-ms" in headers:
-            return max(0.0, int(headers["retry-after-ms"]) / 1000)
-        return max(0.0, float(headers.get("retry-after", "2")))
-    except ValueError:
+            value = int(headers["retry-after-ms"]) / 1000
+        else:
+            value = float(headers.get("retry-after", "2"))
+    except (ValueError, OverflowError):
         return 2.0
+    return min(max(0.0, value), 10.0) if math.isfinite(value) else 2.0
 
 
 class ExaoneClient:

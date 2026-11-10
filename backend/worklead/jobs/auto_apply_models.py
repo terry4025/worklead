@@ -90,7 +90,7 @@ class IdentityIn(NextIn):
 
 ReasonCode = Literal["ready", "already_applied", "questions_required", "profile_changed", "condition_conflict",
     "login_required", "account_changed", "closed", "ui_unrecognized", "navigation_failed",
-    "submission_unconfirmed", "submitted", "cancelled", "browser_timeout", "connection_ended"]
+    "submission_unconfirmed", "submitted", "cancelled", "browser_timeout", "connection_ended", "ai_text_unavailable"]
 
 
 class ReviewIn(IdentityIn):

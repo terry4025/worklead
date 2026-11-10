@@ -85,6 +85,17 @@
       exact(document.querySelector('main'), '지원하기')[0].click();
       return { state: 'opened' };
     }
+    if (operation === 'fill' && result.state === 'ready' && typeof expected.text === 'string'
+        && expected.text.length >= 1 && expected.text.length <= 2000) {
+      // Only the saved default tab's single textarea; never other inputs, tabs or buttons.
+      const area = [...panels()[0].querySelectorAll('textarea')].filter(visible)[0];
+      const setter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(area), 'value')?.set;
+      if (!setter) return { state: 'held', reason_code: 'ui_unrecognized' };
+      setter.call(area, expected.text);
+      area.dispatchEvent(new Event('input', { bubbles: true }));
+      if (area.value !== expected.text) return { state: 'held', reason_code: 'ui_unrecognized' };
+      return { state: 'filled', profile_hash: await digest(norm(area.value)) };
+    }
     if (operation === 'submit' && result.state === 'ready' && result.profile_hash === expected.profile_hash && Date.now() <= expected.permit_until) {
       // Marker is private to this isolated document. Worker/backend provide durable at-most-once gates.
       const key = expected.attempt_id;

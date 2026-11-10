@@ -14,6 +14,7 @@ from urllib.parse import unquote, urlsplit
 
 from sqlalchemy import func, or_, select, text
 
+from ..analysis import writer
 from ..analysis.recheck import SOFT_TEXTS, ai_auto_eligible
 from ..analysis.rules import business_requirements
 from ..analysis.service import analyze
@@ -108,6 +109,7 @@ class AutoApplyRuntime:
         self._account = self._profile = None
         self._leases = {}
         self._receipts = {}
+        self._texts = {}
         self._generation = app.db.gate.generation
         self._connected = None
         self._refresh_after = 0
@@ -132,8 +134,11 @@ class AutoApplyRuntime:
                 for row in legacy:
                     if row.job_key not in journal:
                         row.retry_after = self.app.clock() + timedelta(seconds=RETRY_DELAYS[0])
-                        self._leases.pop(row.id, None); self._receipts.pop(row.id, None)
+                        self._leases.pop(row.id, None); self._receipts.pop(row.id, None); self._texts.pop(row.id, None)
                         self._diagnostic_cache = None
+
+    def _expected_profile(self, attempt_id):
+        return self._texts.get(attempt_id, self._profile)
 
     def _finish(self, s, row, reason):
         """Retire authority first; only demonstrably pre-permit failures may retry."""
@@ -143,6 +148,7 @@ class AutoApplyRuntime:
         row.reason_code, row.finished_at, row.expires_at = reason, self.app.clock(), None
         row.retry_after = None
         self._leases.pop(row.id, None)
+        self._texts.pop(row.id, None)
         if not permitted and not was_submitting:
             self._receipts.pop(row.id, None)
             if reason in TRANSIENT_REASONS:
@@ -583,6 +589,14 @@ class AutoApplyRuntime:
                 if not fresh and not reason:
                     self._request_refresh(s, lead, rec)
                     continue
+                draft = None
+                if not reason and writer.application_text_required(s):
+                    draft = writer.application_draft(s, lead, rec, get_profile(s))
+                    if draft.status == "pending":
+                        self.app.assist_worker.wake()
+                        continue
+                    if draft.status == "failed":
+                        reason = "ai_text_unavailable"
                 now = self.app.clock()
                 if row is None:
                     row = JobAutoAttempt(id=new_id("auto"), job_key=key, lead_id=lead.id, state="held" if reason else "claimed",
@@ -593,7 +607,7 @@ class AutoApplyRuntime:
                     self._finish(s, row, reason)
                 else:
                     # Reuse the durable unique job identity; never an old lease/receipt.
-                    self._leases.pop(row.id, None); self._receipts.pop(row.id, None)
+                    self._leases.pop(row.id, None); self._receipts.pop(row.id, None); self._texts.pop(row.id, None)
                     row.retry_count = (row.retry_count or 0)+1
                     row.state, row.reason_code, row.finished_at, row.retry_after = "claimed", None, None, None
                     row.expires_at = now+timedelta(seconds=LEASE_SECONDS)
@@ -601,7 +615,11 @@ class AutoApplyRuntime:
                 if reason: continue
                 token = secrets.token_urlsafe(32)
                 self._leases[row.id] = token
-                return {"job": {"attempt_id": row.id, "lead_id": lead.id, "title": lead.title, "url": rec.original_url, "lease_token": token}}
+                if draft is not None:
+                    self._texts[row.id] = writer.text_hash(draft.text)
+                return {"job": {"attempt_id": row.id, "lead_id": lead.id, "title": lead.title, "url": rec.original_url,
+                                "lease_token": token, "application_text": draft.text if draft else None,
+                                "text_hash": self._texts.get(row.id)}}
             return self._empty_next(s)
 
     def review(self, body):
@@ -614,12 +632,15 @@ class AutoApplyRuntime:
             if body.outcome == "already_applied" and body.reason_code == "already_applied":
                 row.state, row.reason_code, row.finished_at = "already_applied", "already_applied", self.app.clock()
                 row.retry_after = None
-                self._leases.pop(row.id, None); self._receipts.pop(row.id, None)
+                self._leases.pop(row.id, None); self._receipts.pop(row.id, None); self._texts.pop(row.id, None)
                 self._diagnostic_cache = None
                 return {"status": row.state}
             reason = self._eligible(s, row, visible_form=body.outcome == "ready" and body.evidence == "application_form",
                 queue=body.outcome == "held" and body.reason_code in TRANSIENT_REASONS)
-            if body.outcome == "ready" and self._profile is not None and self._profile != body.profile_hash:
+            tailored = self._texts.get(row.id)
+            if tailored is not None and body.outcome == "ready" and body.profile_hash != tailored:
+                reason = reason or "profile_changed"
+            if tailored is None and body.outcome == "ready" and self._profile is not None and self._profile != body.profile_hash:
                 reason = "profile_changed"
                 if self._status.remembers_connection:
                     self.app._jobs_auto_pairing_runtime.disable("profile_changed")
@@ -627,12 +648,13 @@ class AutoApplyRuntime:
             if reason:
                 self._finish(s, row, reason)
             elif body.outcome == "ready" and body.reason_code == "ready":
-                if self._status.remembers_connection:
-                    try: self.app._jobs_auto_pairing_runtime.bind_profile(body.profile_hash)
-                    except ApplicationError:
-                        self._pause_session("profile_changed")
-                        raise
-                self._profile = body.profile_hash
+                if tailored is None:
+                    if self._status.remembers_connection:
+                        try: self.app._jobs_auto_pairing_runtime.bind_profile(body.profile_hash)
+                        except ApplicationError:
+                            self._pause_session("profile_changed")
+                            raise
+                    self._profile = body.profile_hash
                 row.state, row.reason_code = "ready", "ready"
                 self._diagnostic_cache = None
                 receipt = secrets.token_urlsafe(32)
@@ -649,9 +671,11 @@ class AutoApplyRuntime:
             self._check(body)
             self._expire(s)
             row = self._attempt(s, body)
-            if row.state != "ready" or self._profile != body.profile_hash:
+            if row.state != "ready" or self._expected_profile(row.id) != body.profile_hash:
                 raise ApplicationError(409, "permit_invalid", "새 제출 허가가 필요합니다")
             reason = self._eligible(s, row)
+            if not reason and row.id not in self._texts and writer.application_text_required(s):
+                reason = "ai_text_unavailable"  # switch turned on after this job was issued without a text
             state = self._status_in(s)
             if reason or state.today_submitted + state.today_reserved >= state.daily_limit:
                 self._finish(s, row, reason or "daily_limit")
@@ -675,11 +699,12 @@ class AutoApplyRuntime:
             s.execute(text("BEGIN IMMEDIATE"))
             self._check(body)
             row = self._attempt(s, body)
-            if row.state != "submitting" or self._profile != body.profile_hash:
+            if row.state != "submitting" or self._expected_profile(row.id) != body.profile_hash:
                 raise ApplicationError(409, "result_invalid", "제출 결과를 대조할 수 없습니다")
             if body.outcome == "submitted" and (body.evidence != "cancel_button" or body.reason_code != "submitted"):
                 raise ApplicationError(422, "completion_evidence_required", "지원 완료 표시가 필요합니다")
             row.state = "submitted" if body.outcome == "submitted" else "uncertain"
+            self._texts.pop(row.id, None)
             row.reason_code, row.finished_at, row.expires_at = body.reason_code, self.app.clock(), None
             row.retry_after = None
             self._diagnostic_cache = None

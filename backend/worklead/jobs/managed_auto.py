@@ -12,6 +12,7 @@ import threading
 import time
 
 from ..db import MaintenanceBusy
+from ..analysis.writer import mark_used
 from ..models import AppSetting
 from .applications import ApplicationError
 from .auto_apply import runtime as auto_runtime
@@ -28,7 +29,7 @@ RECONCILE_DELAYS = (5, 15, 30)
 RECOVERY_RESET_SECONDS = 60
 HASH = re.compile(r"^[a-f0-9]{64}$")
 HELD_REASONS = {"questions_required", "profile_changed", "condition_conflict", "closed", "ui_unrecognized",
-                "navigation_failed", "login_required", "account_changed", "browser_timeout"}
+                "navigation_failed", "login_required", "account_changed", "browser_timeout", "ai_text_unavailable"}
 
 
 class ManagedAutoRuntime:
@@ -284,6 +285,18 @@ class ManagedAutoRuntime:
                 reason = reason if reason in HELD_REASONS else "ui_unrecognized"
                 self.auto.review(ReviewIn(**identity, outcome="held", reason_code=reason))
                 return
+            text = job.get("application_text")
+            if text is not None:
+                if not isinstance(text, str) or not HASH.fullmatch(str(job.get("text_hash") or "")):
+                    raise ManagedBrowserError("ui_unrecognized")
+                filled = browser.act("fill", {**expected, "text": text})
+                if filled.get("state") == "filled" and filled.get("profile_hash") == job["text_hash"]:
+                    view = self._wait(browser, expected, {"ready"})
+                if (filled.get("state") != "filled" or view.get("state") != "ready"
+                        or view.get("profile_hash") != job["text_hash"]):
+                    reason = filled.get("reason_code") if filled.get("reason_code") in HELD_REASONS else "ui_unrecognized"
+                    self.auto.review(ReviewIn(**identity, outcome="held", reason_code=reason))
+                    return
             identity["profile_hash"] = view["profile_hash"]
             reviewed = self.auto.review(ReviewIn(**identity, outcome="ready", reason_code="ready", evidence="application_form"))
             if reviewed.get("status") != "ready":
@@ -311,6 +324,7 @@ class ManagedAutoRuntime:
             if completed.get("state") == "already_applied" and completed.get("account_hash") == account:
                 try:
                     self.auto.result(ResultIn(**identity, outcome="submitted", reason_code="submitted", evidence="cancel_button"))
+                    if job.get("text_hash"): mark_used(self.app, job["lead_id"], job["text_hash"])
                 except ApplicationError:
                     # A late official completion may only reconcile the already
                     # issued receipt. No permit or click is ever repeated.

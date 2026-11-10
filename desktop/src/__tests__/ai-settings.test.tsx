@@ -221,6 +221,10 @@ describe('EXAONE 설정', () => {
     for (const name of ['검토 보조 분석', '제외 공고 AI 재검토', '맞춤 지원 문구 (자동 제출)', '채팅 답장 초안', '견적서 초안'])
       expect((screen.getByRole('checkbox', { name }) as HTMLInputElement).checked).toBe(false);
     expect(screen.getByRole('checkbox', { name: '위 텍스트의 LG EXAONE 외부 전송에 동의합니다' })).toBeTruthy();
+    const notice = screen.getByText(/학습 거부를 설정하기 전까지/).textContent ?? '';
+    expect(notice).toContain('LG EXAONE');
+    expect(notice).not.toContain('OpenAI');
+    expect(screen.getByText(/켜려면/).textContent).not.toMatch(/요금|환산/);
   });
 
   it('프로필에 포트폴리오·기준가, 수집 절전 방지 옵션이 있다', async () => {

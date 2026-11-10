@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import unicodedata
 from collections.abc import Callable
 from datetime import timedelta
 
@@ -30,7 +31,7 @@ _URL = re.compile(r"https?://[^\s)>\]가-힣]+")
 # Any bare domain shape (label. ... + 2+ letter TLD), e.g. linktr.ee/x, example.shop. Tech names like Node.js
 # also match: accepted, the step fails safe. ASCII lookbehind, not \w: Hangul right before a domain must not hide it.
 _DOMAIN = re.compile(r"(?<![a-z0-9@-])(?:[a-z0-9-]+\.)+[a-z]{2,}(?:/[^\s)>\]가-힣]*)?", re.IGNORECASE)
-_DOTS = re.compile(r"[。．]|\[\.\]|\(\.\)|\s+dot\s+", re.IGNORECASE)
+_DOTS = re.compile(r"\s*[\[(]\s*(?:\.|dot)\s*[\])]\s*|\s+dot\s+|[。．｡]", re.IGNORECASE)
 _BUSINESS_WORDS = ("사업자", "계산서")
 _PHONE = re.compile(r"01[016789][-\s]?\d{3,4}[-\s]?\d{4}|(?<!\d)0\d{1,2}[-\s]\d{3,4}[-\s]\d{4}")
 _EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
@@ -93,11 +94,13 @@ def common_checks(text: str, *, source: str, profile, extra_numbers: frozenset[s
     _korean_check(text)
     if any(word in text for word in BANNED):
         _fail("과장·보장 표현이 있습니다")
+    # Link checks run on a normalized copy: NFKC maps fullwidth letters and dots to ASCII, _DOTS undoes "[.]" etc.
+    plain = _DOTS.sub(".", unicodedata.normalize("NFKC", text))
     portfolio = profile.portfolio_url.strip().rstrip("/")
-    if any(url.rstrip(".,").rstrip("/") != portfolio for url in _URL.findall(text)):
+    if any(url.rstrip(".,").rstrip("/") != portfolio for url in _URL.findall(plain)):
         _fail("포트폴리오 외 링크가 있습니다")
     host = _host(portfolio)
-    if any(_host(d) != host for d in _DOMAIN.findall(_URL.sub(" ", _DOTS.sub(".", text)))):
+    if any(_host(d) != host for d in _DOMAIN.findall(_URL.sub(" ", plain))):
         _fail("포트폴리오 외 링크가 있습니다")
     if _PHONE.search(text) or _EMAIL.search(text):
         _fail("연락처가 있습니다")

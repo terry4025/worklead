@@ -40,7 +40,10 @@ def test_invisible_characters_are_removed():
     GOOD + " www.example.com", GOOD + " open.kakao.com/o/abcdef 로 문의 주세요",
     "가 I guarantee the best result for your homepage project, delivered fast and perfectly every single time.",
     *(f"{GOOD} {d} 참고해 주세요." for d in ("linktr.ee/abc", "forms.gle/abc", "example.ai", "example.shop", "example.xyz",
-                                         "example.info", "example。com", "example[.]com", "example dot com", "문의example.com"))])
+                                         "example.info", "example。com", "example[.]com", "example dot com", "문의example.com",
+                                         "example [.] com", "example (.) com", "example[dot]com", "example(dot)com",
+                                         "example｡com", "ｅｘａｍｐｌｅ．ｃｏｍ",
+                                         "example．com", "example(.)com", "ｈｔｔｐｓ://evil.com"))])
 def test_unsafe_text_is_rejected(bad):
     with pytest.raises(AIFailure):
         validate_application(bad, source=SRC, profile=P)

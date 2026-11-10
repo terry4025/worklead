@@ -38,7 +38,9 @@ def test_invisible_characters_are_removed():
     GOOD + " 결과는 100% 보장합니다.", GOOD + " 3일이면 끝납니다.", GOOD + " 010-1234-5678로 연락 주세요.",
     GOOD + " 참고: https://example.com", "Short english text only",
     GOOD + " www.example.com", GOOD + " open.kakao.com/o/abcdef 로 문의 주세요",
-    "가 I guarantee the best result for your homepage project, delivered fast and perfectly every single time."])
+    "가 I guarantee the best result for your homepage project, delivered fast and perfectly every single time.",
+    *(f"{GOOD} {d} 참고해 주세요." for d in ("linktr.ee/abc", "forms.gle/abc", "example.ai", "example.shop", "example.xyz",
+                                         "example.info", "example。com", "example[.]com", "example dot com", "문의example.com"))])
 def test_unsafe_text_is_rejected(bad):
     with pytest.raises(AIFailure):
         validate_application(bad, source=SRC, profile=P)
@@ -180,3 +182,13 @@ def test_internal_error_counts_as_attempt_and_does_not_block_queue(tmp_path, mon
         row = s.get(AiDraft, broken)
         assert row.status == "failed" and row.attempts == MAX_ATTEMPTS and row.failure_code == "internal_error"
         assert s.get(AiDraft, healthy).status == "ready"
+
+
+def test_mostly_english_body_is_rejected_before_korean_lines_are_appended():
+    import re
+    ko = "홈페이지 제작을 원격으로 맡기실 분을 찾고 계신 것으로 이해했습니다. 필요한 화면과 기능부터 같이 정리해 드리겠습니다."
+    body = ko + " I build websites and automation with React and Python for you every day today"
+    hangul, latin = len(re.findall("[가-힣]", body)), len(re.findall("[A-Za-z]", body))
+    assert 0.40 < hangul / (hangul + latin) < 0.50
+    with pytest.raises(AIFailure, match="한국어"):
+        validate_application(body, source=SRC, profile=P)

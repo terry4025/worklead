@@ -24,12 +24,13 @@ MAX_ATTEMPTS = len(RETRY_MINUTES) + 1
 BANNED = ("보장", "100%", "무조건", "반드시 해결", "최고", "완벽", "확실히", "틀림없")
 APPLICATION_RULES = ("[지원 문구 구성] 요청 핵심을 다시 짚는 첫 문장 → 할 수 있는 범위(프로필 기술 소개에 있는 사실만) → "
                      "리스크나 확인할 점 1개(있을 때만) → 질문 1~2개. 사업자·세금계산서 문장과 포트폴리오 줄은 코드가 붙이므로 쓰지 않는다. "
-                     "가격·기간은 쓰지 않는다. 공고에 없는 숫자를 만들지 않는다. 연락처와 다른 링크를 쓰지 않는다. 300~900자.")
+                     "가격·기간은 쓰지 않는다. 공고에 없는 숫자를 만들지 않는다. 연락처와 다른 링크를 쓰지 않는다. 'Node.js'처럼 점이 들어간 이름은 쓰지 말고 'Node'나 '노드'로 쓴다. 300~900자.")
 _NUMBER = re.compile(r"\d[\d,.]*")
 _URL = re.compile(r"https?://[^\s)>\]가-힣]+")
-# Bare domains (no scheme), e.g. www.example.com, open.kakao.com/o/x. Cut at Hangul like _URL.
-_DOMAIN = re.compile(r"www\.[^\s)>\]가-힣]+|(?<![a-z0-9-])[a-z0-9-]+\.(?:com|kr|net|io|me|co|org|so|ly|link|page|app|dev)"
-                     r"(?![a-z0-9-])[^\s)>\]가-힣]*", re.IGNORECASE)
+# Any bare domain shape (label. ... + 2+ letter TLD), e.g. linktr.ee/x, example.shop. Tech names like Node.js
+# also match: accepted, the step fails safe. ASCII lookbehind, not \w: Hangul right before a domain must not hide it.
+_DOMAIN = re.compile(r"(?<![a-z0-9@-])(?:[a-z0-9-]+\.)+[a-z]{2,}(?:/[^\s)>\]가-힣]*)?", re.IGNORECASE)
+_DOTS = re.compile(r"[。．]|\[\.\]|\(\.\)|\s+dot\s+", re.IGNORECASE)
 _BUSINESS_WORDS = ("사업자", "계산서")
 _PHONE = re.compile(r"01[016789][-\s]?\d{3,4}[-\s]?\d{4}|(?<!\d)0\d{1,2}[-\s]\d{3,4}[-\s]\d{4}")
 _EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
@@ -81,18 +82,22 @@ def business_sentence(profile) -> str:
     return "사업자 등록을 마쳤고 세금계산서 발행도 가능합니다." if profile.tax_invoice else "사업자 등록을 마쳤습니다."
 
 
-def common_checks(text: str, *, source: str, profile, extra_numbers: frozenset[str] = frozenset()) -> None:
+def _korean_check(text: str) -> None:
     no_urls = _URL.sub(" ", text)
     hangul, latin = len(re.findall("[가-힣]", no_urls)), len(re.findall("[A-Za-z]", no_urls))
     if hangul == 0 or hangul < latin:  # Hangul must be at least half of the letters
         _fail("한국어 문구가 아닙니다")
+
+
+def common_checks(text: str, *, source: str, profile, extra_numbers: frozenset[str] = frozenset()) -> None:
+    _korean_check(text)
     if any(word in text for word in BANNED):
         _fail("과장·보장 표현이 있습니다")
     portfolio = profile.portfolio_url.strip().rstrip("/")
     if any(url.rstrip(".,").rstrip("/") != portfolio for url in _URL.findall(text)):
         _fail("포트폴리오 외 링크가 있습니다")
     host = _host(portfolio)
-    if any(_host(d) != host for d in _DOMAIN.findall(no_urls)):
+    if any(_host(d) != host for d in _DOMAIN.findall(_URL.sub(" ", _DOTS.sub(".", text)))):
         _fail("포트폴리오 외 링크가 있습니다")
     if _PHONE.search(text) or _EMAIL.search(text):
         _fail("연락처가 있습니다")
@@ -114,6 +119,7 @@ def validate_application(text: str, *, source: str, profile) -> str:
     text = _clean(text)
     if any(word in re.sub(r"\s+", "", text) for word in _BUSINESS_WORDS):
         _fail("사업자·세금계산서 문장은 코드가 붙입니다")
+    _korean_check(text)  # on the model body alone: appended Korean lines must not lift an English body
     if sentence := business_sentence(profile):
         text = f"{text}\n\n{sentence}"
     portfolio = profile.portfolio_url.strip()

@@ -55,3 +55,41 @@ def test_quote_switch_off_is_409(tmp_path):
     lead_id = seed(ctx).lead_id
     r = client_for(ctx).post(f"/v1/leads/{lead_id}/quote-draft")
     assert r.status_code == 409 and r.json()["error"]["code"] == "assist_disabled"
+
+
+FILLED = [
+    "원격으로 회사 소개 홈페이지를 새로 만들고 싶으십니다",
+    "소개 화면과 서비스 안내 화면 제작",
+    "문의 양식과 알림 연결",
+    "호스팅과 도메인 비용, 사진 촬영",
+    "사진과 소개 문구 자료를 미리 받아야 일정이 맞습니다",
+    "범위를 넘는 요청은 다시 정한 뒤 별도로 견적을 드립니다",
+]
+
+
+def test_filled_literal_template_passes_validation():
+    from worklead.analysis.writer import QUOTE_TEMPLATE
+    parts = QUOTE_TEMPLATE.split("…")
+    assert len(parts) == len(FILLED) + 1
+    text = "".join(p + f for p, f in zip(parts, FILLED)) + parts[-1]
+    assert len(text) >= 150  # QuoteOut min_length
+    assert validate_quote(text, source=SRC, profile=Profile()) == text
+
+
+def test_quote_prompt_overrides_playbook_rules(tmp_path):
+    import json
+
+    from worklead.analysis.prompts import PLAYBOOK
+    from worklead.analysis.writer import QUOTE_OVERRIDE, QUOTE_TEMPLATE
+    seen = []
+
+    def handler(request):
+        seen.append(json.loads(request.content)["messages"][0]["content"])
+        return exaone_json({"text": QUOTE})
+
+    ctx = ex_ctx(tmp_path, handler)
+    lead_id = seed(ctx).lead_id
+    client = client_for(ctx)
+    client.post(f"/v1/leads/{lead_id}/quote-draft")
+    quote_step(ctx)
+    assert seen and seen[0].index(PLAYBOOK) < seen[0].index(QUOTE_OVERRIDE) and QUOTE_TEMPLATE in seen[0]

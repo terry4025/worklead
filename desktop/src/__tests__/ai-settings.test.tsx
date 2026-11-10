@@ -30,7 +30,7 @@ async function harness(options: { configured?: boolean; enabled?: boolean; mode?
     errorCode: options.unknown ? 'key_unavailable' : null, providerAvailable: server.ai.providerAvailable, enabled: server.ai.enabled,
     ready: server.ai.enabled, blockedReason: server.ai.enabled ? null : 'disabled', settingsRevision: server.ai.revision, databaseGeneration: server.ai.databaseGeneration,
     pricingCheckedAt: '2026-09-30', price: { inputUsdPerMillion: 0.4, cachedInputUsdPerMillion: 0.1, outputUsdPerMillion: 1.6, sourceUrl: 'https://platform.openai.com/docs/models/gpt-4.1-mini', version: 'test' },
-    ledger: options.ledger === undefined ? { day: { period: '2026-09-30', estimatedKrw: 0, reservedKrw: 0, uncertainKrw: 0, attempts: 0 }, month: { period: '2026-09', estimatedKrw: 0, reservedKrw: 0, uncertainKrw: 0, attempts: 0 } } : options.ledger });
+    ledger: options.ledger === undefined ? { day: { period: '2026-09-30', estimatedKrw: 0, reservedKrw: 0, uncertainKrw: 0, attempts: 0 }, month: { period: '2026-09', estimatedKrw: 0, reservedKrw: 0, uncertainKrw: 0, attempts: 0 } } : options.ledger, callsToday: null });
   vi.spyOn(port, 'getSettings').mockImplementation(async () => structuredClone(server));
   const read = vi.spyOn(port, 'getAiStatus').mockImplementation(async () => makeStatus());
   const save = vi.spyOn(port, 'saveAiCredential').mockImplementation(async () => { server.ai.keyConfigured = true; server.ai.providerAvailable = true; server.ai.enabled = false; server.ai.revision += 1; return makeStatus(); });
@@ -208,5 +208,25 @@ describe('선택 AI 설정과 비밀 입력', () => {
     expect(consent).toHaveProperty('checked', true);
     fireEvent.change(screen.getByLabelText('응답 토큰 상한 (256–4,096)'), { target: { value: '255' } });
     expect(screen.getByRole('button', { name: /^저장$/ })).toHaveProperty('disabled', true); expect(screen.getByLabelText('응답 토큰 상한 (256–4,096)').getAttribute('aria-invalid')).toBe('true');
+  });
+});
+
+describe('EXAONE 설정', () => {
+  it('EXAONE을 고르면 요금 입력 대신 호출 상한과 기능 스위치를 보인다', async () => {
+    await harness();
+    fireEvent.change(screen.getByLabelText('AI 제공자'), { target: { value: 'exaone' } });
+    expect(await screen.findByLabelText('EXAONE API 키')).toBeTruthy();
+    expect(screen.getByLabelText('하루 호출 상한')).toBeTruthy();
+    expect(screen.queryByLabelText('달러 환산 (1 USD 당 원)')).toBeNull();
+    for (const name of ['검토 보조 분석', '제외 공고 AI 재검토', '맞춤 지원 문구 (자동 제출)', '채팅 답장 초안', '견적서 초안'])
+      expect((screen.getByRole('checkbox', { name }) as HTMLInputElement).checked).toBe(false);
+    expect(screen.getByRole('checkbox', { name: '위 텍스트의 LG EXAONE 외부 전송에 동의합니다' })).toBeTruthy();
+  });
+
+  it('프로필에 포트폴리오·기준가, 수집 절전 방지 옵션이 있다', async () => {
+    await harness();
+    expect((screen.getByLabelText('포트폴리오 주소') as HTMLInputElement).value).toBe('https://www.seyj.kr/');
+    expect(screen.getByLabelText('기준가 안내')).toBeTruthy();
+    expect((screen.getByRole('checkbox', { name: '수집 중 PC 절전 방지' }) as HTMLInputElement).checked).toBe(false);
   });
 });

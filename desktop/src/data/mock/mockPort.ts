@@ -124,8 +124,10 @@ const DEFAULT_SETTINGS: SettingsView = {
   recheck: { ttlHours: 24 },
   notifications: { newRecommended: true, newReview: true, meaningfulChange: true, sourceIssue: true, quietHours: { enabled: true, start: '22:00', end: '08:00' } },
   ai: { enabled: false, externalTransferConsent: false, engineLabel: null, monthlyCostCap: null, dailyCostCap: null, keyConfigured: false, providerAvailable: false,
-    provider: 'openai', model: 'gpt-4.1-mini-2025-04-14', usdToKrwRate: null, maxOutputTokens: 1024, pricingConfirmed: false, revision: 0, databaseGeneration: 0 },
+    provider: 'openai', model: 'gpt-4.1-mini-2025-04-14', usdToKrwRate: null, maxOutputTokens: 1024, pricingConfirmed: false, revision: 0, databaseGeneration: 0,
+    dailyCallCap: 300, assistReview: false, assistRecheck: false, assistApplication: false, assistChat: false, assistQuote: false },
   retention: { rawDays: 30 },
+  collection: { preventSleep: false },
   queryGroups: {
     version: 1,
     groups: [
@@ -701,7 +703,7 @@ export class MockPort implements WorkleadPort {
       pricingCheckedAt: '2026-09-30', price: { inputUsdPerMillion: 0.4, cachedInputUsdPerMillion: 0.1, outputUsdPerMillion: 1.6,
         sourceUrl: 'https://platform.openai.com/docs/models/gpt-4.1-mini', version: 'openai-standard-2026-09-30' },
       ledger: { day: { period: new Date(this.now()).toISOString().slice(0, 10), estimatedKrw: 0, reservedKrw: 0, uncertainKrw: 0, attempts: 0 },
-        month: { period: new Date(this.now()).toISOString().slice(0, 7), estimatedKrw: 0, reservedKrw: 0, uncertainKrw: 0, attempts: 0 } } }));
+        month: { period: new Date(this.now()).toISOString().slice(0, 7), estimatedKrw: 0, reservedKrw: 0, uncertainKrw: 0, attempts: 0 } }, callsToday: null }));
   }
 
   saveAiCredential(_input: Parameters<WorkleadPort['saveAiCredential']>[0]): Promise<AiStatus> {
@@ -730,6 +732,7 @@ export class MockPort implements WorkleadPort {
         ...(patch.recheck ? { recheck: patch.recheck } : {}),
         ...(patch.notifications ? { notifications: patch.notifications } : {}),
         ...(patch.retention ? { retention: patch.retention } : {}),
+        ...(patch.collection ? { collection: patch.collection } : {}),
         ai: nextAi,
         ...(patch.queryGroups ? { queryGroups: { version: this.settings.queryGroups.version + 1, groups: patch.queryGroups } } : {}),
       };

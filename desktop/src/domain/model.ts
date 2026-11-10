@@ -435,6 +435,12 @@ export interface SettingsView {
     providerAvailable: boolean;
     provider: 'openai' | 'exaone';
     model: 'gpt-4.1-mini-2025-04-14' | 'k-exaone_v2.5';
+    dailyCallCap: number;
+    assistReview: boolean;
+    assistRecheck: boolean;
+    assistApplication: boolean;
+    assistChat: boolean;
+    assistQuote: boolean;
     usdToKrwRate: number | null;
     maxOutputTokens: number;
     pricingConfirmed: boolean;
@@ -442,6 +448,7 @@ export interface SettingsView {
     databaseGeneration: number;
   };
   retention: { rawDays: number };
+  collection: { preventSleep: boolean };
   queryGroups: { version: number; groups: QueryGroup[] };
 }
 
@@ -461,6 +468,7 @@ export interface AiStatus {
   pricingCheckedAt: string;
   price: { inputUsdPerMillion: number; cachedInputUsdPerMillion: number; outputUsdPerMillion: number; sourceUrl: string; version: string };
   ledger: { day: AiBudgetPeriod; month: AiBudgetPeriod } | null;
+  callsToday: number | null;
 }
 
 export interface AiBudgetPeriod {

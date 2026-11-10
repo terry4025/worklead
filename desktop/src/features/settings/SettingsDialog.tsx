@@ -95,6 +95,7 @@ export function SettingsDialog({
         recheck: d.recheck,
         notifications: d.notifications,
         retention: d.retention,
+        collection: d.collection,
         ...(q.data && aiSettingsChanged(d.ai, q.data.ai) ? { ai: {
           ...Object.fromEntries(AI_EDITABLE.map((key) => [key, d.ai[key]])),
           expectedRevision: d.ai.revision, expectedGeneration: d.ai.databaseGeneration,
@@ -216,6 +217,10 @@ export function SettingsDialog({
               <span>사업자 등록 완료</span>
             </label>
             <p className="field-hint">사업자 등록이 필요한 공고도 자동 지원 후보로 봅니다.</p>
+            <label className="field"><span className="field-label">포트폴리오 주소</span><input value={d.profile.portfolioUrl} onChange={(e) => set((x) => void (x.profile.portfolioUrl = e.target.value.trim()))} /></label>
+            <p className="field-hint">AI 지원 문구 마지막 줄에 항상 넣습니다.</p>
+            <label className="field"><span className="field-label">기준가 안내</span><input value={d.profile.priceAnchorNote} maxLength={300} placeholder="예: 랜딩 페이지는 30만 원부터" onChange={(e) => set((x) => void (x.profile.priceAnchorNote = e.target.value))} /></label>
+            <p className="field-hint">고객이 예산을 물을 때만 AI 초안에 씁니다. 비워 두면 금액을 말하지 않습니다.</p>
             <label className="toggle">
               <input type="checkbox" checked={d.profile.taxInvoice} onChange={(e) => set((x) => void (x.profile.taxInvoice = e.target.checked))} />
               <span>세금계산서 발행 가능</span>
@@ -236,6 +241,8 @@ export function SettingsDialog({
                 ))}
               </select>
             </label>
+            <label className="toggle"><input type="checkbox" checked={d.collection.preventSleep} onChange={(e) => set((x) => void (x.collection.preventSleep = e.target.checked))} /><span>수집 중 PC 절전 방지</span></label>
+            <p className="field-hint">자동 수집이 켜져 있는 동안 PC가 절전으로 들어가지 않게 합니다. 화면은 꺼질 수 있습니다.</p>
             <p className="field-hint">검색어 묶음 (버전 {d.queryGroups.version}) — 검색어를 사용하는 소스에만 적용됩니다. 아이보스 공개 목록 수집은 검색어로 제목을 제한하지 않습니다.</p>
             {d.queryGroups.groups.map((g, i) => (
               <div key={g.id} className="qgroup">

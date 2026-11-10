@@ -92,7 +92,8 @@ export interface WorkleadPort {
   deleteAiCredential(input: AiRevision): Promise<AiStatus>;
   /** 바뀐 구획만 보낸다 */
   updateSettings(patch: Partial<Pick<SettingsView, 'profile' | 'recheck' | 'notifications' | 'retention'>> & {
-    ai?: Partial<Pick<SettingsView['ai'], 'enabled' | 'externalTransferConsent' | 'monthlyCostCap' | 'dailyCostCap' | 'provider' | 'model' | 'usdToKrwRate' | 'maxOutputTokens' | 'pricingConfirmed'>> & Partial<AiRevision>;
+    ai?: Partial<Pick<SettingsView['ai'], 'enabled' | 'externalTransferConsent' | 'monthlyCostCap' | 'dailyCostCap' | 'provider' | 'model' | 'usdToKrwRate' | 'maxOutputTokens' | 'pricingConfirmed' | 'dailyCallCap' | 'assistReview' | 'assistRecheck' | 'assistApplication' | 'assistChat' | 'assistQuote'>> & Partial<AiRevision>;
+    collection?: SettingsView['collection'];
     queryGroups?: SettingsView['queryGroups']['groups'];
   }): Promise<SettingsView>;
   getSalesSummary(): Promise<SalesSummary>;

@@ -252,9 +252,13 @@ def application_step(app) -> None:
 
 QUOTE_RULES = ("[견적서 초안 구성] 첫 줄 '견적서 초안' → 이해한 문제(고객의 말로) → 1단계 필수 범위 → 2단계 선택 범위 → "
                "단계별 금액·기간 → 제외 범위 → 리스크·전제 → 추가 요청 조건 → 유지보수(구축비의 10%/년 기준) → 결제 조건. "
-               "금액·기간·결제 조건은 정하지 말고 [금액], [기간], [결제 조건]으로 비워 둔다. 공고에 없는 숫자를 만들지 않는다.")
-_AMOUNT = re.compile(r"\d[\d,]*\s*(?:만\s*)?원")
-_STEP_NUMBERS = frozenset({"1", "2", "3", "4", "5", "10"})
+               "금액·기간·결제 조건은 정하지 말고 [금액], [기간], [결제 조건]으로 비워 둔다. 세 칸은 모두 그대로 남긴다. "
+               "공고에 없는 금액·기간·비율(%)·숫자를 만들지 않는다.")
+QUOTE_BLANKS = ("[금액]", "[기간]", "[결제 조건]")
+# Structural phrases the template itself uses; stripped from a check copy so their digits need no allowlist.
+_QUOTE_STRUCTURE = re.compile(r"\d\s*단계|구축비의\s*10\s*%\s*/\s*년")
+# A number carrying a money unit (만/천/... or 원), a period unit or %: the AI must not set any of these itself.
+_QUANTITY = re.compile(r"\d[\d,.]*\s*(?:[십백천만억]+\s*원?|원|%|개월|시간|일|주|달|년)")
 
 
 class QuoteOut(BaseModel):
@@ -262,14 +266,19 @@ class QuoteOut(BaseModel):
     text: str = Field(min_length=150, max_length=3500)
 
 
+def _quantity(match: str) -> str:
+    return re.sub(r"[\s,]|원$", "", match)
+
+
 def validate_quote(text: str, *, source: str, profile) -> str:
     text = _clean(text)
-    if "[금액]" not in text:
-        _fail("금액 칸이 비어 있지 않습니다")
-    source_amounts = {re.sub(r"[\s,]", "", a) for a in _AMOUNT.findall(source)}
-    if any(re.sub(r"[\s,]", "", a) not in source_amounts for a in _AMOUNT.findall(text)):
-        _fail("원문에 없는 금액이 있습니다")
-    common_checks(text, source=source, profile=profile, extra_numbers=_STEP_NUMBERS)
+    if any(blank not in text for blank in QUOTE_BLANKS):
+        _fail("금액·기간·결제 조건 칸이 비어 있지 않습니다")
+    check = _QUOTE_STRUCTURE.sub(" ", text)
+    source_quantities = {_quantity(q) for q in _QUANTITY.findall(source)}
+    if any(_quantity(q) not in source_quantities for q in _QUANTITY.findall(check)):
+        _fail("원문에 없는 금액·기간·비율이 있습니다")
+    common_checks(check, source=source, profile=profile)
     return text
 
 

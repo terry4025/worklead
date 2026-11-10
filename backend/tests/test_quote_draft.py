@@ -21,6 +21,24 @@ def test_quote_needs_placeholders_and_no_invented_amounts():
         validate_quote(QUOTE.replace("[금액]", "금액 협의"), source=SRC, profile=Profile())
 
 
+@pytest.mark.parametrize("old,new", [
+    ("[금액] / [기간]", "10만 / 2주"),
+    ("[금액]", "5천원"),
+    ("[기간]", "3개월"),
+    ("[결제 조건]", "계약금 10%, 잔금 완료 후"),
+    ("[결제 조건]", "[결제 조건]\n계약금 30%"),
+    ("호스팅 비용", "호스팅 비용 5"),
+])
+def test_quote_rejects_ai_set_money_period_or_terms(old, new):
+    with pytest.raises(AIFailure):
+        validate_quote(QUOTE.replace(old, new, 1), source=SRC, profile=Profile())
+
+
+def test_quote_allows_source_amount_and_spaced_structure():
+    text = QUOTE.replace("구축비의 10%/년", "구축비의 10 % / 년").replace("1단계", "1 단계") + "\n참고: 공고 금액 건당 100만 원"
+    assert validate_quote(text, source=SRC, profile=Profile())
+
+
 def test_quote_request_round_trip(tmp_path):
     ctx = ex_ctx(tmp_path, lambda r: exaone_json({"text": QUOTE}))
     lead_id = seed(ctx).lead_id

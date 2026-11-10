@@ -207,3 +207,9 @@ def test_normalized_contacts_and_spaced_dots_are_rejected(contact):
 def test_korean_sentences_with_periods_still_pass():
     text = validate_application(GOOD + " 확인 부탁드립니다. 감사합니다. React 경험이 있습니다. Python도 씁니다.", source=SRC, profile=P)
     assert text.startswith(GOOD)
+
+
+@pytest.mark.parametrize("leak", [" {", "} ", " ｛참고｝", " 略", " 考え", " 㐀"])
+def test_reasoning_leak_characters_are_rejected(leak):
+    with pytest.raises(AIFailure, match="모델 내부 문장"):
+        validate_application(GOOD + leak, source=SRC, profile=P)

@@ -93,3 +93,12 @@ def test_quote_prompt_overrides_playbook_rules(tmp_path):
     client.post(f"/v1/leads/{lead_id}/quote-draft")
     quote_step(ctx)
     assert seen and seen[0].index(PLAYBOOK) < seen[0].index(QUOTE_OVERRIDE) and QUOTE_TEMPLATE in seen[0]
+
+
+LEAKED_TAIL = ("}略前面逸出，不用在续级。考え直し前面正文里… "
+               "Wait the prior assistant final appears to have included JSON with")
+
+
+def test_leaked_reasoning_tail_is_rejected():
+    with pytest.raises(AIFailure, match="모델 내부 문장"):
+        validate_quote(QUOTE + LEAKED_TAIL, source=SRC, profile=Profile())

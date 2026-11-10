@@ -33,6 +33,8 @@ _URL = re.compile(r"https?://[^\s)>\]가-힣]+")
 _DOMAIN = re.compile(r"(?<![a-z0-9@-])(?:[a-z0-9-]+\.)+[a-z]{2,}(?:/[^\s)>\]가-힣]*)?", re.IGNORECASE)
 _DOTS = re.compile(r"\s*[\[(]\s*(?:\.|dot)\s*[\])]\s*|\s+dot\s+|[。．｡]|(?<=[A-Za-z0-9])\s+\.\s+(?=[A-Za-z0-9])", re.IGNORECASE)
 _BUSINESS_WORDS = ("사업자", "계산서")
+# Leaked reasoning (R21) shows up as Han, Kana or JSON braces; none belong in a Korean reply.
+_LEAK = re.compile(r"[一-鿿㐀-䶿぀-ヿ{}]")
 _PHONE = re.compile(r"01[016789][-\s]?\d{3,4}[-\s]?\d{4}|(?<!\d)0\d{1,2}[-\s]\d{3,4}[-\s]\d{4}")
 _EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
 _SAYS_REGISTERED = re.compile(r"사업자\s*(?:등록\s*)?(?:을\s*)?(?:완료|마쳤|보유|있습니다|있어요)")
@@ -96,6 +98,8 @@ def common_checks(text: str, *, source: str, profile, extra_numbers: frozenset[s
         _fail("과장·보장 표현이 있습니다")
     # Link checks run on a normalized copy: NFKC maps fullwidth letters and dots to ASCII, _DOTS undoes "[.]" etc.
     plain = _DOTS.sub(".", unicodedata.normalize("NFKC", text))
+    if _LEAK.search(plain):
+        _fail("모델 내부 문장이 섞였습니다")
     portfolio = profile.portfolio_url.strip().rstrip("/")
     if any(url.rstrip(".,").rstrip("/") != portfolio for url in _URL.findall(plain)):
         _fail("포트폴리오 외 링크가 있습니다")

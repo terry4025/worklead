@@ -115,3 +115,50 @@ def test_switch_turned_on_mid_attempt_refuses_permit_without_text(app):
     runner._step(browser)
     assert browser.submits == 0 and not browser.filled
     assert auto_runtime(app).status().attempts[0].reason_code == "ai_text_unavailable"
+
+
+def test_switch_turned_off_mid_attempt_refuses_permit(app):
+    enable(app)
+    ready_text(app, add(app), "맞춤 문구입니다.\n\n포트폴리오: https://www.seyj.kr/")
+
+    class OffAfterFill(TailoredBrowser):
+        def act(self, operation, expected=None):
+            result = super().act(operation, expected)
+            if operation == "fill":
+                with app.db.session() as s:
+                    put_setting(s, "ai", {**EX_CFG, "assist_application": False})
+            return result
+    runner, browser = runner_for(app, OffAfterFill())
+    runner._step(browser)
+    assert browser.filled and browser.submits == 0
+    assert auto_runtime(app).status().attempts[0].reason_code == "ai_text_unavailable"
+
+
+def test_pending_wake_never_takes_ai_control_lock_and_runs_after_transaction(app, monkeypatch):
+    import threading
+    from worklead.jobs.auto_apply_models import NextIn
+    enable(app)
+    add(app)
+    bridge = auto_runtime(app)
+    seen = []
+
+    class Worker:
+        def wake(self):
+            free = []
+            t = threading.Thread(target=lambda: free.append(app.ai_control_lock.acquire(blocking=False)
+                                                            and (app.ai_control_lock.release() or True)))
+            t.start(); t.join()
+            seen.append((bridge._lock._is_owned(), free[0]))
+    app._assist_worker = Worker()
+
+    def no_lock(self):
+        raise AssertionError("assist_worker property takes ai_control_lock")
+    monkeypatch.setattr(type(app), "assist_worker", property(no_lock))
+    # Managed runner path: it holds bridge._lock around next(); the wake must still avoid ai_control_lock.
+    runner, browser = runner_for(app, TailoredBrowser())
+    runner._step(browser)
+    assert seen and all(free for _, free in seen) and browser.opens == 0
+    # Direct bridge path: the wake runs after next() released bridge._lock.
+    seen.clear()
+    assert bridge.next(NextIn(account_hash=ACCOUNT))["job"] is None
+    assert seen == [(False, True)]

@@ -324,7 +324,6 @@ class ManagedAutoRuntime:
             if completed.get("state") == "already_applied" and completed.get("account_hash") == account:
                 try:
                     self.auto.result(ResultIn(**identity, outcome="submitted", reason_code="submitted", evidence="cancel_button"))
-                    if job.get("text_hash"): mark_used(self.app, job["lead_id"], job["text_hash"])
                 except ApplicationError:
                     # A late official completion may only reconcile the already
                     # issued receipt. No permit or click is ever repeated.
@@ -333,6 +332,9 @@ class ManagedAutoRuntime:
                             profile_hash=identity["profile_hash"], receipt_token=receipt, evidence="cancel_button"))
                     else:
                         raise
+                if job.get("text_hash"):
+                    try: mark_used(self.app, job["lead_id"], job["text_hash"])
+                    except Exception: pass  # only used_at is lost; the recorded submit stands
             else:
                 self.auto.result(ResultIn(**identity, outcome="uncertain", reason_code="submission_unconfirmed"))
                 self._remember_pending(identity, receipt, expected, job["url"])

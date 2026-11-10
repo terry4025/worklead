@@ -546,6 +546,18 @@ class AutoApplyRuntime:
         return created
 
     def next(self, body):
+        wake = []
+        try:
+            return self._next(body, wake)
+        finally:
+            # Never take ai_control_lock here: stop/start hold it, then take self._lock,
+            # and the managed runner calls next() under self._lock. Use the worker the
+            # server already started (none means no thread to wake), after the
+            # transaction is closed.
+            worker = getattr(self.app, "_assist_worker", None)
+            if wake and worker is not None: worker.wake()
+
+    def _next(self, body, wake):
         with self._lock, self.app.db.session() as s:
             s.execute(text("BEGIN IMMEDIATE"))
             self._check(body)
@@ -593,7 +605,7 @@ class AutoApplyRuntime:
                 if not reason and writer.application_text_required(s):
                     draft = writer.application_draft(s, lead, rec, get_profile(s))
                     if draft.status == "pending":
-                        self.app.assist_worker.wake()
+                        wake.append(True)
                         continue
                     if draft.status == "failed":
                         reason = "ai_text_unavailable"
@@ -674,8 +686,8 @@ class AutoApplyRuntime:
             if row.state != "ready" or self._expected_profile(row.id) != body.profile_hash:
                 raise ApplicationError(409, "permit_invalid", "새 제출 허가가 필요합니다")
             reason = self._eligible(s, row)
-            if not reason and row.id not in self._texts and writer.application_text_required(s):
-                reason = "ai_text_unavailable"  # switch turned on after this job was issued without a text
+            if not reason and (row.id in self._texts) != writer.application_text_required(s):
+                reason = "ai_text_unavailable"  # assist_application switched after this job was issued
             state = self._status_in(s)
             if reason or state.today_submitted + state.today_reserved >= state.daily_limit:
                 self._finish(s, row, reason or "daily_limit")

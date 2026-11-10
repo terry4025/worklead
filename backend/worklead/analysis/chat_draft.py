@@ -47,7 +47,8 @@ class ChatDrafts:
     def submit(self, text: str, lead_id: str | None) -> None:
         digest = _digest(text)
         with self._lock:
-            if self._result and self._result[0] == digest:
+            # "off" may be retried (switch turned on later); "failed" stays terminal so the ~2 s observe loop cannot spin EXAONE calls.
+            if self._result and self._result[0] == digest and self._result[1] != "off":
                 return
             self._job = ChatJob(digest, text, lead_id, self._clock())
             self._result = (digest, "pending", None)
@@ -76,10 +77,18 @@ class ChatDrafts:
 
 
 def chat_step(app) -> None:
-    from .writer import validate_chat
     job = app.chat_drafts.take_due()
     if job is None:
         return
+    try:
+        _run(app, job)
+    except Exception:
+        app.chat_drafts.finish(job.digest, "failed", None)  # never leave "pending"; the worker logs only the traceback
+        raise
+
+
+def _run(app, job: ChatJob) -> None:
+    from .writer import validate_chat
     with app.db.session() as s:
         cfg = exaone_settings(s)
         if not cfg or not cfg.get("assist_chat"):

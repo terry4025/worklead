@@ -8432,6 +8432,28 @@
             "const": false,
             "title": "Persists Body",
             "default": false
+          },
+          "draft_state": {
+            "type": "string",
+            "enum": [
+              "off",
+              "pending",
+              "ready",
+              "failed"
+            ],
+            "title": "Draft State",
+            "default": "off"
+          },
+          "draft_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Draft Text"
           }
         },
         "type": "object",

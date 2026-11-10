@@ -350,7 +350,13 @@ class ChromeBridgeRuntime:
             self._chat_heartbeat = self.monotonic()
             self._chat = ChatView(enabled=True, state=observation.state, text=observation.text,
                 observed_at=self.app.clock(), lead_id=lead_id, lead_title=lead_title)
-            # Body is never written to SQLite, notification payloads, logs or AI.
+            if observation.state == "visible" and observation.text:
+                self.app.chat_drafts.submit(observation.text, lead_id)
+                # self._lock is held: read the worker attribute lock-free, never the assist_worker property.
+                worker = self.app._assist_worker
+                if worker is not None:
+                    worker.wake()
+            # Body is never written to SQLite, notification payloads or logs; drafts stay in memory.
             return {"accepted": True, "reconnect_required": False}
 
     def observe(self, observation: Observation):

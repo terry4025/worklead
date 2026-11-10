@@ -16,6 +16,10 @@ from .engine.events import EventHub
 from .engine.http import Fetcher
 from .services.credentials import CredentialStore, WindowsCredentialStore
 
+# Guards lazy creation of AppContext.chat_drafts only. Deliberately separate from ai_control_lock:
+# chrome_bridge.observe_chat reads chat_drafts while holding its own lock.
+_CHAT_DRAFTS_LOCK = threading.Lock()
+
 
 @dataclass
 class AppContext:
@@ -36,6 +40,7 @@ class AppContext:
     _ai_coordinator: object | None = field(default=None, init=False, repr=False)
     _exaone_client: object | None = field(default=None, init=False, repr=False)
     _assist_worker: object | None = field(default=None, init=False, repr=False)
+    _chat_drafts: object | None = field(default=None, init=False, repr=False)
     _cafe_runtime: object | None = field(default=None, init=False, repr=False)
     _jobs_message_runtime: object | None = field(default=None, init=False, repr=False)
     _jobs_chrome_runtime: object | None = field(default=None, init=False, repr=False)
@@ -77,6 +82,18 @@ class AppContext:
                 worker.steps = default_steps()
                 self._assist_worker = worker
             return self._assist_worker
+
+    @property
+    def chat_drafts(self):
+        """Memory-only reply drafts. Never takes ai_control_lock (safe under other locks)."""
+        from .analysis.chat_draft import ChatDrafts
+        drafts = self._chat_drafts
+        if drafts is not None:
+            return drafts
+        with _CHAT_DRAFTS_LOCK:
+            if self._chat_drafts is None:
+                self._chat_drafts = ChatDrafts()
+            return self._chat_drafts
 
     def fetcher_for(self, adapter: object) -> Fetcher:
         kwargs = {}

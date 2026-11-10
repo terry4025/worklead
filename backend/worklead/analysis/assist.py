@@ -69,9 +69,10 @@ def call_exaone(app, system: str, user: str, model: type[BaseModel], *, feature:
 
 def default_steps() -> list[Callable]:
     """Priority order: application text > chat reply > quote > recheck. Later tasks append here."""
+    from .chat_draft import chat_step
     from .recheck import recheck_step
     from .writer import application_step
-    return [application_step, recheck_step]
+    return [application_step, chat_step, recheck_step]
 
 
 class AssistWorker(threading.Thread):
@@ -91,7 +92,7 @@ class AssistWorker(threading.Thread):
         self._wake.set()
 
     def wait_seconds(self) -> float:
-        return self.POLL_SECONDS
+        return 1.0 if self.app.chat_drafts.pending() else self.POLL_SECONDS
 
     def run_once(self) -> None:
         for step in self.steps:

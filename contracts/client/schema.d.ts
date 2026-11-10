@@ -2153,6 +2153,14 @@ export interface components {
              * @constant
              */
             persists_body: false;
+            /**
+             * Draft State
+             * @default off
+             * @enum {string}
+             */
+            draft_state: "off" | "pending" | "ready" | "failed";
+            /** Draft Text */
+            draft_text?: string | null;
         };
         /** ChromeConnection */
         ChromeConnection: {

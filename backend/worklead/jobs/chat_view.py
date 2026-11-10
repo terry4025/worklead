@@ -33,4 +33,6 @@ class ChatView(BaseModel):
     lead_title: str | None = None
     source: Literal["visible_chat_panel"] = "visible_chat_panel"
     persists_body: Literal[False] = False
+    draft_state: Literal["off", "pending", "ready", "failed"] = "off"
+    draft_text: str | None = None
 

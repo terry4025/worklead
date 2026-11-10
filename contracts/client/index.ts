@@ -62,6 +62,8 @@ export interface JobChatView {
   lead_title: string | null;
   source: 'visible_chat_panel';
   persists_body: false;
+  draft_state: 'off' | 'pending' | 'ready' | 'failed';
+  draft_text: string | null;
 }
 export interface JobAutoApplyAttempt {
   id: string;

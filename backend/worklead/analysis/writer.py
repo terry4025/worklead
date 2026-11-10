@@ -134,6 +134,14 @@ def validate_application(text: str, *, source: str, profile) -> str:
     return text
 
 
+def validate_chat(text: str, *, source: str, profile) -> str:
+    text = _clean(text)
+    common_checks(text, source=source, profile=profile)
+    if not 20 <= len(text) <= 900:
+        _fail("답장 길이가 맞지 않습니다")
+    return text
+
+
 def _post(rec) -> dict:
     return {"title": mask_for_ai(rec.title), "body": mask_for_ai(rec.body_text or ""), "pay": rec.pay_raw or ""}
 

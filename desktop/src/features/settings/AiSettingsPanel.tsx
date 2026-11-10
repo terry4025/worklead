@@ -86,13 +86,14 @@ export function AiSettingsPanel({ ai, onChange, onStatusChange, onBusyChange, di
   useEffect(() => { onBusyChange(pending !== null); return () => onBusyChange(false); }, [pending, onBusyChange]);
 
   const synchronized = !status.isError && !credentialUnknown && aiStatusMatches(ai, status.data);
-  const credentialAllowed = mode === 'live' && synchronized && status.data?.keySupported && !disabled && !pending;
+  const providerSaved = status.data?.provider === ai.provider;
+  const credentialAllowed = mode === 'live' && synchronized && providerSaved && status.data?.keySupported && !disabled && !pending;
   const hasBudget = (period: AiBudgetPeriod, cap: number | null) => cap !== null && period.estimatedKrw + period.reservedKrw + period.uncertainKrw < cap;
   const exaone = ai.provider === 'exaone';
   const canEnable = exaone
-    ? synchronized && status.data?.keyConfigured === true && !status.data.errorCode && ai.externalTransferConsent
-      && Number.isInteger(ai.dailyCallCap) && ai.dailyCallCap >= 1 && ai.dailyCallCap <= 5000
-    : synchronized && status.data?.keyConfigured === true && status.data.providerAvailable && !status.data.errorCode && status.data.ledger !== null
+    ? synchronized && providerSaved && status.data?.keyConfigured === true && !status.data.errorCode && ai.externalTransferConsent
+      && Number.isInteger(ai.dailyCallCap) && ai.dailyCallCap >= 1 && ai.dailyCallCap <= 5000 && !invalidAiSettings(ai)
+    : synchronized && providerSaved && status.data?.keyConfigured === true && status.data.providerAvailable && !status.data.errorCode && status.data.ledger !== null
     && ai.externalTransferConsent && ai.pricingConfirmed && ai.usdToKrwRate !== null && ai.dailyCostCap !== null && ai.dailyCostCap > 0
     && ai.monthlyCostCap !== null && ai.monthlyCostCap > 0 && hasBudget(status.data.ledger.day, ai.dailyCostCap) && hasBudget(status.data.ledger.month, ai.monthlyCostCap) && !invalidAiSettings(ai);
 
@@ -160,6 +161,7 @@ export function AiSettingsPanel({ ai, onChange, onStatusChange, onBusyChange, di
       <label className="field"><span className="field-label">AI 모델</span><select value={ai.model} disabled={disabled || !!pending} onChange={() => clearInput()}>{exaone ? <option value="k-exaone_v2.5">K-EXAONE 2.5</option> : <option value="gpt-4.1-mini-2025-04-14">GPT-4.1 mini (2025-04-14)</option>}</select></label>
     </div>
     <label className="field"><span className="field-label">{exaone ? 'EXAONE API 키' : 'OpenAI API 키'}</span><input ref={input} type="password" autoComplete="off" spellCheck={false} maxLength={2560} disabled={!credentialAllowed} onChange={() => setHasKeyInput(!!input.current?.value)} /></label>
+    {status.data && !providerSaved ? <p className="field-hint">제공자를 저장한 뒤 키를 입력하세요.</p> : null}
     <div className="field-inline"><Button size="sm" busy={pending === 'save'} disabled={!credentialAllowed || !hasKeyInput} onClick={() => void credential('save')}>키 저장</Button>
       <Button size="sm" variant="ghost" busy={pending === 'delete'} disabled={!credentialAllowed || status.data?.keyConfigured !== true} onClick={() => void credential('delete')}>키 삭제</Button>
       <span className="field-hint">{credentialUnknown || status.isError || status.data?.keyConfigured === null ? '저장 상태 확인 불가' : status.isPending ? '저장 상태 확인 중…' : status.data?.keyConfigured ? 'Windows 보안 저장소에 저장됨' : '키 미설정'}</span></div>

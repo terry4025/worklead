@@ -227,6 +227,15 @@ describe('EXAONE 설정', () => {
     expect(screen.getByText(/켜려면/).textContent).not.toMatch(/요금|환산/);
   });
 
+  it('제공자를 저장하기 전에는 EXAONE 키 저장과 AI 켜기를 막는다', async () => {
+    await harness({ mode: 'live', configured: true });
+    expect(screen.getByLabelText('OpenAI API 키')).toHaveProperty('disabled', false);
+    fireEvent.change(screen.getByLabelText('AI 제공자'), { target: { value: 'exaone' } });
+    expect(await screen.findByLabelText('EXAONE API 키')).toHaveProperty('disabled', true);
+    expect(screen.getByRole('button', { name: '키 저장' })).toHaveProperty('disabled', true);
+    expect(screen.getByRole('checkbox', { name: 'AI 보조 분석 사용' })).toHaveProperty('disabled', true);
+    expect(screen.getByText('제공자를 저장한 뒤 키를 입력하세요.')).toBeTruthy();
+  });
   it('프로필에 포트폴리오·기준가, 수집 절전 방지 옵션이 있다', async () => {
     await harness();
     expect((screen.getByLabelText('포트폴리오 주소') as HTMLInputElement).value).toBe('https://www.seyj.kr/');

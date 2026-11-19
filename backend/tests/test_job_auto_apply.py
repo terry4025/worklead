@@ -54,6 +54,8 @@ def claimed(client):
     assert result.status_code == 200, result.text
     job = result.json()["job"]
     if job is None: return None
+    # auto-protocol.js validJob rejects any other key set; an extra key would silently stop claims.
+    assert sorted(job) == ["attempt_id", "lead_id", "lease_token", "title", "url"]
     return {"attempt_id": job["attempt_id"], "lease_token": job["lease_token"], "account_hash": ACCOUNT, "profile_hash": PROFILE}
 
 

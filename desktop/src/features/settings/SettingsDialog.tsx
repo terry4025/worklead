@@ -218,9 +218,7 @@ export function SettingsDialog({
             </label>
             <p className="field-hint">사업자 등록이 필요한 공고도 자동 지원 후보로 봅니다.</p>
             <label className="field"><span className="field-label">포트폴리오 주소</span><input value={d.profile.portfolioUrl} onChange={(e) => set((x) => void (x.profile.portfolioUrl = e.target.value.trim()))} /></label>
-            <p className="field-hint">AI 지원 문구 마지막 줄에 항상 넣습니다.</p>
-            <label className="field"><span className="field-label">기준가 안내</span><input value={d.profile.priceAnchorNote} maxLength={300} placeholder="예: 랜딩 페이지는 30만 원부터" onChange={(e) => set((x) => void (x.profile.priceAnchorNote = e.target.value))} /></label>
-            <p className="field-hint">고객이 예산을 물을 때만 AI 초안에 씁니다. 비워 두면 금액을 말하지 않습니다.</p>
+            <p className="field-hint">당근 기본 자기소개에 넣을 포트폴리오 주소를 보관합니다.</p>
             <label className="toggle">
               <input type="checkbox" checked={d.profile.taxInvoice} onChange={(e) => set((x) => void (x.profile.taxInvoice = e.target.checked))} />
               <span>세금계산서 발행 가능</span>

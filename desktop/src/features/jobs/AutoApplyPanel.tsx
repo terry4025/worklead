@@ -51,7 +51,7 @@ const reasonLabels: Record<string, string> = {
   source_permission_unverified: '수집 소스 허용 상태 확인 필요', database_restored: '데이터 복원 후 다시 연결 필요', journal_unavailable: '지원 기록 저장 상태 확인 필요',
   completion_reconciled: '연결 복구 후 공식 완료 표시를 재대조함 · 재제출 없음',
   browser_timeout: '당근 탭 응답 지연', retry_exhausted: '자동 재시도 3회 상한 도달',
-  ai_text_unavailable: 'AI 지원 문구 생성 실패',
+  ai_text_unavailable: '지원 문구를 만들지 못함',
   refresh_queued: '원문 재확인 작업 대기 중', refresh_running: '현재 원문을 읽는 중',
   refresh_failed: '원문 재확인 실패 · 수집 상태 확인 필요', refresh_cancelled: '원문 재확인 작업 중단',
   refresh_paused: '원문 재확인 일시 중지 · 실행 기록 확인 필요', refresh_partial: '원문 확인이 일부만 완료됨 · 확인 필요',

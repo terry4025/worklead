@@ -26,7 +26,7 @@ import { intentClass, recruitClass, remoteClass } from '../../domain/present';
 import { inQueue } from '../../domain/queues';
 import { toSummary } from '../../domain/summary';
 import { groupOutcomes, legacyMoneyAmount, salesPeriod } from '../../domain/sales';
-import { PortError, type QuoteDraft, type WorkleadPort } from '../port';
+import { PortError, type WorkleadPort } from '../port';
 import { DEMO_CATEGORIES, buildImportedLead, buildReserveLead } from './fixtures';
 import { buildScenario, type ScenarioId } from './scenarios';
 import { MockCafePort } from './MockCafePort';
@@ -119,13 +119,11 @@ const DEFAULT_SETTINGS: SettingsView = {
     businessRegistered: false,
     taxInvoice: false,
     portfolioUrl: 'https://www.seyj.kr/',
-    priceAnchorNote: '',
   },
   recheck: { ttlHours: 24 },
   notifications: { newRecommended: true, newReview: true, meaningfulChange: true, sourceIssue: true, quietHours: { enabled: true, start: '22:00', end: '08:00' } },
   ai: { enabled: false, externalTransferConsent: false, engineLabel: null, monthlyCostCap: null, dailyCostCap: null, keyConfigured: false, providerAvailable: false,
-    provider: 'openai', model: 'gpt-4.1-mini-2025-04-14', usdToKrwRate: null, maxOutputTokens: 1024, pricingConfirmed: false, revision: 0, databaseGeneration: 0,
-    dailyCallCap: 300, assistReview: false, assistRecheck: false, assistApplication: false, assistChat: false, assistQuote: false },
+    provider: 'openai', model: 'gpt-4.1-mini-2025-04-14', usdToKrwRate: null, maxOutputTokens: 1024, pricingConfirmed: false, revision: 0, databaseGeneration: 0 },
   retention: { rawDays: 30 },
   collection: { preventSleep: false },
   queryGroups: {
@@ -142,7 +140,7 @@ const DEFAULT_SETTINGS: SettingsView = {
 export class MockPort implements WorkleadPort {
   readonly cafe = new MockCafePort();
   readonly jobs: JobsPort = {
-    messagesInbox: () => this.delay(() => ({ enabled: false, state: 'off' as const, text: null, observed_at: null, lead_id: null, lead_title: null, source: 'visible_chat_panel' as const, persists_body: false as const, draft_state: 'off' as const, draft_text: null })),
+    messagesInbox: () => this.delay(() => ({ enabled: false, state: 'off' as const, text: null, observed_at: null, lead_id: null, lead_title: null, source: 'visible_chat_panel' as const, persists_body: false as const })),
     autoApplyStatus: () => this.delay(() => this.autoApplyStatus),
     autoApplySetup: () => this.delay(() => { throw new PortError({ kind: 'api', code: 'demo_only', message: '데모에서는 자동 지원을 등록하거나 실제 제출을 실행하지 않습니다.' }); }),
     autoApplyStart: () => this.delay(() => { throw new PortError({ kind: 'api', code: 'demo_only', message: '데모에서는 자동 지원 연결이나 실제 제출을 실행하지 않습니다.' }); }),
@@ -215,7 +213,6 @@ export class MockPort implements WorkleadPort {
   private timers = new Set<ReturnType<typeof setTimeout>>();
   private reserveUsed = false;
   private importSeq = 0;
-  private quoteDrafts = new Map<string, QuoteDraft>();
   readonly scenario: ScenarioId;
   private latency: [number, number];
   private now: () => number;
@@ -406,28 +403,6 @@ export class MockPort implements WorkleadPort {
       this.activity(l, '영업 결과 기록');
       this.emit({ type: 'lead.updated', leadId: id });
       return this.withDerived(l);
-    });
-  }
-
-  requestQuoteDraft(id: string): Promise<QuoteDraft> {
-    return this.delay(() => {
-      this.find(id);
-      const cur = this.quoteDrafts.get(id);
-      if (cur && cur.state !== 'failed') return { ...cur };
-      const next: QuoteDraft = { state: 'pending', text: null, failureCode: null };
-      this.quoteDrafts.set(id, next);
-      return { ...next };
-    });
-  }
-
-  quoteDraft(id: string): Promise<QuoteDraft> {
-    return this.delay(() => {
-      this.find(id);
-      const cur = this.quoteDrafts.get(id);
-      if (!cur) return { state: 'none' as const, text: null, failureCode: null };
-      // 합성 흐름: 요청 뒤 첫 조회는 pending, 다음 조회부터 ready.
-      if (cur.state === 'pending') this.quoteDrafts.set(id, { state: 'ready', text: '견적서 초안\n[금액]', failureCode: null });
-      return { ...cur };
     });
   }
 
@@ -703,7 +678,7 @@ export class MockPort implements WorkleadPort {
       pricingCheckedAt: '2026-09-30', price: { inputUsdPerMillion: 0.4, cachedInputUsdPerMillion: 0.1, outputUsdPerMillion: 1.6,
         sourceUrl: 'https://platform.openai.com/docs/models/gpt-4.1-mini', version: 'openai-standard-2026-09-30' },
       ledger: { day: { period: new Date(this.now()).toISOString().slice(0, 10), estimatedKrw: 0, reservedKrw: 0, uncertainKrw: 0, attempts: 0 },
-        month: { period: new Date(this.now()).toISOString().slice(0, 7), estimatedKrw: 0, reservedKrw: 0, uncertainKrw: 0, attempts: 0 } }, callsToday: null }));
+        month: { period: new Date(this.now()).toISOString().slice(0, 7), estimatedKrw: 0, reservedKrw: 0, uncertainKrw: 0, attempts: 0 } } }));
   }
 
   saveAiCredential(_input: Parameters<WorkleadPort['saveAiCredential']>[0]): Promise<AiStatus> {

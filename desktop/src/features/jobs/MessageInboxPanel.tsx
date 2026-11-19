@@ -20,13 +20,6 @@ export function MessageInboxPanel({ now, onOpenLead }: { now: Date; onOpenLead: 
     {!q.isError && view?.state === 'visible' && view.text ? <>
       <p className="field-hint">{view.observed_at ? `${formatDateTime(view.observed_at, now)} 관찰` : ''} · {view.lead_title ? `연결 공고: ${view.lead_title}` : '연결 공고 미확인 · 특정 지원에 대한 답장으로 단정하지 않습니다.'}</p>
       <div className="message-inbox-text" aria-label="당근에 보이는 채팅 내용" aria-live="polite">{view.text}</div>
-      {view.draft_state === 'pending' ? <p className="field-hint">답장 초안을 만들고 있습니다.</p> : null}
-      {view.draft_state === 'failed' ? <p className="field-error">답장 초안을 만들지 못했습니다.</p> : null}
-      {view.draft_state === 'ready' && view.draft_text ? <section className="message-draft" aria-label="AI 답장 초안">
-        <p className="field-hint">AI 답장 초안입니다. 보내기 전에 직접 확인하세요. 자동으로 보내지 않습니다.</p>
-        <div className="message-inbox-text">{view.draft_text}</div>
-        <Button variant="ghost" onClick={() => void navigator.clipboard.writeText(view.draft_text ?? '')}>초안 복사</Button>
-      </section> : null}
       {view.lead_id ? <Button size="sm" onClick={() => onOpenLead(view.lead_id!)}>연결 공고·지원 기록 보기</Button> : null}
     </> : <p className="field-hint">‘현재 크롬으로 연결’과 확장 팝업에서 ‘보이는 채팅 내용’ 항목을 켜세요. 채팅 목록을 열고, 상세 답장은 크롬에서 대화를 선택하면 이곳에도 표시됩니다.</p>}
     <p className="field-hint">미읽음 수가 늘면 기존 앱·Windows 알림으로 알립니다. 보이는 텍스트만 일시 표시하며 숨겨진 대화·이미지·이전 기록은 가져오지 않습니다. Worklead에서 메시지를 전송하지 않습니다.</p>

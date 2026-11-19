@@ -270,7 +270,6 @@ export function mapSettings(x: C.SettingsOut): SettingsView {
       businessRegistered: x.profile.business_registered ?? false,
       taxInvoice: x.profile.tax_invoice ?? false,
       portfolioUrl: x.profile.portfolio_url ?? 'https://www.seyj.kr/',
-      priceAnchorNote: x.profile.price_anchor_note ?? '',
     },
     recheck: { ttlHours: x.recheck.ttl_hours ?? 24 },
     notifications: {
@@ -293,12 +292,6 @@ export function mapSettings(x: C.SettingsOut): SettingsView {
       model: x.ai.model ?? 'gpt-4.1-mini-2025-04-14',
       usdToKrwRate: x.ai.usd_to_krw_rate ?? null,
       maxOutputTokens: x.ai.max_output_tokens ?? 1024,
-      dailyCallCap: x.ai.daily_call_cap ?? 300,
-      assistReview: x.ai.assist_review ?? false,
-      assistRecheck: x.ai.assist_recheck ?? false,
-      assistApplication: x.ai.assist_application ?? false,
-      assistChat: x.ai.assist_chat ?? false,
-      assistQuote: x.ai.assist_quote ?? false,
       pricingConfirmed: x.ai.pricing_confirmed ?? false,
       revision: x.ai.revision ?? 0,
       databaseGeneration: x.ai.database_generation ?? 0,
@@ -324,7 +317,6 @@ export function settingsPatchToContract(p: Parameters<import('../port').Worklead
       business_registered: p.profile.businessRegistered,
       tax_invoice: p.profile.taxInvoice,
       portfolio_url: p.profile.portfolioUrl,
-      price_anchor_note: p.profile.priceAnchorNote,
     };
   if (p.recheck) out.recheck = { ttl_hours: p.recheck.ttlHours };
   if (p.notifications)
@@ -349,12 +341,6 @@ export function settingsPatchToContract(p: Parameters<import('../port').Worklead
     if (p.ai.usdToKrwRate !== undefined) ai.usd_to_krw_rate = p.ai.usdToKrwRate;
     if (p.ai.maxOutputTokens !== undefined) ai.max_output_tokens = p.ai.maxOutputTokens;
     if (p.ai.pricingConfirmed !== undefined) ai.pricing_confirmed = p.ai.pricingConfirmed;
-    if (p.ai.dailyCallCap !== undefined) ai.daily_call_cap = p.ai.dailyCallCap;
-    if (p.ai.assistReview !== undefined) ai.assist_review = p.ai.assistReview;
-    if (p.ai.assistRecheck !== undefined) ai.assist_recheck = p.ai.assistRecheck;
-    if (p.ai.assistApplication !== undefined) ai.assist_application = p.ai.assistApplication;
-    if (p.ai.assistChat !== undefined) ai.assist_chat = p.ai.assistChat;
-    if (p.ai.assistQuote !== undefined) ai.assist_quote = p.ai.assistQuote;
     if (p.ai.expectedRevision !== undefined) ai.expected_revision = p.ai.expectedRevision;
     if (p.ai.expectedGeneration !== undefined) ai.expected_generation = p.ai.expectedGeneration;
     out.ai = ai as C.SettingsPatch['ai'];
@@ -370,7 +356,7 @@ export function mapAiStatus(x: C.AIStatus): AiStatus {
     settingsRevision: x.settings_revision, databaseGeneration: x.database_generation, pricingCheckedAt: x.pricing_checked_at,
     price: { inputUsdPerMillion: x.price_metadata.input_usd_per_million, cachedInputUsdPerMillion: x.price_metadata.cached_input_usd_per_million,
       outputUsdPerMillion: x.price_metadata.output_usd_per_million, sourceUrl: x.price_metadata.source_url, version: x.price_metadata.version },
-    ledger: x.ledger ? { day: period(x.ledger.day), month: period(x.ledger.month) } : null, callsToday: x.calls_today ?? null };
+    ledger: x.ledger ? { day: period(x.ledger.day), month: period(x.ledger.month) } : null };
 }
 
 export function mapBootstrap(x: C.BootstrapOut): Bootstrap {

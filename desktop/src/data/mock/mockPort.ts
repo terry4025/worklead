@@ -4,6 +4,7 @@
  */
 import type {
   AiStatus,
+  TelegramStatus,
   BackupInfo,
   BackupInspection,
   BackupList,
@@ -687,6 +688,18 @@ export class MockPort implements WorkleadPort {
 
   deleteAiCredential(_input: Parameters<WorkleadPort['deleteAiCredential']>[0]): Promise<AiStatus> {
     return Promise.reject(new PortError({ kind: 'not_implemented', code: 'demo_credential_unsupported', message: '데모에서는 실제 API 키를 삭제하지 않습니다.' }));
+  }
+
+  getTelegramStatus(): Promise<TelegramStatus> {
+    return this.delay(() => ({ keySupported: false, keyConfigured: null, chatConnected: false, enabled: false, errorCode: 'demo_credential_unsupported' }));
+  }
+
+  saveTelegramToken(_token: string): Promise<TelegramStatus> { return this.telegramDemo(); }
+  connectTelegram(): Promise<TelegramStatus> { return this.telegramDemo(); }
+  deleteTelegram(): Promise<TelegramStatus> { return this.telegramDemo(); }
+
+  private telegramDemo(): Promise<TelegramStatus> {
+    return Promise.reject(new PortError({ kind: 'not_implemented', code: 'demo_credential_unsupported', message: '데모에서는 텔레그램 토큰을 저장하지 않습니다.' }));
   }
 
   updateSettings(patch: Parameters<WorkleadPort['updateSettings']>[0]): Promise<SettingsView> {

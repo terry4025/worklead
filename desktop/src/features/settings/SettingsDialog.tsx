@@ -9,6 +9,7 @@ import { Dialog } from '../../ui/Dialog';
 import { ErrorState, errorMessage } from '../../ui/States';
 import { BackupPanel } from './BackupPanel';
 import { DesktopSettingsPanel } from './DesktopSettingsPanel';
+import { TelegramSettingsPanel } from './TelegramSettingsPanel';
 import { AI_EDITABLE, AI_STATUS_KEY, AiSettingsPanel, aiSettingsChanged, aiStatusMatches, invalidAiSettings } from './AiSettingsPanel';
 import { formatCount } from '../../domain/format';
 import { getDatabaseEpoch, resetDatabaseQueries } from '../../app/databaseCache';
@@ -287,6 +288,8 @@ export function SettingsDialog({
               <input type="time" aria-label="조용한 시간 끝" value={d.notifications.quietHours.end} onChange={(e) => set((x) => void (x.notifications.quietHours.end = e.target.value))} />
             </div>
           </fieldset>
+
+          <TelegramSettingsPanel disabled={save.isPending || backupBusy || refreshRestored.isPending} />
 
           <DesktopSettingsPanel />
 

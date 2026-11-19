@@ -1,0 +1,47 @@
+{
+  "properties": {
+    "key_supported": {
+      "title": "Key Supported",
+      "type": "boolean"
+    },
+    "key_configured": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Key Configured"
+    },
+    "chat_connected": {
+      "title": "Chat Connected",
+      "type": "boolean"
+    },
+    "enabled": {
+      "title": "Enabled",
+      "type": "boolean"
+    },
+    "error_code": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Error Code"
+    }
+  },
+  "required": [
+    "key_supported",
+    "key_configured",
+    "chat_connected",
+    "enabled"
+  ],
+  "title": "TelegramStatus",
+  "type": "object"
+}

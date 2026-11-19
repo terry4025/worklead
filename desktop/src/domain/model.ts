@@ -445,6 +445,15 @@ export interface SettingsView {
   queryGroups: { version: number; groups: QueryGroup[] };
 }
 
+/** 휴대폰 텔레그램 알림 연결 상태. 토큰은 조회하지 않는다. */
+export interface TelegramStatus {
+  keySupported: boolean;
+  keyConfigured: boolean | null;
+  chatConnected: boolean;
+  enabled: boolean;
+  errorCode: string | null;
+}
+
 /** 비밀값 없이 조회하는 제공자·OS 저장소·비용 상태. */
 export interface AiStatus {
   provider: SettingsView['ai']['provider'];

@@ -1,6 +1,7 @@
 import type {
   AiRevision,
   AiStatus,
+  TelegramStatus,
   BackupInfo,
   BackupInspection,
   BackupList,
@@ -84,6 +85,12 @@ export interface WorkleadPort {
   /** 키는 이 요청에만 사용하며 설정·조회·변경 캐시에 저장하지 않는다. */
   saveAiCredential(input: AiRevision & { key: string }): Promise<AiStatus>;
   deleteAiCredential(input: AiRevision): Promise<AiStatus>;
+  getTelegramStatus(): Promise<TelegramStatus>;
+  /** 토큰은 이 요청에만 사용하며 캐시에 저장하지 않는다. */
+  saveTelegramToken(token: string): Promise<TelegramStatus>;
+  /** 봇에게 마지막으로 메시지를 보낸 개인 채팅을 찾아 테스트 메시지를 보내고 켠다. */
+  connectTelegram(): Promise<TelegramStatus>;
+  deleteTelegram(): Promise<TelegramStatus>;
   /** 바뀐 구획만 보낸다 */
   updateSettings(patch: Partial<Pick<SettingsView, 'profile' | 'recheck' | 'notifications' | 'retention'>> & {
     ai?: Partial<Pick<SettingsView['ai'], 'enabled' | 'externalTransferConsent' | 'monthlyCostCap' | 'dailyCostCap' | 'provider' | 'model' | 'usdToKrwRate' | 'maxOutputTokens' | 'pricingConfirmed'>> & Partial<AiRevision>;

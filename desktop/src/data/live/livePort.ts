@@ -6,6 +6,7 @@ import {
   filterToQuery,
   mapBootstrap,
   mapAiStatus,
+  mapTelegram,
   mapDetail,
   mapEvent,
   mapRun,
@@ -235,6 +236,11 @@ export class LivePort implements WorkleadPort {
   async deleteAiCredential(input: Parameters<WorkleadPort['deleteAiCredential']>[0]) {
     return mapAiStatus(await wrap(this.client.deleteAiCredential({ expected_revision: input.expectedRevision, expected_generation: input.expectedGeneration })));
   }
+
+  async getTelegramStatus() { return mapTelegram(await wrap(this.client.telegramStatus())); }
+  async saveTelegramToken(token: string) { return mapTelegram(await wrap(this.client.saveTelegramToken(token))); }
+  async connectTelegram() { return mapTelegram(await wrap(this.client.connectTelegram())); }
+  async deleteTelegram() { return mapTelegram(await wrap(this.client.deleteTelegram())); }
 
   async updateSettings(patch: Parameters<WorkleadPort['updateSettings']>[0]) {
     return mapSettings(await wrap(this.client.patchSettings(settingsPatchToContract(patch))));

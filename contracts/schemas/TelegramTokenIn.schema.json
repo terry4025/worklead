@@ -1,0 +1,16 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "token": {
+      "format": "password",
+      "title": "Token",
+      "type": "string",
+      "writeOnly": true
+    }
+  },
+  "required": [
+    "token"
+  ],
+  "title": "TelegramTokenIn",
+  "type": "object"
+}

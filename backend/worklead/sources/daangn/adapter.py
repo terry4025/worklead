@@ -30,8 +30,8 @@ from .serialized import SerializedError, relay_records
 # Explicit technical variants, not fuzzy matches or unrestricted expansion.
 # Expansion starts from enabled query terms; an Excel-only query stays scoped.
 _TITLE_ALIASES = (
-    ("홈페이지", "홈피", "웹사이트", "웹페이지", "웹개발", "웹제작", "웹서비스", "사이트", "website", "webpage", "상세페이지", "상품페이지", "소개페이지"),
-    ("프로그램", "소프트웨어", "코딩", "아두이노", "arduino"),
+    ("홈페이지", "홈피", "웹사이트", "웹페이지", "웹개발", "웹제작", "웹서비스", "사이트", "website", "webpage", "상세페이지", "상품페이지", "소개페이지", "html"),
+    ("프로그램", "소프트웨어", "코딩", "아두이노", "arduino", "프로그래밍"),
     ("파이썬", "python"),
     ("엑셀", "excel"),
     ("앱", "어플", "애플리케이션"),
@@ -107,7 +107,7 @@ _PHYSICAL_WORK_TITLE = re.compile(
 _TEACHING_TITLE = re.compile(r"강사|선생님|과외|레슨|수업|강의|튜터")
 # Must stay in sync with the suffix added to profile.json discovery.title_pattern.
 # Core matches from only these terms are dropped for teacher titles.
-_NEW_CORE_TERMS = re.compile(r"구글\s*시트|스프레드\s*시트|아두이노|코딩\s*(?:해\s*주|도와|봐\s*주|요청)")
+_NEW_CORE_TERMS = re.compile(r"구글\s*시트|스프레드\s*시트|아두이노|코딩\s*(?:해\s*주|도와|봐\s*주|요청)|프로그래밍|(?i:html)")
 _DEVELOPMENT_TECHNOLOGY = re.compile(
     r"(?<![A-Za-z0-9])(?:React|Vue|Angular|Next\.?js|Node\.?js|TypeScript|JavaScript|Python|HTML|CSS)(?![A-Za-z0-9])",
     re.I,

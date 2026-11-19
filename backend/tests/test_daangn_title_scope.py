@@ -33,3 +33,13 @@ def test_coding_teacher_titles_stay_out():
 def test_existing_core_titles_unchanged():
     assert create().saved_candidate_kind("홈페이지 제작 의뢰", json.dumps(["홈페이지"], ensure_ascii=False)) is not None
     assert kind("엑셀 매크로 만들어주실 분") == "core"
+
+
+def test_programming_and_html_titles_reach_detail_check():
+    assert kind("컴퓨터 프로그래밍 가능하신분 견적") == "core"
+    assert create().saved_candidate_kind("AI영상/ html 코드 제작가능하신분 찾습니다", json.dumps(["홈페이지"], ensure_ascii=False)) == "core"
+
+
+def test_programming_teacher_titles_stay_out():
+    for title in ("프로그래밍 강사 모집", "html 강의 해주실 선생님"):
+        assert create().saved_candidate_kind(title, json.dumps(["프로그램", "홈페이지"], ensure_ascii=False)) is None, title

@@ -326,6 +326,10 @@ def analyze(
     non_delivery = rules.non_delivery_reason(title, body)
     if non_delivery:
         intent = Judgement("demand_intent", "unknown", None, [non_delivery[1]])
+    elif intent.value == "unknown" and dev:
+        guess = rules.inferred_request(title, body)
+        if guess:
+            intent = Judgement("demand_intent", "buyer_project", "inferred", [guess])
     engagement = rules.classify_engagement(title, body, intent.value)
     work = rules.classify_work_mode(title, body)
     collab = rules.classify_collaboration(title, body, work.value)
@@ -466,6 +470,9 @@ def analyze(
     ):
         if key in needs:
             (met if ok else review).append(label if ok else missing)
+
+    if intent.basis == "inferred" and intent.value == "buyer_project":
+        review.insert(0, "의뢰 표현 추정 — 원문 확인")
 
     if exclude:
         recommendation = "excluded"

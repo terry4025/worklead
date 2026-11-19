@@ -249,6 +249,32 @@ def classify_intent(title: str, body: str) -> Judgement:
     return Judgement("demand_intent", "unknown", None)
 
 
+# ── 추정 의뢰 (2026-11-19) ─────────────────────────────────────────────
+# Live posts often ask for software work without the worded request phrases
+# BUYER expects ("AI 활용 웹사이트 제작 … 완료하실수 있는 분이면 충분합니다").
+# A deliverable next to a build verb plus a hand-off phrase is only an
+# inference: the analysis sends it to manual review and auto-apply skips it.
+_DELIVERABLE = r"(?:홈\s*페이지|홈피|웹\s*사이트|사이트|랜딩\s*페이지|상세\s*페이지|쇼핑몰|앱|어플|프로그램|시스템|코드|엑셀|구글\s*시트|자동화|매크로|크롤링|API|챗봇)"
+_BUILD = r"(?:제작|개발|구축|수정|코딩|만들|연동|오류|디자인)"
+INFERRED_WORK = c(rf"{_DELIVERABLE}[^.\n]{{0,15}}{_BUILD}", rf"{_BUILD}[^.\n]{{0,15}}{_DELIVERABLE}")
+INFERRED_HANDOFF = c(
+    r"분\s*(?:을\s*)?(?:구합니다|구해요|구함|찾습니다|찾아요|찾고|모집|모십니다)",
+    r"도와\s*주(?:실|시면|세요)", r"도움\s*주(?:실|시면)", r"해\s*주(?:실|시면)",
+    r"가능(?:하신|한)\s*분", r"(?:하실|할)\s*수\s*있는\s*분", r"하실\s*분",
+)
+INFERRED_BLOCK_TITLE = re.compile(r"설비|장비|생산|조립|공장|현장|시공|설치|포장|강사|선생님|과외|레슨|수업|강의|테스트|부업|체험|구인|채용|정규직|직원|사원|인턴|수습|하는\s*법|방법|알려")
+
+
+def inferred_request(title: str, body: str) -> Ev | None:
+    """Unworded software request: deliverable + build verb + hand-off phrase. Basis is always 'inferred'."""
+    if INFERRED_BLOCK_TITLE.search(title):
+        return None
+    text = f"{title}\n{body}"
+    if not any_match(INFERRED_WORK, text):
+        return None
+    return find(INFERRED_HANDOFF, body, title, "inferred", "결과물·제작 표현과 맡기는 표현 — 의뢰로 추정")
+
+
 def classify_engagement(title: str, body: str, intent: str) -> Judgement:
     ft = find(FULL_TIME, body, title, "explicit")
     if ft:

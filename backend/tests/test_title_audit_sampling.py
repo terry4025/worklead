@@ -59,8 +59,8 @@ def test_audit_has_no_incremental_list_budget_cost():
     adapter = create()
     # Failure and saturation polls share the existing fast allowance rather
     # than reserving every region at the shortest possible revisit interval.
-    assert adapter.daily_list_requests(5) == 4864
-    assert adapter.remaining_list_requests(86400, 5) == 4973
+    assert adapter.daily_list_requests(5) == 4828
+    assert adapter.remaining_list_requests(86400, 5) == 4939
 
 
 def test_audit_respects_narrow_and_disabled_keyword_scope():

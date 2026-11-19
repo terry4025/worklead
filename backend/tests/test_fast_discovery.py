@@ -19,9 +19,10 @@ def test_daily_reserve_covers_rotating_hot_set_and_stays_below_host_cap():
     assert adapter.default_interval_minutes == 5
     assert adapter.min_interval_seconds == 6
     assert adapter.daily_request_budget == 5500
-    assert adapter.daily_list_requests(5) == 4864
-    assert adapter.remaining_list_requests(86400, 5) == 4973
-    assert adapter.remaining_list_requests(3600, 5) >= 70 * 2 + 29 + 8 * 6
+    assert adapter.daily_list_requests(5) == 4828
+    assert adapter.daily_list_requests(5) <= 4864  # 2026-11-19 rebalance stays inside the old reserve
+    assert adapter.remaining_list_requests(86400, 5) == 4939
+    assert adapter.remaining_list_requests(3600, 5) >= 61 * 2 + 38 + 10 * 6
     assert adapter.remaining_list_requests(0, 5) == 0
     # Conservative startup reserve still leaves requests for fresh details.
     assert adapter.remaining_list_requests(86400, 5) < adapter.daily_request_budget
@@ -82,8 +83,8 @@ def test_unique_new_production_outranks_duplicates_and_hot_capacity_is_shared(tm
         s.flush()
         chosen = prioritize_feed_tasks(s, adapter, plan(adapter), NOW)
         hot = {t.region_scope for t in chosen.tasks if t.min_revisit_minutes == 10}
-        assert hot == {f"feed-{i}" for i in range(104, 112)}
-        for i in range(8):
+        assert hot == {f"feed-{i}" for i in range(102, 112)}
+        for i in range(10):
             s.add(CollectionTask(id=new_id("task"), run_id=r.id, source_id=adapter.source_id,
                 task_key=f"fast:{i}", query_group="q", region_scope=f"feed-{100+i}", scan_cycle=2,
                 state="done", result_count=0, checkpoint={"priority_anchor": True}, updated_at=NOW))
@@ -91,7 +92,7 @@ def test_unique_new_production_outranks_duplicates_and_hot_capacity_is_shared(tm
         changed_rank = prioritize_feed_tasks(s, adapter, plan(adapter), NOW + timedelta(minutes=5))
         assert not any(t.min_revisit_minutes == 10 for t in changed_rank.tasks)
         resumed = prioritize_feed_tasks(s, adapter, plan(adapter), NOW + timedelta(minutes=10))
-        assert sum(t.min_revisit_minutes == 10 for t in resumed.tasks) == 8
+        assert sum(t.min_revisit_minutes == 10 for t in resumed.tasks) == 10
     ctx.db.dispose()
 
 
@@ -138,4 +139,26 @@ def test_same_classified_lead_only_credits_its_first_feed(tmp_path):
         s.flush()
         chosen = prioritize_feed_tasks(s, adapter, plan(adapter), NOW + timedelta(days=31))
         assert all(t.min_revisit_minutes != 10 for t in chosen.tasks)
+    ctx.db.dispose()
+
+
+def test_full_page_with_few_new_entries_is_not_saturated(tmp_path):
+    ctx, _, _, _ = site(tmp_path, [[28, "신당동", "A"]], {})
+    adapter = ctx.adapters["daangn-alba"]
+    with ctx.db.session() as s:
+        r = Run(id=new_id("run"), source_id=adapter.source_id, kind="discovery", state="succeeded")
+        s.add(r); s.flush()
+        task = CollectionTask(id=new_id("task"), run_id=r.id, source_id=adapter.source_id, task_key="sat", query_group="q",
+                              region_scope="feed-28", scan_cycle=1, state="done", result_count=1,
+                              checkpoint={"feed_saturated": True, "new_listed_entries": 1}, updated_at=NOW - timedelta(minutes=10))
+        s.add(task); s.flush()
+        revisit = {t.region_scope: t.min_revisit_minutes for t in prioritize_feed_tasks(s, adapter, plan(adapter), NOW).tasks}
+        assert revisit["feed-28"] != 5  # a full page with one new post is not an overflow risk
+        # A newer visit, not an edit: updating the row would restamp updated_at with the real clock.
+        s.add(CollectionTask(id=new_id("task"), run_id=r.id, source_id=adapter.source_id, task_key="sat2", query_group="q",
+                             region_scope="feed-28", scan_cycle=2, state="done", result_count=1,
+                             checkpoint={"feed_saturated": True, "new_listed_entries": 16}, updated_at=NOW - timedelta(minutes=9)))
+        s.flush()
+        revisit = {t.region_scope: t.min_revisit_minutes for t in prioritize_feed_tasks(s, adapter, plan(adapter), NOW).tasks}
+        assert revisit["feed-28"] == 5
     ctx.db.dispose()

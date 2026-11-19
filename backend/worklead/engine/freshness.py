@@ -15,6 +15,8 @@ from ..sources.base import DiscoverResult, PostRef, TaskSpec
 from ..sources.profiled import canonicalize
 
 
+SATURATION_NEW_ENTRIES = 15  # of a 20-item feed page
+
 def ref_key(ref):
     identity = f"id:{ref.source_post_id}" if ref.source_post_id else f"url:{canonicalize(ref.url)}"
     return hashlib.sha256(identity.encode()).hexdigest()
@@ -186,8 +188,8 @@ def prioritize_feed_tasks(session, adapter, plan, now):
         CollectionTask.checkpoint["priority_anchor"].as_boolean() == True)) or 0
     slots = max(0, cap - recent_fast)
     # Failures never erase a successful visit; their own timestamps enforce a
-    # bounded retry/backoff. All accelerated reasons share the same eight-slot
-    # allowance, including failed requests, so saturation cannot expand budget.
+    # bounded retry/backoff. All accelerated reasons share one slot allowance
+    # (max_hot_anchors), including failed requests, so saturation cannot expand budget.
     latest_tasks = {}
     for task in session.scalars(select(CollectionTask).where(
             CollectionTask.source_id == adapter.source_id, CollectionTask.region_scope.in_(scopes),
@@ -208,7 +210,8 @@ def prioritize_feed_tasks(session, adapter, plan, now):
                 excluded.add(scope)
             elif cp.get("feed_transient_retry"):
                 retries.append(scope)
-        elif (cp.get("feed_saturated") and cp.get("new_listed_entries", 0)
+        # feed_saturated only says the 20-item page was full; overflow risk starts when most of it is new.
+        elif (int(cp.get("new_listed_entries", 0) or 0) >= SATURATION_NEW_ENTRIES
               and now - timedelta(hours=2) <= task.updated_at <= now - timedelta(minutes=max(5, int(adaptive.get("saturated_minutes", 5))))):
             saturated.append(scope)
     retry = set(retries[:min(2, slots)])

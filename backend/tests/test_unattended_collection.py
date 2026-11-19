@@ -109,7 +109,7 @@ def test_full_changing_feed_is_revisited_in_five_minutes(tmp_path):
         ctx.db.dispose()
 
 
-def test_saturated_failed_and_hot_polls_share_eight_slots_including_failures(tmp_path):
+def test_saturated_failed_and_hot_polls_share_the_slot_allowance_including_failures(tmp_path):
     ctx, _, _, _ = site(tmp_path, [[i, str(i), 'A'] for i in range(100, 112)], {})
     adapter = ctx.adapters['daangn-alba']
     try:
@@ -121,7 +121,7 @@ def test_saturated_failed_and_hot_polls_share_eight_slots_including_failures(tmp
                     task_key=f'full:{i}', query_group='q', region_scope=f'feed-{100+i}', scan_cycle=1,
                     state='done', checkpoint={'new_core_candidates': i+1, 'new_listed_entries': 20, 'feed_saturated': True},
                     updated_at=NOW-timedelta(minutes=5)))
-            for i in range(7):
+            for i in range(9):  # max_hot_anchors (10) - 1
                 s.add(CollectionTask(id=new_id('task'), run_id=run.id, source_id=adapter.source_id,
                     task_key=f'slot:{i}', query_group='other', region_scope=f'feed-{100+i}', scan_cycle=2,
                     state='failed', checkpoint={'priority_anchor': True}, updated_at=NOW-timedelta(minutes=1)))

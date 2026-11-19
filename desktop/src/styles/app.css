@@ -1977,3 +1977,169 @@ input[aria-invalid='true'] {
 .freshness-metrics-grid { display: flex; flex-wrap: wrap; gap: 12px 32px; padding-top: 8px; }
 .freshness-metrics-grid > div { flex: 1 1 260px; }
 .freshness-metrics-grid p { margin: 4px 0; }
+
+/* ── 노선도 (2026-11-19 재설계) ─────────────────────────────
+ * 1호선 남색 노선 띠 + 역 표시. 노선색은 상태를 함께 말하는 곳에만 쓴다.
+ */
+[data-tone='line1'] { --tone: var(--line-1); }
+[data-tone='line2'] { --tone: var(--line-2); }
+[data-tone='line3'] { --tone: var(--line-3); }
+[data-tone='sb'] { --tone: var(--line-sb); }
+[data-tone='off'] { --tone: var(--line-strong); }
+
+html { scrollbar-color: var(--line-strong) transparent; }
+input, textarea { caret-color: var(--accent); }
+
+/* 상단 노선 띠 */
+.topbar {
+  min-height: 52px;
+  gap: 16px;
+  background: var(--rail);
+  color: var(--on-rail);
+  border-bottom: 4px solid var(--rail-2);
+}
+.topbar .brand-mark { background: var(--on-rail); color: var(--rail); border-radius: 50%; }
+.topbar .brand-name { color: var(--on-rail); font-size: var(--fs-lg); letter-spacing: -0.02em; }
+.topbar .run-summary, .topbar .stream, .topbar .tb-btn { color: var(--on-rail-2); }
+.topbar .run-summary:hover, .topbar .tb-btn:hover { background: rgba(255, 255, 255, 0.1); color: var(--on-rail); }
+.topbar .muted-text { color: var(--on-rail-2); opacity: 0.8; }
+.topbar .run-bar { background: var(--rail-line); }
+.topbar .run-bar > span { background: var(--line-2); }
+.workspace-switch {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.workspace-switch .btn {
+  height: 30px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--on-rail-2);
+  font-size: var(--fs-sm);
+}
+.workspace-switch .btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.12); color: var(--on-rail); }
+.workspace-switch .btn.is-pressed { background: var(--on-rail); color: var(--rail); font-weight: 700; }
+
+/* 역과 선 */
+.metro-line {
+  display: flex;
+  align-items: flex-start;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.metro-stop {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 72px;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  text-align: center;
+  color: var(--text-3);
+}
+.metro-stop + .metro-stop::before {
+  content: '';
+  position: absolute;
+  top: 7px;
+  right: 50%;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+}
+.metro-stop[data-reached] + .metro-stop[data-reached]::before { background: var(--tone); }
+.metro-dot {
+  position: relative;
+  z-index: 1;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 4px solid var(--line-strong);
+  background: var(--surface);
+}
+.metro-stop[data-reached] .metro-dot { border-color: var(--tone); }
+.metro-stop[data-reached] { color: var(--text); }
+.metro-label { font-size: var(--fs-xs); font-weight: 600; white-space: nowrap; }
+.metro-value { font-size: var(--fs-lg); font-weight: 750; line-height: 1.2; }
+.metro-stop:not([data-reached]) .metro-value { color: var(--text-3); font-weight: 600; }
+
+/* 리드 화면 맨 위: 자동 지원 노선 */
+.metro {
+  flex: none;
+  display: grid;
+  grid-template-columns: auto minmax(320px, 1.4fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px 24px;
+  padding: 12px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.metro-head { display: grid; gap: 4px; justify-items: start; }
+.metro-badge {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--line-1);
+  color: #fff;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+.metro-state { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: var(--fs-md); }
+.metro-state::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--tone); }
+.metro-recent { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+.metro-recent-label { color: var(--text-3); font-size: var(--fs-xs); font-weight: 600; }
+.metro-chip {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 3px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+}
+.metro-chip:hover { border-color: var(--line-2); color: var(--text); }
+@media (max-width: 1100px) { .metro { grid-template-columns: auto 1fr auto; } .metro-recent { grid-column: 1 / -1; order: 4; } }
+
+/* 상세 머리의 공고 여정 */
+.journey { margin: 10px 0 6px; max-width: 420px; }
+.journey .metro-stop { min-width: 60px; }
+.journey .metro-dot { width: 14px; height: 14px; border-width: 3px; }
+.journey .metro-stop + .metro-stop::before { top: 5px; height: 3px; }
+
+/* 작업면 다듬기 */
+.toolbar { background: var(--surface-2); padding: 10px 20px; }
+.tabs { background: var(--surface-3); border-radius: 999px; padding: 3px; }
+.tab { border-radius: 999px; padding: 5px 13px; }
+.tab.is-active { box-shadow: var(--shadow-lift); color: var(--line-1); }
+.tab.is-active .tab-count { color: var(--line-1); }
+.row.is-selected::before { width: 4px; border-radius: 0 2px 2px 0; background: var(--line-1); }
+.score { color: var(--line-1); font-weight: 750; }
+.detail-head { padding: 16px 24px 12px; }
+.detail-title { letter-spacing: -0.02em; }
+.fresh-review-note { padding: 8px 20px; background: var(--surface-2); }
+.btn-primary { box-shadow: 0 1px 2px rgba(0, 82, 164, 0.25); }
+
+/* 지원 준비: 입력과 상태 역 */
+.auto-apply-fields input {
+  display: block;
+  width: 120px;
+  height: 34px;
+  margin-top: 4px;
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+.auto-apply-fields input:focus-visible { outline: none; box-shadow: var(--focus-ring); border-color: var(--accent); }
+.auto-apply-how { margin: 8px 0; }
+.auto-apply-how > summary { cursor: pointer; color: var(--accent); font-size: var(--fs-xs); font-weight: 600; }

@@ -48,9 +48,9 @@
 .auto-apply-panel .field-hint { font-size: var(--fs-xs); }
 .auto-apply-consent { padding: 12px; background: var(--accent-weak); border-radius: var(--radius); }
 .auto-apply-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 14px 0; }
-.auto-apply-metrics div { padding: 12px; background: var(--surface-2); border-radius: var(--radius); }
+.auto-apply-metrics div { position: relative; padding: 12px 12px 12px 32px; background: var(--surface-2); border-radius: var(--radius); }
 .auto-apply-metrics dt { color: var(--text-3); font-size: var(--fs-xs); }
-.auto-apply-metrics dd { margin: 6px 0 0; font-weight: 700; }
+.auto-apply-metrics dd { margin: 6px 0 0; font-size: var(--fs-lg); font-weight: 750; font-variant-numeric: tabular-nums; }
 .auto-apply-metrics > div:last-child:nth-child(odd) { grid-column: 1 / -1; }
 .auto-apply-queue { padding: 12px 14px; margin: 0 0 12px; border: 1px solid var(--accent-line); border-radius: var(--radius); background: var(--accent-weak); font-size: var(--fs-sm); }
 .auto-apply-queue.needs-action { border-color: var(--warn); color: var(--warn); background: var(--surface-2); }
@@ -71,3 +71,18 @@
 .message-inbox-text { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 360px; overflow-y: auto; padding: 16px; border-radius: 8px; background: var(--bg-subtle, #f4f6f9); margin: 12px 0; line-height: 1.65; }
 
 .auto-apply-remember { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sm); font-weight: 600; margin: 14px 0 6px; }
+/* 상태 칸은 노선 역 표시를 단다 (2026-11-19) */
+.auto-apply-metrics > div::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 16px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 3px solid var(--line-1);
+  background: var(--surface);
+}
+.auto-apply-metrics > div:nth-child(1)::before { border-color: var(--line-2); }
+.auto-apply-metrics > div:nth-child(3)::before { border-color: var(--line-3); }
+.auto-apply-metrics > div:nth-child(4)::before { border-color: var(--line-sb); }

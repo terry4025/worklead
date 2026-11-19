@@ -11,6 +11,7 @@ import { ApplicationWorkspace } from '../features/jobs/ApplicationWorkspace';
 import { LeadDetailPane, type DetailHandle } from '../features/detail/LeadDetailPane';
 import { CurrencyTotals } from '../features/detail/Records';
 import { IssueStrip, deriveIssues } from '../features/header/IssueStrip';
+import { AutoApplyLine } from '../features/leads/Metro';
 import { TopBar } from '../features/header/TopBar';
 import { ShortcutHelp } from '../features/help/ShortcutHelp';
 import { DEFAULT_FILTER, FilterBar, isDefaultFilter } from '../features/leads/FilterBar';
@@ -301,10 +302,13 @@ export function Workspace() {
         onSettings={() => setSettingsOpen(true)}
         onHelp={() => setHelpOpen(true)}
         now={now}
-      />
+      >
+        <nav className="workspace-switch" aria-label="작업 공간"><Button pressed={workspace === 'leads'} onClick={() => setWorkspace('leads')}>리드</Button><Button pressed={workspace === 'jobs'} onClick={() => setWorkspace('jobs')}>지원 준비·메시지</Button><Button pressed={workspace === 'cafe'} onClick={() => setWorkspace('cafe')}>카페</Button></nav>
+      </TopBar>
       <IssueStrip issues={issues} />
-      <nav className="workspace-switch" aria-label="작업 공간"><Button pressed={workspace === 'leads'} onClick={() => setWorkspace('leads')}>리드</Button><Button pressed={workspace === 'jobs'} onClick={() => setWorkspace('jobs')}>지원 준비·메시지</Button><Button pressed={workspace === 'cafe'} onClick={() => setWorkspace('cafe')}>카페</Button></nav>
       {workspace === 'jobs' ? <ApplicationWorkspace now={now} onSettings={() => setSettingsOpen(true)} onOpenLead={(id) => { setWorkspace('leads'); changeView('all'); void qc.invalidateQueries({ queryKey: qk.leadsAll }); void qc.invalidateQueries({ queryKey: ['counts'] }); openLead(id); }} /> : workspace === 'cafe' ? <CafeWorkspace onOpenLead={(id) => { setWorkspace('leads'); changeView('all'); void qc.invalidateQueries({ queryKey: qk.leadsAll }); void qc.invalidateQueries({ queryKey: ['counts'] }); openLead(id); }} /> : <>
+
+      <AutoApplyLine onOpenJobs={() => setWorkspace('jobs')} onOpenLead={(id) => { changeView('all'); void qc.invalidateQueries({ queryKey: qk.leadsAll }); openLead(id); }} />
 
       <div className="toolbar">
         <QueueTabs view={view} onChange={changeView} counts={counts.data} />

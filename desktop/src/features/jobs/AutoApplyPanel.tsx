@@ -154,8 +154,6 @@ export function AutoApplyPanel({ now, onOpenLead }: { now: Date; onOpenLead: (id
       <div className="auto-apply-fields"><label className="field-label">최소 점수<input aria-label="자동 지원 최소 점수" type="number" min={0} max={100} step={1} value={minScore} disabled={status?.enabled || busy} onChange={(e) => { fieldsEdited.current = true; setMinScore(e.target.value); }} /></label><label className="field-label">하루 제출 상한<input aria-label="자동 지원 하루 제출 상한" type="number" min={1} max={200} step={1} value={dailyLimit} disabled={status?.enabled || busy} onChange={(e) => { fieldsEdited.current = true; setDailyLimit(e.target.value); }} /></label></div>
       <p className="field-hint">{valid ? score > 0 ? `${score - 1}점은 제외하고 ${score}점부터 대상에 포함합니다.` : '0점부터 대상에 포함합니다.' : '점수는 0~100, 하루 상한은 1~200의 정수로 입력하세요.'} 점수 외에도 모집 상태·지원 이력·필수 질문을 확인합니다.</p>
       <p className="auto-apply-consent">시작하면 기준에 맞는 공고에 당근에 저장된 기본 자기소개로 개별 확인 없이 지원합니다. 확인 필요 공고도 포함하며, 추가 질문·새 약관·바뀐 양식은 보류합니다. Worklead의 편집 중인 초안은 전송하지 않습니다.</p>
-      <p className="field-hint">새 공고부터 확인한 뒤 기존에 저장한 미지원 공고도 점검합니다. 오래된 원문은 본문·모집 상태와 지원 양식을 다시 확인합니다. 제출 허가 전의 명확한 연결·탭 오류만 1분·5분·15분 간격으로 최대 3회 다시 점검합니다. 추가 질문·조건 보류·기존 지원·결과 미확인 건은 자동 재제출하지 않습니다.</p>
-      <p className="field-hint">Worklead가 전용 당근 창과 다음 실행의 자동 재개를 준비합니다. 확장 등록이나 연결코드 입력 없이 사용할 수 있습니다. 로그인이 필요하면 열린 당근 창에서 직접 로그인하세요.</p>
       {managed ? <p className="field-hint" role="status">{status.browser_open ? '자동 지원 전용 당근 창이 열려 있습니다.' : status.enabled ? '자동 지원 전용 당근 창을 준비하고 있습니다.' : '자동 지원을 시작하면 저장된 연결로 전용 당근 창을 엽니다.'}</p> : null}
       <div className="draft-actions">
         <Button size="sm" variant="primary" icon={<Zap size={14} />} busy={setup.isPending} disabled={!status || q.isError || !valid || busy || mode === 'demo' || (managed && working)} onClick={() => { start.reset(); stop.reset(); forget.reset(); setup.mutate(); }}>{status?.enabled ? '자동 연결·지원 재개' : '설정 없이 자동 지원 시작'}</Button>
@@ -171,8 +169,12 @@ export function AutoApplyPanel({ now, onOpenLead }: { now: Date; onOpenLead: (id
         {codeReady ? <div className="chrome-connection-code"><p className="field-hint">최초 한 번 로그인한 당근 탭의 Worklead 확장 팝업에서 <strong>자동 지원 연결</strong> 입력란에 붙여 넣고 ‘자동 지원 탭 연결’을 누르세요. 메시지 감시 연결코드와 별개입니다.</p><Button size="sm" icon={<Copy size={14} />} onClick={async () => { if (code.current) setCopied(await copyText(code.current) ? 'copied' : 'failed'); }}>자동 지원 연결코드 복사</Button><p className={copied === 'failed' ? 'field-error' : 'field-hint'} role="status">{copied === 'copied' ? '자동 지원 전용 코드를 복사했습니다.' : copied === 'failed' ? '복사하지 못했습니다. 다시 시도하세요.' : '실제 확장 연결 전에는 지원을 시작하지 않습니다.'}</p>{directory ? <p className="field-hint chrome-extension-path">확장 폴더: {directory}</p> : null}</div> : null}
         <p className="field-hint">{status?.remembers_connection ? '자동 연결을 기억합니다. 앱 종료 중에는 지원하지 않으며, 다시 켜면 저장한 연결로 복구합니다. 중지하면 다음 실행에도 중지를 유지합니다.' : '자동 연결 기억을 끄면 앱 재시작 후 새 코드로 연결해야 합니다.'}</p>
       </details>}
+      <details className="auto-apply-how"><summary>작동 방식 자세히</summary>
+      <p className="field-hint">새 공고부터 확인한 뒤 기존에 저장한 미지원 공고도 점검합니다. 오래된 원문은 본문·모집 상태와 지원 양식을 다시 확인합니다. 제출 허가 전의 명확한 연결·탭 오류만 1분·5분·15분 간격으로 최대 3회 다시 점검합니다. 추가 질문·조건 보류·기존 지원·결과 미확인 건은 자동 재제출하지 않습니다.</p>
+      <p className="field-hint">Worklead가 전용 당근 창과 다음 실행의 자동 재개를 준비합니다. 확장 등록이나 연결코드 입력 없이 사용할 수 있습니다. 로그인이 필요하면 열린 당근 창에서 직접 로그인하세요.</p>
       <p className="field-hint">결과 미확인 건은 자동 재제출하지 않습니다.</p>
       <p className="field-hint">같은 연결에서 응답이 끊기면 완료 표시만 최대 3회 자동 대조합니다. 지원 버튼을 다시 누르지 않으며, 확인되지 않으면 결과 미확인을 유지합니다.</p>
+      </details>
       {mode === 'demo' ? <p className="field-hint">데모에서는 자동 지원 연결·실제 제출을 실행하지 않습니다.</p> : null}
       {hasError ? <div role="alert"><p className="field-error">{forget.isError ? '저장 연결 해제 결과를 확인하지 못했습니다. 현재 연결 상태를 다시 확인하세요.' : setup.isError ? '자동 지원을 등록하지 못했습니다. 현재 상태를 확인한 뒤 다시 시도하세요.' : start.isError ? '자동 지원 연결을 준비하지 못했습니다.' : stop.isError ? '중지 결과를 확인하지 못했습니다. 현재 상태를 다시 확인한 뒤 중지를 재시도하세요.' : '현재 상태를 확인하지 못했습니다. 이전 기록을 정상 실행 상태로 보지 마세요.'}</p><Button size="sm" disabled={q.isFetching} onClick={() => void q.refetch()}>자동 지원 상태 다시 확인</Button></div> : null}
     </div><div className="auto-apply-results">

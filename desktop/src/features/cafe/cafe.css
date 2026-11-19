@@ -1,4 +1,4 @@
-.workspace-switch{display:flex;gap:8px;padding:8px 16px;border-bottom:1px solid var(--line);background:var(--surface)}
+
 .cafe-workspace{flex:1;min-height:0;overflow:auto;padding:24px 28px 40px;background:var(--bg);color:var(--text);scrollbar-color:var(--line-strong) var(--bg)}
 .cafe-shell{max-width:1500px;margin:0 auto}.cafe-workspace h1{font-size:var(--fs-xl);margin:0;letter-spacing:-.025em}.cafe-workspace h2{font-size:var(--fs-lg);margin:0;letter-spacing:-.02em}.cafe-workspace h3{font-size:var(--fs-md);margin:0;font-weight:650}.cafe-workspace p{line-height:1.55}
 .cafe-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px}.cafe-heading p{margin:5px 0 0;color:var(--text-3);font-size:var(--fs-sm)}

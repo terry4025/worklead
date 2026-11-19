@@ -10,10 +10,10 @@ from sqlalchemy import select
 from tests.conftest import client_for
 from tests.test_job_applications import post as draft_post
 from worklead.engine.pipeline import ingest
-from worklead.jobs.auto_apply import AutoApplyRuntime, job_identity, runtime
+from worklead.jobs.auto_apply import AutoApplyRuntime, condition, job_identity, runtime
 from worklead.jobs.auto_apply_models import AutoApplyStartIn
 from worklead.jobs.chrome_bridge import EXTENSION_ORIGIN, runtime as unread_runtime
-from worklead.models import JobAutoAttempt, Lead, SourcePolicy, SourceRecord
+from worklead.models import JobAutoAttempt, Lead, SourcePolicy, SourceRecord, new_id
 
 NOW = datetime(2026, 10, 25, 4, tzinfo=UTC)
 ACCOUNT, PROFILE = "a" * 64, "b" * 64
@@ -428,10 +428,23 @@ def test_connection_ping_is_purpose_scoped_authenticated_and_does_not_claim(app)
         client.close()
 
 
-def test_next_job_keeps_the_old_extension_shape_with_assist_off(app):
-    add(app)
+@pytest.mark.parametrize("intent,basis", [("buyer_project", "inferred"), ("unknown", None)])
+def test_inferred_or_unknown_intent_is_never_auto_applied(app, intent, basis):
+    lead_id = add(app, 80)
+    with app.db.session() as s:
+        lead = s.get(Lead, lead_id)
+        lead.demand_intent, lead.demand_intent_basis = intent, basis
+        assert condition(s, lead, NOW, 50, queue=True) == "condition_changed"
+
+
+def test_legacy_ai_text_unavailable_row_still_lists(app):
+    lead_id = add(app)
+    with app.db.session() as s:
+        s.add(JobAutoAttempt(id=new_id("auto"), job_key="k" * 64, lead_id=lead_id, state="held",
+                             reason_code="ai_text_unavailable", created_at=NOW, finished_at=NOW, retry_count=0))
     bridge, client, _ = connect(app)
-    result = client.post("/next", json={"account_hash": ACCOUNT})
-    assert result.status_code == 200, result.text
-    job = json.loads(result.content)["job"]
-    assert sorted(job) == ["attempt_id", "lead_id", "lease_token", "title", "url"]
+    try:
+        attempts = bridge.status().attempts
+        assert any(a.reason_code == "ai_text_unavailable" for a in attempts)
+    finally:
+        client.close()

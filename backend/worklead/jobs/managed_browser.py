@@ -120,7 +120,7 @@ class ManagedBrowser:
             raise ManagedBrowserError("browser_closed" if not self.is_open() else "browser_timeout") from None
 
     def act(self, operation, expected=None):
-        if operation not in {"inspect", "open", "fill", "submit"}:
+        if operation not in {"inspect", "open", "submit"}:
             raise ManagedBrowserError("ui_unrecognized")
         if not self.is_open():
             raise ManagedBrowserError("browser_closed")

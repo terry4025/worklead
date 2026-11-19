@@ -17,7 +17,7 @@ function harness({ selected = true, extraOutside = false, path = '/job-posts/tes
   const { window } = dom;
   window.HTMLElement.prototype.getClientRects = function () { return [{}]; };
   const intervals = [];
-  const context = createContext({ document: window.document, location: window.location, getComputedStyle: window.getComputedStyle.bind(window), crypto: webcrypto, TextEncoder, Event: window.Event, chrome: { runtime: { sendMessage: async () => {} } }, setInterval: fn => intervals.push(fn), Date });
+  const context = createContext({ document: window.document, location: window.location, getComputedStyle: window.getComputedStyle.bind(window), crypto: webcrypto, TextEncoder, chrome: { runtime: { sendMessage: async () => {} } }, setInterval: fn => intervals.push(fn), Date });
   let opens = 0, submits = 0;
   const region = window.document.querySelector('#application-region');
   window.document.querySelector('#open').addEventListener('click', event => {
@@ -168,43 +168,4 @@ for (const mutation of ['account', 'job', 'title']) test(`read-only completion i
   assert.equal(result.state, 'held');
   assert.notEqual(result.state, 'already_applied');
   assert.deepEqual(h.counts(), { opens: 0, submits: 0 });
-});
-
-const sha = async (t) => [...new Uint8Array(await webcrypto.subtle.digest('SHA-256', new TextEncoder().encode(t)))].map((x) => x.toString(16).padStart(2, '0')).join('');
-
-test('fill writes the AI text into the default-tab textarea, then inspect hashes that text', async () => {
-  const h = harness();
-  const expected = await h.identity();
-  await h.call('open', expected);
-  const text = '합성 맞춤 지원 문구입니다.\n\n포트폴리오: https://www.seyj.kr/';
-  const filled = await h.call('fill', { ...expected, text });
-  assert.equal(filled.state, 'filled');
-  assert.equal(h.window.document.querySelector('textarea').value, text);
-  const ready = await h.call('inspect', expected);
-  assert.equal(ready.state, 'ready');
-  assert.equal(ready.profile_hash, filled.profile_hash);
-  assert.equal(ready.profile_hash, await sha(text.replace(/\s+/g, ' ').trim()));
-  assert.deepEqual(h.counts(), { opens: 1, submits: 0 });
-});
-
-test('fill refuses without the selected default tab or with over-long text', async () => {
-  const h = harness({ selected: false });
-  const expected = await h.identity();
-  await h.call('open', expected);
-  assert.notEqual((await h.call('fill', { ...expected, text: '문구' })).state, 'filled');
-  const h2 = harness();
-  const e2 = await h2.identity();
-  await h2.call('open', e2);
-  assert.notEqual((await h2.call('fill', { ...e2, text: 'x'.repeat(2001) })).state, 'filled');
-  assert.equal(h2.window.document.querySelector('textarea').value, '합성 기본 자기소개');
-});
-
-test('submit after fill clicks only for the filled text hash', async () => {
-  const h = harness();
-  const expected = await h.identity();
-  await h.call('open', expected);
-  const filled = await h.call('fill', { ...expected, text: '맞춤 문구' });
-  const base = { ...expected, attempt_id: 'tailored', permit_until: Date.now() + 1000 };
-  assert.notEqual((await h.call('submit', { ...base, profile_hash: 'c'.repeat(64) })).state, 'clicked');
-  assert.equal((await h.call('submit', { ...base, attempt_id: 'tailored-2', profile_hash: filled.profile_hash })).state, 'clicked');
 });

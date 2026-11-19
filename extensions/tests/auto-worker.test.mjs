@@ -12,15 +12,6 @@ test('only exact public job URLs and shaped commands can navigate the selected t
   assert.ok(!validJob({ ...job, extra: 'not_allowed' }));
 });
 
-const tailored = { ...job, application_text: '안녕하세요. 요청하신 페이지 제작을 맡고 싶습니다.', text_hash: 'a'.repeat(64) };
-test('validJob accepts the old shape and the tailored shape, nothing in between', () => {
-  assert.ok(validJob(job));
-  assert.ok(validJob(tailored));
-  assert.ok(!validJob({ ...job, application_text: tailored.application_text }));
-  assert.ok(!validJob({ ...tailored, text_hash: 'not-a-hash' }));
-  assert.ok(!validJob({ ...tailored, application_text: null }));
-});
-
 async function harness(outcome = 'success') {
   const memory = {};
   const listeners = [];
@@ -73,7 +64,7 @@ async function harness(outcome = 'success') {
     assert.ok(!JSON.stringify(body).includes(pair.token));
     let result;
     if (path === '/ping') result = {purpose:'auto_apply',version:1};
-    if (path === '/next') result = { job: requests.filter(x => x.path === '/next').length === 1 ? (outcome === 'tailored' ? tailored : job) : null };
+    if (path === '/next') result = { job: requests.filter(x => x.path === '/next').length === 1 ? job : null };
     if (path === '/next' && outcome.startsWith('queue_')) {
       const reason = outcome.slice(6);
       result = { job: null, ...(reason === 'legacy' ? {} : { reason_code: reason, message: 'arbitrary unverified server text' }) };
@@ -139,24 +130,6 @@ for (const outcome of ['success', 'already', 'denied', 'lost_permit']) test('wor
     }
     await h.dispatch({ type: 'auto-disconnect' }, h.popup);
     assert.equal(h.memory.autoBridge, undefined);
-  } finally { h.restore(); }
-});
-
-test('worker: a tailored job is held as ai_text_unavailable without opening the post', async () => {
-  const h = await harness('tailored');
-  try {
-    await h.dispatch({ type: 'auto-connect', code: JSON.stringify(pair), confirm: true }, h.popup);
-    await Promise.race([h.settled, new Promise((_, reject) => setTimeout(() => reject(new Error('flow timed out')), 2000))]);
-    await new Promise(resolve => setTimeout(resolve, 20));
-    const reviews = h.requests.filter(r => r.path === '/review');
-    assert.equal(reviews.length, 1);
-    assert.equal(reviews[0].body.outcome, 'held');
-    assert.equal(reviews[0].body.reason_code, 'ai_text_unavailable');
-    assert.equal(reviews[0].body.lease_token, job.lease_token);
-    assert.deepEqual(h.navigations, []);
-    assert.deepEqual(h.clicks, []);
-    assert.ok(!h.requests.some(r => r.path === '/permit'));
-    await h.dispatch({ type: 'auto-disconnect' }, h.popup);
   } finally { h.restore(); }
 });
 

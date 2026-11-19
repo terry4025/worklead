@@ -12,7 +12,6 @@ import threading
 import time
 
 from ..db import MaintenanceBusy
-from ..analysis.writer import mark_used
 from ..models import AppSetting
 from .applications import ApplicationError
 from .auto_apply import runtime as auto_runtime
@@ -29,7 +28,7 @@ RECONCILE_DELAYS = (5, 15, 30)
 RECOVERY_RESET_SECONDS = 60
 HASH = re.compile(r"^[a-f0-9]{64}$")
 HELD_REASONS = {"questions_required", "profile_changed", "condition_conflict", "closed", "ui_unrecognized",
-                "navigation_failed", "login_required", "account_changed", "browser_timeout", "ai_text_unavailable"}
+                "navigation_failed", "login_required", "account_changed", "browser_timeout"}
 
 
 class ManagedAutoRuntime:
@@ -285,18 +284,6 @@ class ManagedAutoRuntime:
                 reason = reason if reason in HELD_REASONS else "ui_unrecognized"
                 self.auto.review(ReviewIn(**identity, outcome="held", reason_code=reason))
                 return
-            text = job.get("application_text")
-            if text is not None:
-                if not isinstance(text, str) or not HASH.fullmatch(str(job.get("text_hash") or "")):
-                    raise ManagedBrowserError("ui_unrecognized")
-                filled = browser.act("fill", {**expected, "text": text})
-                if filled.get("state") == "filled" and filled.get("profile_hash") == job["text_hash"]:
-                    view = self._wait(browser, expected, {"ready"})
-                if (filled.get("state") != "filled" or view.get("state") != "ready"
-                        or view.get("profile_hash") != job["text_hash"]):
-                    reason = filled.get("reason_code") if filled.get("reason_code") in HELD_REASONS else "ui_unrecognized"
-                    self.auto.review(ReviewIn(**identity, outcome="held", reason_code=reason))
-                    return
             identity["profile_hash"] = view["profile_hash"]
             reviewed = self.auto.review(ReviewIn(**identity, outcome="ready", reason_code="ready", evidence="application_form"))
             if reviewed.get("status") != "ready":
@@ -332,9 +319,6 @@ class ManagedAutoRuntime:
                             profile_hash=identity["profile_hash"], receipt_token=receipt, evidence="cancel_button"))
                     else:
                         raise
-                if job.get("text_hash"):
-                    try: mark_used(self.app, job["lead_id"], job["text_hash"])
-                    except Exception: pass  # only used_at is lost; the recorded submit stands
             else:
                 self.auto.result(ResultIn(**identity, outcome="uncertain", reason_code="submission_unconfirmed"))
                 self._remember_pending(identity, receipt, expected, job["url"])

@@ -28,9 +28,7 @@ def router():
     def inbox(request: Request, response: Response):
         response.headers["Cache-Control"] = "no-store"
         ctx = request.app.state.ctx
-        view = ctx._jobs_chrome_runtime.chat_view() if ctx._jobs_chrome_runtime is not None else ChatView()
-        from ..analysis.chat_draft import with_draft
-        return with_draft(ctx, view)
+        return ctx._jobs_chrome_runtime.chat_view() if ctx._jobs_chrome_runtime is not None else ChatView()
 
     @routes.post("/start", response_model=MessageStatus)
     def start(body: StartMessageWatch, request: Request):

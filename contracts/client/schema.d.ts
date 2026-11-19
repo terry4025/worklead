@@ -862,27 +862,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/leads/{lead_id}/quote-draft": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Quote Draft */
-        get: operations["get_quote_draft_v1_leads__lead_id__quote_draft_get"];
-        put?: never;
-        /**
-         * Request Quote Draft
-         * @description 견적서 초안 요청. 금액·기간은 비워 둔다. 발송하지 않는다.
-         */
-        post: operations["request_quote_draft_v1_leads__lead_id__quote_draft_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/settings": {
         parameters: {
             query?: never;
@@ -1213,45 +1192,15 @@ export interface components {
             /**
              * Provider
              * @default openai
-             * @enum {string}
+             * @constant
              */
-            provider: "openai" | "exaone";
+            provider: "openai";
             /**
              * Model
              * @default gpt-4.1-mini-2025-04-14
-             * @enum {string}
+             * @constant
              */
-            model: "gpt-4.1-mini-2025-04-14" | "k-exaone_v2.5";
-            /**
-             * Daily Call Cap
-             * @default 300
-             */
-            daily_call_cap: number;
-            /**
-             * Assist Review
-             * @default false
-             */
-            assist_review: boolean;
-            /**
-             * Assist Recheck
-             * @default false
-             */
-            assist_recheck: boolean;
-            /**
-             * Assist Application
-             * @default false
-             */
-            assist_application: boolean;
-            /**
-             * Assist Chat
-             * @default false
-             */
-            assist_chat: boolean;
-            /**
-             * Assist Quote
-             * @default false
-             */
-            assist_quote: boolean;
+            model: "gpt-4.1-mini-2025-04-14";
             /** Usd To Krw Rate */
             usd_to_krw_rate?: number | null;
             /**
@@ -1291,21 +1240,9 @@ export interface components {
             /** Daily Cost Cap */
             daily_cost_cap?: number | null;
             /** Provider */
-            provider?: ("openai" | "exaone") | null;
+            provider?: "openai" | null;
             /** Model */
-            model?: ("gpt-4.1-mini-2025-04-14" | "k-exaone_v2.5") | null;
-            /** Daily Call Cap */
-            daily_call_cap?: number | null;
-            /** Assist Review */
-            assist_review?: boolean | null;
-            /** Assist Recheck */
-            assist_recheck?: boolean | null;
-            /** Assist Application */
-            assist_application?: boolean | null;
-            /** Assist Chat */
-            assist_chat?: boolean | null;
-            /** Assist Quote */
-            assist_quote?: boolean | null;
+            model?: "gpt-4.1-mini-2025-04-14" | null;
             /** Usd To Krw Rate */
             usd_to_krw_rate?: number | null;
             /** Max Output Tokens */
@@ -1321,14 +1258,14 @@ export interface components {
         AIStatus: {
             /**
              * Provider
-             * @enum {string}
+             * @constant
              */
-            provider: "openai" | "exaone";
+            provider: "openai";
             /**
              * Model
-             * @enum {string}
+             * @constant
              */
-            model: "gpt-4.1-mini-2025-04-14" | "k-exaone_v2.5";
+            model: "gpt-4.1-mini-2025-04-14";
             /** Key Supported */
             key_supported: boolean;
             /** Key Configured */
@@ -1351,8 +1288,6 @@ export interface components {
             pricing_checked_at: string;
             price_metadata: components["schemas"]["AIPriceMetadata"];
             ledger: components["schemas"]["AILedgerStatus"] | null;
-            /** Calls Today */
-            calls_today?: number | null;
         };
         /** Activity */
         Activity: {
@@ -2174,14 +2109,6 @@ export interface components {
              * @constant
              */
             persists_body: false;
-            /**
-             * Draft State
-             * @default off
-             * @enum {string}
-             */
-            draft_state: "off" | "pending" | "ready" | "failed";
-            /** Draft Text */
-            draft_text?: string | null;
         };
         /** ChromeConnection */
         ChromeConnection: {
@@ -3170,11 +3097,6 @@ export interface components {
              * @default https://www.seyj.kr/
              */
             portfolio_url: string;
-            /**
-             * Price Anchor Note
-             * @default
-             */
-            price_anchor_note: string;
         };
         /** ProfitScenario */
         ProfitScenario: {
@@ -3296,18 +3218,6 @@ export interface components {
             start: string;
             /** End */
             end: string;
-        };
-        /** QuoteDraftOut */
-        QuoteDraftOut: {
-            /**
-             * State
-             * @enum {string}
-             */
-            state: "none" | "pending" | "ready" | "failed";
-            /** Text */
-            text?: string | null;
-            /** Failure Code */
-            failure_code?: string | null;
         };
         /** Reason */
         Reason: {
@@ -6364,176 +6274,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LeadDetail"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Unprocessable Entity */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Service Unavailable */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    get_quote_draft_v1_leads__lead_id__quote_draft_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                lead_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["QuoteDraftOut"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Unprocessable Entity */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Service Unavailable */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    request_quote_draft_v1_leads__lead_id__quote_draft_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                lead_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["QuoteDraftOut"];
                 };
             };
             /** @description Bad Request */

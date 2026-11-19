@@ -62,8 +62,6 @@ export interface JobChatView {
   lead_title: string | null;
   source: 'visible_chat_panel';
   persists_body: false;
-  draft_state: 'off' | 'pending' | 'ready' | 'failed';
-  draft_text: string | null;
 }
 export interface JobAutoApplyAttempt {
   id: string;
@@ -120,7 +118,6 @@ export type LeadSummary = Schemas['LeadSummary'];
 export type LeadDetail = Schemas['LeadDetail'];
 export type LeadPage = Schemas['LeadPage'];
 export type LeadPatch = Schemas['LeadPatch'];
-export type QuoteDraftOut = Schemas['QuoteDraftOut'];
 export type FeedbackIn = Schemas['FeedbackIn'];
 export type RelationUpdateIn = Schemas['RelationUpdateIn'];
 export type RelationUpdateOut = Schemas['RelationUpdateOut'];
@@ -363,8 +360,6 @@ export function createClient(source: ConnectionSource, fetchImpl: typeof fetch =
     relation: (id: string, relationId: string, body: RelationUpdateIn) => request<RelationUpdateOut>('POST', `/v1/leads/${enc(id)}/relations/${enc(relationId)}`, { body }),
     addOutcome: (id: string, body: OutcomeIn) => request<LeadDetail>('POST', `/v1/leads/${enc(id)}/outcomes`, { body }),
     draft: (id: string) => request<LeadDetail>('POST', `/v1/leads/${enc(id)}/draft`),
-    requestQuoteDraft: (id: string) => request<QuoteDraftOut>('POST', `/v1/leads/${enc(id)}/quote-draft`),
-    quoteDraft: (id: string) => request<QuoteDraftOut>('GET', `/v1/leads/${enc(id)}/quote-draft`),
     getSettings: () => request<SettingsOut>('GET', '/v1/settings'),
     patchSettings: (body: SettingsPatch) => request<SettingsOut>('PATCH', '/v1/settings', { body }),
     createImport: (body: ImportIn) => request<JobAccepted>('POST', '/v1/imports', { body }),

@@ -96,18 +96,12 @@
   "additionalProperties": false,
   "properties": {
     "provider": {
-      "enum": [
-        "openai",
-        "exaone"
-      ],
+      "const": "openai",
       "title": "Provider",
       "type": "string"
     },
     "model": {
-      "enum": [
-        "gpt-4.1-mini-2025-04-14",
-        "k-exaone_v2.5"
-      ],
+      "const": "gpt-4.1-mini-2025-04-14",
       "title": "Model",
       "type": "string"
     },
@@ -186,18 +180,6 @@
           "type": "null"
         }
       ]
-    },
-    "calls_today": {
-      "anyOf": [
-        {
-          "type": "integer"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "Calls Today"
     }
   },
   "required": [

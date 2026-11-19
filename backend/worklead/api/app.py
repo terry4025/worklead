@@ -31,7 +31,7 @@ from ..db import MaintenanceBusy, utcnow
 from ..engine import runs as runq
 from ..engine.events import emit
 from ..engine.pipeline import apply_analysis, generate_draft
-from ..models import AiDraft, EventOutbox, Lead, LeadActivity, Outcome, Run, Source, SourcePolicy, SourceRecord, UserFeedback, new_id
+from ..models import EventOutbox, Lead, LeadActivity, Outcome, Run, Source, SourcePolicy, SourceRecord, UserFeedback, new_id
 from ..services import leads as lead_svc
 from ..services import relations as relation_svc
 from ..services import backups as backup_svc
@@ -41,7 +41,7 @@ from ..services import settings as settings_svc
 from ..services import sources as source_svc
 from ..services.credentials import CredentialError, CredentialStatus
 from ..analysis.service import CATEGORY_LABEL as CATEGORIES
-from ..analysis.openai_provider import MODEL, PRICE_VERSION
+from ..analysis.openai_provider import PRICE_VERSION
 from . import schemas as S
 
 log = logging.getLogger("worklead.api")
@@ -562,58 +562,20 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
         s.flush()
         return lead_svc.detail(s, lead)
 
-    def _quote_row(s: Any, lead_id: str, create: bool):
-        from ..analysis import writer
-        from ..analysis.assist import exaone_settings
-        lead = s.get(Lead, lead_id)
-        rec = s.get(SourceRecord, lead.primary_record_id) if lead and lead.primary_record_id else None
-        if lead is None or rec is None:
-            raise ApiError(404, "not_found", "리드를 찾을 수 없습니다")
-        cfg = exaone_settings(s)
-        if create and (not cfg or not cfg.get("assist_quote")):
-            raise ApiError(409, "assist_disabled", "설정에서 EXAONE 견적서 초안 기능을 켜세요")
-        profile = settings_svc.get_profile(s)
-        if create:
-            return writer.quote_draft(s, lead, rec, profile)
-        key = writer.draft_key("quote", rec, profile)
-        return s.scalar(select(AiDraft).where(AiDraft.lead_id == lead_id, AiDraft.kind == "quote", AiDraft.cache_key == key))
-
-    def _quote_out(row) -> S.QuoteDraftOut:
-        if row is None:
-            return S.QuoteDraftOut(state="none")
-        return S.QuoteDraftOut(state=row.status, text=row.text, failure_code=row.failure_code)
-
-    @app.post("/v1/leads/{lead_id}/quote-draft", response_model=S.QuoteDraftOut, tags=["leads"], responses=ERRORS)
-    def request_quote_draft(lead_id: str, s: Sess) -> S.QuoteDraftOut:
-        """견적서 초안 요청. 금액·기간은 비워 둔다. 발송하지 않는다."""
-        row = _quote_row(s, lead_id, create=True)
-        if row.status == "failed":
-            row.status, row.attempts, row.next_retry_at, row.failure_code = "pending", 0, None, None
-        out = _quote_out(row)
-        s.commit()
-        w = ctx._assist_worker  # never the property: it takes ai_control_lock
-        if w is not None:
-            w.wake()
-        return out
-
-    @app.get("/v1/leads/{lead_id}/quote-draft", response_model=S.QuoteDraftOut, tags=["leads"], responses=ERRORS)
-    def get_quote_draft(lead_id: str, s: Sess) -> S.QuoteDraftOut:
-        return _quote_out(_quote_row(s, lead_id, create=False))
-
     # ── 설정 ────────────────────────────────────────────────────────
-    def credential_status(provider: str = "openai") -> CredentialStatus:
+    def credential_status() -> CredentialStatus:
         if ctx.config.demo:
             return CredentialStatus(False, None, "demo_credential_unsupported")
-        return ctx.credential_store.status(ctx.config.data_dir, provider)
+        return ctx.credential_store.status(ctx.config.data_dir, "openai")
 
     def settings_out(s: Any) -> S.SettingsOut:
         prof = settings_svc.get_profile_row(s)
         data = {**settings_svc.DEFAULT_PROFILE, **(prof.data or {})}
         ai = settings_svc.get_setting(s, "ai")
         ai["pricing_confirmed"] = bool(ai.get("pricing_confirmed") and ai.get("price_version") == PRICE_VERSION)
-        key = credential_status(ai.get("provider", "openai"))
+        key = credential_status()
         return S.SettingsOut(
-            profile=S.ProfileSettings(**data),
+            profile=S.ProfileSettings(**{k: v for k, v in data.items() if k in S.ProfileSettings.model_fields}),
             recheck=settings_svc.get_setting(s, "recheck"),
             notifications=S.NotificationSettings(**settings_svc.get_setting(s, "notifications")),
             ai=S.AISettings(**ai, key_configured=key.configured,
@@ -656,10 +618,6 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
                 expected_revision = patch.pop("expected_revision", None)
                 expected_generation = patch.pop("expected_generation", None)
                 nxt = {**current, **patch}
-                from ..analysis.exaone_provider import MODEL as EXAONE_MODEL
-                nxt["model"] = EXAONE_MODEL if nxt.get("provider") == "exaone" else MODEL
-                if nxt.get("provider") != current.get("provider"):
-                    nxt["enabled"] = False
                 if nxt.get("enabled") and not nxt.get("external_transfer_consent"):
                     raise ApiError(422, "consent_required", "외부 AI 전송 고지에 동의해야 AI 분석을 켤 수 있습니다")
                 if expected_generation is not None and expected_generation != s.info["database_generation"]:
@@ -698,7 +656,7 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
 
     def ai_status_out(s: Any) -> S.AIStatus:
         config = settings_svc.get_setting(s, "ai")
-        key = credential_status(config.get("provider", "openai"))
+        key = credential_status()
         error_code = key.error_code
         try:
             status = ctx.ai_coordinator.status()
@@ -708,15 +666,7 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
             status["ledger"] = None
             error_code = "ai_ledger_unavailable"
         reason = error_code
-        calls = None
-        if config.get("provider") == "exaone":
-            from ..analysis.assist import calls_today
-            calls = calls_today(s, ctx.clock())
-            if reason is None:
-                reason = ("disabled" if not config.get("enabled") else "consent_required" if not config.get("external_transfer_consent")
-                          else "not_configured" if key.configured is not True
-                          else "call_cap_reached" if calls >= int(config.get("daily_call_cap") or 300) else None)
-        elif reason is None:
+        if reason is None:
             if not config.get("enabled"):
                 reason = "disabled"
             elif not config.get("external_transfer_consent"):
@@ -733,8 +683,7 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
                     if sum(ledger[k] for k in ("estimated_krw", "reserved_krw", "uncertain_krw")) >= cap:
                         reason = "budget_exhausted"
                         break
-        return S.AIStatus(**{**status, "provider": config.get("provider", "openai"), "model": config.get("model")}, calls_today=calls,
-                          key_supported=key.supported, key_configured=key.configured,
+        return S.AIStatus(**status, key_supported=key.supported, key_configured=key.configured,
                           error_code=error_code, enabled=config["enabled"], ready=reason is None,
                           blocked_reason=reason, settings_revision=settings_svc.get_setting(s, "ai_revision"),
                           database_generation=s.info["database_generation"])
@@ -751,7 +700,6 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
                 raise settings_svc.AISettingsChanged()
             settings_svc.advance_ai_revision(s, body.expected_revision)
             config = settings_svc.get_setting(s, "ai")
-            provider = config.get("provider", "openai")
             settings_svc.put_setting(s, "ai", {**config, "enabled": False})
             for lead_id in settings_svc.stop_pending_ai(s):
                 emit(s, "lead.updated", {"lead_id": lead_id, "changes": ["analysis"]})
@@ -760,9 +708,9 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
             s.commit()
             ctx.hub.notify()
             if key is None:
-                ctx.credential_store.delete_key(ctx.config.data_dir, provider)
+                ctx.credential_store.delete_key(ctx.config.data_dir, "openai")
             else:
-                ctx.credential_store.set_key(ctx.config.data_dir, provider, key)
+                ctx.credential_store.set_key(ctx.config.data_dir, "openai", key)
             return ai_status_out(s)
 
     @app.post("/v1/ai/credentials", response_model=S.AIStatus, tags=["settings"], responses=ERRORS)

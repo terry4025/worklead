@@ -56,10 +56,7 @@
     "provider": {
       "anyOf": [
         {
-          "enum": [
-            "openai",
-            "exaone"
-          ],
+          "const": "openai",
           "type": "string"
         },
         {
@@ -72,10 +69,7 @@
     "model": {
       "anyOf": [
         {
-          "enum": [
-            "gpt-4.1-mini-2025-04-14",
-            "k-exaone_v2.5"
-          ],
+          "const": "gpt-4.1-mini-2025-04-14",
           "type": "string"
         },
         {
@@ -84,80 +78,6 @@
       ],
       "default": null,
       "title": "Model"
-    },
-    "daily_call_cap": {
-      "anyOf": [
-        {
-          "maximum": 5000,
-          "minimum": 1,
-          "type": "integer"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "Daily Call Cap"
-    },
-    "assist_review": {
-      "anyOf": [
-        {
-          "type": "boolean"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "Assist Review"
-    },
-    "assist_recheck": {
-      "anyOf": [
-        {
-          "type": "boolean"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "Assist Recheck"
-    },
-    "assist_application": {
-      "anyOf": [
-        {
-          "type": "boolean"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "Assist Application"
-    },
-    "assist_chat": {
-      "anyOf": [
-        {
-          "type": "boolean"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "Assist Chat"
-    },
-    "assist_quote": {
-      "anyOf": [
-        {
-          "type": "boolean"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "Assist Quote"
     },
     "usd_to_krw_rate": {
       "anyOf": [

@@ -109,12 +109,11 @@ class Profile:
     business_registered: bool = False
     tax_invoice: bool = False
     portfolio_url: str = "https://www.seyj.kr/"
-    price_anchor_note: str = ""
     version: int = 1
 
 
 #: Profile fields that never affect scoring: kept out of the paid AI cache key and out of the profile version.
-NON_SCORING_PROFILE_KEYS = frozenset({"portfolio_url", "price_anchor_note"})
+NON_SCORING_PROFILE_KEYS = frozenset({"portfolio_url"})
 
 
 @dataclass

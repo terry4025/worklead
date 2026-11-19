@@ -3797,209 +3797,6 @@
         }
       }
     },
-    "/v1/leads/{lead_id}/quote-draft": {
-      "post": {
-        "tags": [
-          "leads"
-        ],
-        "summary": "Request Quote Draft",
-        "description": "견적서 초안 요청. 금액·기간은 비워 둔다. 발송하지 않는다.",
-        "operationId": "request_quote_draft_v1_leads__lead_id__quote_draft_post",
-        "parameters": [
-          {
-            "name": "lead_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Lead Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/QuoteDraftOut"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Bad Request"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Conflict"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Unprocessable Entity"
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Internal Server Error"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service Unavailable"
-          }
-        }
-      },
-      "get": {
-        "tags": [
-          "leads"
-        ],
-        "summary": "Get Quote Draft",
-        "operationId": "get_quote_draft_v1_leads__lead_id__quote_draft_get",
-        "parameters": [
-          {
-            "name": "lead_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Lead Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/QuoteDraftOut"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Bad Request"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Conflict"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Unprocessable Entity"
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Internal Server Error"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service Unavailable"
-          }
-        }
-      }
-    },
     "/v1/settings": {
       "get": {
         "tags": [
@@ -5868,53 +5665,15 @@
           },
           "provider": {
             "type": "string",
-            "enum": [
-              "openai",
-              "exaone"
-            ],
+            "const": "openai",
             "title": "Provider",
             "default": "openai"
           },
           "model": {
             "type": "string",
-            "enum": [
-              "gpt-4.1-mini-2025-04-14",
-              "k-exaone_v2.5"
-            ],
+            "const": "gpt-4.1-mini-2025-04-14",
             "title": "Model",
             "default": "gpt-4.1-mini-2025-04-14"
-          },
-          "daily_call_cap": {
-            "type": "integer",
-            "maximum": 5000.0,
-            "minimum": 1.0,
-            "title": "Daily Call Cap",
-            "default": 300
-          },
-          "assist_review": {
-            "type": "boolean",
-            "title": "Assist Review",
-            "default": false
-          },
-          "assist_recheck": {
-            "type": "boolean",
-            "title": "Assist Recheck",
-            "default": false
-          },
-          "assist_application": {
-            "type": "boolean",
-            "title": "Assist Application",
-            "default": false
-          },
-          "assist_chat": {
-            "type": "boolean",
-            "title": "Assist Chat",
-            "default": false
-          },
-          "assist_quote": {
-            "type": "boolean",
-            "title": "Assist Quote",
-            "default": false
           },
           "usd_to_krw_rate": {
             "anyOf": [
@@ -6033,10 +5792,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "openai",
-                  "exaone"
-                ]
+                "const": "openai"
               },
               {
                 "type": "null"
@@ -6048,84 +5804,13 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "gpt-4.1-mini-2025-04-14",
-                  "k-exaone_v2.5"
-                ]
+                "const": "gpt-4.1-mini-2025-04-14"
               },
               {
                 "type": "null"
               }
             ],
             "title": "Model"
-          },
-          "daily_call_cap": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "maximum": 5000.0,
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Daily Call Cap"
-          },
-          "assist_review": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Assist Review"
-          },
-          "assist_recheck": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Assist Recheck"
-          },
-          "assist_application": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Assist Application"
-          },
-          "assist_chat": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Assist Chat"
-          },
-          "assist_quote": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Assist Quote"
           },
           "usd_to_krw_rate": {
             "anyOf": [
@@ -6197,18 +5882,12 @@
         "properties": {
           "provider": {
             "type": "string",
-            "enum": [
-              "openai",
-              "exaone"
-            ],
+            "const": "openai",
             "title": "Provider"
           },
           "model": {
             "type": "string",
-            "enum": [
-              "gpt-4.1-mini-2025-04-14",
-              "k-exaone_v2.5"
-            ],
+            "const": "gpt-4.1-mini-2025-04-14",
             "title": "Model"
           },
           "key_supported": {
@@ -6286,17 +5965,6 @@
                 "type": "null"
               }
             ]
-          },
-          "calls_today": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Calls Today"
           }
         },
         "additionalProperties": false,
@@ -8635,28 +8303,6 @@
             "const": false,
             "title": "Persists Body",
             "default": false
-          },
-          "draft_state": {
-            "type": "string",
-            "enum": [
-              "off",
-              "pending",
-              "ready",
-              "failed"
-            ],
-            "title": "Draft State",
-            "default": "off"
-          },
-          "draft_text": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Draft Text"
           }
         },
         "type": "object",
@@ -11627,12 +11273,6 @@
             "pattern": "^https://[^\\s]+$",
             "title": "Portfolio Url",
             "default": "https://www.seyj.kr/"
-          },
-          "price_anchor_note": {
-            "type": "string",
-            "maxLength": 300,
-            "title": "Price Anchor Note",
-            "default": ""
           }
         },
         "additionalProperties": false,
@@ -12055,48 +11695,6 @@
           "end"
         ],
         "title": "QuietHours"
-      },
-      "QuoteDraftOut": {
-        "properties": {
-          "state": {
-            "type": "string",
-            "enum": [
-              "none",
-              "pending",
-              "ready",
-              "failed"
-            ],
-            "title": "State"
-          },
-          "text": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Text"
-          },
-          "failure_code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Failure Code"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "state"
-        ],
-        "title": "QuoteDraftOut"
       },
       "Reason": {
         "properties": {

@@ -804,7 +804,6 @@ class ProfileSettings(Model):
     business_registered: bool = False
     tax_invoice: bool = False
     portfolio_url: str = Field(default="https://www.seyj.kr/", max_length=300, pattern=r"^https://[^\s]+$")
-    price_anchor_note: str = Field(default="", max_length=300)
 
 
 class QuietHours(Model):
@@ -830,14 +829,8 @@ class AISettings(Model):
     daily_cost_cap: int | None = Field(ge=0)
     key_configured: bool | None = Field(description="API 키 저장 여부. 저장소 상태를 확인하지 못하면 null. 값은 반환하지 않음")
     provider_available: bool
-    provider: Literal["openai", "exaone"] = "openai"
-    model: Literal["gpt-4.1-mini-2025-04-14", "k-exaone_v2.5"] = "gpt-4.1-mini-2025-04-14"
-    daily_call_cap: int = Field(default=300, ge=1, le=5000)
-    assist_review: bool = False
-    assist_recheck: bool = False
-    assist_application: bool = False
-    assist_chat: bool = False
-    assist_quote: bool = False
+    provider: Literal["openai"] = "openai"
+    model: Literal["gpt-4.1-mini-2025-04-14"] = "gpt-4.1-mini-2025-04-14"
     usd_to_krw_rate: int | None = Field(default=None, ge=1, le=100000)
     max_output_tokens: int = Field(default=1024, ge=256, le=4096)
     pricing_confirmed: bool = False
@@ -851,30 +844,22 @@ class AISettingsPatch(Model):
     external_transfer_consent: bool | None = None
     monthly_cost_cap: int | None = Field(default=None, ge=0, le=100000000)
     daily_cost_cap: int | None = Field(default=None, ge=0, le=100000000)
-    provider: Literal["openai", "exaone"] | None = None
-    model: Literal["gpt-4.1-mini-2025-04-14", "k-exaone_v2.5"] | None = None
-    daily_call_cap: int | None = Field(default=None, ge=1, le=5000)
-    assist_review: bool | None = None
-    assist_recheck: bool | None = None
-    assist_application: bool | None = None
-    assist_chat: bool | None = None
-    assist_quote: bool | None = None
+    provider: Literal["openai"] | None = None
+    model: Literal["gpt-4.1-mini-2025-04-14"] | None = None
     usd_to_krw_rate: int | None = Field(default=None, ge=1, le=100000)
     max_output_tokens: int | None = Field(default=None, ge=256, le=4096)
     pricing_confirmed: bool | None = None
     expected_revision: int | None = Field(default=None, ge=0)
     expected_generation: int | None = Field(default=None, ge=0)
 
-    @field_validator("enabled", "external_transfer_consent", "pricing_confirmed", "assist_review", "assist_recheck",
-                     "assist_application", "assist_chat", "assist_quote", mode="before")
+    @field_validator("enabled", "external_transfer_consent", "pricing_confirmed", mode="before")
     @classmethod
     def strict_boolean(cls, value: Any) -> Any:
         if type(value) is not bool:
             raise ValueError("a boolean is required")
         return value
 
-    @field_validator("monthly_cost_cap", "daily_cost_cap", "usd_to_krw_rate", "max_output_tokens", "expected_revision", "expected_generation",
-                     "daily_call_cap", mode="before")
+    @field_validator("monthly_cost_cap", "daily_cost_cap", "usd_to_krw_rate", "max_output_tokens", "expected_revision", "expected_generation", mode="before")
     @classmethod
     def strict_integer(cls, value: Any, info: Any) -> Any:
         if value is None and info.field_name in ("monthly_cost_cap", "daily_cost_cap", "usd_to_krw_rate"):
@@ -913,8 +898,8 @@ class AILedgerStatus(Model):
 
 
 class AIStatus(Model):
-    provider: Literal["openai", "exaone"]
-    model: Literal["gpt-4.1-mini-2025-04-14", "k-exaone_v2.5"]
+    provider: Literal["openai"]
+    model: Literal["gpt-4.1-mini-2025-04-14"]
     key_supported: bool
     key_configured: bool | None
     error_code: str | None
@@ -927,7 +912,6 @@ class AIStatus(Model):
     pricing_checked_at: str
     price_metadata: AIPriceMetadata
     ledger: AILedgerStatus | None
-    calls_today: int | None = None
 
 
 class AICredentialAction(Model):
@@ -1068,12 +1052,6 @@ class NativeNotificationResultOut(Model):
     id: str
     kind: NativeNotificationKind | None
     state: NativeNotificationState
-
-
-class QuoteDraftOut(Model):
-    state: Literal["none", "pending", "ready", "failed"]
-    text: str | None = None
-    failure_code: str | None = None
 
 
 class CategoryOut(Model):

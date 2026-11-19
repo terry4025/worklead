@@ -387,7 +387,7 @@ def test_prior_backup_migrates_preserving_user_data_and_requires_new_journal_tab
         connection.execute("INSERT INTO app_settings(key,value,updated_at) VALUES ('preserved','{\"value\":42}','2026-10-24')")
     assert storage.validate_database(path) == ("0007_discovery_listings", 0)
     storage.migrate(path, tmp_path / "backups")
-    assert storage.validate_database(path) == ("0010_ai_assist", 0)
+    assert storage.validate_database(path) == ("0011_remove_ai_assist", 0)
     with sqlite3.connect(path) as connection:
         assert connection.execute("SELECT value FROM app_settings WHERE key='preserved'").fetchone()[0] == '{"value":42}'
         connection.execute("DROP TABLE job_auto_attempts")

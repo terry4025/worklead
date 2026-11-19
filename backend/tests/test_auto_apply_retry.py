@@ -150,7 +150,7 @@ def test_migration_accepts_0008_backup_and_preserves_unique_attempt(app):
     command.downgrade(storage.alembic_config(app.config.db_path),'0008_job_auto_attempts')
     assert storage.validate_database(app.config.db_path)[0]=='0008_job_auto_attempts'
     storage.migrate(app.config.db_path,app.config.backup_dir)
-    assert storage.validate_database(app.config.db_path)[0]=='0010_ai_assist'
+    assert storage.validate_database(app.config.db_path)[0]=='0011_remove_ai_assist'
     with app.db.session() as s:
         rows=list(s.scalars(select(JobAutoAttempt)))
         assert len(rows)==1 and rows[0].id==body['attempt_id'] and rows[0].retry_count==0 and rows[0].retry_after is None

@@ -84,12 +84,9 @@ def validate_database(db_path: Path) -> tuple[str, int]:
     known = {r.revision for r in ScriptDirectory.from_config(alembic_config(db_path)).walk_revisions()}
     if rev not in known:
         raise ValueError("Worklead DB 버전 정보가 없거나 이 버전에서 지원하지 않는 백업입니다")
-    pre_ai_assist = {"0001", "0002_detail_fetch_states", "0003_native_notifications", "0004_relation_decisions", "0005_page_checkpoints", "0006_daangn_cafe", "0007_discovery_listings", "0008_job_auto_attempts", "0009_auto_apply_retry"}
     with closing(_read_connection(db_path)) as conn:
         tables = {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         for name, table in Base.metadata.tables.items():
-            if name == "ai_drafts" and rev in pre_ai_assist:
-                continue
             if name == "job_auto_attempts" and rev in {"0001", "0002_detail_fetch_states", "0003_native_notifications", "0004_relation_decisions", "0005_page_checkpoints", "0006_daangn_cafe", "0007_discovery_listings"}:
                 continue
             if name == "discovery_listings" and rev in {"0001", "0002_detail_fetch_states", "0003_native_notifications", "0004_relation_decisions", "0005_page_checkpoints", "0006_daangn_cafe"}:
@@ -102,8 +99,6 @@ def validate_database(db_path: Path) -> tuple[str, int]:
                 raise ValueError("Worklead 필수 테이블이 없는 백업입니다")
             columns = {r[1] for r in conn.execute(f'PRAGMA table_info("{name}")')}
             required = set(table.columns.keys())
-            if name == "leads" and rev in pre_ai_assist:
-                required -= {"ai_recheck"}
             if name == "job_auto_attempts" and rev == "0008_job_auto_attempts":
                 required -= {"retry_count", "retry_after"}
             if name == "duplicate_links" and rev in {"0001", "0002_detail_fetch_states", "0003_native_notifications"}:

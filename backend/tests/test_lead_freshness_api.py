@@ -84,6 +84,25 @@ def test_summary_distinguishes_publication_list_observation_and_detail_time(ctx,
         assert c.get(f"/v1/leads/{lead_id}").json()["freshness"]["listing_to_detail_seconds"] is None
 
 
+def test_listing_lookup_uses_post_index_not_a_source_wide_scan(ctx):
+    # Row-value IN (VALUES ...) made SQLite scan every listing of the source (~1.5 s on 400k rows) per list call.
+    from sqlalchemy import event
+    ids = [add(ctx, f"plan{i}")[1] for i in range(3)]
+    seen = []
+    listen = lambda conn, cur, st, params, c, many: seen.append((st, params)) if "discovery_listings" in st else None
+    event.listen(ctx.db.engine, "before_cursor_execute", listen)
+    try:
+        with ctx.db.session() as s:
+            leads._listed_times(s, [s.get(SourceRecord, i) for i in ids])
+    finally:
+        event.remove(ctx.db.engine, "before_cursor_execute", listen)
+    assert seen
+    with ctx.db.engine.connect() as c:
+        for st, params in seen:
+            plan = " ".join(row[3] for row in c.exec_driver_sql("EXPLAIN QUERY PLAN " + st, params))
+            assert "ix_listing_source_post (source_id=? AND source_post_id=?)" in plan, plan
+
+
 @pytest.mark.parametrize("precision,minutes", [("approximate", 20), ("unknown", 20), ("exact", -5)])
 def test_imprecise_or_republished_dates_do_not_show_negative_or_fake_delay(ctx, monkeypatch, precision, minutes):
     monkeypatch.setattr(leads, "utcnow", lambda: NOW)
@@ -132,9 +151,10 @@ def test_schedule_monitoring_distinguishes_overdue_disabled_active_and_cooldown(
         assert sources.monitoring(s, source, adapter, now=NOW).state == "stopped"
 
 
-def test_quarter_hour_patch_is_allowed_but_faster_setting_rejected(client):
+def test_five_minute_daangn_watch_is_allowed_but_faster_setting_rejected(client):
     assert client.patch("/v1/sources/daangn-alba", json={"interval_minutes": 15}).status_code == 200
-    assert client.patch("/v1/sources/daangn-alba", json={"interval_minutes": 14}).status_code == 422
+    assert client.patch("/v1/sources/daangn-alba", json={"interval_minutes": 5}).status_code == 200
+    assert client.patch("/v1/sources/daangn-alba", json={"interval_minutes": 4}).status_code == 422
 
 
 def test_sse_replay_never_exposes_native_claim_tokens_or_mutates_delivery():

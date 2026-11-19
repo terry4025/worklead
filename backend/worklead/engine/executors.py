@@ -20,7 +20,7 @@ from ..services.settings import get_setting, ttl_hours
 from ..sources.base import DiscoverResult, ParseError, PostNotCollectable, PostRef, SourceNotReady, TaskSpec
 from ..sources.profiled import TaskFailed, canonicalize
 from . import runs
-from .freshness import observe_listings, ordered_candidates, watch_reserve
+from .freshness import SAVED_SCOPE, append_saved_candidates, catch_up_after_gap, observe_listings, ordered_candidates, prioritize_feed_tasks, saved_candidates, watch_reserve
 from .events import emit, notify
 from .http import PolicyStop, RunHalt
 from .pipeline import apply_analysis, ingest, record_path
@@ -245,6 +245,25 @@ def _set_health(app: AppContext, source_id: str, status: str, message: str | Non
             emit(s, "source.health_changed", {"source_id": source_id, "health": status, "code": code})
 
 
+STRUCTURE_ALERT_MIN_PARSE_FAILURES = 3
+
+
+def _alert_structure_change(app: AppContext, source_id: str, counts: dict) -> None:
+    """More parse failures than parsed pages means the site layout changed; say so once a day."""
+    failures = int(counts.get("parse_failures", 0))
+    if failures < STRUCTURE_ALERT_MIN_PARSE_FAILURES or failures <= int(counts.get("details_fetched", 0)):
+        return
+    now = app.clock()
+    with app.db.session() as s:
+        source = s.get(Source, source_id)
+        if source is None:
+            return
+        notify(s, "source_issue", f"{source.name}: 페이지 구조가 바뀌어 공고를 읽지 못합니다 (해석 실패 {failures}건)",
+               dedupe_key=f"notify:source:{source_id}:structure:{now.date().isoformat()}",
+               source_id=source_id, now=now)
+    app.hub.notify()
+
+
 # ── 신규 탐색 ───────────────────────────────────────────────────────
 
 
@@ -306,6 +325,18 @@ def _current_cycle(s, source_id: str, unit_keys: set[str], *, revisit: bool = Fa
 def _discovery_page(app: AppContext, adapter: Any, spec: TaskSpec, fetcher: Any,
                     task_id: str) -> tuple[DiscoverResult, int, bool]:
     """Snapshot page identities before fetching details so a moving list cannot drop work."""
+    if (spec.cursor or "").startswith("detail-drain:"):
+        with app.db.session() as s:
+            saved = dict(s.get(CollectionTask, task_id).checkpoint or {})
+        def restore(row):
+            return PostRef(row["url"], row.get("source_post_id"), row.get("title_hint"),
+                           datetime.fromisoformat(row["source_updated_at"]) if row.get("source_updated_at") else None,
+                           priority=row.get("priority", 0))
+        return DiscoverResult([restore(r) for r in saved["drain_core"]], metadata=saved["drain_metadata"],
+                              exploration_refs=[restore(r) for r in saved["drain_exploration"]]), 0, True
+    if spec.region_scope == SAVED_SCOPE and getattr(adapter, "profile", {}).get("discovery", {}).get("saved_candidate_limit"):
+        with app.db.session() as s:
+            return saved_candidates(s, adapter, spec.query, app.clock()), 0, False
     if not getattr(adapter, "persist_discovery_pages", False):
         return adapter.discover(spec, fetcher), 0, False
     with app.db.session() as s:
@@ -350,15 +381,17 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
             _set_health(app, source_id, "unknown", exc.message, exc.code)
             raise Halt("failed", exc.code, exc.message) from exc
         with app.db.session() as s:
+            plan = append_saved_candidates(s, adapter, prioritize_feed_tasks(s, adapter, catch_up_after_gap(s, source_id, plan, now), now), now)
             existing_units = {u.unit_key: u for u in s.scalars(select(CoverageUnit).where(CoverageUnit.source_id == source_id))}
             revisit = any(t.min_revisit_minutes for t in plan.tasks)
             if revisit:
-                # Tiered units wait out their revisit interval; five minutes of
-                # slack keeps a unit due on the next watch despite schedule jitter.
+                # Adaptive micro-watches use exact due times. A five-minute
+                # grace would double a hot anchor's intended request volume.
+                slack = 0 if getattr(adapter, "profile", {}).get("discovery", {}).get("feed", {}).get("adaptive") else 5
                 def due(t: TaskSpec) -> bool:
                     unit = existing_units.get(_unit_key(t.region_scope, t.query_group))
                     return (not t.min_revisit_minutes or unit is None or unit.last_visited_at is None
-                            or now - unit.last_visited_at >= timedelta(minutes=t.min_revisit_minutes - 5))
+                            or now - unit.last_visited_at >= timedelta(minutes=t.min_revisit_minutes - slack))
                 plan.tasks = [t for t in plan.tasks if due(t)]
             unit_keys = {_unit_key(t.region_scope, t.query_group) for t in plan.tasks}
             cycle = _current_cycle(s, source_id, unit_keys, revisit=revisit)
@@ -390,7 +423,11 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
             capacity = max(0, int(getattr(adapter, "max_tasks_per_run", MAX_TASKS_PER_RUN)) - adopted)
             # 공정 순환: 가장 오래 방문하지 않은 단위부터 (미방문 우선)
             fresh = [t for t in plan.tasks if _unit_key(t.region_scope, t.query_group) not in have]
-            fresh.sort(key=lambda t: (existing_units[_unit_key(t.region_scope, t.query_group)].last_visited_at is not None, existing_units[_unit_key(t.region_scope, t.query_group)].last_visited_at or now, _unit_key(t.region_scope, t.query_group)))
+            adaptive = getattr(adapter, "profile", {}).get("discovery", {}).get("feed", {}).get("adaptive")
+            fresh.sort(key=lambda t: (t.region_scope == SAVED_SCOPE,
+                                     existing_units[_unit_key(t.region_scope, t.query_group)].last_visited_at is not None,
+                                     t.min_revisit_minutes if adaptive else 0,
+                                     existing_units[_unit_key(t.region_scope, t.query_group)].last_visited_at or now, _unit_key(t.region_scope, t.query_group)))
             base_order = (s.scalar(select(func.max(CollectionTask.order_no)).where(CollectionTask.run_id == run.id)) or 0) + 1
             for i, t in enumerate(fresh[:capacity]):
                 s.add(
@@ -406,6 +443,7 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
                         depth=0,
                         order_no=(base_order + i) * 1000,
                         state="pending",
+                        checkpoint={"feed_failure_count": getattr(adapter, "_regional_failure_counts", {}).get(t.region_scope, 0)},
                     )
                 )
             s.flush()
@@ -417,6 +455,8 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
             r.checkpoint = {
                 "cycle": cycle,
                 "plan": {
+                    "priority_anchor_scopes": sorted(getattr(adapter, "_priority_anchor_scopes", set())),
+                    "revisit_minutes": getattr(adapter, "_regional_normal_minutes", {t.region_scope: t.min_revisit_minutes for t in plan.tasks}),
                     "units": len(unit_keys),
                     "unit_keys": sorted(unit_keys),
                     "unit_label": plan.unit_label,
@@ -447,9 +487,13 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
     # cap, so a burst drains in this watch; budget and pacing rules still apply.
     watch_detail_cap = max(watch_detail_limit, int(discovery_config.get("detail_requests_per_watch_max", 0)))
     watch = {"active": False, "known": False, "requests": 0, "refresh_requests": 0, "deferred": 0,
-             "limit": watch_detail_limit, "fresh": 0}
+             "limit": watch_detail_limit, "fresh": 0, "audit_requests": 0, "audit_active": False}
+    audit_limit = max(0, min(2, int(discovery_config.get("title_audit_requests_per_watch", 0))))
     batch_limit = max(0, int(getattr(adapter, "discovery_request_limit", 0)))
     def reserve_request(s, row) -> None:
+        current = s.get(Run, run.id)
+        if watch["audit_active"] and int((current.checkpoint or {}).get("title_audit_reserved", 0)) >= audit_limit:
+            raise _ExplorationDeferred()
         if watch["active"] and (watch["requests"] >= watch["limit"]
                 or (watch["known"] and watch["refresh_requests"] >= 1)
                 or row.limit - row.used <= watch_reserve(s, app, source_id, adapter)):
@@ -458,11 +502,18 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
         exploration.reserve_request(s, row)
         if batch_limit and scope.counts.get("requests", 0) >= batch_limit:
             raise RunHalt("discovery_batch", "이번 원문 확인을 저장했습니다. 남은 페이지와 원문은 이어서 확인합니다.")
+        if watch["audit_active"]:
+            # Reserve in the same transaction as the shared HTTP budget. A
+            # process interruption cannot reset this watch's sampling cap.
+            current.checkpoint = {**(current.checkpoint or {}),
+                "title_audit_reserved": int((current.checkpoint or {}).get("title_audit_reserved", 0)) + 1}
     def on_request() -> None:
         if watch["active"]:
             watch["requests"] += 1
             if watch["known"]:
                 watch["refresh_requests"] += 1
+        if watch["audit_active"]:
+            watch["audit_requests"] += 1
         exploration.record_request()
         scope.bump("requests")
         scope.checkpoint(check_controls=False)
@@ -489,9 +540,19 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
             query_label = plan_info.get("query_labels", {}).get(spec.query_group) or spec.query or spec.query_group
             scope.label = f"{spec.region_label or spec.region_scope} · {query_label}" + (f" · {spec.cursor}쪽" if spec.cursor else "")
             result_state, last_result, error, found = "done", "ok", None, 0
+            list_succeeded, transient_error = False, False
             try:
                 result, start_index, resumed = _discovery_page(app, adapter, spec, fetcher, task_id)
+                list_succeeded = not result.metadata.get("detail_drain")
                 observe_listings(app, source_id, result)
+                if "new_core_candidates" in result.metadata:
+                    with app.db.session() as s:
+                        saved_task = s.get(CollectionTask, task_id)
+                        saved_task.checkpoint = {**(saved_task.checkpoint or {}),
+                                                 "new_core_candidates": result.metadata["new_core_candidates"],
+                                                  "new_listed_entries": result.metadata.get("new_listed_entries", 0),
+                                                  "feed_saturated": result.metadata.get("feed_saturated", False),
+                                                 "priority_anchor": spec.region_scope in plan_info.get("priority_anchor_scopes", [])}
                 found = len(result.refs)
                 last_result = "ok" if found else "empty"
                 if result.metadata:
@@ -507,14 +568,38 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
                         scope.bump("parse_failures")
                 task_label = scope.label
                 scope.detail_progress = {"done": start_index, "total": found}
-                incremental = bool(watch_detail_limit and result.listed_refs)
+                incremental = bool(watch_detail_limit and (result.listed_refs or result.metadata.get("saved_candidate_backlog") or result.metadata.get("detail_drain")))
                 candidates = (ordered_candidates(app, source_id, result) if incremental else
                               [("core", ref, False) for ref in result.refs[start_index:]])
                 scope.detail_progress["total"] = len(candidates) + start_index
-                if incremental:
+                if incremental and not result.metadata.get("detail_drain"):
                     watch["fresh"] += sum(1 for _, _, known in candidates if not known)
                     watch["limit"] = min(watch_detail_cap, watch_detail_limit + watch["fresh"])
+                if incremental and spec.region_scope.startswith("feed-") and spec.depth == 0 and len(candidates) > 2:
+                    # Two promising details can reach automation immediately;
+                    # durable remainder runs only after all due public lists.
+                    remainder, candidates = candidates[2:], candidates[:2]
+                    def pack(ref):
+                        return {"url": ref.url, "source_post_id": ref.source_post_id, "title_hint": ref.title_hint,
+                                "source_updated_at": ref.source_updated_at.isoformat() if ref.source_updated_at else None,
+                                "priority": ref.priority}
+                    with app.db.session() as s:
+                        parent_task = s.get(CollectionTask, task_id)
+                        drain_key = parent_task.task_key + ":detail-drain"
+                        if not s.scalar(select(CollectionTask.id).where(CollectionTask.task_key == drain_key)):
+                            tail = (s.scalar(select(func.max(CollectionTask.order_no)).where(CollectionTask.run_id == run.id)) or 0) + 1000
+                            s.add(CollectionTask(id=new_id("task"), run_id=run.id, source_id=source_id,
+                                task_key=drain_key, query_group=spec.query_group, region_scope=spec.region_scope,
+                                scan_cycle=cycle, cursor=f"detail-drain:{task_id}", depth=1, order_no=tail, state="pending",
+                                checkpoint={"drain_core": [pack(r) for kind, r, _ in remainder if kind == "core"],
+                                            "drain_exploration": [pack(r) for kind, r, _ in remainder if kind == "exploration"],
+                                            "drain_metadata": {"detail_drain": True, "title_audit_ids": result.metadata.get("title_audit_ids", [])}}))
+                            scope.total = (scope.total or 0) + 1
+                            s.get(Run, run.id).progress_total = scope.total
+                audit_ids = set(result.metadata.get("title_audit_ids", []))
                 for index, (candidate_kind, ref, known) in enumerate(candidates, start=start_index):
+                    if ref.source_post_id in audit_ids and watch["audit_requests"] >= audit_limit:
+                        continue
                     remaining = len(candidates) + start_index - index
                     # Quota exhaustion is not an HTTP attempt. Do not pace each
                     # remaining candidate after the watch has spent its allowance.
@@ -526,6 +611,7 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
                     scope.label = f"{task_label} · 상세 {index}/{found} · {(ref.title_hint or '')[:60]}"
                     scope.checkpoint()
                     watch["active"], watch["known"] = incremental, known
+                    watch["audit_active"] = ref.source_post_id in audit_ids
                     deferred_before = watch["deferred"]
                     try:
                         if candidate_kind == "exploration":
@@ -537,6 +623,7 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
                         break  # Saved list metadata is reconsidered by the next watch.
                     finally:
                         watch["active"] = False
+                        watch["audit_active"] = False
                     if incremental and watch["deferred"] > deferred_before:
                         # Optional exploration catches the same reservation
                         # rejection internally; end this watch just as promptly.
@@ -566,6 +653,7 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
                             "watch_detail_requests": watch["requests"],
                             "watch_refresh_requests": watch["refresh_requests"],
                             "watch_deferred_details": watch["deferred"],
+                            "title_audit_requests": watch["audit_requests"],
                         }}
                 depth_limit = int(plan_info["depth_limit"])
                 if result.next_cursor and (depth_limit == 0 or spec.depth + 1 < depth_limit):
@@ -589,6 +677,7 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
             except TaskFailed as exc:
                 scope.bump("fetch_failures")
                 result_state, last_result, error = "failed", "failed", f"{exc.code}: {exc.message}"
+                transient_error = exc.code in {"network_error", "server_error"}
             except PolicyStop as exc:
                 scope.bump("policy_stops")
                 result_state, last_result, error = "blocked", "blocked", f"{exc.code}: {exc.message}"
@@ -618,12 +707,32 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
                 t = s.get(CollectionTask, task_id)
                 if t:
                     t.state = result_state
+                    t.updated_at = app.clock()
                     t.last_error = error
                     t.result_count = found
+                    if spec.region_scope.startswith("feed-") and spec.depth == 0:
+                        cp = dict(t.checkpoint or {})
+                        if list_succeeded:
+                            cp.update(feed_failure_count=0, feed_transient_retry=False)
+                            cp.pop("feed_retry_after", None)
+                        else:
+                            failures = int(cp.get("feed_failure_count", 0)) + 1
+                            quick = transient_error and failures <= 2
+                            base_minutes = max(5, int(plan_info.get("revisit_minutes", {}).get(spec.region_scope, 30)))
+                            retry_at = app.clock() + timedelta(seconds=60 * failures if quick else base_minutes * 60)
+                            cp.update(feed_failure_count=failures, feed_transient_retry=quick,
+                                      feed_retry_after=retry_at.isoformat(),
+                                      priority_anchor=spec.region_scope in plan_info.get("priority_anchor_scopes", []))
+                            if quick:
+                                current = s.get(Run, run.id)
+                                previous = (current.result or {}).get("regional_retry_after")
+                                current.result = {**(current.result or {}), "regional_retry_after": min(previous, retry_at.isoformat()) if previous else retry_at.isoformat()}
+                        t.checkpoint = cp
                 if spec.depth == 0 or result_state != "done":
                     u = s.get(CoverageUnit, (run.source_id, _unit_key(spec.region_scope, spec.query_group)))
                     if u:
-                        u.last_visited_at = app.clock()
+                        if list_succeeded or not spec.region_scope.startswith("feed-"):
+                            u.last_visited_at = app.clock()
                         u.last_result = last_result
                         u.last_scan_cycle = cycle
                         u.visits += 1
@@ -646,6 +755,7 @@ def run_discovery(app: AppContext, run: Run, owner: str) -> None:
     message = f"작업 {failed}건 실패, 요청·해석 오류 {detail_errors}건 — 다음 탐색에서 다시 확인" if has_errors else None
     skip_note = f"숨김·삭제 또는 공개 수집 허용 불가·미확인 공고 {skipped}건은 본문을 저장하지 않았습니다" if skipped else None
     _set_health(app, run.source_id or "", "degraded" if has_errors else "ok", message or skip_note)
+    _alert_structure_change(app, run.source_id or "", scope.counts)
     note = None
     if plan_info.get("region_list_status") not in ("verified", "not_applicable") or (plan_info.get("target_units_covered") or 0) < (plan_info.get("target_units_total") or 0):
         note = "탐색 범위가 전국 전체로 확인되지 않았습니다 (부분 탐색)"
@@ -839,9 +949,20 @@ def _recheck_targets(app: AppContext, run: Run) -> list[str]:
     now = app.clock()
     with app.db.session() as s:
         ttl = ttl_hours(s)
-        if run.kind == "recheck_lead":
+        if run.kind == "recheck_lead" or (run.kind == "recheck_stale" and run.lead_id):
             lead = s.get(Lead, run.lead_id)
-            return [lead.primary_record_id] if lead and lead.primary_record_id else []
+            if not lead or not lead.primary_record_id:
+                return []
+            if run.kind == "recheck_stale":
+                if lead.source_id != run.source_id:
+                    return []
+                rec = s.get(SourceRecord, lead.primary_record_id)
+                if not rec:
+                    return []
+                state = s.get(DetailFetchState, (lead.source_id, _ref_key(PostRef(rec.original_url or rec.canonical_url or "", rec.source_post_id))))
+                if state and state.retry_at and now < state.retry_at:
+                    return []
+            return [lead.primary_record_id]
         recent_cut = now - timedelta(days=RECHECK_RECENT_DAYS)
         q = select(SourceRecord).join(Lead, Lead.primary_record_id == SourceRecord.id).where(
             Lead.source_id == run.source_id,
@@ -1121,10 +1242,14 @@ def run_export(app: AppContext, run: Run, owner: str) -> None:
                 scope.done = 0
                 scope.label = f"내보내기 0/{scope.total}건"
                 scope.checkpoint()
-                leads = s.scalars(select(Lead).order_by(Lead.created_at.desc(), Lead.id.desc())
-                                  .execution_options(yield_per=500))
                 encoding = "utf-8" if kind == "leads_json" else "utf-8-sig"
-                with temporary.open("w", encoding=encoding, newline="") as stream:
+                # Close the streaming cursor before returning its connection
+                # even when cancellation interrupts iteration. Otherwise the
+                # pooled connection can retain a stale read snapshot and fail
+                # the next worker's BEGIN IMMEDIATE with SQLITE_BUSY_SNAPSHOT.
+                with s.scalars(select(Lead).order_by(Lead.created_at.desc(), Lead.id.desc())
+                               .execution_options(yield_per=500)) as leads, \
+                        temporary.open("w", encoding=encoding, newline="") as stream:
                     writer = csv.writer(stream) if kind != "leads_json" else None
                     if writer:
                         writer.writerow(EXPORT_FIELDS)

@@ -77,3 +77,21 @@ it('복원 캐시 초기화 이후에는 저장 표시를 해제하고 복원된
   expect(screen.queryByText('저장됨')).toBeNull();
   view.unmount(); qc.clear();
 });
+
+it('사업자 등록·세금계산서 발행 체크박스를 표시하고 저장 시 함께 보낸다', async () => {
+  const { port, qc, wrapper, dialog } = harness();
+  const save = vi.spyOn(port, 'updateSettings');
+  const view = render(dialog(), { wrapper });
+  const business = await screen.findByRole('checkbox', { name: '사업자 등록 완료' });
+  const tax = screen.getByRole('checkbox', { name: '세금계산서 발행 가능' });
+  expect(business).toHaveProperty('checked', false);
+  expect(tax).toHaveProperty('checked', false);
+  expect(screen.getByText('사업자 등록이 필요한 공고도 자동 지원 후보로 봅니다.')).toBeTruthy();
+  expect(screen.getByText('세금계산서 발행을 요구하는 공고도 자동 지원 후보로 봅니다.')).toBeTruthy();
+  fireEvent.click(business);
+  fireEvent.click(tax);
+  fireEvent.click(screen.getByRole('button', { name: /^저장$/ }));
+  await waitFor(() => expect(save).toHaveBeenCalledWith(expect.objectContaining({ profile: expect.objectContaining({ businessRegistered: true, taxInvoice: true }) })));
+  await screen.findByText('저장됨');
+  view.unmount(); qc.clear();
+});

@@ -90,7 +90,7 @@ describe('연결 복구', () => {
     expect(invalidate).not.toHaveBeenCalledWith({ queryKey: qk.leadsAll });
     act(() => event({ id: 'reset', seq: 1, at: new Date().toISOString(), type: 'stream.reset' }));
     await act(async () => { await hook.result.current.acknowledge(); });
-    expect(refetch).toHaveBeenCalledWith({ queryKey: qk.leadsAll, type: 'active' }, { throwOnError: true });
+    expect(refetch).toHaveBeenCalledWith({ queryKey: qk.leadsAll, type: 'active' }, { throwOnError: true, cancelRefetch: false });
     hook.unmount();
     expect(unsubscribe).toHaveBeenCalledOnce();
     qc.clear();

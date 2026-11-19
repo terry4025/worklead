@@ -138,6 +138,18 @@
       "title": "AISettings",
       "type": "object"
     },
+    "CollectionSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "prevent_sleep": {
+          "default": false,
+          "title": "Prevent Sleep",
+          "type": "boolean"
+        }
+      },
+      "title": "CollectionSettings",
+      "type": "object"
+    },
     "NotificationSettings": {
       "additionalProperties": false,
       "properties": {
@@ -243,6 +255,23 @@
         "allow_short_term_employment": {
           "title": "Allow Short Term Employment",
           "type": "boolean"
+        },
+        "business_registered": {
+          "default": false,
+          "title": "Business Registered",
+          "type": "boolean"
+        },
+        "tax_invoice": {
+          "default": false,
+          "title": "Tax Invoice",
+          "type": "boolean"
+        },
+        "portfolio_url": {
+          "default": "https://www.seyj.kr/",
+          "maxLength": 300,
+          "pattern": "^https://[^\\s]+$",
+          "title": "Portfolio Url",
+          "type": "string"
         }
       },
       "required": [
@@ -373,6 +402,12 @@
     },
     "query_groups": {
       "$ref": "#/$defs/QueryGroups"
+    },
+    "collection": {
+      "$ref": "#/$defs/CollectionSettings",
+      "default": {
+        "prevent_sleep": false
+      }
     }
   },
   "required": [

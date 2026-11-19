@@ -140,6 +140,8 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
     app.include_router(job_message_router())
     from .job_chrome_routes import router as job_chrome_router
     app.include_router(job_chrome_router())
+    from .job_auto_apply_routes import router as auto_apply_router
+    app.include_router(auto_apply_router())
     from .telegram_routes import router as telegram_router
     app.include_router(telegram_router())
 
@@ -316,6 +318,8 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
             source.health_code = None
             source.health_message = "사용자가 정지를 해제함 — 다음 실행에서 상태 확인"
         if body.interval_minutes is not None:
+            if body.interval_minutes < 15 and source_id != "daangn-alba":
+                raise ApiError(422, "interval_too_short", "이 소스의 최소 탐색 주기는 15분입니다")
             source.interval_minutes = body.interval_minutes
         if body.auto_collect_enabled is not None:
             was_enabled = source.auto_collect_enabled
@@ -573,7 +577,7 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
         ai["pricing_confirmed"] = bool(ai.get("pricing_confirmed") and ai.get("price_version") == PRICE_VERSION)
         key = credential_status()
         return S.SettingsOut(
-            profile=S.ProfileSettings(**data),
+            profile=S.ProfileSettings(**{k: v for k, v in data.items() if k in S.ProfileSettings.model_fields}),
             recheck=settings_svc.get_setting(s, "recheck"),
             notifications=S.NotificationSettings(**settings_svc.get_setting(s, "notifications")),
             ai=S.AISettings(**ai, key_configured=key.configured,
@@ -582,6 +586,7 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
                             database_generation=s.info["database_generation"]),
             retention=settings_svc.get_setting(s, "retention"),
             query_groups=S.QueryGroups(**settings_svc.get_setting(s, "query_groups")),
+            collection=S.CollectionSettings(**settings_svc.get_setting(s, "collection")),
         )
 
     @app.get("/v1/settings", response_model=S.SettingsOut, tags=["settings"], responses=ERRORS)
@@ -640,6 +645,8 @@ def create_app(ctx: AppContext, *, trusted_hosts: set[str] | None = None, worker
             if not 1 <= days <= 365:
                 raise ApiError(422, "invalid_retention", "원문 보존 기간은 1~365일 사이여야 합니다")
             settings_svc.put_setting(s, "retention", {"raw_days": days})
+        if body.collection is not None:
+            settings_svc.put_setting(s, "collection", body.collection.model_dump())
         if body.query_groups is not None:
             current = settings_svc.get_setting(s, "query_groups")
             settings_svc.put_setting(s, "query_groups", {"version": int(current.get("version", 1)) + 1, "groups": [g.model_dump() for g in body.query_groups]})

@@ -94,6 +94,7 @@ export interface WorkleadPort {
   /** 바뀐 구획만 보낸다 */
   updateSettings(patch: Partial<Pick<SettingsView, 'profile' | 'recheck' | 'notifications' | 'retention'>> & {
     ai?: Partial<Pick<SettingsView['ai'], 'enabled' | 'externalTransferConsent' | 'monthlyCostCap' | 'dailyCostCap' | 'provider' | 'model' | 'usdToKrwRate' | 'maxOutputTokens' | 'pricingConfirmed'>> & Partial<AiRevision>;
+    collection?: SettingsView['collection'];
     queryGroups?: SettingsView['queryGroups']['groups'];
   }): Promise<SettingsView>;
   getSalesSummary(): Promise<SalesSummary>;

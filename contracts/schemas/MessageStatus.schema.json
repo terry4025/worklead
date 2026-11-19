@@ -14,6 +14,16 @@
       "title": "Enabled",
       "type": "boolean"
     },
+    "remembers_connection": {
+      "default": false,
+      "title": "Remembers Connection",
+      "type": "boolean"
+    },
+    "paired": {
+      "default": false,
+      "title": "Paired",
+      "type": "boolean"
+    },
     "state": {
       "default": "stopped",
       "enum": [

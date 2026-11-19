@@ -1,0 +1,31 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "url": {
+      "title": "Url",
+      "type": "string"
+    },
+    "token": {
+      "title": "Token",
+      "type": "string"
+    },
+    "purpose": {
+      "const": "auto_apply",
+      "default": "auto_apply",
+      "title": "Purpose",
+      "type": "string"
+    },
+    "version": {
+      "const": 1,
+      "default": 1,
+      "title": "Version",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "url",
+    "token"
+  ],
+  "title": "AutoConnection",
+  "type": "object"
+}

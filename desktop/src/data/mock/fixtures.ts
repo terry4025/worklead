@@ -134,9 +134,9 @@ function kstYmd(ms: number): string {
 const noDate: FuzzyDate = { at: null, precision: 'unknown', raw: null };
 
 const factorMeta: { key: string; label: string; max: number }[] = [
-  { key: 'work_fit', label: '업무 적합성', max: 30 },
-  { key: 'buyer_intent', label: '구매 의도', max: 25 },
-  { key: 'remote_fit', label: '원격 적합성', max: 20 },
+  { key: 'work_fit', label: '업무 적합성', max: 35 },
+  { key: 'buyer_intent', label: '구매 의도', max: 30 },
+  { key: 'remote_fit', label: '원격 적합성', max: 10 },
   { key: 'freshness', label: '최신성', max: 15 },
   { key: 'scope_clarity', label: '범위 명확성', max: 10 },
 ];

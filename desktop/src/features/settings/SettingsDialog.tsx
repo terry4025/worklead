@@ -96,6 +96,7 @@ export function SettingsDialog({
         recheck: d.recheck,
         notifications: d.notifications,
         retention: d.retention,
+        collection: d.collection,
         ...(q.data && aiSettingsChanged(d.ai, q.data.ai) ? { ai: {
           ...Object.fromEntries(AI_EDITABLE.map((key) => [key, d.ai[key]])),
           expectedRevision: d.ai.revision, expectedGeneration: d.ai.databaseGeneration,
@@ -212,7 +213,19 @@ export function SettingsDialog({
               <span className="field-label">제외 업무 (쉼표로 구분)</span>
               <input value={d.profile.excludedWork} placeholder="예: 쇼핑몰, 게임" onChange={(e) => set((x) => void (x.profile.excludedWork = e.target.value))} />
             </label>
-            <p className="muted">리드 대상: 건당·프로젝트 지급이 확인되는 프리랜서 제작 의뢰. 시급·일급·주급·월급과 인력 채용, 지급 방식 미확인 글은 제외합니다.</p>
+            <label className="toggle">
+              <input type="checkbox" checked={d.profile.businessRegistered} onChange={(e) => set((x) => void (x.profile.businessRegistered = e.target.checked))} />
+              <span>사업자 등록 완료</span>
+            </label>
+            <p className="field-hint">사업자 등록이 필요한 공고도 자동 지원 후보로 봅니다.</p>
+            <label className="field"><span className="field-label">포트폴리오 주소</span><input value={d.profile.portfolioUrl} onChange={(e) => set((x) => void (x.profile.portfolioUrl = e.target.value.trim()))} /></label>
+            <p className="field-hint">당근 기본 자기소개에 넣을 포트폴리오 주소를 보관합니다.</p>
+            <label className="toggle">
+              <input type="checkbox" checked={d.profile.taxInvoice} onChange={(e) => set((x) => void (x.profile.taxInvoice = e.target.checked))} />
+              <span>세금계산서 발행 가능</span>
+            </label>
+            <p className="field-hint">세금계산서 발행을 요구하는 공고도 자동 지원 후보로 봅니다.</p>
+            <p className="muted">리드 대상: 건당·프로젝트 지급이 확인되는 프리랜서 제작 의뢰. 시급·일급·주급·월급으로 올라온 재택 개발 의뢰는 감점 후 확인 필요로 보이며 자동 지원에서는 빠집니다. 연봉과 인력 채용, 지급 방식 미확인 글은 제외합니다.</p>
           </fieldset>
 
           <fieldset>
@@ -227,6 +240,8 @@ export function SettingsDialog({
                 ))}
               </select>
             </label>
+            <label className="toggle"><input type="checkbox" checked={d.collection.preventSleep} onChange={(e) => set((x) => void (x.collection.preventSleep = e.target.checked))} /><span>수집 중 PC 절전 방지</span></label>
+            <p className="field-hint">자동 수집이 켜져 있는 동안 PC가 절전으로 들어가지 않게 합니다. 화면은 꺼질 수 있습니다.</p>
             <p className="field-hint">검색어 묶음 (버전 {d.queryGroups.version}) — 검색어를 사용하는 소스에만 적용됩니다. 아이보스 공개 목록 수집은 검색어로 제목을 제한하지 않습니다.</p>
             {d.queryGroups.groups.map((g, i) => (
               <div key={g.id} className="qgroup">

@@ -171,17 +171,19 @@ def test_user_state_survives_reanalysis_and_recollection(demo) -> None:
 
 
 def test_won_does_not_increase_collected(demo) -> None:
-    _, c = demo
+    ctx, c = demo
+    # Exercise a receipt inside the rolling metrics window on every test date.
+    receipt_day = ctx.clock().date().isoformat()
     before = c.get("/v1/metrics").json()["sales"]
     lid = c.get("/v1/leads", params={"queue": "recommended"}).json()["items"][0]["id"]
     c.patch(f"/v1/leads/{lid}", json={"sales_stage": "won"})
     after_won = c.get("/v1/metrics").json()["sales"]
     assert after_won["collected"] == before["collected"]
     assert after_won["won"] == before["won"] + 1
-    r = c.post(f"/v1/leads/{lid}/outcomes", json={"kind": "payment_received", "amount": 200000, "occurred_on": "2026-09-25"})
+    r = c.post(f"/v1/leads/{lid}/outcomes", json={"kind": "payment_received", "amount": 200000, "occurred_on": receipt_day})
     assert r.status_code == 200
     assert c.get("/v1/metrics").json()["sales"]["collected"] == before["collected"] + 200000
-    bad = c.post(f"/v1/leads/{lid}/outcomes", json={"kind": "refund", "amount": -5, "occurred_on": "2026-09-25"})
+    bad = c.post(f"/v1/leads/{lid}/outcomes", json={"kind": "refund", "amount": -5, "occurred_on": receipt_day})
     assert bad.status_code == 422
 
 

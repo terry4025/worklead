@@ -9,10 +9,14 @@ import pytest
 
 from worklead.api import schemas as S
 from worklead.jobs.messages import MessageStatus
+from worklead.jobs.chat_view import ChatView
+from worklead.jobs.auto_apply_models import AutoApplyStatus
 
 FIX = Path(__file__).resolve().parents[2] / "contracts" / "fixtures"
 
 CASES = [
+    ("job-chat-view.json", ChatView),
+    ("auto-apply-stopped.json", AutoApplyStatus),
     ("chrome-message-waiting.json", MessageStatus),
     ("job-applications.json", S.JobApplicationList),
     ("job-application-draft.json", S.JobApplicationCandidate),

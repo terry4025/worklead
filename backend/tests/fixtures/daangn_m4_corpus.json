@@ -1,0 +1,856 @@
+{
+  "schema_version": 1,
+  "origin": "synthetic",
+  "clock": "2026-10-26T07:00:00Z",
+  "threshold": 50,
+  "services": [
+    "website",
+    "landing",
+    "shop",
+    "fullstack",
+    "software",
+    "vba",
+    "automation"
+  ],
+  "query_keywords": [
+    "홈페이지",
+    "웹사이트",
+    "랜딩페이지",
+    "쇼핑몰",
+    "풀스택",
+    "프로그램",
+    "소프트웨어",
+    "개발자",
+    "엑셀",
+    "VBA",
+    "매크로",
+    "자동화",
+    "업무툴",
+    "데이터 정리",
+    "보고서 자동화",
+    "API 연동",
+    "만들어주실",
+    "제작해주실",
+    "개발해주실",
+    "수정해주실",
+    "의뢰",
+    "외주",
+    "견적",
+    "구합니다",
+    "앱",
+    "어플",
+    "홈피",
+    "웹페이지",
+    "RPA",
+    "크롤링",
+    "크롤러",
+    "파이썬",
+    "워드프레스",
+    "카페24",
+    "시스템 개발",
+    "시스템 구축"
+  ],
+  "label_policy": "라벨은 합성 문장의 발주 목적과 납품 대상을 기준으로 작성했다. 제목 경로는 상세 확인 우선순위이며 구매 확정이 아니다. opaque 두 표본의 제목 reject는 본문 검색으로만 복구할 수 있는 발견 한계를 별도로 측정한다. 점수는 수주 확률이 아니다.",
+  "cases": [
+    {
+      "id": "web_home",
+      "origin": "synthetic",
+      "domain": "website",
+      "title": "홈페이지 제작 의뢰합니다",
+      "body": "매장 소개 홈페이지 5페이지를 제작해주실 분을 찾습니다. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "web_landing",
+      "origin": "synthetic",
+      "domain": "landing",
+      "title": "랜딩페이지 만들어주실 분",
+      "body": "서비스 소개 랜딩페이지와 상담 입력 폼을 만들어주세요. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "web_shop",
+      "origin": "synthetic",
+      "domain": "shop",
+      "title": "쇼핑몰 구축 외주 구합니다",
+      "body": "자사몰 쇼핑몰 구축을 의뢰합니다. 결제와 주문관리 기능이 필요합니다. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "web_wordpress",
+      "origin": "synthetic",
+      "domain": "website",
+      "title": "워드프레스 홈페이지 리뉴얼 의뢰",
+      "body": "기존 워드프레스 홈페이지를 리뉴얼해주실 분을 구합니다. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "web_cafe24",
+      "origin": "synthetic",
+      "domain": "shop",
+      "title": "카페24 결제 오류 고쳐주세요",
+      "body": "카페24 쇼핑몰 결제 기능의 오류를 고쳐주세요. 기존 코드를 수정하는 의뢰입니다. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "web_reservation",
+      "origin": "synthetic",
+      "domain": "fullstack",
+      "title": "예약 시스템 개발 의뢰",
+      "body": "온라인 예약 페이지와 관리자 페이지를 제작해주실 개발자를 찾습니다. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "exploration",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "app_android",
+      "origin": "synthetic",
+      "domain": "software",
+      "title": "안드로이드 앱 개발해주실 분",
+      "body": "안드로이드 앱 개발을 의뢰합니다. 일정 등록과 알림 기능이 필요합니다. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "app_ios",
+      "origin": "synthetic",
+      "domain": "software",
+      "title": "아이폰 어플 제작 의뢰",
+      "body": "아이폰 어플 제작을 의뢰합니다. 회원가입과 예약 기능을 개발해주세요. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "app_alias",
+      "origin": "synthetic",
+      "domain": "software",
+      "title": "애플리케이션 개발 외주",
+      "body": "업무용 애플리케이션 개발을 의뢰합니다. 로그인과 주문 관리 화면이 필요합니다. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "app_desktop",
+      "origin": "synthetic",
+      "domain": "software",
+      "title": "윈도우 프로그램 제작 의뢰",
+      "body": "윈도우 PC에서 파일 이름을 일괄 변경하는 프로그램을 만들어주세요. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "app_packaging",
+      "origin": "synthetic",
+      "domain": "software",
+      "title": "웹사이트 앱 패키징 도와주실 분",
+      "body": "기존 웹사이트의 앱 패키징을 도와주실 분을 찾습니다. 소스 코드를 전달합니다. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "app_store",
+      "origin": "synthetic",
+      "domain": "software",
+      "title": "앱스토어 등록 도와주실분",
+      "body": "기존 홈페이지를 앱으로 패키징하여 앱스토어 등록을 도와주실 분을 찾습니다. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "exploration",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "app_webbase",
+      "origin": "synthetic",
+      "domain": "fullstack",
+      "title": "웹베이스 앱 개발해주실 분",
+      "body": "학원 출석과 조회 기능을 포함한 웹베이스 앱 개발을 의뢰합니다. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "auto_excel",
+      "origin": "synthetic",
+      "domain": "vba",
+      "title": "엑셀 자동화 만들어주세요",
+      "body": "엑셀 주문 시트를 자동으로 취합하는 매크로를 만들어주세요. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "auto_vba",
+      "origin": "synthetic",
+      "domain": "vba",
+      "title": "VBA 매크로 수정 의뢰",
+      "body": "기존 VBA 매크로 오류 수정과 보고서 출력 기능 개발을 의뢰합니다. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "auto_sheets",
+      "origin": "synthetic",
+      "domain": "automation",
+      "title": "구글 스프레드시트 연동 의뢰",
+      "body": "구글 스프레드시트와 주문 API를 연동해주실 개발자를 찾습니다. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "exploration",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "auto_api",
+      "origin": "synthetic",
+      "domain": "automation",
+      "title": "API 연동 프로그램 개발 의뢰",
+      "body": "주문 API와 재고 관리 프로그램을 연동해주실 분을 찾습니다. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "auto_rpa",
+      "origin": "synthetic",
+      "domain": "automation",
+      "title": "RPA 자동화 구축 의뢰",
+      "body": "반복 입력 작업을 처리하는 RPA 자동화 도구를 제작해주실 분을 찾습니다. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "auto_crawler",
+      "origin": "synthetic",
+      "domain": "software",
+      "title": "파이썬 크롤링 프로그램 제작",
+      "body": "공개된 자사 상품 목록을 취합하는 파이썬 크롤링 프로그램 제작을 의뢰합니다. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "auto_chatbot",
+      "origin": "synthetic",
+      "domain": "automation",
+      "title": "챗봇 만들어주실 분",
+      "body": "고객 문의에 답변하는 챗봇 제작을 의뢰합니다. 관리자 페이지도 필요합니다. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "exploration",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "auto_agent",
+      "origin": "synthetic",
+      "domain": "software",
+      "title": "AI 에이전트 개발 의뢰",
+      "body": "사내 문서 정리용 AI 에이전트 개발을 의뢰합니다. 별도 프로그램으로 제작해주세요. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "exploration",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "repair_react",
+      "origin": "synthetic",
+      "domain": "website",
+      "title": "React 화면 수정 도와주세요",
+      "body": "기존 React 웹페이지 화면 수정을 도와주세요. 화면 코드와 수정 목록을 전달합니다. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "exploration",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "repair_css",
+      "origin": "synthetic",
+      "domain": "website",
+      "title": "HTML CSS 반응형 수정 의뢰",
+      "body": "기존 HTML CSS 웹페이지의 반응형 화면 수정을 의뢰합니다. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "exploration",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "deploy_server",
+      "origin": "synthetic",
+      "domain": "software",
+      "title": "서버 배포 도와주실 분",
+      "body": "기존 파이썬 프로그램 배포를 의뢰합니다. 서버의 실행 환경을 구성해주세요. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "exploration",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "repair_python",
+      "origin": "synthetic",
+      "domain": "software",
+      "title": "파이썬 코드 오류 수정 의뢰",
+      "body": "기존 파이썬 프로그램의 코드 오류를 수정해주실 분을 찾습니다. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "ongoing_site",
+      "origin": "synthetic",
+      "domain": "website",
+      "title": "홈페이지 유지보수 맡아주실 분",
+      "body": "홈페이지 기능 수정과 유지보수를 매월 의뢰합니다. 각 작업은 건당 계약으로 맡아주실 분을 찾습니다. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "opaque_page",
+      "origin": "synthetic",
+      "domain": "website",
+      "title": "잘하시는 분 찾습니다",
+      "body": "기존 홈페이지의 예약 페이지를 만들어주실 분을 찾습니다. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "reject",
+      "body_only": true,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "opaque_excel",
+      "origin": "synthetic",
+      "domain": "vba",
+      "title": "한번에 정리되게 해주실 분",
+      "body": "엑셀 주문 데이터를 자동으로 정리하는 VBA 매크로 제작을 의뢰합니다. 건당 200만원으로 의뢰합니다. 전 과정 원격으로 진행하며 기능 목록과 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_min_score": 50,
+      "expected_title_kind": "reject",
+      "body_only": true,
+      "label_rationale": "구체적인 디지털 산출물의 제작 또는 변경을 발주하는 요청이다. 제목이 모호한 경우는 독립 키워드 검색 검증용이다.",
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "edu_web",
+      "origin": "synthetic",
+      "domain": "education",
+      "title": "홈페이지 제작 배우고 싶어요",
+      "body": "홈페이지 만드는 방법을 배우고 싶습니다. 제작을 맡기는 의뢰가 아니라 과외 선생님을 찾습니다.",
+      "expected_target_buyer": false,
+      "expected_min_score": null,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "완성품 발주가 아닌 제작 방법 교육 요청이다.",
+      "pay": {
+        "amount": null,
+        "unit": "unknown"
+      }
+    },
+    {
+      "id": "edu_python",
+      "origin": "synthetic",
+      "domain": "education",
+      "title": "파이썬 과외 선생님 구합니다",
+      "body": "파이썬 프로그래밍을 가르쳐주실 선생님을 찾습니다. 프로그램 납품은 필요 없습니다.",
+      "expected_target_buyer": false,
+      "expected_min_score": null,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "개발자가 수행할 수 있어도 교육 서비스는 이번 제작 의뢰 범위가 아니다.",
+      "pay": {
+        "amount": null,
+        "unit": "unknown"
+      }
+    },
+    {
+      "id": "seller_home",
+      "origin": "synthetic",
+      "domain": "seller",
+      "title": "홈페이지 만들어드립니다",
+      "body": "홈페이지 제작해드립니다. 외주 받습니다. 필요하시면 문의 주세요.",
+      "expected_target_buyer": false,
+      "expected_min_score": null,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "작성자가 서비스를 판매하는 홍보다.",
+      "pay": {
+        "amount": null,
+        "unit": "unknown"
+      }
+    },
+    {
+      "id": "seller_rpa",
+      "origin": "synthetic",
+      "domain": "seller",
+      "title": "RPA 자동화 외주 받습니다",
+      "body": "업무 자동화 도구를 개발해드립니다. 제작 상담 환영합니다.",
+      "expected_target_buyer": false,
+      "expected_min_score": null,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "자동화 개발 구매자가 아닌 공급자 홍보다.",
+      "pay": {
+        "amount": null,
+        "unit": "unknown"
+      }
+    },
+    {
+      "id": "jobseeker",
+      "origin": "synthetic",
+      "domain": "job_seeker",
+      "title": "웹 개발 일 구합니다",
+      "body": "React 웹 개발 경험이 있으며 일 구합니다. 홈페이지 개발 외주를 찾고 있습니다.",
+      "expected_target_buyer": false,
+      "expected_min_score": null,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "구인 발주가 아니라 구직자 자기소개다.",
+      "pay": {
+        "amount": null,
+        "unit": "unknown"
+      }
+    },
+    {
+      "id": "hire_backend",
+      "origin": "synthetic",
+      "domain": "employment",
+      "title": "백엔드 개발자 정규직 채용",
+      "body": "백엔드 개발자 정규직 채용합니다. 주 5일 출근, 연봉 협의, 4대 보험 제공합니다.",
+      "expected_target_buyer": false,
+      "expected_min_score": null,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "소프트웨어 관련이지만 프로젝트 납품 계약이 아닌 고용이다.",
+      "pay": {
+        "amount": null,
+        "unit": "unknown"
+      }
+    },
+    {
+      "id": "hire_excel",
+      "origin": "synthetic",
+      "domain": "employment",
+      "title": "엑셀 가능한 사무보조 알바",
+      "body": "사무실에서 엑셀 자료 입력 업무를 할 아르바이트를 구합니다. 시급 12000원, 하루 6시간 출근합니다.",
+      "expected_target_buyer": false,
+      "expected_min_score": null,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "엑셀이라는 도구 이름만 있고 자동화 산출물은 없다.",
+      "pay": {
+        "amount": null,
+        "unit": "unknown"
+      }
+    },
+    {
+      "id": "hire_shop",
+      "origin": "synthetic",
+      "domain": "employment",
+      "title": "온라인 쇼핑몰 직원 모집",
+      "body": "온라인 쇼핑몰 상품 등록과 포장을 할 직원을 구합니다. 월급 240만원, 매장 근무입니다.",
+      "expected_target_buyer": false,
+      "expected_min_score": null,
+      "expected_title_kind": "reject",
+      "body_only": false,
+      "label_rationale": "쇼핑몰 운영 직원 모집이며 사이트 제작 의뢰가 아니다.",
+      "pay": {
+        "amount": null,
+        "unit": "unknown"
+      }
+    },
+    {
+      "id": "install_reward",
+      "origin": "synthetic",
+      "domain": "installation",
+      "title": "앱 설치하고 포인트 받으실 분",
+      "body": "앱 설치 후 포인트 지급합니다. 코딩이나 프로그램 제작은 하지 않습니다.",
+      "expected_target_buyer": false,
+      "expected_min_score": null,
+      "expected_title_kind": "reject",
+      "body_only": false,
+      "label_rationale": "앱 제작 발주가 아닌 설치 보상 유도다.",
+      "pay": {
+        "amount": null,
+        "unit": "unknown"
+      }
+    },
+    {
+      "id": "physical_automation",
+      "origin": "synthetic",
+      "domain": "physical",
+      "title": "자동화 설비 설치 도와주실 분",
+      "body": "자동화 장비 배선과 설비 설치 작업을 도와주실 분을 찾습니다. 소프트웨어 개발이 아닌 기구 조립 작업입니다.",
+      "expected_target_buyer": false,
+      "expected_min_score": null,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "자동화라는 표현이 있어도 물리 장비 설치다.",
+      "pay": {
+        "amount": null,
+        "unit": "unknown"
+      }
+    },
+    {
+      "id": "physical_clean",
+      "origin": "synthetic",
+      "domain": "physical",
+      "title": "사무실 청소 외주 구합니다",
+      "body": "사무실 입주 청소를 외주로 맡기려고 합니다. 청소 도구를 가져오실 분을 찾습니다.",
+      "expected_target_buyer": false,
+      "expected_min_score": null,
+      "expected_title_kind": "reject",
+      "body_only": false,
+      "label_rationale": "외주 구매 요청이지만 디지털 제작 서비스가 아니다.",
+      "pay": {
+        "amount": null,
+        "unit": "unknown"
+      }
+    },
+    {
+      "id": "physical_food",
+      "origin": "synthetic",
+      "domain": "physical",
+      "title": "도시락 만들어주실 분",
+      "body": "행사용 도시락을 만들어주실 분을 찾습니다. 음식 조리와 배달을 부탁드립니다.",
+      "expected_target_buyer": false,
+      "expected_min_score": null,
+      "expected_title_kind": "reject",
+      "body_only": false,
+      "label_rationale": "만들어달라는 표현만으로 소프트웨어 제작 수요로 보지 않는다.",
+      "pay": {
+        "amount": null,
+        "unit": "unknown"
+      }
+    },
+    {
+      "id": "physical_shop",
+      "origin": "synthetic",
+      "domain": "physical",
+      "title": "쇼핑몰 상품 제작 포장 외주",
+      "body": "쇼핑몰에서 판매할 물품 제작과 포장 작업을 의뢰합니다. 웹사이트 제작은 아닙니다.",
+      "expected_target_buyer": false,
+      "expected_min_score": null,
+      "expected_title_kind": "exploration",
+      "body_only": false,
+      "label_rationale": "쇼핑몰이라는 명칭은 있지만 실제 납품 대상은 물품과 포장이다.",
+      "pay": {
+        "amount": null,
+        "unit": "unknown"
+      }
+    },
+    {
+      "id": "risk_rental",
+      "origin": "synthetic",
+      "domain": "risky",
+      "title": "프로그램 개발 및 계정 대여 요청",
+      "body": "프로그램 제작을 의뢰합니다. 본인 계정 대여와 신분증 제출이 필수입니다. 건당 200만원입니다.",
+      "expected_target_buyer": false,
+      "expected_min_score": null,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "개발 의뢰 표현이 있어도 계정 대여와 신분증 요구 위험 때문에 자동 처리하면 안 된다.",
+      "pay": {
+        "amount": null,
+        "unit": "unknown"
+      }
+    },
+    {
+      "id": "advice",
+      "origin": "synthetic",
+      "domain": "advice",
+      "title": "홈페이지 수정 방향 조언 부탁",
+      "body": "제 포트폴리오 홈페이지의 수정 방향을 알려주실 분을 찾습니다. 실제 코드 수정이나 제작 의뢰는 아닙니다.",
+      "expected_target_buyer": false,
+      "expected_min_score": null,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "실제 산출물 수정이 아닌 의견과 첨삭 요청이다.",
+      "pay": {
+        "amount": null,
+        "unit": "unknown"
+      }
+    },
+    {
+      "id": "marketing",
+      "origin": "synthetic",
+      "domain": "marketing",
+      "title": "홈페이지 홍보 광고 문구 제작 의뢰",
+      "body": "기존 홈페이지를 홍보할 광고 문구와 배너 이미지를 제작해주실 분을 찾습니다. 웹사이트 코드 개발이나 수정은 요청하지 않습니다.",
+      "expected_target_buyer": false,
+      "expected_min_score": null,
+      "expected_title_kind": "core",
+      "body_only": false,
+      "label_rationale": "개발 대상은 그대로이며 광고 문구와 이미지 제작만 구매한다.",
+      "pay": {
+        "amount": null,
+        "unit": "unknown"
+      }
+    },
+    {
+      "id": "app_existing_store",
+      "domain": "software",
+      "title": "완성된 앱 플레이스토어 등록 의뢰",
+      "body": "완성된 앱을 플레이스토어에 등록해주실 분을 찾습니다. 앱 소스와 빌드 자료는 전달합니다. 건당 200만원으로 진행합니다. 전 과정 원격으로 진행하며 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_title_kind": "exploration",
+      "label_rationale": "완성된 소프트웨어의 배포 산출물을 맡기는 구매 요청이며 사용자의 앱 가입을 대행하는 일이 아니다.",
+      "origin": "synthetic",
+      "body_only": false,
+      "expected_min_score": 50,
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "app_existing_packaging",
+      "domain": "software",
+      "title": "홈페이지를 앱으로 패키징 도와주세요",
+      "body": "홈페이지를 앱으로 패키징해주실 분을 찾습니다. 기존 웹 소스와 아이콘 자료를 전달합니다. 건당 200만원으로 진행합니다. 전 과정 원격으로 진행하며 자료를 전달합니다.",
+      "expected_target_buyer": true,
+      "expected_title_kind": "core",
+      "label_rationale": "웹사이트를 설치 가능한 앱으로 바꾸는 구체적 소프트웨어 납품 요청이다.",
+      "origin": "synthetic",
+      "body_only": false,
+      "expected_min_score": 50,
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "physical_packaging",
+      "domain": "physical",
+      "title": "쇼핑몰 상품 패키징 의뢰",
+      "body": "상품을 상자에 넣어 포장하는 패키징 외주를 맡깁니다. 매장에서 물건을 포장하는 작업입니다. 건당 200만원으로 진행합니다. 전 과정 원격으로 진행하며 자료를 전달합니다.",
+      "expected_target_buyer": false,
+      "expected_title_kind": "exploration",
+      "label_rationale": "앱 패키징이라는 기술 용어와 다른 물품 포장 작업이다.",
+      "origin": "synthetic",
+      "body_only": false,
+      "expected_min_score": null,
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "member_registration",
+      "domain": "installation",
+      "title": "앱 회원 등록 도와주실 분",
+      "body": "휴대전화 앱에 회원 등록 후 포인트 지급합니다. 회원 등록을 도와주실 분을 찾습니다. 건당 200만원으로 진행합니다. 전 과정 원격으로 진행하며 자료를 전달합니다.",
+      "expected_target_buyer": false,
+      "expected_title_kind": "reject",
+      "label_rationale": "앱을 제작하거나 배포하는 납품이 아니라 신규 가입을 유도한다.",
+      "origin": "synthetic",
+      "body_only": false,
+      "expected_min_score": null,
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "store_installation",
+      "domain": "installation",
+      "title": "앱스토어에서 앱 설치 도와주세요",
+      "body": "앱스토어에서 이미 판매 중인 앱을 제 휴대전화에 설치해 주세요. 앱을 만들거나 배포할 작업은 없습니다. 건당 200만원으로 진행합니다. 전 과정 원격으로 진행하며 자료를 전달합니다.",
+      "expected_target_buyer": false,
+      "expected_title_kind": "reject",
+      "label_rationale": "완성 앱의 스토어 납품이 아닌 최종 사용자 기기에 설치하는 도움 요청이다.",
+      "origin": "synthetic",
+      "body_only": false,
+      "expected_min_score": null,
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    },
+    {
+      "id": "seller_packaging",
+      "domain": "seller",
+      "title": "홈페이지 앱 패키징 해드립니다",
+      "body": "웹사이트를 앱으로 패키징해드립니다. 외주 받습니다. 제작 상담 환영합니다. 건당 200만원으로 진행합니다. 전 과정 원격으로 진행하며 자료를 전달합니다.",
+      "expected_target_buyer": false,
+      "expected_title_kind": "core",
+      "label_rationale": "기술 서비스 내용은 같아도 작성자가 구매자가 아닌 판매자다.",
+      "origin": "synthetic",
+      "body_only": false,
+      "expected_min_score": null,
+      "pay": {
+        "amount": 2000000,
+        "unit": "project"
+      }
+    }
+  ]
+}

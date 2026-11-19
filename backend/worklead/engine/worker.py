@@ -1,6 +1,6 @@
 """관리되는 워커와 스케줄러 (같은 프로세스의 스레드).
 
-- 수집 워커: discovery / recheck_recent / recheck_stale (호스트 예산을 공유하므로 1개)
+- 수집 워커: 당근 전용과 기타 소스로 분리. 같은 소스 실행은 직렬이며 호스트 예산은 공유한다.
 - 대화형 워커: 단일 리드 재확인·재분석·가져오기·내보내기 (사용자 요청이 긴 수집에 막히지 않게)
 - 스케줄러: 앱이 켜져 있을 때만 동작. 놓친 주기는 현재 구간 1회로만 보충 (대량 요청 방지)
 """
@@ -18,15 +18,20 @@ from ..db import MaintenanceBusy
 from ..models import DiscoveryListing, Lead, Run, Snapshot, Source, SourcePolicy, SourceRecord
 from . import events, runs
 from .executors import execute
-from .schedule import RECHECK_EVERY, next_due
+from .power import SleepGuard, wanted
+from .schedule import RECHECK_EVERY, next_due, regional_due, scheduler_delay
 
 log = logging.getLogger("worklead.worker")
 
 class Worker(threading.Thread):
-    def __init__(self, app: AppContext, name: str, kinds: tuple[str, ...]):
+    def __init__(self, app: AppContext, name: str, kinds: tuple[str, ...], *,
+                 source_ids: tuple[str, ...] | None = None,
+                 exclude_source_ids: tuple[str, ...] = ()):
         super().__init__(name=name, daemon=True)
         self.app = app
         self.kinds = kinds
+        self.source_ids = source_ids
+        self.exclude_source_ids = exclude_source_ids
         self.owner = f"{name}-{os.getpid()}"
         self._halt = threading.Event()
 
@@ -38,7 +43,8 @@ class Worker(threading.Thread):
             return self._run_once()
 
     def _run_once(self) -> bool:
-        run = runs.claim_next(self.app.db, self.owner, self.kinds, self.app.config.lease_seconds)
+        run = runs.claim_next(self.app.db, self.owner, self.kinds, self.app.config.lease_seconds,
+                              source_ids=self.source_ids, exclude_source_ids=self.exclude_source_ids)
         if run is None:
             return False
         self.app.hub.notify()
@@ -83,6 +89,10 @@ def schedule_due(app: AppContext) -> list[str]:
                     if (last and last.state == "partial" and not last.error_code
                             and (last.result or {}).get("continuation_pending")):
                         key = f"continue:{source.id}:{last.id}"
+                    elif (early := regional_due(last)) is not None and early <= now:
+                        # A short retry can share the old five-minute bucket.
+                        # Its finished predecessor identifies the retry once.
+                        key = f"regional:{source.id}:{last.id}"
                 try:
                     run, new = runs.enqueue(s, kind, source_id=source.id, trigger="schedule", idempotency_key=key)
                 except runs.RunConflict:
@@ -137,17 +147,21 @@ class Scheduler(threading.Thread):
         super().__init__(name="scheduler", daemon=True)
         self.app = app
         self._halt = threading.Event()
+        self.sleep_guard = SleepGuard()
 
     def stop(self) -> None:
         self._halt.set()
 
     def run(self) -> None:
         while not self._halt.is_set():
+            wait_delay = self.app.config.scheduler_interval_seconds
             try:
                 with self.app.db.gate.operation():
                     runs.recover_expired(self.app.db)
                     schedule_due(self.app)
+                    self.sleep_guard.update(wanted(self.app))
                     housekeeping(self.app)
+                    wait_delay = scheduler_delay(self.app)
             except MaintenanceBusy:
                 self._halt.wait(self.app.config.worker_poll_seconds)
                 continue
@@ -159,13 +173,15 @@ class Scheduler(threading.Thread):
                 deliver_pending(self.app)
             except Exception as exc:  # noqa: BLE001 - never log text; the token is in the URL
                 log.warning("telegram delivery error type=%s", type(exc).__name__)
-            self._halt.wait(self.app.config.scheduler_interval_seconds)
+            self._halt.wait(wait_delay)
+        self.sleep_guard.update(False)
 
 
 class Workers:
     def __init__(self, app: AppContext):
         self.threads: list[threading.Thread] = [
-            Worker(app, "collector", runs.COLLECTION_KINDS),
+            Worker(app, "collector-daangn", runs.COLLECTION_KINDS, source_ids=("daangn-alba",)),
+            Worker(app, "collector-other", runs.COLLECTION_KINDS, exclude_source_ids=("daangn-alba",)),
             Worker(app, "interactive", runs.INTERACTIVE_KINDS),
             Scheduler(app),
         ]

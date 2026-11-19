@@ -31,7 +31,7 @@ import { PortError, type WorkleadPort } from '../port';
 import { DEMO_CATEGORIES, buildImportedLead, buildReserveLead } from './fixtures';
 import { buildScenario, type ScenarioId } from './scenarios';
 import { MockCafePort } from './MockCafePort';
-import type { ApplicationEntry, JobsPort, MessageWatchStatus } from '../../domain/jobs';
+import type { ApplicationEntry, AutoApplyStatus, JobsPort, MessageWatchStatus } from '../../domain/jobs';
 
 const QUEUES: Bootstrap['queues'] = [
   { id: 'fresh', label: '지금 검토', description: '24시간 내 게시된 모집 중 제작 의뢰 · 추천과 확인 필요' },
@@ -117,12 +117,16 @@ const DEFAULT_SETTINGS: SettingsView = {
     weeklyHours: null,
     onsite: 'no',
     allowShortTermEmployment: true,
+    businessRegistered: false,
+    taxInvoice: false,
+    portfolioUrl: 'https://www.seyj.kr/',
   },
   recheck: { ttlHours: 24 },
   notifications: { newRecommended: true, newReview: true, meaningfulChange: true, sourceIssue: true, quietHours: { enabled: true, start: '22:00', end: '08:00' } },
   ai: { enabled: false, externalTransferConsent: false, engineLabel: null, monthlyCostCap: null, dailyCostCap: null, keyConfigured: false, providerAvailable: false,
     provider: 'openai', model: 'gpt-4.1-mini-2025-04-14', usdToKrwRate: null, maxOutputTokens: 1024, pricingConfirmed: false, revision: 0, databaseGeneration: 0 },
   retention: { rawDays: 30 },
+  collection: { preventSleep: false },
   queryGroups: {
     version: 1,
     groups: [
@@ -137,6 +141,13 @@ const DEFAULT_SETTINGS: SettingsView = {
 export class MockPort implements WorkleadPort {
   readonly cafe = new MockCafePort();
   readonly jobs: JobsPort = {
+    messagesInbox: () => this.delay(() => ({ enabled: false, state: 'off' as const, text: null, observed_at: null, lead_id: null, lead_title: null, source: 'visible_chat_panel' as const, persists_body: false as const })),
+    autoApplyStatus: () => this.delay(() => this.autoApplyStatus),
+    autoApplySetup: () => this.delay(() => { throw new PortError({ kind: 'api', code: 'demo_only', message: '데모에서는 자동 지원을 등록하거나 실제 제출을 실행하지 않습니다.' }); }),
+    autoApplyStart: () => this.delay(() => { throw new PortError({ kind: 'api', code: 'demo_only', message: '데모에서는 자동 지원 연결이나 실제 제출을 실행하지 않습니다.' }); }),
+    autoApplyStop: () => this.delay(() => this.autoApplyStatus),
+    autoApplyForget: () => this.delay(() => this.autoApplyStatus),
+    messagesChromeForget: () => this.delay(() => this.messageStatus),
     messagesChromeStart: () => this.delay(() => {
       this.messageStatus = { ...this.messageStatus, provider: 'chrome', enabled: true, state: 'starting', unread_count: null, last_observed_at: null, needs_user_action: true, browser_open: false, message: '데모에서는 크롬 확장 연결과 실제 메시지 관찰을 하지 않습니다.' };
       return { connection: { url: 'http://127.0.0.1:0', token: 'demo-only-not-a-real-connection' }, status: this.messageStatus, extension_directory: '데모에서는 확장 폴더를 준비하지 않습니다.' };
@@ -168,6 +179,11 @@ export class MockPort implements WorkleadPort {
       lead.draft = { text, generatedAt: lead.draft?.generatedAt ?? null, editedByUser: true };
       return this.applicationEntry(lead);
     }),
+  };
+  private autoApplyStatus: AutoApplyStatus = {
+    remembers_connection: false, paired: false,
+    enabled: false, state: 'stopped', min_score: 50, daily_limit: 20, today_submitted: 0, today_reserved: 0,
+    held: 0, uncertain: 0, last_connected_at: null, error_code: null, message: '자동 지원이 중지되어 있습니다.', attempts: [],
   };
   private messageStatus: MessageWatchStatus = {
     enabled: false, state: 'stopped', unread_count: null, last_observed_at: null, last_increase_at: null,
@@ -704,6 +720,7 @@ export class MockPort implements WorkleadPort {
         ...(patch.recheck ? { recheck: patch.recheck } : {}),
         ...(patch.notifications ? { notifications: patch.notifications } : {}),
         ...(patch.retention ? { retention: patch.retention } : {}),
+        ...(patch.collection ? { collection: patch.collection } : {}),
         ai: nextAi,
         ...(patch.queryGroups ? { queryGroups: { version: this.settings.queryGroups.version + 1, groups: patch.queryGroups } } : {}),
       };

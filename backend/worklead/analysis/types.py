@@ -106,7 +106,14 @@ class Profile:
     weekly_hours: int | None = None
     onsite: Literal["no", "first_meeting", "yes"] = "no"
     allow_short_term_employment: bool = False  # Legacy API field; project-only eligibility takes precedence.
+    business_registered: bool = False
+    tax_invoice: bool = False
+    portfolio_url: str = "https://www.seyj.kr/"
     version: int = 1
+
+
+#: Profile fields that never affect scoring: kept out of the paid AI cache key and out of the profile version.
+NON_SCORING_PROFILE_KEYS = frozenset({"portfolio_url"})
 
 
 @dataclass

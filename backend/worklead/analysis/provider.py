@@ -126,3 +126,9 @@ def mask_personal(text: str) -> str:
     for pat, repl in _MASKS:
         text = re.sub(pat, repl, text)
     return text
+
+
+def assist_eligible(ra) -> bool:
+    """AI help is for non-excluded software work paid per project, or time-pay posts under review."""
+    time_pay = any(getattr(f, "key", None) == "time_pay" for f in getattr(ra, "factors", ()))
+    return ra.recommendation != "excluded" and ra.dev_relevant and (ra.pay.unit == "project" or time_pay)

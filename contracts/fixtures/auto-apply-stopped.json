@@ -1,0 +1,23 @@
+{
+  "provider": "chrome",
+  "setup_stage": null,
+  "browser_open": false,
+  "enabled": false,
+  "remembers_connection": false,
+  "paired": false,
+  "state": "stopped",
+  "min_score": 50,
+  "daily_limit": 20,
+  "today_submitted": 0,
+  "today_reserved": 0,
+  "held": 0,
+  "uncertain": 0,
+  "last_connected_at": null,
+  "error_code": null,
+  "message": "자동 지원이 꺼져 있습니다",
+  "attempts": [],
+  "queue_reason": "stopped",
+  "needs_user_action": false,
+  "retry_waiting": 0,
+  "candidates": []
+}

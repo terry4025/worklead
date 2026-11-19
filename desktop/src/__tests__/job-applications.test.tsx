@@ -33,14 +33,14 @@ function harness(initial = entry()) {
   return { port, qc, wrapper, workspace };
 }
 
-it('확인 필요 공고의 보류 사유와 기존 초안을 보여주며 자동 제출 동작을 제공하지 않는다', async () => {
+it('확인 필요 공고의 기존 초안은 별도 자동 지원과 분리해 보존한다', async () => {
   const { port, wrapper, workspace } = harness();
   const prepare = vi.spyOn(port.jobs, 'prepare').mockResolvedValue(entry());
   const open = vi.spyOn(external, 'openExternal').mockResolvedValue('opened');
   render(workspace, { wrapper });
   await screen.findByText('상세페이지 제작 의뢰');
   expect(screen.getByText('재택 가능 여부 확인 필요')).toBeTruthy();
-  expect(screen.getByText('초안 전용 · 자동 제출 꺼짐')).toBeTruthy();
+  expect(screen.getByText('저장된 초안과 자동 지원을 따로 관리합니다')).toBeTruthy();
   expect(screen.queryByRole('button', { name: /제출하기|자동 지원 켜기/ })).toBeNull();
   expect(prepare).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole('button', { name: '저장된 초안 열기' }));
@@ -141,17 +141,18 @@ it('크롬 연결코드는 복사로만 전달하고 DOM·조회캐시·mutation
   expect(JSON.stringify(qc.getQueryCache().getAll().map((query) => query.state.data))).not.toContain(token);
   expect(JSON.stringify(qc.getMutationCache().getAll().map((mutation) => mutation.state))).not.toContain(token);
   expect(JSON.stringify({ ...localStorage })).toBe(storageBefore);
-  fireEvent.click(screen.getByRole('button', { name: '크롬 연결코드 복사' }));
+  fireEvent.click(screen.getByRole('button', { name: '메시지 연결코드 복사' }));
   await waitFor(() => expect(copy).toHaveBeenCalledWith(JSON.stringify(pairing.connection)));
   fireEvent.click(screen.getByText('크롬 확장 설치·연결 방법'));
   fireEvent.click(screen.getByRole('button', { name: '확장 폴더 경로 복사' }));
   await waitFor(() => expect(copy).toHaveBeenCalledWith(pairing.extension_directory));
-  expect(screen.getByText(/선택한 당근 탭의 로그인 여부와 미읽음 수만/)).toBeTruthy();
-  expect(screen.getByText(/앱을 다시 시작하면 다시 연결해야/)).toBeTruthy();
+  expect(start).toHaveBeenCalledWith(true, true);
+  expect(screen.getByText(/보이는 채팅 내용도 Worklead에서 보기/)).toBeTruthy();
+  expect(screen.getByText(/자동 연결을 기억하면 재시작 뒤 코드를 다시 입력하지/)).toBeTruthy();
   expect(screen.getByRole('button', { name: '연결하고 감시 시작' })).toHaveProperty('disabled', true);
   fireEvent.click(screen.getByRole('button', { name: '감시 중지' }));
   await screen.findByText('연결하지 않음');
-  expect(screen.queryByRole('button', { name: '크롬 연결코드 복사' })).toBeNull();
+  expect(screen.queryByRole('button', { name: '메시지 연결코드 복사' })).toBeNull();
 });
 
 it('전용 Edge 감시 중에는 크롬 연결을 겹쳐 시작하지 않는다', async () => {
@@ -162,4 +163,33 @@ it('전용 Edge 감시 중에는 크롬 연결을 겹쳐 시작하지 않는다'
   await screen.findByText('미읽음 표시 감시 중');
   expect(screen.getByRole('button', { name: '현재 크롬으로 연결' })).toHaveProperty('disabled', true);
   expect(chrome).not.toHaveBeenCalled();
+});
+
+
+it('기억한 메시지 연결은 코드 없이 복구 대기로 표시하고 아직 관찰하지 않은 값을 감시 성공으로 표시하지 않는다', async () => {
+  const { port, wrapper } = harness();
+  const start = vi.spyOn(port.jobs, 'messagesChromeStart').mockResolvedValue({ connection: null, extension_directory: '', status: status({ provider: 'chrome', enabled: true, remembers_connection: true, paired: true, state: 'starting', message: '저장한 연결 복구 중입니다.' }) });
+  render(<MessageConnectionPanel now={now} onSettings={vi.fn()} />, { wrapper });
+  await waitFor(() => expect(screen.getByRole('button', { name: '현재 크롬으로 연결' })).toHaveProperty('disabled', false));
+  fireEvent.click(screen.getByRole('button', { name: '현재 크롬으로 연결' }));
+  await screen.findByText('저장한 메시지 연결 복구 중');
+  expect(screen.queryByRole('button', { name: '메시지 연결코드 복사' })).toBeNull();
+  expect(screen.queryByText('미읽음 표시 감시 중')).toBeNull();
+  expect(start).toHaveBeenCalledWith(true, true);
+});
+
+it('메시지 코드에는 용도 태그를 유지하며 저장 허가 해제는 별도 API를 사용한다', async () => {
+  const { port, wrapper } = harness();
+  const connection = { url: 'http://127.0.0.1:58348', token: 'synthetic-message-only-key', purpose: 'messages' as const, version: 1 as const };
+  vi.spyOn(port.jobs, 'messagesChromeStart').mockResolvedValue({ connection, extension_directory: '', status: status({ provider: 'chrome', enabled: true, remembers_connection: true, paired: false, state: 'starting' }) });
+  const copy = vi.spyOn(external, 'copyText').mockResolvedValue(true);
+  const forget = vi.spyOn(port.jobs, 'messagesChromeForget').mockResolvedValue(status());
+  render(<MessageConnectionPanel now={now} onSettings={vi.fn()} />, { wrapper });
+  await waitFor(() => expect(screen.getByRole('button', { name: '현재 크롬으로 연결' })).toHaveProperty('disabled', false));
+  fireEvent.click(screen.getByRole('button', { name: '현재 크롬으로 연결' }));
+  fireEvent.click(await screen.findByRole('button', { name: '메시지 연결코드 복사' }));
+  await waitFor(() => expect(copy).toHaveBeenCalledWith(JSON.stringify(connection)));
+  fireEvent.click(screen.getByRole('button', { name: '저장한 메시지 연결 해제' }));
+  await waitFor(() => expect(forget).toHaveBeenCalledOnce());
+  await waitFor(() => expect(screen.queryByRole('button', { name: '메시지 연결코드 복사' })).toBeNull());
 });

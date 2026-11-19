@@ -90,6 +90,13 @@ def test_cors_preflight_is_only_exact_extension_post_and_two_headers(bridge):
         assert client.post(connection["url"] + "/observe?token=ignored", headers=headers(connection), json={}).status_code == 404
 
 
+def test_rejected_small_post_keeps_its_http_error_instead_of_resetting(bridge):
+    _, connection, _ = bridge
+    with httpx.Client(trust_env=False, timeout=3) as c:
+        for _ in range(20):
+            assert c.post(connection['url']+'/unknown',headers=headers(connection),json={}).status_code == 404
+
+
 @pytest.mark.parametrize("body", [
     {"state": "watching", "unread_count": True, "sequence": 1},
     {"state": "watching", "unread_count": 1, "sequence": True},

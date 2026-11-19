@@ -98,8 +98,68 @@ def test_slug_matches_public_detail_urls():
     assert _post_slug("Ai프로그램 활용잘하시는분") == "ai프로그램-활용잘하시는분"
 
 
+@pytest.mark.parametrize("title,keywords", [
+    ("React 화면 수정 요청이 아닙니다", ["홈페이지"]),
+    ("React 화면 수정 요청은 안 합니다", ["홈페이지"]),
+    ("React 화면 수정 요청하지 않습니다", ["홈페이지"]),
+    ("React 코드 수정 의뢰는 없습니다", ["홈페이지"]),
+    ("React 화면 수정 부탁드리는 게 아닙니다", ["홈페이지"]),
+    ("서버 배포 요청이 아닙니다", ["프로그램"]),
+    ("서버 배포 요청은 안 합니다", ["프로그램"]),
+    ("서버 배포 요청하지 않습니다", ["프로그램"]),
+    ("서버 배포 의뢰 대신 포장 작업", ["프로그램"]),
+    ("기존 앱 플레이스토어 등록 요청이 아닙니다", ["앱"]),
+    ("기존 앱 플레이스토어 등록 요청은 안 합니다", ["앱"]),
+    ("기존 앱 플레이스토어 등록 요청하지 않습니다", ["앱"]),
+    ("앱스토어 등록 부탁은 불필요합니다", ["앱"]),
+])
+def test_specialized_title_requests_do_not_promote_negated_operations(title, keywords):
+    assert create().saved_candidate_kind(title, json.dumps(keywords, ensure_ascii=False)) is None
+
+
+@pytest.mark.parametrize("title,keywords,expected", [
+    ("React 화면 수정 도와주세요", ["홈페이지"], "core"),
+    ("HTML/CSS 코드 수정 요청", ["홈페이지"], "core"),
+    ("React 코드 수정 요청", ["엑셀"], None),
+    ("React 코드 수정 요청", [], None),
+    ("React 코드 수정 요청", ["앱"], None),
+    ("AI 에이전트 만들어주세요 (React 코드는 참고만)", ["홈페이지"], None),
+    ("챗봇 만들어주세요 React 코드는 참고만", ["홈페이지"], None),
+    ("AI 에이전트 만들어주세요 (React 코드는 참고만)", ["AI 에이전트"], "core"),
+    ("AI 에이전트 만들어주세요 React 화면 수정 도와주세요", ["홈페이지"], "core"),
+    ("React 화면 수정 요청은 아닙니다. AI 에이전트 만들어주세요", ["홈페이지"], None),
+    ("React 화면 수정 요청은 아닙니다. HTML 코드 수정 요청", ["홈페이지"], "core"),
+    ("서버 배포 요청이 아닙니다. 서버 배포 의뢰", ["프로그램"], "core"),
+    ("서버 배포 도와주세요", ["프로그램"], "core"),
+    ("서버 배포 도와주세요", ["엑셀"], None),
+    ("서버 배포 도와주세요", ["홈페이지"], None),
+])
+def test_semantic_title_scope_requires_the_requested_technology_and_object(title, keywords, expected):
+    assert create().saved_candidate_kind(title, json.dumps(keywords, ensure_ascii=False)) == expected
+
+
+def test_disabled_web_queries_cannot_be_reintroduced_by_semantic_feed_matching():
+    adapter = create()
+    adapter.profile["discovery"]["feed"]["anchors"] = [[28, "신당동", "A"]]
+    plan = adapter.plan_discovery([
+        {"id": "web", "enabled": False, "keywords": ["홈페이지", "AI 에이전트"]},
+        {"id": "excel", "enabled": True, "keywords": ["엑셀"]},
+    ], NOW)
+    task = next(task for task in plan.tasks if task.region_scope == "feed-28")
+    found = adapter.discover(task, Static(feed(28, [
+        ("reactdemo001", "React 화면 수정 도와주세요", "PER_CASE", False, 1),
+        ("agentdemo001", "AI 에이전트 만들어주세요 React 코드는 참고만", "PER_CASE", False, 2),
+        ("exceldemo001", "엑셀 매크로 제작 의뢰", "PER_CASE", False, 3),
+    ])))
+    assert [ref.source_post_id for ref in found.refs] == ["exceldemo001"]
+    assert found.exploration_refs == []
+    assert len(found.listed_refs) == 3  # public observations remain independently measurable
+
+
 def test_plan_tiers_and_daily_list_requests():
     adapter = create()
+    adapter.profile["discovery"]["feed"].pop("adaptive")
+    adapter.profile["discovery"]["feed"]["tier_minutes"]["A"] = 0
     adapter.profile["discovery"]["feed"]["anchors"] = [[28, "신당동", "A"], [500, "영도", "B"], [2000, "홍천", "C"]]
     tasks = adapter.plan_discovery([{"id": "dev", "keywords": ["프로그램"]}], NOW).tasks
     assert [(t.region_scope, t.min_revisit_minutes) for t in tasks] == [
@@ -159,8 +219,8 @@ def test_tiered_units_revisit_on_their_own_interval(tmp_path):
     ctx, c, clock, calls = site(tmp_path, [[28, "신당동", "A"], [500, "영도", "B"]], {})
     collect(ctx, c)
     assert lists(calls) == ["/s?regionId=28", "/s?regionId=500", "/sitemap.xml"]
-    for minutes, expected in ((15, ["/s?regionId=28"]), (30, ["/s?regionId=28"]),
-                              (60, ["/s?regionId=28", "/s?regionId=500"]), (75, ["/s?regionId=28"])):
+    for minutes, expected in ((15, []), (30, ["/s?regionId=28"]),
+                              (60, ["/s?regionId=28", "/s?regionId=500"]), (75, [])):
         calls.clear()
         clock[0] = NOW + timedelta(minutes=minutes, seconds=40)
         collect(ctx, c)
@@ -205,7 +265,7 @@ def test_watch_reserve_uses_declared_tier_volume(tmp_path):
         source = s.get(Source, "daangn-alba")
         source.auto_collect_enabled, source.interval_minutes = True, 15
         # half of the UTC day's (95 + 24 + 4) list requests remain
-        assert watch_reserve(s, ctx, "daangn-alba", adapter) == math.ceil(adapter.daily_list_requests(15) / 2) == 62
+        assert watch_reserve(s, ctx, "daangn-alba", adapter) == adapter.remaining_list_requests(12 * 3600, 15)
     ctx.db.dispose()
 
 
@@ -233,9 +293,9 @@ def test_all_due_feeds_fit_one_watch_beyond_default_task_cap(tmp_path):
     collect(ctx, c)
     assert len([u for u in lists(calls) if u.startswith("/s?")]) == 70
     calls.clear()
-    clock[0] = NOW + timedelta(minutes=20)
+    clock[0] = NOW + timedelta(minutes=30)
     collect(ctx, c)
-    assert len(lists(calls)) == 70  # every fast unit again, nothing left over
+    assert len(lists(calls)) == 70  # all ordinary units due again, nothing left over
     ctx.db.dispose()
 
 
@@ -255,3 +315,46 @@ def test_interrupted_leftovers_do_not_hold_due_fast_units(tmp_path):
         assert _current_cycle(s, "daangn-alba", keys) == 5  # untiered sources still finish the cycle first
         assert _current_cycle(s, "daangn-alba", keys, revisit=True) == 6
     ctx.db.dispose()
+
+from tests.test_daangn_serialized import as_tsr
+
+
+def test_current_stream_feed_matches_legacy():
+    adapter = create()
+    legacy = adapter.discover(feed_task(adapter), Static(feed(28, POSTS)))
+    adapter = create()
+    current = adapter.discover(feed_task(adapter), Static(as_tsr(feed(28, POSTS))))
+    assert [r.source_post_id for r in current.refs] == [r.source_post_id for r in legacy.refs]
+    assert [r.source_post_id for r in current.exploration_refs] == [r.source_post_id for r in legacy.exploration_refs]
+    assert [r.priority for r in current.refs] == [r.priority for r in legacy.refs]
+
+
+from tests.test_daangn_serialized import tsr_script
+from worklead.sources.daangn.adapter import _Document, _salary_type
+
+LABELS = {"PER_CASE": "건당 50,000원", "HOURLY": "시급 12,000원", "MONTHLY": "월급 2,500,000원"}
+
+
+@pytest.mark.parametrize(("post", "kind"), [
+    ({"salaryType": "HOURLY", "stringifiedSalary": "건당 1원"}, "HOURLY"),
+    ({"stringifiedSalary": "건당 50,000원"}, "PER_CASE"),
+    ({"stringifiedSalary": " 월급 2,500,000원"}, "MONTHLY"),
+    ({"stringifiedSalary": "협의"}, None),
+    ({}, None),
+])
+def test_salary_type_prefers_field_then_visible_label(post, kind):
+    assert _salary_type(post) == kind
+
+
+def test_current_feed_without_salary_type_uses_visible_label():
+    store = _Document(feed(28, POSTS)).store()
+    for node in store.values():
+        if isinstance(node, dict) and node.get("__typename") == "JobPost":
+            node["stringifiedSalary"] = LABELS[node.pop("salaryType")]
+    adapter = create()
+    found = adapter.discover(feed_task(adapter), Static(f"<html><body>{tsr_script(store)}</body></html>"))
+    assert [r.source_post_id for r in found.refs] == ["feedcore0001", "feedcore0002"]
+    assert [r.source_post_id for r in found.exploration_refs] == ["feedjobs0003", "feedexpl0005"]
+    assert [r.priority for r in found.refs] == [1, 0]
+    meta = found.metadata
+    assert (meta["employment_exploration_filtered"], meta["employment_core_demoted"]) == (1, 1)

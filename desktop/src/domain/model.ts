@@ -411,6 +411,9 @@ export interface SettingsView {
     weeklyHours: number | null;
     onsite: 'no' | 'first_meeting' | 'yes';
     allowShortTermEmployment: boolean;
+    businessRegistered: boolean;
+    taxInvoice: boolean;
+    portfolioUrl: string;
   };
   recheck: { ttlHours: number };
   notifications: {
@@ -438,6 +441,7 @@ export interface SettingsView {
     databaseGeneration: number;
   };
   retention: { rawDays: number };
+  collection: { preventSleep: boolean };
   queryGroups: { version: number; groups: QueryGroup[] };
 }
 

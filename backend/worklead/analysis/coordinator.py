@@ -18,7 +18,7 @@ from ..services.credentials import CredentialError
 from ..services.settings import get_setting
 from .ledger import CostLedger
 from .openai_provider import MODEL, PRICE_DATE, PRICE_VERSION, OpenAIProvider, estimated_cost, prepare_request, price_metadata
-from .provider import AIInput, AIOutput, AIFailure, mask_personal
+from .provider import AIInput, AIOutput, AIFailure, assist_eligible, mask_personal
 
 if TYPE_CHECKING:
     from ..context import AppContext
@@ -92,7 +92,7 @@ class AnalysisCoordinator:
                 return None
             source = s.get(Source, lead.source_id)
             ra = apply_analysis(s, lead, rec, now=self.app.clock(), provider=self.app.provider, source_kind=source.kind if source else "site")
-            if ra.recommendation == "excluded" or ra.pay.unit != "project" or not ra.dev_relevant:
+            if not assist_eligible(ra):
                 return None
             row = s.get(AnalysisResult, lead.analysis_id)
             if row is None or row.engine != "ai:openai":

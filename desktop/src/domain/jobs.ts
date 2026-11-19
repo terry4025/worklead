@@ -24,6 +24,11 @@ export interface ApplicationList {
 }
 
 export interface JobsPort {
+  autoApplyStatus(): Promise<AutoApplyStatus>;
+  autoApplySetup(body: { confirm: true; min_score: number; daily_limit: number }): Promise<AutoApplyStatus>;
+  autoApplyStart(body: { confirm: true; min_score: number; daily_limit: number; remember_connection?: boolean }): Promise<AutoApplyStart>;
+  autoApplyStop(): Promise<AutoApplyStatus>;
+  autoApplyForget(): Promise<AutoApplyStatus>;
   applications(limit?: number): Promise<ApplicationList>;
   application(leadId: string): Promise<ApplicationEntry>;
   prepare(leadId: string): Promise<ApplicationEntry>;
@@ -31,12 +36,19 @@ export interface JobsPort {
   messagesStatus(): Promise<MessageWatchStatus>;
   messagesStart(): Promise<MessageWatchStatus>;
   messagesStop(): Promise<MessageWatchStatus>;
-  messagesChromeStart(): Promise<ChromeMessageConnection>;
+  messagesChromeStart(captureVisibleChat?: boolean, rememberConnection?: boolean): Promise<ChromeMessageConnection>;
+  messagesChromeForget(): Promise<MessageWatchStatus>;
+  messagesInbox(): Promise<import('@contracts/index').JobChatView>;
 }
+
+export type { JobAutoApplyStatus as AutoApplyStatus, JobAutoApplyStart as AutoApplyStart, JobAutoApplyAttempt as AutoApplyAttempt, JobAutoApplyCandidate as AutoApplyCandidate } from '@contracts/index';
+import type { JobAutoApplyStatus as AutoApplyStatus, JobAutoApplyStart as AutoApplyStart } from '@contracts/index';
 
 export interface MessageWatchStatus {
   provider?: 'chrome' | 'edge';
   enabled: boolean;
+  remembers_connection?: boolean;
+  paired?: boolean;
   state: 'stopped' | 'starting' | 'login_required' | 'watching' | 'surface_unrecognized' | 'error';
   unread_count: number | null;
   last_observed_at: string | null;
@@ -45,14 +57,14 @@ export interface MessageWatchStatus {
   message: string;
   poll_interval_seconds: number;
   observation: 'visible_unread_badge';
-  captures_message_body: false;
+  captures_message_body: boolean;
   browser_notifications: 'default' | 'granted' | 'denied' | 'unsupported' | 'unknown';
   browser_open: boolean;
   needs_user_action: boolean;
 }
 
 export interface ChromeMessageConnection {
-  connection: { url: string; token: string };
+  connection: { url: string; token: string; purpose?: 'messages'; version?: 1 } | null;
   status: MessageWatchStatus;
   extension_directory: string;
 }

@@ -69,6 +69,7 @@ function RunDetails({ run }: { run: RunInfo }) {
     ['watch_detail_requests', '이번 감시 상세 요청', '회'],
     ['watch_refresh_requests', '기존 상세 갱신 요청', '회'],
     ['watch_deferred_details', '다음 감시로 넘긴 후보', '개'],
+    ['backlog_candidates', '저장 목록에서 이어받은 미처리 후보', '개'],
   ] as const).flatMap(([key, label, unit]) => {
     const count = countValue(titleDiscovery?.[key]);
     return count === null ? [] : [`${label} ${formatCount(count)}${unit}`];
@@ -421,7 +422,7 @@ function SourceCard({ source: s, runs }: { source: SourceInfo; runs: RunInfo[] }
                 disabled={update.isPending}
                 onChange={(e) => update.mutate({ intervalMinutes: Number(e.target.value) })}
               >
-                {[15, 30, 60, 180, 360, 720, 1440].map((m) => (
+                {(isDaangn ? [5, 15, 30, 60, 180, 360, 720, 1440] : [15, 30, 60, 180, 360, 720, 1440]).map((m) => (
                   <option key={m} value={m}>
                     {m < 60 ? `${m}분마다` : `${m / 60}시간마다`}
                   </option>

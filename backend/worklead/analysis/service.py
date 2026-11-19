@@ -16,13 +16,15 @@ from .text import first_sentence
 from .types import Ev, Factor, Judgement, PayInfo, PostInput, Profile, Profitability, Reason, RuleAnalysis, Scenario
 
 WEIGHTS = {
-    "work_fit": ("업무 적합성", 30),
-    "buyer_intent": ("구매 의도", 25),
-    "remote_fit": ("원격 적합성", 20),
+    "work_fit": ("업무 적합성", 35),
+    "buyer_intent": ("구매 의도", 30),
+    "remote_fit": ("원격 적합성", 10),
     "freshness": ("최신성", 15),
     "scope_clarity": ("범위 명확성", 10),
 }
 RISK_PENALTY_EACH = 15
+# 시간 단위 보수로 올라온 재택 개발 의뢰의 우선순위 감점. 건당 의뢰보다 뒤에 오도록 하는 정렬용 값.
+TIME_PAY_REVIEW_PENALTY = 10
 
 CATEGORY_LABEL = {
     "website": "웹사이트",
@@ -59,19 +61,19 @@ def _score_work_fit(categories: list[str], dev: bool, profile: Profile, excluded
         return Factor("work_fit", label, mx, 3, "개발·자동화 업무 근거 없음")
     matched = [c for c in categories if c in profile.services]
     if profile.services and matched:
-        return Factor("work_fit", label, mx, min(mx, 24 + 3 * len(matched)), f"{names} — 제공 서비스와 일치")
+        return Factor("work_fit", label, mx, min(mx, 29 + 3 * len(matched)), f"{names} — 제공 서비스와 일치")
     if profile.services:
         return Factor("work_fit", label, mx, 16, f"{names} — 제공 서비스 목록에 없음")
-    return Factor("work_fit", label, mx, 20, f"{names} — 제공 서비스 미설정")
+    return Factor("work_fit", label, mx, 25, f"{names} — 개발 업무 근거 있음, 제공 서비스 미설정")
 
 
 def _score_intent(intent: Judgement, engagement: Judgement) -> Factor:
     label, mx = WEIGHTS["buyer_intent"]
     v, b = intent.value, intent.basis
     if v == "buyer_project":
-        return Factor("buyer_intent", label, mx, 23 if b == "explicit" else 18, "구매 표현 " + ("명시" if b == "explicit" else "추정"))
+        return Factor("buyer_intent", label, mx, 28 if b in ("explicit", "user_confirmed") else 20, "구매 표현 " + ("확인" if b == "user_confirmed" else "명시" if b == "explicit" else "추정"))
     if v == "buyer_ongoing":
-        return Factor("buyer_intent", label, mx, 21 if b == "explicit" else 16, "지속 의뢰 " + ("명시" if b == "explicit" else "추정"))
+        return Factor("buyer_intent", label, mx, 28 if b in ("explicit", "user_confirmed") else 20, "지속 의뢰 " + ("확인" if b == "user_confirmed" else "명시" if b == "explicit" else "추정"))
     if v == "employee_hiring":
         pts = 4 if engagement.value == "full_time" else 8
         return Factor("buyer_intent", label, mx, pts, "고용 공고 — 외주 구매 아님")
@@ -89,15 +91,15 @@ def _score_remote(work: Judgement, collab: Judgement, profile: Profile) -> Facto
         return Factor("remote_fit", label, mx, 0, "출근 필요")
     if v == "fully_remote":
         if b in ("explicit", "user_confirmed"):
-            pts, why = (20, "재택·온라인 진행 명시") if collab.value == "online_only" else (17, "재택 명시, 진행 방식 일부 불명확")
+            pts, why = (10, "재택·온라인 진행 명시") if collab.value == "online_only" else (8, "재택 명시, 진행 방식 일부 불명확")
         else:
-            pts, why = 8, "재택 명시 없음 — 추정"
+            pts, why = 4, "재택 명시 없음 — 추정"
     elif v == "hybrid":
-        pts, why = 8, "일부 재택"
+        pts, why = 4, "일부 재택"
     else:
-        pts, why = 10, "재택 협의"
+        pts, why = 5, "재택 협의"
     if collab.value == "onsite_required":
-        cap = {"no": 8, "first_meeting": 15, "yes": 18}[profile.onsite]
+        cap = {"no": 4, "first_meeting": 7, "yes": 9}[profile.onsite]
         pts, why = min(pts, cap), why + ", 대면 필요"
     return Factor("remote_fit", label, mx, pts, why)
 
@@ -324,6 +326,10 @@ def analyze(
     non_delivery = rules.non_delivery_reason(title, body)
     if non_delivery:
         intent = Judgement("demand_intent", "unknown", None, [non_delivery[1]])
+    elif intent.value == "unknown" and dev:
+        guess = rules.inferred_request(title, body)
+        if guess:
+            intent = Judgement("demand_intent", "buyer_project", "inferred", [guess])
     engagement = rules.classify_engagement(title, body, intent.value)
     work = rules.classify_work_mode(title, body)
     collab = rules.classify_collaboration(title, body, work.value)
@@ -362,6 +368,20 @@ def analyze(
         total = max(0, total + (pay_factor.score or 0))
     unknown = sum(1 for f in factors if f.score is None)
 
+    # Source metadata can contain wages absent from the body; a body wage also counts.
+    time_unit = pay.unit if pay.unit in TIME_PAY_LABELS else time_pay_unit(pay.raw or "") or time_pay_unit(body) or time_pay_unit(title)
+    # 2026-11-07 사용자 결정: 당근은 글쓴이가 보수 유형을 고르게 해서 짧은 개발 의뢰도 시급·월급으로 올라온다.
+    # 재택 가능한 개발 구매 의뢰는 시간 단위 보수여도 제외하지 않고 감점·확인 표시와 함께 검토에 올린다.
+    # 자동 지원은 계속 건당 보수만 대상이다 (jobs.auto_apply.condition).
+    # 연봉은 정의상 고용 조건이라 제외를 유지한다.
+    time_pay_review = (time_unit in ("hour", "day", "week", "month") and dev
+                       and intent.value in ("buyer_project", "buyer_ongoing") and work.value != "onsite")
+    if time_pay_review and time_unit:
+        factors.append(Factor("time_pay", "시간 단위 보수 감점", 0, -TIME_PAY_REVIEW_PENALTY,
+                              f"{TIME_PAY_LABELS[time_unit]} 표기 · 실제 작업 단위와 총액을 확인하기 전까지 감점"))
+        if total is not None:
+            total = max(0, total - TIME_PAY_REVIEW_PENALTY)
+
     # ── 적격성 → 추천 ────────────────────────────────────────────────
     status = post.source_status
     access_ok = post.access_status == "accessible"
@@ -378,11 +398,12 @@ def analyze(
         exclude.append("공개 수집 허용 불가·미확인 공고")
     if rules.salary_evidence(title, body) or rules.salary_evidence("", pay.raw or ""):
         exclude.append("급여·salary 지급 — 건당 프리랜서 의뢰 아님")
-    # Only deliverable/project payments are eligible. Source metadata can
-    # contain wages absent from the body; a conflicting body wage also fails.
-    time_unit = pay.unit if pay.unit in TIME_PAY_LABELS else time_pay_unit(pay.raw or "") or time_pay_unit(body) or time_pay_unit(title)
-    if time_unit:
+    # Deliverable/project payments are eligible; time wages only for remote
+    # development requests, which go to review (time_pay_review above).
+    if time_unit and not time_pay_review:
         exclude.append(f"{TIME_PAY_LABELS[time_unit]} 지급 — 건당 프리랜서 의뢰 아님")
+    elif time_unit:
+        review.insert(0, f"{TIME_PAY_LABELS[time_unit]} 표기 — 실제 작업 단위·총액 확인")
     elif pay.unit != "project":
         exclude.append("건당·프로젝트 지급 미확인")
     if intent.value == "seller_service":
@@ -441,6 +462,17 @@ def analyze(
         review.append("진행 방식(대면 여부) 미확인")
     if scope.value == "regional_restriction":
         review.append("지원 지역 제한 — 자격 확인")
+    needs = rules.business_requirements(body)
+    met: list[str] = []
+    for key, ok, label, missing in (
+        ("business", profile.business_registered, "사업자 요구 — 등록 완료", "사업자 등록 요구 — 내 프로필은 미등록"),
+        ("tax_invoice", profile.tax_invoice, "세금계산서 요구 — 발행 가능", "세금계산서 발행 요구 — 내 프로필은 발행 불가"),
+    ):
+        if key in needs:
+            (met if ok else review).append(label if ok else missing)
+
+    if intent.basis == "inferred" and intent.value == "buyer_project":
+        review.insert(0, "의뢰 표현 추정 — 원문 확인")
 
     if exclude:
         recommendation = "excluded"
@@ -451,7 +483,8 @@ def analyze(
     else:
         recommendation = "recommended"
 
-    positives: list[str] = []
+    # Profile-satisfied requirements lead the positives so the 3-reason cap keeps them.
+    positives: list[str] = list(met)
     if intent.value in ("buyer_project", "buyer_ongoing") and intent.basis in ("explicit", "user_confirmed"):
         positives.append("지속 의뢰 명시" if intent.value == "buyer_ongoing" else "구매 의뢰 명시")
     if work.value == "fully_remote" and work.basis in ("explicit", "user_confirmed"):

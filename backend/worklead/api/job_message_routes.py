@@ -1,7 +1,7 @@
 """User-started browser session. No remote chat API or credential input."""
 from typing import Literal
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Response
 from pydantic import BaseModel, ConfigDict
 
 from ..jobs.messages import MessageStatus, runtime
@@ -22,6 +22,14 @@ def router():
             return ctx._jobs_chrome_runtime.status()
         return runtime(ctx).status()
 
+    from ..jobs.chat_view import ChatView
+
+    @routes.get("/inbox", response_model=ChatView)
+    def inbox(request: Request, response: Response):
+        response.headers["Cache-Control"] = "no-store"
+        ctx = request.app.state.ctx
+        return ctx._jobs_chrome_runtime.chat_view() if ctx._jobs_chrome_runtime is not None else ChatView()
+
     @routes.post("/start", response_model=MessageStatus)
     def start(body: StartMessageWatch, request: Request):
         from ..jobs.applications import ApplicationError
@@ -29,6 +37,8 @@ def router():
         with ctx.ai_control_lock:
             if ctx._jobs_chrome_runtime is not None and ctx._jobs_chrome_runtime.status().enabled:
                 raise ApplicationError(409, "message_watch_active", "크롬 감시를 먼저 중지한 뒤 Edge를 연결하세요")
+            if ctx._jobs_message_pairing_runtime is not None:
+                ctx._jobs_message_pairing_runtime.disable()
             ctx.jobs_message_provider = "edge"
             return runtime(ctx).start()
 

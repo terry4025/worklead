@@ -9,6 +9,23 @@ export function discoveryDelaySeconds(lead: LeadSummary): number | null {
   return delay !== null && Number.isFinite(delay) && delay >= 0 ? delay : null;
 }
 
+/** 게시 후 경과 구간. 게시 시각이 없으면 판단하지 않는다 (최초 발견일로 대신하지 않음). */
+export type PostAge = 'fresh' | 'recent' | 'stale' | 'unknown';
+export const FRESH_HOURS = 24;
+export const STALE_HOURS = 72;
+
+export function postAgeHours(lead: LeadSummary, now: Date): number | null {
+  if (!lead.published.at) return null;
+  const hours = (now.getTime() - Date.parse(lead.published.at)) / 3_600_000;
+  return Number.isFinite(hours) ? Math.max(0, hours) : null;
+}
+
+export function postAge(lead: LeadSummary, now: Date): PostAge {
+  const hours = postAgeHours(lead, now);
+  if (hours === null) return 'unknown';
+  return hours < FRESH_HOURS ? 'fresh' : hours >= STALE_HOURS ? 'stale' : 'recent';
+}
+
 export function durationLabel(seconds: number): string {
   if (seconds < 60) return '1분 미만';
   const minutes = Math.floor(seconds / 60);

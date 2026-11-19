@@ -721,7 +721,7 @@ class PolicyReviewIn(Model):
 
 class SourcePatch(Model):
     auto_collect_enabled: bool | None = None
-    interval_minutes: int | None = Field(default=None, ge=15, le=10080)
+    interval_minutes: int | None = Field(default=None, ge=5, le=10080)
     clear_stop: bool | None = Field(default=None, description="차단으로 정지된 소스를 사용자가 확인 후 해제")
     policy: PolicyReviewIn | None = None
 
@@ -801,6 +801,9 @@ class ProfileSettings(Model):
     weekly_hours: int | None = Field(ge=0, le=168)
     onsite: Literal["no", "first_meeting", "yes"]
     allow_short_term_employment: bool
+    business_registered: bool = False
+    tax_invoice: bool = False
+    portfolio_url: str = Field(default="https://www.seyj.kr/", max_length=300, pattern=r"^https://[^\s]+$")
 
 
 class QuietHours(Model):
@@ -935,6 +938,10 @@ class QueryGroup(Model):
     keywords: list[str]
 
 
+class CollectionSettings(Model):
+    prevent_sleep: bool = False
+
+
 class QueryGroups(Model):
     version: int
     groups: list[QueryGroup]
@@ -947,6 +954,7 @@ class SettingsOut(Model):
     ai: AISettings
     retention: dict[Literal["raw_days"], int]
     query_groups: QueryGroups
+    collection: CollectionSettings = CollectionSettings()
 
 
 class SettingsPatch(Model):
@@ -956,6 +964,7 @@ class SettingsPatch(Model):
     ai: AISettingsPatch | None = None
     retention: dict[Literal["raw_days"], int] | None = None
     query_groups: list[QueryGroup] | None = None
+    collection: CollectionSettings | None = None
 
 # ── 가져오기·내보내기·지표·부트스트랩 ─────────────────────────────────
 class ImportIn(Model):

@@ -30,13 +30,28 @@ def analysis(tail, source=None, title=TITLE, feedback=None):
     return result
 
 
+def assert_time_pay_review(result):
+    """2026-11-07: remote dev request with a time wage → review, caution, time_pay penalty (never auto-apply)."""
+    assert result.recommendation == "needs_review"
+    assert any("표기" in reason.text and reason.tone == "caution" for reason in result.reasons)
+    assert any(f.key == "time_pay" for f in result.factors)
+
+
 @pytest.mark.parametrize("wage", [
     "매달 200만원 지급", "건당 20,000원/1시간", "건당 40,000원/2시간", "건당 150,000원(1일)",
-    "건당 100만원/1개월", "건당 50만원/1주", "건당 1000만원/1년",
+    "건당 100만원/1개월", "건당 50만원/1주",
 ])
 @pytest.mark.parametrize("source", [None, "건당 80만원"])
-def test_explicit_time_rates_never_enter_review_or_recommended(wage, source):
+def test_explicit_time_rates_go_to_review_never_recommended(wage, source):
     result = analysis(wage, source)
+    assert_time_pay_review(result)
+    if source:
+        assert result.pay.raw == source and (result.pay.min, result.pay.max) == (800_000, 800_000)
+
+
+@pytest.mark.parametrize("source", [None, "건당 80만원"])
+def test_explicit_annual_rate_never_enters_review_or_recommended(source):
+    result = analysis("건당 1000만원/1년", source)
     assert result.recommendation == "excluded"
     assert result.reasons and all(reason.tone == "negative" for reason in result.reasons)
     if source:
@@ -78,13 +93,22 @@ def test_explicit_delivery_duration_is_not_monthly_payment(duration, source):
 @pytest.mark.parametrize("tail", [
     "호스팅 비용 월 2만원. 제작 예산 80만원. 월급 200만원 지급.",
     "호스팅비 외 월급 200만원 지급. 제작 예산 80만원.",
-    "제작 기간은 한 달 예상. 시급 2만원 지급. 제작 예산 80만원.",
     "웹사이트 유지보수 의뢰합니다. 매달 200만원 지급. 제작 예산 80만원.",
+])
+def test_non_wage_context_exemptions_never_hide_real_wages(tail):
+    result = analysis(tail, "건당 80만원")
+    assert_time_pay_review(result)
+    assert result.pay.raw == "건당 80만원" and result.pay.min == 800_000
+    assert len(result.reasons) <= 3
+
+
+@pytest.mark.parametrize("tail", [
+    "제작 기간은 한 달 예상. 시급 2만원 지급. 제작 예산 80만원.",
     "쇼핑몰 관리를 하실 분을 구합니다. 상세페이지 제작. 건당 80만원.",
     "Salary: USD 2000 per month. 제작 예산 80만원.",
     "Salary: 200만원. 제작 예산 80만원.",
 ])
-def test_non_wage_context_exemptions_never_hide_real_wages_or_operations(tail):
+def test_non_wage_context_exemptions_never_hide_hiring_salary_or_operations(tail):
     result = analysis(tail, "건당 80만원")
     assert result.recommendation == "excluded"
     assert len(result.reasons) <= 3
@@ -106,14 +130,17 @@ def synthetic_page(body, pay):
 
 
 @pytest.mark.parametrize("source", ["건당 20,000원/1시간", "건당 150,000원(1일)", "매달 200만원 지급", "Salary: USD 2000 per month"])
-def test_daangn_source_rate_remains_excluded_despite_body_project_amount(source):
+def test_daangn_source_rate_is_kept_despite_body_project_amount(source):
     body = BASE + "제작 예산 80만원."
     html = synthetic_page(body, source)
     parsed = create().parse(PostRef(URL, "fixture00001"), FetchResult(URL, URL, 200, "ok", html), NOW)
     result = analyze(PostInput(title=parsed.title, body=parsed.body, observed_at=NOW, first_seen_at=NOW,
                                last_checked_at=NOW, source_status=parsed.source_status, pay_hint=parsed.pay),
                      Profile(services=["website"]), NOW)
-    assert result.recommendation == "excluded"
+    if source.startswith("Salary"):
+        assert result.recommendation == "excluded"
+    else:
+        assert_time_pay_review(result)
     assert result.pay.raw == source
     assert result.pay.min == parse_pay(source).min, "Keep the displayed rate; do not convert it to project revenue."
     assert parsed.body == body
@@ -132,10 +159,10 @@ def test_user_confirmation_never_overrides_explicit_salary(salary):
 
 
 @pytest.mark.parametrize("wage", ["월급 200만원", "일급 15만원", "시급 2만원", "매달 200만원 지급", "건당 20,000원/1시간"])
-def test_title_only_time_wage_is_excluded_despite_project_metadata(wage):
+def test_title_only_time_wage_goes_to_review_despite_project_metadata(wage):
     result = analysis("제작 예산 80만원.", "건당 80만원", title=TITLE + " " + wage,
                       feedback={"remote": "confirmed", "real_request": "yes"})
-    assert result.recommendation == "excluded"
+    assert_time_pay_review(result)
     assert result.pay.raw == "건당 80만원" and result.pay.min == 800_000
 
 

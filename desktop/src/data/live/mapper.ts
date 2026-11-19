@@ -268,6 +268,9 @@ export function mapSettings(x: C.SettingsOut): SettingsView {
       weeklyHours: x.profile.weekly_hours,
       onsite: x.profile.onsite,
       allowShortTermEmployment: x.profile.allow_short_term_employment,
+      businessRegistered: x.profile.business_registered ?? false,
+      taxInvoice: x.profile.tax_invoice ?? false,
+      portfolioUrl: x.profile.portfolio_url ?? 'https://www.seyj.kr/',
     },
     recheck: { ttlHours: x.recheck.ttl_hours ?? 24 },
     notifications: {
@@ -295,6 +298,7 @@ export function mapSettings(x: C.SettingsOut): SettingsView {
       databaseGeneration: x.ai.database_generation ?? 0,
     },
     retention: { rawDays: x.retention.raw_days ?? 30 },
+    collection: { preventSleep: x.collection?.prevent_sleep ?? false },
     queryGroups: { version: x.query_groups.version, groups: x.query_groups.groups.map((g) => ({ id: g.id, label: g.label, enabled: g.enabled, keywords: g.keywords })) },
   };
 }
@@ -311,6 +315,9 @@ export function settingsPatchToContract(p: Parameters<import('../port').Worklead
       weekly_hours: p.profile.weeklyHours,
       onsite: p.profile.onsite,
       allow_short_term_employment: p.profile.allowShortTermEmployment,
+      business_registered: p.profile.businessRegistered,
+      tax_invoice: p.profile.taxInvoice,
+      portfolio_url: p.profile.portfolioUrl,
     };
   if (p.recheck) out.recheck = { ttl_hours: p.recheck.ttlHours };
   if (p.notifications)
@@ -323,6 +330,7 @@ export function settingsPatchToContract(p: Parameters<import('../port').Worklead
       quiet_hours: p.notifications.quietHours,
     };
   if (p.retention) out.retention = { raw_days: p.retention.rawDays };
+  if (p.collection) out.collection = { prevent_sleep: p.collection.preventSleep };
   if (p.ai) {
     const ai: Record<string, boolean | number | string | null> = {};
     if (p.ai.enabled !== undefined) ai.enabled = p.ai.enabled;

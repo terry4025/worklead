@@ -931,6 +931,27 @@
         }
       }
     },
+    "/v1/jobs/messages/inbox": {
+      "get": {
+        "tags": [
+          "job-messages"
+        ],
+        "summary": "Inbox",
+        "operationId": "inbox_v1_jobs_messages_inbox_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/jobs/messages/start": {
       "post": {
         "tags": [
@@ -1025,7 +1046,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/StartMessageWatch"
+                "$ref": "#/components/schemas/ChromeStartIn"
               }
             }
           },
@@ -1069,6 +1090,172 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MessageStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/messages/chrome/forget": {
+      "post": {
+        "tags": [
+          "job-messages"
+        ],
+        "summary": "Forget",
+        "operationId": "forget_v1_jobs_messages_chrome_forget_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/auto-apply/status": {
+      "get": {
+        "tags": [
+          "job-auto-apply"
+        ],
+        "summary": "Status",
+        "operationId": "status_v1_jobs_auto_apply_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutoApplyStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/auto-apply/setup": {
+      "post": {
+        "tags": [
+          "job-auto-apply"
+        ],
+        "summary": "Setup",
+        "operationId": "setup_v1_jobs_auto_apply_setup_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AutoApplyStartIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutoApplyStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/auto-apply/start": {
+      "post": {
+        "tags": [
+          "job-auto-apply"
+        ],
+        "summary": "Start",
+        "operationId": "start_v1_jobs_auto_apply_start_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AutoApplyStartIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutoApplyStartOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/auto-apply/stop": {
+      "post": {
+        "tags": [
+          "job-auto-apply"
+        ],
+        "summary": "Stop",
+        "operationId": "stop_v1_jobs_auto_apply_stop_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutoApplyStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/auto-apply/forget": {
+      "post": {
+        "tags": [
+          "job-auto-apply"
+        ],
+        "summary": "Forget",
+        "operationId": "forget_v1_jobs_auto_apply_forget_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutoApplyStatus"
                 }
               }
             }
@@ -6161,6 +6348,412 @@
         ],
         "title": "AppNotice"
       },
+      "AutoApplyStartIn": {
+        "properties": {
+          "confirm": {
+            "type": "boolean",
+            "const": true,
+            "title": "Confirm"
+          },
+          "remember_connection": {
+            "type": "boolean",
+            "title": "Remember Connection",
+            "default": false
+          },
+          "min_score": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Min Score",
+            "default": 50
+          },
+          "daily_limit": {
+            "type": "integer",
+            "maximum": 200.0,
+            "minimum": 1.0,
+            "title": "Daily Limit",
+            "default": 20
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "confirm"
+        ],
+        "title": "AutoApplyStartIn"
+      },
+      "AutoApplyStartOut": {
+        "properties": {
+          "connection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AutoConnection"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/AutoApplyStatus"
+          },
+          "extension_directory": {
+            "type": "string",
+            "title": "Extension Directory"
+          }
+        },
+        "type": "object",
+        "required": [
+          "connection",
+          "status",
+          "extension_directory"
+        ],
+        "title": "AutoApplyStartOut"
+      },
+      "AutoApplyStatus": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "chrome",
+              "managed_edge"
+            ],
+            "title": "Provider",
+            "default": "chrome"
+          },
+          "setup_stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Setup Stage"
+          },
+          "browser_open": {
+            "type": "boolean",
+            "title": "Browser Open",
+            "default": false
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": false
+          },
+          "remembers_connection": {
+            "type": "boolean",
+            "title": "Remembers Connection",
+            "default": false
+          },
+          "paired": {
+            "type": "boolean",
+            "title": "Paired",
+            "default": false
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "stopped",
+              "waiting",
+              "connected",
+              "paused"
+            ],
+            "title": "State",
+            "default": "stopped"
+          },
+          "min_score": {
+            "type": "integer",
+            "title": "Min Score",
+            "default": 50
+          },
+          "daily_limit": {
+            "type": "integer",
+            "title": "Daily Limit",
+            "default": 20
+          },
+          "today_submitted": {
+            "type": "integer",
+            "title": "Today Submitted",
+            "default": 0
+          },
+          "today_reserved": {
+            "type": "integer",
+            "title": "Today Reserved",
+            "default": 0
+          },
+          "held": {
+            "type": "integer",
+            "title": "Held",
+            "default": 0
+          },
+          "uncertain": {
+            "type": "integer",
+            "title": "Uncertain",
+            "default": 0
+          },
+          "last_connected_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Connected At"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "자동 지원이 꺼져 있습니다"
+          },
+          "attempts": {
+            "items": {
+              "$ref": "#/components/schemas/AutoAttemptOut"
+            },
+            "type": "array",
+            "title": "Attempts"
+          },
+          "queue_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Queue Reason"
+          },
+          "needs_user_action": {
+            "type": "boolean",
+            "title": "Needs User Action",
+            "default": false
+          },
+          "retry_waiting": {
+            "type": "integer",
+            "title": "Retry Waiting",
+            "default": 0
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/AutoCandidateOut"
+            },
+            "type": "array",
+            "title": "Candidates"
+          }
+        },
+        "type": "object",
+        "title": "AutoApplyStatus"
+      },
+      "AutoAttemptOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "lead_id": {
+            "type": "string",
+            "title": "Lead Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "claimed",
+              "ready",
+              "submitting",
+              "submitted",
+              "already_applied",
+              "held",
+              "uncertain"
+            ],
+            "title": "State"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Code"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "retry_count": {
+            "type": "integer",
+            "title": "Retry Count",
+            "default": 0
+          },
+          "retry_after": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retry After"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "lead_id",
+          "title",
+          "state",
+          "reason_code",
+          "created_at",
+          "finished_at"
+        ],
+        "title": "AutoAttemptOut"
+      },
+      "AutoCandidateOut": {
+        "properties": {
+          "lead_id": {
+            "type": "string",
+            "title": "Lead Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "source_refresh",
+              "rejected",
+              "form_review",
+              "permit_issued",
+              "submitted",
+              "already_applied",
+              "retry_wait",
+              "held",
+              "uncertain"
+            ],
+            "title": "Stage"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Code"
+          },
+          "retry_count": {
+            "type": "integer",
+            "title": "Retry Count",
+            "default": 0
+          },
+          "retry_after": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retry After"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "refresh_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refresh State"
+          },
+          "refresh_error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refresh Error Code"
+          },
+          "last_checked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Checked At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lead_id",
+          "title",
+          "stage"
+        ],
+        "title": "AutoCandidateOut"
+      },
       "AutoCollect": {
         "properties": {
           "enabled": {
@@ -6186,6 +6779,37 @@
           "interval_minutes"
         ],
         "title": "AutoCollect"
+      },
+      "AutoConnection": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "purpose": {
+            "type": "string",
+            "const": "auto_apply",
+            "title": "Purpose",
+            "default": "auto_apply"
+          },
+          "version": {
+            "type": "integer",
+            "const": 1,
+            "title": "Version",
+            "default": 1
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "url",
+          "token"
+        ],
+        "title": "AutoConnection"
       },
       "BackupInspection": {
         "properties": {
@@ -7705,6 +8329,89 @@
         ],
         "title": "CategoryOut"
       },
+      "ChatView": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": false
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "off",
+              "waiting",
+              "visible",
+              "panel_closed",
+              "surface_unrecognized",
+              "login_required",
+              "stale",
+              "account_changed"
+            ],
+            "title": "State",
+            "default": "off"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "lead_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Id"
+          },
+          "lead_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Title"
+          },
+          "source": {
+            "type": "string",
+            "const": "visible_chat_panel",
+            "title": "Source",
+            "default": "visible_chat_panel"
+          },
+          "persists_body": {
+            "type": "boolean",
+            "const": false,
+            "title": "Persists Body",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "ChatView"
+      },
       "ChromeConnection": {
         "properties": {
           "url": {
@@ -7727,7 +8434,18 @@
       "ChromeStart": {
         "properties": {
           "connection": {
-            "$ref": "#/components/schemas/ChromeConnection"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChromeConnection"
+              },
+              {
+                "$ref": "#/components/schemas/RememberedChromeConnection"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connection"
           },
           "status": {
             "$ref": "#/components/schemas/MessageStatus"
@@ -7744,6 +8462,31 @@
           "extension_directory"
         ],
         "title": "ChromeStart"
+      },
+      "ChromeStartIn": {
+        "properties": {
+          "confirm": {
+            "type": "boolean",
+            "const": true,
+            "title": "Confirm"
+          },
+          "capture_visible_chat": {
+            "type": "boolean",
+            "title": "Capture Visible Chat",
+            "default": false
+          },
+          "remember_connection": {
+            "type": "boolean",
+            "title": "Remember Connection",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "confirm"
+        ],
+        "title": "ChromeStartIn"
       },
       "CollaborationAssessed": {
         "properties": {
@@ -7853,6 +8596,18 @@
           "ai_cost_krw"
         ],
         "title": "CollectionMetrics"
+      },
+      "CollectionSettings": {
+        "properties": {
+          "prevent_sleep": {
+            "type": "boolean",
+            "title": "Prevent Sleep",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "CollectionSettings"
       },
       "Coverage": {
         "properties": {
@@ -9729,6 +10484,16 @@
             "title": "Enabled",
             "default": false
           },
+          "remembers_connection": {
+            "type": "boolean",
+            "title": "Remembers Connection",
+            "default": false
+          },
+          "paired": {
+            "type": "boolean",
+            "title": "Paired",
+            "default": false
+          },
           "state": {
             "type": "string",
             "enum": [
@@ -10595,6 +11360,23 @@
           "allow_short_term_employment": {
             "type": "boolean",
             "title": "Allow Short Term Employment"
+          },
+          "business_registered": {
+            "type": "boolean",
+            "title": "Business Registered",
+            "default": false
+          },
+          "tax_invoice": {
+            "type": "boolean",
+            "title": "Tax Invoice",
+            "default": false
+          },
+          "portfolio_url": {
+            "type": "string",
+            "maxLength": 300,
+            "pattern": "^https://[^\\s]+$",
+            "title": "Portfolio Url",
+            "default": "https://www.seyj.kr/"
           }
         },
         "additionalProperties": false,
@@ -11186,6 +11968,37 @@
           "related_lead"
         ],
         "title": "RelationUpdateOut"
+      },
+      "RememberedChromeConnection": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "purpose": {
+            "type": "string",
+            "const": "messages",
+            "title": "Purpose"
+          },
+          "version": {
+            "type": "integer",
+            "const": 1,
+            "title": "Version"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "url",
+          "token",
+          "purpose",
+          "version"
+        ],
+        "title": "RememberedChromeConnection"
       },
       "Research": {
         "properties": {
@@ -11957,6 +12770,12 @@
           },
           "query_groups": {
             "$ref": "#/components/schemas/QueryGroups"
+          },
+          "collection": {
+            "$ref": "#/components/schemas/CollectionSettings",
+            "default": {
+              "prevent_sleep": false
+            }
           }
         },
         "additionalProperties": false,
@@ -12050,6 +12869,16 @@
               }
             ],
             "title": "Query Groups"
+          },
+          "collection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CollectionSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -12358,7 +13187,7 @@
               {
                 "type": "integer",
                 "maximum": 10080.0,
-                "minimum": 15.0
+                "minimum": 5.0
               },
               {
                 "type": "null"
@@ -12588,7 +13417,8 @@
     "securitySchemes": {
       "bearer": {
         "type": "http",
-        "scheme": "bearer"
+        "scheme": "bearer",
+        "description": "실행마다 바뀌는 토큰 (Tauri 브리지로 전달)"
       }
     }
   },
@@ -12597,7 +13427,8 @@
       "url": "http://127.0.0.1:{port}",
       "variables": {
         "port": {
-          "default": "0"
+          "default": "0",
+          "description": "실행마다 바뀌는 임의 포트"
         }
       }
     }

@@ -1,6 +1,8 @@
 {
   "provider": "chrome",
   "enabled": true,
+  "remembers_connection": false,
+  "paired": false,
   "state": "starting",
   "unread_count": null,
   "last_observed_at": null,

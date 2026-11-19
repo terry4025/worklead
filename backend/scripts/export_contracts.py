@@ -193,6 +193,20 @@ def jobs_only() -> None:
 
 
 def main() -> None:
+    if "--auto-apply-only" in sys.argv:
+        from worklead.jobs.auto_apply_models import AutoApplyStartIn, AutoApplyStartOut, AutoApplyStatus, AutoAttemptOut, AutoConnection
+        with tempfile.TemporaryDirectory(prefix="worklead-auto-apply-contracts-") as tmp:
+            ctx = make_ctx(Path(tmp), dev=True)
+            try:
+                c = client_for(ctx)
+                write_openapi(c.app)
+                for model in (AutoApplyStartIn, AutoApplyStartOut, AutoApplyStatus, AutoAttemptOut, AutoConnection, S.SourcePatch):
+                    dump(OUT / "schemas" / f"{model.__name__}.schema.json", model.model_json_schema())
+                dump(OUT / "fixtures" / "auto-apply-stopped.json", c.get("/v1/jobs/auto-apply/status").json())
+            finally:
+                ctx.db.dispose()
+        print("auto-apply contracts written; no pairing secret exported; unrelated fixtures preserved")
+        return
     if "--telegram-only" in sys.argv:
         from worklead.services.telegram import TelegramStatus, TelegramTokenIn
         with tempfile.TemporaryDirectory(prefix="worklead-telegram-contracts-") as tmp:
@@ -207,13 +221,15 @@ def main() -> None:
         return
     if "--chrome-only" in sys.argv:
         from worklead.jobs.messages import MessageStatus
-        from worklead.api.job_chrome_routes import ChromeConnection, ChromeStart
+        from worklead.jobs.chat_view import ChatView
+        from worklead.api.job_chrome_routes import ChromeConnection, ChromeStart, ChromeStartIn
         with tempfile.TemporaryDirectory(prefix="worklead-chrome-contracts-") as tmp:
             ctx = make_ctx(Path(tmp), dev=True)
             try:
                 write_openapi(client_for(ctx).app)
-                for model in (MessageStatus, ChromeConnection, ChromeStart):
+                for model in (MessageStatus, ChromeConnection, ChromeStart, ChromeStartIn, ChatView):
                     dump(OUT / "schemas" / f"{model.__name__}.schema.json", model.model_json_schema())
+                dump(OUT / "fixtures" / "job-chat-view.json", client_for(ctx).get("/v1/jobs/messages/inbox").json())
                 dump(OUT / "fixtures" / "chrome-message-waiting.json", MessageStatus(provider="chrome", state="starting", enabled=True,
                      message="크롬 확장 연결 대기 중입니다. 선택한 당근 탭을 연결하세요").model_dump(mode="json"))
             finally:

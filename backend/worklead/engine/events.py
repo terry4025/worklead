@@ -37,6 +37,11 @@ class EventHub:
             self._version += 1
             self._cond.notify_all()
 
+    def current_version(self) -> int:
+        """Snapshot notifications without blocking a browser's event pump."""
+        with self._cond:
+            return self._version
+
     def wait(self, seen_version: int, timeout: float) -> int:
         with self._cond:
             if self._version == seen_version:

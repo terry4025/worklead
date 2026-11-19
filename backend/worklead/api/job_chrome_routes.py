@@ -1,6 +1,8 @@
 """Main-app-authenticated setup for the separate Chrome observation bridge."""
+from __future__ import annotations
 from fastapi import APIRouter, Request, Response
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StrictBool
+from typing import Literal
 
 from ..jobs.chrome_bridge import runtime
 from ..jobs.messages import MessageStatus
@@ -14,10 +16,20 @@ class ChromeConnection(BaseModel):
     token: str = Field(repr=False)
 
 
+class RememberedChromeConnection(ChromeConnection):
+    purpose: Literal["messages"]
+    version: Literal[1]
+
+
 class ChromeStart(BaseModel):
-    connection: ChromeConnection
+    connection: ChromeConnection | RememberedChromeConnection | None
     status: MessageStatus
     extension_directory: str
+
+
+class ChromeStartIn(StartMessageWatch):
+    capture_visible_chat: StrictBool = False
+    remember_connection: StrictBool = False
 
 
 def router():
@@ -28,7 +40,7 @@ def router():
         return runtime(request.app.state.ctx).status()
 
     @routes.post("/start", response_model=ChromeStart)
-    def start(body: StartMessageWatch, request: Request, response: Response):
+    def start(body: ChromeStartIn, request: Request, response: Response):
         from ..jobs.chrome_extension import prepare_extension_directory
         app = request.app.state.ctx
         with app.ai_control_lock:
@@ -37,8 +49,8 @@ def router():
                 raise ApplicationError(409, "edge_watch_active", "전용 Edge 감시를 중지한 뒤 기존 크롬을 연결하세요")
             directory = prepare_extension_directory(app.config.data_dir)
             bridge = runtime(app)
-            bridge.stop()
-            result = bridge.start()
+            bridge.shutdown()
+            result = bridge.start(capture_visible_chat=body.capture_visible_chat, remember_connection=body.remember_connection)
             app.jobs_message_provider = "chrome"
             result["extension_directory"] = str(directory)
         response.headers["Cache-Control"] = "no-store"
@@ -46,6 +58,15 @@ def router():
 
     @routes.post("/stop", response_model=MessageStatus)
     def stop(request: Request):
-        return runtime(request.app.state.ctx).stop()
+        app = request.app.state.ctx
+        with app.ai_control_lock:
+            return runtime(app).stop()
+
+    @routes.post("/forget", response_model=MessageStatus)
+    def forget(request: Request, response: Response):
+        response.headers["Cache-Control"] = "no-store"
+        app = request.app.state.ctx
+        with app.ai_control_lock:
+            return runtime(app).forget()
 
     return routes

@@ -1,0 +1,86 @@
+{
+  "properties": {
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "lead_id": {
+      "title": "Lead Id",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "claimed",
+        "ready",
+        "submitting",
+        "submitted",
+        "already_applied",
+        "held",
+        "uncertain"
+      ],
+      "title": "State",
+      "type": "string"
+    },
+    "reason_code": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Reason Code"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "finished_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Finished At"
+    },
+    "retry_count": {
+      "default": 0,
+      "title": "Retry Count",
+      "type": "integer"
+    },
+    "retry_after": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Retry After"
+    }
+  },
+  "required": [
+    "id",
+    "lead_id",
+    "title",
+    "state",
+    "reason_code",
+    "created_at",
+    "finished_at"
+  ],
+  "title": "AutoAttemptOut",
+  "type": "object"
+}

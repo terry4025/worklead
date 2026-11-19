@@ -1,4 +1,5 @@
 import { Database, HelpCircle, Settings } from 'lucide-react';
+import type { ReactNode } from 'react';
 import type { RunInfo, SourceInfo, StreamStatus } from '../../domain/model';
 import { SCENARIOS, type ScenarioId } from '../../data/mock/scenarios';
 import { formatRelative } from '../../domain/format';
@@ -41,6 +42,7 @@ export function TopBar({
   onSettings,
   onHelp,
   now,
+  children,
 }: {
   mode: 'demo' | 'live';
   scenario: ScenarioId | null;
@@ -52,6 +54,8 @@ export function TopBar({
   onSettings: () => void;
   onHelp: () => void;
   now: Date;
+  /** 작업 공간 전환. 노선 띠 안에 둔다. */
+  children?: ReactNode;
 }) {
   const running = runs.find((r) => r.state === 'running' || r.state === 'queued');
   const runningSource = running?.sourceId ? sources.find((source) => source.id === running.sourceId)?.name ?? running.sourceId : null;
@@ -81,12 +85,15 @@ export function TopBar({
         ) : null}
       </div>
 
-      <button type="button" className="run-summary" onClick={onCollection} title={cov.title}>
+      {children}
+
+      <button type="button" className="run-summary" onClick={onCollection} title={running?.progress.label ? `${running.progress.label}\n${cov.title}` : cov.title}>
         {running ? (
           <>
             <span className="run-pulse" aria-hidden="true" />
             <span>
-              {runningSource ? `${runningSource} · ` : ''}{runKindLabel[running.kind]} {running.state === 'queued' ? '대기' : '진행 중'} {running.progress.label ? `· ${running.progress.label}` : ''} ·{' '}
+              {/* 진행 문구의 검색어 설명은 길어서 지역 이름만 보이고 전체 문구는 툴팁에 둔다 */}
+              {runningSource ? `${runningSource} · ` : ''}{runKindLabel[running.kind]} {running.state === 'queued' ? '대기' : '진행 중'} {running.progress.label ? `· ${running.progress.label.split(' · ')[0]}` : ''} ·{' '}
               <span className="num">
                 {running.progress.done}/{running.progress.total ?? '?'}
               </span>

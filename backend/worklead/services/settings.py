@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, update
 from sqlalchemy.dialects.sqlite import insert
 
-from ..analysis.types import Profile
+from ..analysis.types import NON_SCORING_PROFILE_KEYS, Profile
 from ..db import utcnow
 from ..models import AppSetting, UserProfile, AnalysisResult, Lead
 
@@ -26,7 +26,7 @@ DEFAULT_QUERY_GROUPS: dict[str, Any] = {
             "id": "automation",
             "label": "자동화 수요",
             "enabled": True,
-            "keywords": ["엑셀", "VBA", "매크로", "자동화", "업무툴", "데이터 정리", "보고서 자동화", "API 연동"],
+            "keywords": ["엑셀", "VBA", "매크로", "자동화", "업무툴", "데이터 정리", "보고서 자동화", "API 연동", "구글시트", "스프레드시트"],
         },
         {
             "id": "buyer_intent",
@@ -75,6 +75,7 @@ DEFAULTS: dict[str, Any] = {
     "telegram": {"enabled": False, "chat_id": None, "connected_at": None},
     "ai_revision": 0,
     "retention": {"raw_days": 30},
+    "collection": {"prevent_sleep": False},
     "query_groups": DEFAULT_QUERY_GROUPS,
     #: 이 seq 이하의 일반 이벤트는 정리됨 → 이보다 앞에서 이어받으려 하면 전체 재조회
     "events_trimmed_through": 0,
@@ -89,6 +90,9 @@ DEFAULT_PROFILE: dict[str, Any] = {
     "weekly_hours": None,
     "onsite": "no",
     "allow_short_term_employment": False,
+    "business_registered": False,
+    "tax_invoice": False,
+    "portfolio_url": "https://www.seyj.kr/",
 }
 
 
@@ -129,11 +133,11 @@ def advance_ai_revision(s: Session, expected: int) -> int:
 
 
 def stop_pending_ai(s: Session) -> list[str]:
-    pending = select(AnalysisResult.id).where(AnalysisResult.engine == "ai:openai", AnalysisResult.status == "pending")
+    pending = select(AnalysisResult.id).where(AnalysisResult.engine.like("ai:%"), AnalysisResult.status == "pending")
     ids = list(s.scalars(select(Lead.id).where(Lead.analysis_id.in_(pending), Lead.analysis_status == "pending")))
     changed = s.execute(update(Lead).where(Lead.analysis_id.in_(pending), Lead.analysis_status == "pending")
                         .values(analysis_status="rules_only").execution_options(synchronize_session=False)).rowcount
-    s.execute(update(AnalysisResult).where(AnalysisResult.engine == "ai:openai", AnalysisResult.status == "pending")
+    s.execute(update(AnalysisResult).where(AnalysisResult.engine.like("ai:%"), AnalysisResult.status == "pending")
               .values(status="rules_only").execution_options(synchronize_session=False))
     return ids if changed else []
 
@@ -169,6 +173,9 @@ def get_profile(s: Session) -> Profile:
         weekly_hours=data["weekly_hours"],
         onsite=data["onsite"],
         allow_short_term_employment=bool(data.get("allow_short_term_employment", False)),
+        business_registered=bool(data["business_registered"]),
+        tax_invoice=bool(data["tax_invoice"]),
+        portfolio_url=data["portfolio_url"] or "",
         version=row.version,
     )
 
@@ -176,10 +183,13 @@ def get_profile(s: Session) -> Profile:
 def update_profile(s: Session, data: dict[str, Any]) -> bool:
     """변경되면 True (버전 증가 → 분석 캐시 무효화)."""
     row = get_profile_row(s)
-    merged = {**DEFAULT_PROFILE, **(row.data or {}), **data}
-    if merged == {**DEFAULT_PROFILE, **(row.data or {})}:
+    before = {**DEFAULT_PROFILE, **(row.data or {})}
+    merged = {**before, **data}
+    if merged == before:
         return False
     row.data = merged
+    if {k for k in merged if merged[k] != before.get(k)} <= NON_SCORING_PROFILE_KEYS:
+        return False  # saved, but scoring inputs are unchanged: no version bump, no reanalysis
     row.version += 1
     return True
 

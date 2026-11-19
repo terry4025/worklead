@@ -11,6 +11,7 @@ import { ApplicationWorkspace } from '../features/jobs/ApplicationWorkspace';
 import { LeadDetailPane, type DetailHandle } from '../features/detail/LeadDetailPane';
 import { CurrencyTotals } from '../features/detail/Records';
 import { IssueStrip, deriveIssues } from '../features/header/IssueStrip';
+import { AutoApplyLine } from '../features/leads/Metro';
 import { TopBar } from '../features/header/TopBar';
 import { ShortcutHelp } from '../features/help/ShortcutHelp';
 import { DEFAULT_FILTER, FilterBar, isDefaultFilter } from '../features/leads/FilterBar';
@@ -106,6 +107,10 @@ export function Workspace() {
     window.setTimeout(() => detailRef.current?.focus(), 0);
   }, []);
   const live = useLiveEvents(openLead, () => setWorkspace('jobs'));
+  useEffect(() => {
+    // 자동 반영으로 행이 다른 대기열로 이동해도 현재 상세·편집 내용을 유지한다.
+    if (live.listStale && selectedId) pinnedRef.current = selectedId;
+  }, [live.listStale, selectedId]);
 
   const setFilter = useCallback(
     (f: LeadFilter) => {
@@ -297,10 +302,13 @@ export function Workspace() {
         onSettings={() => setSettingsOpen(true)}
         onHelp={() => setHelpOpen(true)}
         now={now}
-      />
+      >
+        <nav className="workspace-switch" aria-label="작업 공간"><Button pressed={workspace === 'leads'} onClick={() => setWorkspace('leads')}>리드</Button><Button pressed={workspace === 'jobs'} onClick={() => setWorkspace('jobs')}>지원 준비·메시지</Button><Button pressed={workspace === 'cafe'} onClick={() => setWorkspace('cafe')}>카페</Button></nav>
+      </TopBar>
       <IssueStrip issues={issues} />
-      <nav className="workspace-switch" aria-label="작업 공간"><Button pressed={workspace === 'leads'} onClick={() => setWorkspace('leads')}>리드</Button><Button pressed={workspace === 'jobs'} onClick={() => setWorkspace('jobs')}>지원 준비·메시지</Button><Button pressed={workspace === 'cafe'} onClick={() => setWorkspace('cafe')}>카페</Button></nav>
       {workspace === 'jobs' ? <ApplicationWorkspace now={now} onSettings={() => setSettingsOpen(true)} onOpenLead={(id) => { setWorkspace('leads'); changeView('all'); void qc.invalidateQueries({ queryKey: qk.leadsAll }); void qc.invalidateQueries({ queryKey: ['counts'] }); openLead(id); }} /> : workspace === 'cafe' ? <CafeWorkspace onOpenLead={(id) => { setWorkspace('leads'); changeView('all'); void qc.invalidateQueries({ queryKey: qk.leadsAll }); void qc.invalidateQueries({ queryKey: ['counts'] }); openLead(id); }} /> : <>
+
+      <AutoApplyLine onOpenJobs={() => setWorkspace('jobs')} onOpenLead={(id) => { changeView('all'); void qc.invalidateQueries({ queryKey: qk.leadsAll }); openLead(id); }} />
 
       <div className="toolbar">
         <QueueTabs view={view} onChange={changeView} counts={counts.data} />
@@ -327,10 +335,10 @@ export function Workspace() {
       <main className={`work${showDetail ? ' has-detail' : ''}${!wide && overlayOpen ? ' is-overlay' : ''}`} style={wide ? ({ '--list-w': `${listPct}%` } as React.CSSProperties) : undefined}>
         <div className="pane-list" role="tabpanel" aria-label={viewDef.label}>
           {live.newLeads > 0 || live.listStale ? (
-            <div className="new-banner" role="status">
-              <span>{live.newLeads > 0 ? `새 리드 ${live.newLeads}건이 들어왔습니다` : '새 수집·재확인 결과가 있습니다'}</span>
-              <Button size="sm" variant="primary" icon={<RefreshCw size={13} />} onClick={refreshAll}>
-                목록에 반영 (F5)
+            <div className={`new-banner${live.newLeads > 0 ? ' has-new' : ''}`} role="status">
+              <span>{live.newLeads > 0 ? `새 리드 ${live.newLeads}건 · 목록 자동 반영 중` : '새 결과 자동 반영 · 오류 시 자동 재시도'}</span>
+              <Button size="sm" variant={live.newLeads > 0 ? 'primary' : 'ghost'} icon={<RefreshCw size={13} />} onClick={refreshAll}>
+                다시 불러오기
               </Button>
             </div>
           ) : null}

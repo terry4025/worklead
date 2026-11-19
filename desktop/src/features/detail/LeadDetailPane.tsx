@@ -19,6 +19,7 @@ import { SourceText, type Mark } from './SourceText';
 import { RelatedRecordsPanel } from './RelatedRecordsPanel';
 import { AiInterpretationPanel } from './AiInterpretationPanel';
 import { LeadTiming } from '../leads/LeadTiming';
+import { JourneyLine } from '../leads/Metro';
 import { ApplicationAssessment } from '../jobs/ApplicationWorkspace';
 
 export interface DetailHandle {
@@ -191,6 +192,7 @@ export const LeadDetailPane = forwardRef<
           </button>
         ) : null}
         <h2 className="detail-title">{lead.title}</h2>
+        <JourneyLine lead={lead} />
         <p className="detail-meta">
           <span>{source?.name ?? lead.sourceId}</span>
           {lead.postedRegion ? <span>{lead.postedRegion}</span> : null}

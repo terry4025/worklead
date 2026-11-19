@@ -1,0 +1,10 @@
+{
+  "enabled": false,
+  "state": "off",
+  "text": null,
+  "observed_at": null,
+  "lead_id": null,
+  "lead_title": null,
+  "source": "visible_chat_panel",
+  "persists_body": false
+}

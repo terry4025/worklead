@@ -1,6 +1,6 @@
 //! Worklead 데스크톱 셸.
 //!
-//! 책임: 백엔드 sidecar 시작 → 준비 줄 수신 → 웹뷰에 연결 정보 제공, 비정상 종료 시 제한된 재시작,
+//! 책임: 백엔드 sidecar 시작 → 준비 줄 수신 → 웹뷰에 연결 정보 제공, 비정상 종료 시 지연 재시작,
 //! 앱 종료 시 자식 프로세스 정리. 백엔드는 --sidecar 로 실행되어 stdin 이 닫히면 스스로 종료한다.
 //!
 //! 보안: 토큰은 메모리에만 두고 로그에 쓰지 않는다. 웹뷰에는 프로세스 실행(shell) 권한을 주지 않는다.
@@ -20,7 +20,7 @@ mod desktop;
 mod notifications;
 use desktop::{desktop_exit, desktop_hide, get_desktop_settings, update_desktop_settings};
 
-const MAX_RESTARTS: u32 = 3;
+const FAST_RESTARTS: u32 = 3;
 const READY_TIMEOUT: Duration = Duration::from_secs(45);
 
 #[derive(Clone, Serialize)]
@@ -177,7 +177,7 @@ fn spawn_backend(app: &AppHandle, expected_generation: Option<u32>) {
                 ChildAction::Continue => {}
                 ChildAction::Stop => break,
                 ChildAction::Restart(attempt) => {
-                    tokio::time::sleep(Duration::from_secs(2u64.pow(attempt))).await;
+                    tokio::time::sleep(restart_delay(attempt)).await;
                     spawn_backend(&app, Some(generation));
                     break;
                 }
@@ -190,6 +190,15 @@ enum ChildAction {
     Continue,
     Stop,
     Restart(u32),
+}
+
+fn restart_delay(attempt: u32) -> Duration {
+    let seconds = if attempt <= FAST_RESTARTS {
+        2u64.pow(attempt)
+    } else {
+        (120u64 * 2u64.pow((attempt - FAST_RESTARTS - 1).min(3))).min(900)
+    };
+    Duration::from_secs(seconds)
 }
 
 fn process_event(
@@ -221,17 +230,16 @@ fn process_event(
         CommandEvent::Error(err) => log::error!("backend process error: {err}"),
         CommandEvent::Terminated(payload) => {
             backend.child.lock().expect("child lock").take();
-            let attempt = backend.restarts.fetch_add(1, Ordering::SeqCst) + 1;
-            if attempt > MAX_RESTARTS {
-                backend.state.send_replace(BackendState::Failed(format!(
-                            "백엔드가 반복해서 종료되어 재시작을 멈췄습니다 (종료 코드 {:?}). 로그 폴더를 확인하세요.",
-                            payload.code
-                        )));
+            // Explicit startup failures (invalid DB/configuration or another
+            // instance) need attention; a crash after readiness is transient.
+            if matches!(*backend.state.borrow(), BackendState::Failed(_)) {
                 return ChildAction::Stop;
             }
+            let attempt = backend.restarts.fetch_update(Ordering::SeqCst, Ordering::SeqCst,
+                |value| Some(value.saturating_add(1))).unwrap().saturating_add(1);
             log::warn!(
-                "backend exited (code {:?}); restart {attempt}/{MAX_RESTARTS}",
-                payload.code
+                "backend exited (code {:?}); restart {attempt} in {}s",
+                payload.code, restart_delay(attempt).as_secs()
             );
             backend.state.send_replace(BackendState::Starting);
             return ChildAction::Restart(attempt);
@@ -341,7 +349,7 @@ mod tests {
     #[test]
     fn ready_does_not_reset_repeated_crash_budget() {
         let backend = Backend::new();
-        for attempt in 1..=MAX_RESTARTS {
+        for attempt in 1..=FAST_RESTARTS {
             backend.restarts.store(attempt, Ordering::SeqCst);
             handle_line(
                 &backend,
@@ -352,10 +360,10 @@ mod tests {
     }
 
     #[test]
-    fn fourth_crash_stops_even_if_every_process_became_ready() {
+    fn repeated_crashes_keep_recovering_with_capped_delays() {
         let backend = Backend::new();
         let mut buf = String::new();
-        for attempt in 1..=MAX_RESTARTS + 1 {
+        for attempt in 1..=12 {
             let generation = backend.generation.fetch_add(1, Ordering::SeqCst) + 1;
             process_event(
                 &backend,
@@ -374,13 +382,22 @@ mod tests {
                     signal: None,
                 }),
             );
-            if attempt <= MAX_RESTARTS {
-                assert!(matches!(action, ChildAction::Restart(n) if n == attempt));
-            } else {
-                assert!(matches!(action, ChildAction::Stop));
-                assert!(matches!(*backend.state.borrow(), BackendState::Failed(_)));
-            }
+            assert!(matches!(action, ChildAction::Restart(n) if n == attempt));
+            assert!(restart_delay(attempt) <= Duration::from_secs(900));
         }
+        assert_eq!(restart_delay(4), Duration::from_secs(120));
+        assert_eq!(restart_delay(u32::MAX), Duration::from_secs(900));
+    }
+
+    #[test]
+    fn explicit_startup_failure_is_not_retried() {
+        let backend = Backend::new();
+        let generation = backend.generation.load(Ordering::SeqCst);
+        handle_line(&backend, r#"{"event":"error","code":"already_running","message":"running"}"#);
+        assert!(matches!(process_event(&backend, generation, &mut String::new(),
+            CommandEvent::Terminated(tauri_plugin_shell::process::TerminatedPayload {
+                code: Some(3), signal: None,
+            })), ChildAction::Stop));
     }
 
     #[test]
@@ -391,7 +408,7 @@ mod tests {
             &backend,
             r#"{"event":"ready","port":41111,"token":"old-session"}"#,
         );
-        backend.restarts.store(MAX_RESTARTS, Ordering::SeqCst);
+        backend.restarts.store(FAST_RESTARTS, Ordering::SeqCst);
         let next = backend.prepare_restart().unwrap();
         assert_ne!(next, old);
         assert_eq!(backend.restarts.load(Ordering::SeqCst), 0);

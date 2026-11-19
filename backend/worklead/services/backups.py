@@ -154,6 +154,10 @@ def restore_backup(app: AppContext, backup_id: str, sha256: str) -> S.RestoreOut
             current_budgets = [{"host": row.host, "window": row.window, "used": row.used, "limit": row.limit,
                                 "last_request_at": row.last_request_at}
                                for row in s.scalars(select(HostBudget).where(HostBudget.window == datetime.now(UTC).strftime("%Y-%m-%d")))]
+        from ..jobs.auto_pairing import revoke_for_restore
+        revoke_for_restore(app)
+        from ..jobs.message_pairing import revoke_for_restore as revoke_messages
+        revoke_messages(app)
         app.db.dispose()
         try:
             safety = restore_database(path, app.config.db_path, app.config.backup_dir,

@@ -40,33 +40,35 @@ test('content sampler reads labels only, never clicks, and cleans up before rein
 
 test('worker binds one selected top-level jobs tab; never forwards content-supplied URLs or secrets', async () => {
   const memory = {};
-  let listener, fetches = [], injected = [];
+  let listeners = [], fetches = [], injected = [];
   globalThis.chrome = {
-    runtime: {getURL:name=>'chrome-extension://test/'+name,onMessage:{addListener:fn=>{listener=fn;}}},
+    runtime: {getURL:name=>'chrome-extension://test/'+name,onMessage:{addListener:fn=>{listeners.push(fn);}}},
     storage:{session:{async get(name) {return {[name]:memory[name]};},async set(values) {Object.assign(memory,values);},async remove(keys) {for(const key of keys)delete memory[key];}}},
     permissions:{contains:async()=>true},
-    tabs:{query:async()=>[{id:7,url:'https://jobs.daangn.com/'}],sendMessage:async()=>{},onRemoved:{addListener(){}}},
-    scripting:{executeScript:async value=>{injected.push(value);}},
+    tabs:{query:async()=>[{id:7,url:'https://jobs.daangn.com/'}],get:async()=>({id:7,url:'https://jobs.daangn.com/'}),sendMessage:async()=>{},onRemoved:{addListener(){}}},
+    scripting:{executeScript:async value=>{injected.push(value);return value.files?[{frameId:0}]:[{result:{state:'account',account_hash:'b'.repeat(64),sample:{state:'watching',unread_count:0}}}];}},
+    alarms:{onAlarm:{addListener(){}},get:async()=>undefined,clear:async()=>true,create:async()=>{}},
   };
   const originalFetch=globalThis.fetch;
-  globalThis.fetch=async(url,options)=>{fetches.push({url,options});return {ok:true};};
+  globalThis.fetch=async(url,options)=>{fetches.push({url,options});return {ok:true,json:async()=>new URL(url).pathname==='/ping'?{purpose:'messages',version:1}:{accepted:true}};};
   await import('../worklead-messages/worker.js');
-  const dispatch=(message,sender)=>new Promise(resolve=>{if(listener(message,sender,resolve)===false)resolve(undefined);});
+  const dispatch=(message,sender)=>new Promise(resolve=>{if(!listeners.some(listener=>listener(message,sender,resolve)===true))resolve(undefined);});
   try {
     const popup={url:'chrome-extension://test/popup.html'};
     assert.ok((await dispatch({type:'connect',code:JSON.stringify(code)},popup)).ok);
     assert.deepEqual(injected[0].target,{tabId:7,allFrames:false});
+    assert.deepEqual(fetches.map(x=>new URL(x.url).pathname),['/ping','/observe']);
     const message={type:'unread-sample',sample:{state:'watching',unread_count:2}};
     for(const sender of [{tab:{id:8},frameId:0,url:'https://jobs.daangn.com/'},{tab:{id:7},frameId:1,url:'https://jobs.daangn.com/'},{tab:{id:7},frameId:0,url:'https://example.org/'}]) assert.equal((await dispatch(message,sender)).ok,false);
     const sender={tab:{id:7},frameId:0,url:'https://jobs.daangn.com/'};
     assert.equal((await dispatch({...message,sample:{...message.sample,url:'https://evil.invalid'}},sender)).ok,false);
-    assert.equal(fetches.length,0);
+    assert.equal(fetches.length,2);
     await dispatch(message,sender); await dispatch(message,sender);
-    assert.equal(fetches.length,2); assert.equal(fetches[0].url,code.url+'/observe');
-    assert.equal(JSON.parse(fetches[1].options.body).sequence,2);
-    assert.equal(fetches[0].options.credentials,'omit');
-    assert.deepEqual(Object.keys(JSON.parse(fetches[0].options.body)).sort(),['sequence','state','unread_count']);
-    assert.ok(!JSON.stringify(JSON.parse(fetches[0].options.body)).includes(code.token));
+    assert.equal(fetches.length,4); const observations=fetches.filter(x=>x.url.endsWith('/observe')); assert.equal(observations[0].url,code.url+'/observe');
+    assert.equal(JSON.parse(observations[2].options.body).sequence,3);
+    assert.equal(observations[0].options.credentials,'omit');
+    assert.deepEqual(Object.keys(JSON.parse(observations[0].options.body)).sort(),['account_hash','sequence','state','unread_count']);
+    assert.ok(!JSON.stringify(JSON.parse(observations[0].options.body)).includes(code.token));
     await dispatch({type:'disconnect'},popup); assert.equal(memory.bridge,undefined);
   } finally {globalThis.fetch=originalFetch;delete globalThis.chrome;}
 });

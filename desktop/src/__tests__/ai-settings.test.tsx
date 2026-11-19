@@ -57,6 +57,13 @@ function enablePrerequisites() {
 }
 
 describe('선택 AI 설정과 비밀 입력', () => {
+  it('EXAONE 선택지와 제공자 저장 대기 문구가 없고 OpenAI 키 칸은 바로 쓸 수 있다', async () => {
+    await harness();
+    expect(screen.queryByText(/EXAONE/)).toBeNull();
+    expect(screen.queryByText('제공자를 저장한 뒤 키를 입력하세요.')).toBeNull();
+    expect((screen.getByLabelText('OpenAI API 키') as HTMLInputElement).disabled).toBe(false);
+  });
+
   it('기본 꺼짐이며 일반 설정 저장은 키/AI 요청을 보내지 않는다', async () => {
     const { save, remove, update } = await harness();
     const enabled = screen.getByRole('checkbox', { name: 'AI 보조 분석 사용' }) as HTMLInputElement;

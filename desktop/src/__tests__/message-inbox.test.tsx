@@ -1,0 +1,33 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { act, render, screen } from '@testing-library/react';
+import { afterEach, expect, it, vi } from 'vitest';
+import { PortProvider } from '../app/PortContext';
+import { MockPort } from '../data/mock/mockPort';
+import { MessageInboxPanel } from '../features/jobs/MessageInboxPanel';
+
+let qc: QueryClient;
+afterEach(() => { qc?.clear(); vi.restoreAllMocks(); });
+it('새 내용은 새로고침 없이 바꾸며 오류·계정 변경·관찰 지연 시 숨긴다', async () => {
+  const port = new MockPort({ scenario: 'normal', latency: [0,0] });
+  const value = { enabled:true,state:'visible' as const,text:'합성 답장 <img src=x onerror=alert(1)>',observed_at:'2026-10-25T07:00:00Z',lead_id:null,lead_title:null,source:'visible_chat_panel' as const,persists_body:false as const };
+  const read = vi.spyOn(port.jobs, 'messagesInbox').mockResolvedValue(value);
+  qc = new QueryClient({defaultOptions:{queries:{retry:false}}});
+  const ui = render(<QueryClientProvider client={qc}><PortProvider value={{port,mode:'live',scenario:null,setScenario:()=>undefined}}><MessageInboxPanel now={new Date('2026-10-25T07:00:00Z')} onOpenLead={vi.fn()} /></PortProvider></QueryClientProvider>);
+  await screen.findByText(value.text);
+  expect(ui.container.querySelector('img')).toBeNull();
+  expect(screen.getByText(/특정 지원에 대한 답장으로 단정하지/)).toBeTruthy();
+  await act(async()=>{qc.setQueryData(['jobs','messages','inbox'],{...value,text:'다음 합성 답장'});});
+  await screen.findByText('다음 합성 답장');
+  await act(async()=>{qc.setQueryData(['jobs','messages','inbox'],{...value,state:'stale',text:null});});
+  await screen.findByText('관찰 지연 · 이전 내용 숨김');
+  expect(screen.queryByText('다음 합성 답장')).toBeNull();
+  await act(async()=>{qc.setQueryData(['jobs','messages','inbox'],{...value,state:'account_changed',text:null});});
+  await screen.findByText('계정 변경 · 다시 연결 필요');
+  expect(screen.queryByText(value.text)).toBeNull();
+  await act(async()=>{qc.setQueryData(['jobs','messages','inbox'],value);});
+  await screen.findByText(value.text);
+  read.mockRejectedValue(new Error('local connection lost'));
+  await act(async()=>{await qc.invalidateQueries({queryKey:['jobs','messages','inbox']});});
+  await screen.findByText('연결 상태 확인 실패 · 내용 숨김');
+  expect(screen.queryByText(value.text)).toBeNull();
+});
